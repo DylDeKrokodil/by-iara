@@ -1,0 +1,152 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/fraunces-latin-wght-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./fonts/fraunces-latin-wght-italic.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: light;
+
+  --byiara-color-plum-950: #24111c;
+  --byiara-color-plum-800: #4a2539;
+  --byiara-color-plum-600: #755267;
+  --byiara-color-plum-400: #a17b91;
+  --byiara-color-blush-50: #fff5fa;
+  --byiara-color-blush-100: #fce7f1;
+  --byiara-color-blush-200: #fcc2db;
+  --byiara-color-rose-700: #c2185b;
+  --byiara-color-rose-600: #e11d74;
+  --byiara-color-rose-100: #ffe3ef;
+  --byiara-color-orchid-500: #8f4da4;
+  --byiara-color-copper-500: #b8664f;
+  --byiara-color-amber-300: #f0bd65;
+  --byiara-color-mist-100: #f6edf3;
+  --byiara-color-white: #ffffff;
+
+  --byiara-color-background: var(--byiara-color-blush-50);
+  --byiara-color-surface: var(--byiara-color-white);
+  --byiara-color-surface-muted: var(--byiara-color-blush-100);
+  --byiara-color-text: var(--byiara-color-plum-950);
+  --byiara-color-text-muted: var(--byiara-color-plum-600);
+  --byiara-color-primary: var(--byiara-color-rose-600);
+  --byiara-color-primary-hover: var(--byiara-color-rose-700);
+  --byiara-color-accent: var(--byiara-color-orchid-500);
+  --byiara-color-border: var(--byiara-color-blush-200);
+  --byiara-color-focus: var(--byiara-color-amber-300);
+  --byiara-color-danger: #b12f4d;
+  --byiara-color-success: #35785f;
+
+  --byiara-font-family-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --byiara-font-family-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+
+  --byiara-font-size-xs: 0.75rem;
+  --byiara-font-size-sm: 0.875rem;
+  --byiara-font-size-base: 1rem;
+  --byiara-font-size-lg: 1.125rem;
+  --byiara-font-size-xl: 1.25rem;
+  --byiara-font-size-2xl: 1.5rem;
+  --byiara-font-size-3xl: 2rem;
+  --byiara-font-size-4xl: 2.75rem;
+
+  --byiara-line-height-tight: 1.1;
+  --byiara-line-height-title: 1.2;
+  --byiara-line-height-body: 1.6;
+
+  --byiara-font-weight-regular: 400;
+  --byiara-font-weight-medium: 500;
+  --byiara-font-weight-semibold: 600;
+  --byiara-font-weight-bold: 700;
+
+  --byiara-space-2xs: 0.25rem;
+  --byiara-space-xs: 0.5rem;
+  --byiara-space-sm: 0.75rem;
+  --byiara-space-md: 1rem;
+  --byiara-space-lg: 1.5rem;
+  --byiara-space-xl: 2rem;
+  --byiara-space-2xl: 3rem;
+  --byiara-space-3xl: 4rem;
+
+  --byiara-radius-sm: 0.375rem;
+  --byiara-radius-md: 0.5rem;
+  --byiara-radius-lg: 0.75rem;
+  --byiara-radius-pill: 999px;
+
+  --byiara-shadow-sm: 0 1px 2px rgb(36 17 28 / 8%);
+  --byiara-shadow-md: 0 18px 45px rgb(36 17 28 / 12%);
+
+  --byiara-container-sm: 40rem;
+  --byiara-container-md: 64rem;
+  --byiara-container-lg: 76rem;
+}
+
+.byiara-theme-admin {
+  --byiara-color-background: #fff5fa;
+  --byiara-color-surface-muted: var(--byiara-color-mist-100);
+  --byiara-color-primary: #8f1f52;
+  --byiara-color-primary-hover: #741842;
+  --byiara-color-accent: var(--byiara-color-copper-500);
+}
+
+html {
+  min-height: 100%;
+  background: var(--byiara-color-background);
+  font-family: var(--byiara-font-family-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--byiara-color-background);
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-base);
+  line-height: var(--byiara-line-height-body);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--byiara-color-focus);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--byiara-color-rose-100);
+  color: var(--byiara-color-plum-950);
+}

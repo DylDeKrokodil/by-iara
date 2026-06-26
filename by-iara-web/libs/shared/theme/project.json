@@ -1,0 +1,26 @@
+{
+  "name": "theme",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/theme/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:theme"],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/libs/shared/theme",
+        "main": "libs/shared/theme/src/index.ts",
+        "tsConfig": "libs/shared/theme/tsconfig.lib.json",
+        "assets": [
+          "libs/shared/theme/*.md",
+          {
+            "glob": "**/*.css",
+            "input": "libs/shared/theme/src/styles",
+            "output": "styles"
+          }
+        ]
+      }
+    }
+  }
+}
