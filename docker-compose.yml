@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: by_iara
+      POSTGRES_USER: by_iara
+      POSTGRES_PASSWORD: by_iara
+    ports:
+      - "5432:5432"
+    volumes:
+      - by_iara_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U by_iara -d by_iara"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./by-iara-api
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/by_iara
+      DATABASE_USERNAME: by_iara
+      DATABASE_PASSWORD: by_iara
+      ADMIN_TOKEN_TTL_SECONDS: 3600
+      ADMIN_JWT_ISSUER: by-iara-api
+      ADMIN_JWT_SECRET: local-docker-development-secret-must-be-at-least-32-bytes
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  by_iara_postgres_data:

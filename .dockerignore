@@ -1,0 +1,10 @@
+.git/
+.DS_Store
+.gradle/
+build/
+node_modules/
+dist/
+*.tsbuildinfo
+by-iara-api/.gradle/
+by-iara-api/build/
+by-iara-api/.idea/
