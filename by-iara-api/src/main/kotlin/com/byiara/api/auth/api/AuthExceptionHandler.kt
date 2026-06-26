@@ -12,7 +12,7 @@ class AuthExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException::class)
     fun handleInvalidCredentials(exception: InvalidCredentialsException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-            ApiErrorResponse(message = exception.message ?: "Invalid username or password"),
+            ApiErrorResponse(message = exception.message ?: "Invalid email or password"),
         )
 }
 

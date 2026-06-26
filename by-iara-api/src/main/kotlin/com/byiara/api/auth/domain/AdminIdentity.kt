@@ -1,7 +1,7 @@
 package com.byiara.api.auth.domain
 
 data class AdminIdentity(
-    val username: String,
+    val email: String,
     val role: AdminRole,
 )
 

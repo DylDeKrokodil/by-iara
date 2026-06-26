@@ -4,11 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "by-iara.auth")
 data class AdminAuthProperties(
-    val admin: AdminCredentialsProperties = AdminCredentialsProperties(),
     val tokenTtlSeconds: Long = 3600,
-)
-
-data class AdminCredentialsProperties(
-    val username: String = "admin",
-    val password: String = "ChangeMe123!",
+    val jwtIssuer: String = "by-iara-api",
+    val jwtSecret: String = "local-development-secret-must-be-at-least-32-bytes",
 )
