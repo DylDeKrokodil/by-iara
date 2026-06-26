@@ -100,11 +100,11 @@
 }
 
 .byiara-theme-admin {
-  --byiara-color-background: #fff5fa;
+  /* --byiara-color-background: #fff5fa;
   --byiara-color-surface-muted: var(--byiara-color-mist-100);
   --byiara-color-primary: #8f1f52;
   --byiara-color-primary-hover: #741842;
-  --byiara-color-accent: var(--byiara-color-copper-500);
+  --byiara-color-accent: var(--byiara-color-copper-500); */
 }
 
 html {
