@@ -1,0 +1,24 @@
+<div class="admin-shell byiara-theme-admin">
+  <aside class="sidebar" aria-label="Admin navigation">
+    <p class="brand">By Iara</p>
+    <nav>
+      @for (item of navItems; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (admin(); as currentAdmin) {
+        <p class="signed-in">
+          <span>Signed in as</span>
+          <strong>{{ currentAdmin.email }}</strong>
+        </p>
+      }
+      <button type="button" class="logout" (click)="logout()">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <router-outlet></router-outlet>
+  </main>
+</div>

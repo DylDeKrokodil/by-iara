@@ -1,0 +1,106 @@
+.admin-shell {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--byiara-color-background);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  padding: var(--byiara-space-xl);
+  border-right: 1px solid var(--byiara-color-border);
+  background: var(--byiara-color-surface);
+}
+
+.brand {
+  margin: 0 0 var(--byiara-space-xl);
+  color: var(--byiara-color-primary);
+  font-family: var(--byiara-font-family-display);
+  font-size: var(--byiara-font-size-2xl);
+  font-weight: var(--byiara-font-weight-bold);
+}
+
+nav {
+  display: grid;
+  gap: var(--byiara-space-xs);
+}
+
+nav a {
+  padding: var(--byiara-space-sm) var(--byiara-space-md);
+  border-radius: var(--byiara-radius-md);
+  color: var(--byiara-color-text-muted);
+  font-weight: var(--byiara-font-weight-medium);
+  text-decoration: none;
+}
+
+nav a:hover {
+  background: var(--byiara-color-surface-muted);
+  color: var(--byiara-color-text);
+}
+
+nav a.active {
+  background: var(--byiara-color-surface-muted);
+  color: var(--byiara-color-primary);
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--byiara-space-lg);
+}
+
+.signed-in {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-2xs);
+  margin: 0 0 var(--byiara-space-sm);
+}
+
+.signed-in span {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.signed-in strong {
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+  word-break: break-all;
+}
+
+.logout {
+  width: 100%;
+  min-height: 2.5rem;
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.logout:hover {
+  background: var(--byiara-color-surface-muted);
+}
+
+.workspace {
+  min-width: 0;
+  padding: var(--byiara-space-xl);
+}
+
+@media (max-width: 48rem) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--byiara-color-border);
+  }
+
+  nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sidebar-footer {
+    margin-top: var(--byiara-space-lg);
+  }
+}
