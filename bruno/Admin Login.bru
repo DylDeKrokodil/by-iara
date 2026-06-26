@@ -12,8 +12,14 @@ post {
 
 body:json {
   {
-    "username": "admin",
+    "email": "admin@by-iara.local",
     "password": "ChangeMe123!"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body?.accessToken) {
+    bru.setEnvVar("accessToken", res.body.accessToken);
   }
 }
 
@@ -21,8 +27,9 @@ tests {
   test("returns access token", function () {
     expect(res.status).to.equal(200);
     expect(res.body.tokenType).to.equal("Bearer");
-    expect(res.body.admin.username).to.equal("admin");
+    expect(res.body.admin.email).to.equal("admin@by-iara.local");
     expect(res.body.admin.role).to.equal("ADMIN");
     expect(res.body.accessToken).to.be.a("string");
+    expect(res.body.accessToken.split(".")).to.have.length(3);
   });
 }
