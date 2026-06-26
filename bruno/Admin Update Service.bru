@@ -1,0 +1,34 @@
+meta {
+  name: Admin Update Service
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/admin/services/{{serviceId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "name": "Deep Tissue Massage",
+    "description": "Updated description",
+    "active": true,
+    "variants": [
+      { "durationMinutes": 45, "priceCents": 6500 },
+      { "durationMinutes": 60, "priceCents": 8000 }
+    ]
+  }
+}
+
+tests {
+  test("updates the service and replaces its variants", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.variants).to.have.length(2);
+  });
+}
