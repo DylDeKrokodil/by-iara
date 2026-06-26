@@ -1,0 +1,13 @@
+node_modules
+dist
+tmp
+out-tsc
+.nx
+.angular
+.git
+.idea
+.vscode
+__screenshots__
+*.log
+Dockerfile
+.dockerignore
