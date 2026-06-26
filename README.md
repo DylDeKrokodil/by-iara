@@ -1,5 +1,30 @@
 # By Iara
 
+## Web
+
+The frontend lives in the Nx Angular workspace at [by-iara-web](/Users/dylan/Developer/by-iara/by-iara-web).
+
+Run the public website locally:
+
+```bash
+cd by-iara-web
+pnpm nx serve website --port=4200
+```
+
+Run the admin dashboard locally:
+
+```bash
+cd by-iara-web
+pnpm nx serve admin --port=4201
+```
+
+Validate the workspace:
+
+```bash
+cd by-iara-web
+pnpm nx run-many -t lint,test,build --projects=theme,website,admin
+```
+
 ## API
 
 Run the API locally:
