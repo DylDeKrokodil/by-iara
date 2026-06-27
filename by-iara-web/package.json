@@ -2,7 +2,12 @@
   "name": "@by-iara-web/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev:admin": "nx serve admin --host=0.0.0.0 --port=4201",
+    "dev:website": "nx serve website --host=0.0.0.0 --port=4300",
+    "build:admin": "nx build admin",
+    "build:website": "nx build website"
+  },
   "private": true,
   "dependencies": {
     "@angular-devkit/build-angular": "~21.2.0",
@@ -18,6 +23,8 @@
     "rxjs": "~7.8.0"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "~2.1.2",
+    "@analogjs/vitest-angular": "~2.1.2",
     "@angular-devkit/core": "~21.2.0",
     "@angular-devkit/schematics": "~21.2.0",
     "@angular/build": "~21.2.0",
@@ -35,6 +42,7 @@
     "@nx/vitest": "23.0.1",
     "@nx/web": "23.0.1",
     "@nx/workspace": "23.0.1",
+    "@oxc-project/runtime": "^0.115.0",
     "@playwright/test": "^1.37.0",
     "@schematics/angular": "~21.2.0",
     "@swc/helpers": "~0.5.18",
@@ -42,6 +50,7 @@
     "@types/node": "^22.0.0",
     "@typescript-eslint/utils": "^8.40.0",
     "@vitest/coverage-v8": "~4.1.0",
+    "@vitest/ui": "~4.1.0",
     "angular-eslint": "^21.2.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",

@@ -1,11 +1,11 @@
 package com.byiara.api.auth.api
 
 import com.byiara.api.auth.domain.InvalidCredentialsException
+import com.byiara.api.common.api.ApiErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import java.time.OffsetDateTime
 
 @RestControllerAdvice
 class AuthExceptionHandler {
@@ -15,8 +15,3 @@ class AuthExceptionHandler {
             ApiErrorResponse(message = exception.message ?: "Invalid email or password"),
         )
 }
-
-data class ApiErrorResponse(
-    val message: String,
-    val timestamp: OffsetDateTime = OffsetDateTime.now(),
-)

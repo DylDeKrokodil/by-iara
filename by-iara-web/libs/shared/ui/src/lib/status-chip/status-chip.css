@@ -1,0 +1,55 @@
+:host {
+  display: inline-flex;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--byiara-radius-pill);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-semibold);
+  line-height: 1;
+}
+
+.badge::before {
+  content: "";
+  display: inline-block;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+}
+
+.badge-on {
+  background: rgba(53, 120, 95, 0.08);
+  color: var(--byiara-color-success);
+  border: 1px solid rgba(53, 120, 95, 0.18);
+}
+
+.badge-on::before {
+  background: var(--byiara-color-success);
+  animation: pulse-active 2s infinite;
+}
+
+.badge-off {
+  background: rgba(117, 82, 103, 0.08);
+  color: var(--byiara-color-text-muted);
+  border: 1px solid rgba(117, 82, 103, 0.18);
+}
+
+.badge-off::before {
+  background: var(--byiara-color-text-muted);
+}
+
+@keyframes pulse-active {
+  0% {
+    box-shadow: 0 0 0 0 rgba(53, 120, 95, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 4px rgba(53, 120, 95, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(53, 120, 95, 0);
+  }
+}

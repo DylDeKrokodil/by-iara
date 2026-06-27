@@ -1,0 +1,68 @@
+.confirmation-dialog {
+  border: 0;
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+  box-shadow: 0 10px 25px -5px rgba(36, 17, 28, 0.1), 0 8px 16px -6px rgba(36, 17, 28, 0.05);
+  padding: var(--byiara-space-xl);
+  max-width: 26rem;
+  width: 90%;
+  color: var(--byiara-color-text);
+  overflow: visible;
+}
+
+.confirmation-dialog[open] {
+  animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.confirmation-dialog::backdrop {
+  background-color: rgba(36, 17, 28, 0.35);
+  backdrop-filter: blur(2px);
+  animation: fade-in 0.2s ease-out;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-sm);
+}
+
+.dialog-title {
+  margin: 0;
+  font-family: var(--byiara-font-family-sans);
+  font-size: var(--byiara-font-size-lg);
+  font-weight: var(--byiara-font-weight-bold);
+  color: var(--byiara-color-text);
+}
+
+.dialog-message {
+  margin: 0 0 var(--byiara-space-sm);
+  font-size: var(--byiara-font-size-sm);
+  color: var(--byiara-color-text-muted);
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--byiara-space-sm);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

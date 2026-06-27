@@ -9,13 +9,13 @@ Build a scalable booking platform for By Iara with:
 - Spring Boot Kotlin API at `api.by-iara.com`
 - PostgreSQL as the primary database
 
-The first version should support browsing massage services, checking service area and availability, submitting reservation requests, and allowing admins to manage reservations and core business settings.
+The first version should support browsing massage services, checking availability, submitting reservation requests, and allowing admins to manage reservations and core business settings.
 
 ## 2. Guiding Principles
 
 - Keep domain boundaries clear from the start.
 - Avoid placing all reservation logic in one large controller or service.
-- Model the business explicitly: massage types, durations, prices, availability, regions, reservations, customers, notifications, and admin users.
+- Model the business explicitly: massage types, durations, prices, availability, reservations, customers, notifications, and admin users.
 - Use migrations for every database change.
 - Keep public API and admin API separated by route, authorization, validation, and response models.
 - Prefer simple, well-structured modules over premature microservices.
@@ -83,7 +83,6 @@ by-iara/
       massage/
       pricing/
       availability/
-      region/
       notification/
       common/
     src/main/resources/
@@ -143,13 +142,6 @@ availability
   AvailabilityAdminController
   AvailabilityService
 
-region
-  AllowedRegion
-  BlockedRegion
-  RegionController
-  RegionAdminController
-  RegionCheckService
-
 reservation
   Reservation
   ReservationController
@@ -194,8 +186,6 @@ discounts
 reservations
 availability_rules
 availability_blocks
-allowed_regions
-blocked_regions
 email_logs
 ```
 
@@ -216,13 +206,11 @@ Suggested table responsibilities:
 | `customers` | Customer contact details and normalized phone/email fields |
 | `massage_types` | Public service categories and descriptions |
 | `massage_durations` | Supported duration options, for example 60, 90, 120 minutes |
-| `massage_prices` | Price by massage type, duration, and optional region or date range |
+| `massage_prices` | Price by massage type, duration, and optional date range |
 | `discounts` | Promotional or manual discounts |
 | `reservations` | Customer booking requests and lifecycle status |
 | `availability_rules` | Recurring working schedule rules |
 | `availability_blocks` | One-off unavailable periods or overrides |
-| `allowed_regions` | Serviceable locations |
-| `blocked_regions` | Explicit exclusions or blocked postal codes |
 | `email_logs` | Outbound email audit trail and delivery status |
 
 ## 8. Reservation Status
@@ -262,7 +250,6 @@ Endpoints:
 ```text
 GET  /api/massage-types
 GET  /api/availability
-POST /api/service-area/check
 POST /api/reservations
 ```
 
@@ -270,7 +257,6 @@ Public API responsibilities:
 
 - Return only active, public massage types.
 - Return availability in a frontend-friendly format.
-- Validate whether a customer address, postal code, or region is serviceable.
 - Accept reservation requests, validate inputs, calculate expected price, persist with `PENDING` status, and trigger notification emails.
 
 ## 10. Admin API
@@ -320,14 +306,6 @@ POST   /api/admin/availability
 DELETE /api/admin/availability/{id}
 ```
 
-Regions:
-
-```text
-GET    /api/admin/regions
-POST   /api/admin/regions
-DELETE /api/admin/regions/{id}
-```
-
 Admin API responsibilities:
 
 - Require authentication on every endpoint except login.
@@ -342,13 +320,12 @@ Build the first version in this order:
 1. Project setup
 2. Database schema and migrations
 3. Massage types, durations, and prices
-4. Region check
-5. Availability
-6. Reservation request
-7. Admin login
-8. Admin reservation management
-9. Email notifications
-10. Production deployment baseline
+4. Availability
+5. Reservation request
+6. Admin login
+7. Admin reservation management
+8. Email notifications
+9. Production deployment baseline
 
 Do not start with every admin CRUD screen. Start with the minimum needed to operate bookings reliably.
 
@@ -390,23 +367,7 @@ Important rules:
 - Prices should be versionable or date-aware before the business needs complex pricing.
 - Reservation records should snapshot the selected service name, duration, and price at booking time.
 
-### Phase 3: Regions
-
-Deliverables:
-
-- `allowed_regions`
-- `blocked_regions`
-- `POST /api/service-area/check`
-- Admin region management.
-
-Important rules:
-
-- Keep region logic in `RegionCheckService`.
-- Support postal-code based checks first.
-- Design the service so distance-based checks can be added later.
-- Blocked regions should override allowed regions.
-
-### Phase 4: Availability
+### Phase 3: Availability
 
 Deliverables:
 
@@ -422,7 +383,7 @@ Important rules:
 - Availability responses should hide internal rule details from the public API.
 - Time zone should be explicit and consistent.
 
-### Phase 5: Reservations
+### Phase 4: Reservations
 
 Deliverables:
 
@@ -435,13 +396,13 @@ Deliverables:
 Important rules:
 
 - New reservations start as `PENDING`.
-- Validate massage type, duration, price, requested date/time, and service area.
+- Validate massage type, duration, price, and requested date/time.
 - Store customer details separately from reservation details.
 - Snapshot reservation price and service details.
 - Prevent invalid status transitions.
 - Send email notifications through a domain service, not directly from the controller.
 
-### Phase 6: Admin Authentication
+### Phase 5: Admin Authentication
 
 Deliverables:
 
@@ -458,7 +419,7 @@ Important rules:
 - Keep roles simple initially, for example `ADMIN`.
 - Design so `SUPER_ADMIN` or staff-level roles can be added later.
 
-### Phase 7: Notifications
+### Phase 6: Notifications
 
 Deliverables:
 
@@ -474,7 +435,7 @@ Important rules:
 - Do not block reservation persistence if email sending fails unless the business explicitly requires it.
 - Add retry support later if needed.
 
-### Phase 8: Frontend Website
+### Phase 7: Frontend Website
 
 Deliverables:
 
@@ -482,7 +443,6 @@ Deliverables:
 - Massage type display.
 - Reservation request form.
 - Availability selection.
-- Service area check.
 - Confirmation state after submission.
 
 Frontend rules:
@@ -492,7 +452,7 @@ Frontend rules:
 - Keep API client code shared and typed.
 - Do not expose admin-only fields or routes in public bundles.
 
-### Phase 9: Admin Dashboard
+### Phase 8: Admin Dashboard
 
 Deliverables:
 
@@ -503,7 +463,6 @@ Deliverables:
 - Massage type management.
 - Price management.
 - Availability management.
-- Region management.
 
 Frontend rules:
 
@@ -512,7 +471,7 @@ Frontend rules:
 - Use pagination and filters for reservation lists.
 - Keep state management simple until complexity justifies a heavier solution.
 
-### Phase 10: Deployment And Operations
+### Phase 9: Deployment And Operations
 
 Deliverables:
 
@@ -537,11 +496,10 @@ Important rules:
 V001__create_admin_users.sql
 V002__create_massage_catalog.sql
 V003__create_pricing.sql
-V004__create_regions.sql
-V005__create_availability.sql
-V006__create_customers.sql
-V007__create_reservations.sql
-V008__create_email_logs.sql
+V004__create_availability.sql
+V005__create_customers.sql
+V006__create_reservations.sql
+V007__create_email_logs.sql
 ```
 
 ## 14. Testing Strategy
@@ -563,7 +521,6 @@ Frontend:
 
 High-priority test cases:
 
-- Reservation cannot be created outside service area.
 - Reservation cannot be created for inactive massage type.
 - Reservation cannot be created for blocked availability.
 - Reservation snapshots price at creation time.
@@ -599,7 +556,6 @@ These should be decided before implementation starts:
 
 - Frontend framework for `by-iara-web`.
 - JWT versus HTTP-only session cookies for admin auth.
-- Postal-code based region checks versus distance/address based checks.
 - Payment support now or later.
 - Whether customers can cancel reservations themselves in v1.
 - Email provider.
@@ -612,7 +568,7 @@ These should be decided before implementation starts:
 3. Add PostgreSQL and Flyway.
 4. Implement database migrations for massage catalog and pricing.
 5. Build public `GET /api/massage-types`.
-6. Build region check and availability before accepting reservations.
+6. Build availability before accepting reservations.
 7. Add reservation request flow.
 8. Add admin login and reservation management.
 
