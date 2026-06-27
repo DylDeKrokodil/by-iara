@@ -1,16 +1,28 @@
-<main class="public-shell">
-  <section class="hero" aria-labelledby="page-title">
-    <p class="eyebrow">By Iara</p>
-    <h1 id="page-title">Massage bookings, built with room to grow.</h1>
-    <p class="lede">
-      The public website will use this shared theme for service pages,
-      availability, and reservation requests.
-    </p>
-    <div class="actions" aria-label="Primary actions">
-      <a class="button button-primary" href="/">Start booking</a>
-      <a class="button button-secondary" href="/">View services</a>
+<div class="site-frame">
+  <!-- Website Header -->
+  <header class="site-header">
+    <div class="header-container">
+      <a class="logo-link" routerLink="/">
+        <span class="logo-text">By Iara</span>
+      </a>
+      <nav class="header-nav">
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
+        <a routerLink="/services" routerLinkActive="active">Services</a>
+      </nav>
     </div>
-  </section>
-</main>
+  </header>
 
-<router-outlet></router-outlet>
+  <!-- Main Content Space -->
+  <main class="site-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Website Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <p class="footer-text">&copy; 2026 By Iara. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
+
+<byiara-toast-container></byiara-toast-container>
