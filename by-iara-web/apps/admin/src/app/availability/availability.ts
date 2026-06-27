@@ -12,12 +12,13 @@ import {
   ConfirmationModal,
   DataTable,
   DataTableColumn,
+  SelectField,
   ToastService,
 } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-availability',
-  imports: [ReactiveFormsModule, DataTable, ConfirmationModal],
+  imports: [ReactiveFormsModule, DataTable, ConfirmationModal, SelectField],
   templateUrl: './availability.html',
   styleUrl: './availability.css',
 })

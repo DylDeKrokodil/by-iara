@@ -39,15 +39,13 @@
 
         <form [formGroup]="ruleForm" (ngSubmit)="submitRule()" novalidate>
           <div class="form-group">
-            <label class="field">
-              <span>Day of the Week</span>
-              <select formControlName="dayOfWeek" [class.is-invalid]="ruleForm.get('dayOfWeek')?.invalid && ruleForm.get('dayOfWeek')?.touched">
-                <option value="" disabled selected>Select a day...</option>
-                @for (day of weekdays; track day.value) {
-                  <option [value]="day.value">{{ day.label }}</option>
-                }
-              </select>
-            </label>
+            <byiara-select-field
+              label="Day of the Week"
+              [options]="weekdays"
+              [value]="ruleForm.get('dayOfWeek')?.value ?? ''"
+              (valueChange)="ruleForm.get('dayOfWeek')?.setValue($event); ruleForm.get('dayOfWeek')?.markAsTouched()"
+            >
+            </byiara-select-field>
             @if (ruleForm.get('dayOfWeek')?.invalid && ruleForm.get('dayOfWeek')?.touched) {
               <span class="error-message">Day of week is required</span>
             }
