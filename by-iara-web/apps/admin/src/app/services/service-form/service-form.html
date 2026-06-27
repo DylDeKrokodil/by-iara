@@ -63,7 +63,7 @@
       <p class="section-subtitle">Define the durations and prices offered for this service.</p>
 
       <div class="variants-list">
-        @for (variant of variants.controls; track $index) {
+        @for (variant of variants.controls; track variant) {
           <div class="variant-card" [formGroupName]="$index">
             <div class="variant-fields">
               
