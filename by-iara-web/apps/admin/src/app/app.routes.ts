@@ -17,6 +17,27 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./dashboard/dashboard').then((m) => m.Dashboard),
       },
+      {
+        path: 'services',
+        loadComponent: () =>
+          import('./services/services-list/services-list').then(
+            (m) => m.ServicesList,
+          ),
+      },
+      {
+        path: 'services/new',
+        loadComponent: () =>
+          import('./services/service-form/service-form').then(
+            (m) => m.ServiceForm,
+          ),
+      },
+      {
+        path: 'services/:id',
+        loadComponent: () =>
+          import('./services/service-form/service-form').then(
+            (m) => m.ServiceForm,
+          ),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
