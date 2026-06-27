@@ -151,7 +151,7 @@ body {
 /* Shared Services Grid & Card Layout (Global) */
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--byiara-space-lg);
   align-items: stretch;
 }
@@ -283,7 +283,6 @@ body {
 /* Featured Card Highlights */
 .featured-card {
   border-color: var(--byiara-color-blush-200);
-  background: linear-gradient(180deg, var(--byiara-color-white), var(--byiara-color-blush-50));
   box-shadow: 0 4px 20px rgba(225, 29, 116, 0.04);
 }
 
@@ -293,14 +292,14 @@ body {
 }
 
 .featured-badge {
-  position: absolute;
-  top: var(--byiara-space-sm);
-  right: var(--byiara-space-sm);
+  align-self: flex-start;
   background: var(--byiara-color-rose-100);
   color: var(--byiara-color-primary);
   font-size: 0.65rem;
   font-weight: var(--byiara-font-weight-bold);
-  padding: var(--byiara-space-3xs) var(--byiara-space-xs);
+  line-height: 1;
+  margin-bottom: var(--byiara-space-sm);
+  padding: var(--byiara-space-2xs) var(--byiara-space-sm);
   border-radius: var(--byiara-radius-pill);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -309,6 +308,10 @@ body {
 @media (max-width: 48rem) {
   .public-shell {
     padding: var(--byiara-space-lg);
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
   }
 
   .hero h1 {
