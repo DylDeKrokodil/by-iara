@@ -2,7 +2,12 @@
   "name": "@by-iara-web/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "dev:admin": "nx serve admin --host=0.0.0.0 --port=4201",
+    "dev:website": "nx serve website --host=0.0.0.0 --port=4300",
+    "build:admin": "nx build admin",
+    "build:website": "nx build website"
+  },
   "private": true,
   "dependencies": {
     "@angular-devkit/build-angular": "~21.2.0",
