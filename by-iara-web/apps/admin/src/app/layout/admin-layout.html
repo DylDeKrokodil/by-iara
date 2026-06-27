@@ -1,20 +1,92 @@
-<div class="admin-shell byiara-theme-admin">
-  <aside class="sidebar" aria-label="Admin navigation">
-    <p class="brand">By Iara</p>
+<div class="admin-shell byiara-theme-admin" [class.collapsed]="isCollapsed()">
+  
+  <!-- Mobile Header Bar -->
+  <header class="mobile-header">
+    <button type="button" class="hamburger-btn" (click)="toggleMobileMenu()" aria-label="Toggle navigation">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" x2="20" y1="12" y2="12"></line>
+        <line x1="4" x2="20" y1="6" y2="6"></line>
+        <line x1="4" x2="20" y1="18" y2="18"></line>
+      </svg>
+    </button>
+    <span class="mobile-brand">By Iara</span>
+  </header>
+
+  <!-- Backdrop overlay for mobile menu -->
+  @if (isMobileMenuOpen()) {
+    <div class="sidebar-backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
+  }
+
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="isCollapsed()" [class.mobile-open]="isMobileMenuOpen()" aria-label="Admin navigation">
+    <div class="brand-container">
+      <p class="brand" routerLink="/dashboard">
+        @if (isCollapsed()) {
+          <span class="logo-collapsed">I</span>
+        } @else {
+          <span>By Iara</span>
+        }
+      </p>
+      
+      <!-- Collapse toggle button (desktop only) -->
+      <button type="button" class="collapse-btn" (click)="toggleCollapse()" [attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          @if (isCollapsed()) {
+            <!-- chevron right -->
+            <path d="m9 18 6-6-6-6"/>
+          } @else {
+            <!-- chevron left -->
+            <path d="m15 18-6-6 6-6"/>
+          }
+        </svg>
+      </button>
+    </div>
+
     <nav>
-      @for (item of navItems; track item.path) {
-        <a [routerLink]="item.path" routerLinkActive="active">{{ item.label }}</a>
-      }
+      <!-- Dashboard -->
+      <a routerLink="/dashboard" routerLinkActive="active" [title]="isCollapsed() ? 'Dashboard' : ''" (click)="closeMobileMenu()">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="7" height="9" x="3" y="3" rx="1"/>
+          <rect width="7" height="5" x="14" y="3" rx="1"/>
+          <rect width="7" height="9" x="14" y="12" rx="1"/>
+          <rect width="7" height="5" x="3" y="16" rx="1"/>
+        </svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <!-- Services -->
+      <a routerLink="/services" routerLinkActive="active" [title]="isCollapsed() ? 'Services' : ''" (click)="closeMobileMenu()">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m12 3-1.912 5.886a1 1 0 0 1-.95.684H2.949l4.98 3.618a1 1 0 0 1 .364 1.118L6.38 20.19l4.982-3.618a1 1 0 0 1 1.175 0l4.982 3.618-1.913-5.886a1 1 0 0 1 .364-1.118l4.98-3.618h-6.188a1 1 0 0 1-.95-.684z"/>
+        </svg>
+        <span class="nav-label">Services</span>
+      </a>
     </nav>
 
     <div class="sidebar-footer">
       @if (admin(); as currentAdmin) {
-        <p class="signed-in">
-          <span>Signed in as</span>
-          <strong>{{ currentAdmin.email }}</strong>
-        </p>
+        <div class="signed-in" [title]="currentAdmin.email">
+          <div class="profile-avatar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="user-info">
+            <span>Signed in as</span>
+            <strong>{{ currentAdmin.email }}</strong>
+          </div>
+        </div>
       }
-      <button type="button" class="logout" (click)="logout()">Sign out</button>
+      
+      <button type="button" class="logout" (click)="logout()" [title]="isCollapsed() ? 'Sign out' : ''">
+        <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" x2="9" y1="12" y2="12"/>
+        </svg>
+        <span class="logout-label">Sign out</span>
+      </button>
     </div>
   </aside>
 
