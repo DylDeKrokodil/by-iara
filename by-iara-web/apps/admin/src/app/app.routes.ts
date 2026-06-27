@@ -38,6 +38,11 @@ export const appRoutes: Route[] = [
             (m) => m.ServiceForm,
           ),
       },
+      {
+        path: 'availability',
+        loadComponent: () =>
+          import('./availability/availability').then((m) => m.Availability),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
