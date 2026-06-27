@@ -22,6 +22,8 @@ data class ServiceRequest(
 
     val sortOrder: Int = 0,
 
+    val featured: Boolean = false,
+
     @field:NotEmpty
     @field:Valid
     val variants: List<VariantRequest> = emptyList(),
@@ -32,6 +34,7 @@ data class ServiceRequest(
             description = description?.trim()?.ifBlank { null },
             active = active,
             sortOrder = sortOrder,
+            featured = featured,
             variants = variants.map { it.toCommand() },
         )
 }
@@ -67,6 +70,7 @@ data class ServiceResponse(
     val description: String?,
     val active: Boolean,
     val sortOrder: Int,
+    val featured: Boolean,
     val variants: List<ServiceVariantResponse>,
 )
 
@@ -91,6 +95,7 @@ fun Service.toResponse(): ServiceResponse =
         description = description,
         active = active,
         sortOrder = sortOrder,
+        featured = featured,
         variants = variants.map { it.toResponse() },
     )
 

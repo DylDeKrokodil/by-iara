@@ -9,6 +9,7 @@ data class Service(
     val description: String?,
     val active: Boolean,
     val sortOrder: Int,
+    val featured: Boolean = false,
     val variants: List<ServiceVariant>,
 )
 

@@ -38,6 +38,7 @@ class CatalogApiTests {
                 description text,
                 active boolean not null default true,
                 sort_order integer not null default 0,
+                featured boolean not null default false,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
