@@ -10,6 +10,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { ServiceInput } from '../service.models';
+import { ToastService } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-service-form',
@@ -22,6 +23,7 @@ export class ServiceForm implements OnInit {
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly toast = inject(ToastService);
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -112,14 +114,18 @@ export class ServiceForm implements OnInit {
     const request = id ? this.api.update(id, input) : this.api.create(input);
 
     request.subscribe({
-      next: () => this.router.navigateByUrl('/services'),
+      next: () => {
+        const actionMsg = id ? 'updated' : 'created';
+        this.toast.show(`Service "${input.name}" ${actionMsg} successfully.`, 'success');
+        this.router.navigateByUrl('/services');
+      },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        this.error.set(
-          err.status === 409
-            ? 'A service with this name already exists.'
-            : 'Could not save the service.',
-        );
+        const errMsg = err.status === 409
+          ? 'A service with this name already exists.'
+          : 'Could not save the service.';
+        this.toast.show(errMsg, 'error');
+        this.error.set(errMsg);
       },
     });
   }

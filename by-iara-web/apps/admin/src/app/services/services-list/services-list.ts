@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { formatMoney, Service, ServiceVariant } from '../service.models';
-import { StatusChip, DurationChip, ConfirmationModal } from '@by-iara/shared-ui';
+import { StatusChip, DurationChip, ConfirmationModal, ToastService } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-services-list',
@@ -12,6 +12,7 @@ import { StatusChip, DurationChip, ConfirmationModal } from '@by-iara/shared-ui'
 })
 export class ServicesList implements OnInit {
   private readonly api = inject(ServicesApi);
+  private readonly toast = inject(ToastService);
 
   protected readonly services = signal<Service[]>([]);
   protected readonly loading = signal(true);
@@ -53,10 +54,11 @@ export class ServicesList implements OnInit {
     this.api.remove(service.id).subscribe({
       next: () => {
         this.reload();
+        this.toast.show(`Service "${service.name}" deactivated successfully.`, 'success');
         this.serviceToDeactivate.set(null);
       },
       error: () => {
-        this.error.set('Could not deactivate the service.');
+        this.toast.show('Could not deactivate the service.', 'error');
         this.serviceToDeactivate.set(null);
       },
     });

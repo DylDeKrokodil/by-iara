@@ -6,10 +6,11 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { AuthService } from '../core/auth.service';
+import { ToastContainerComponent } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-admin-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, ToastContainerComponent],
   templateUrl: './admin-layout.html',
   styleUrl: './admin-layout.css',
 })
