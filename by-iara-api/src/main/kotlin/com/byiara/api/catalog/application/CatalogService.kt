@@ -17,7 +17,7 @@ class CatalogService(
     fun listPublicCatalog(): List<Service> = serviceRepository.findCatalog()
 
     @Transactional(readOnly = true)
-    fun listAll(): List<Service> = serviceRepository.findAll()
+    fun listAll(active: Boolean? = null): List<Service> = serviceRepository.findAll(active)
 
     @Transactional(readOnly = true)
     fun get(id: UUID): Service =

@@ -39,9 +39,9 @@ class JooqServiceRepository(
     private val vActive = field(name("active"), Boolean::class.java)
     private val vSortOrder = field(name("sort_order"), Int::class.java)
 
-    override fun findCatalog(): List<Service> = loadServices(activeOnly = true)
+    override fun findCatalog(): List<Service> = loadServices(activeFilter = true, variantsActiveOnly = true)
 
-    override fun findAll(): List<Service> = loadServices(activeOnly = false)
+    override fun findAll(active: Boolean?): List<Service> = loadServices(activeFilter = active, variantsActiveOnly = false)
 
     override fun findById(id: UUID): Service? {
         val record = dsl
@@ -111,11 +111,17 @@ class JooqServiceRepository(
         }
     }
 
-    private fun loadServices(activeOnly: Boolean): List<Service> {
+    private fun loadServices(activeFilter: Boolean?, variantsActiveOnly: Boolean): List<Service> {
         val records = dsl
             .select(sId, sSlug, sName, sDescription, sActive, sSortOrder)
             .from(services)
-            .where(if (activeOnly) sActive.isTrue else noCondition())
+            .where(
+                when (activeFilter) {
+                    true -> sActive.isTrue
+                    false -> sActive.isFalse
+                    null -> noCondition()
+                }
+            )
             .orderBy(sSortOrder.asc(), sName.asc())
             .fetch()
 
@@ -123,7 +129,7 @@ class JooqServiceRepository(
             return emptyList()
         }
 
-        val variantsByService = loadVariants(records.map { it.get(sId) }, activeOnly)
+        val variantsByService = loadVariants(records.map { it.get(sId) }, variantsActiveOnly)
             .groupBy { it.serviceId }
 
         return records.map { record ->

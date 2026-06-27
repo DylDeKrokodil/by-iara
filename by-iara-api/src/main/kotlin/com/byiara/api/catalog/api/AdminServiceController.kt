@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -20,8 +21,8 @@ class AdminServiceController(
     private val catalogService: CatalogService,
 ) {
     @GetMapping
-    fun list(): List<ServiceResponse> =
-        catalogService.listAll().map { it.toResponse() }
+    fun list(@RequestParam(required = false) active: Boolean?): List<ServiceResponse> =
+        catalogService.listAll(active).map { it.toResponse() }
 
     @GetMapping("/{id}")
     fun get(@PathVariable id: UUID): ServiceResponse =

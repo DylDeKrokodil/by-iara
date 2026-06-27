@@ -6,8 +6,8 @@ interface ServiceRepository {
     /** Active services with their active variants — for the public catalog. */
     fun findCatalog(): List<Service>
 
-    /** All services with all variants — for admin management. */
-    fun findAll(): List<Service>
+    /** All services with all variants — for admin management. Supports optional active status filtering. */
+    fun findAll(active: Boolean? = null): List<Service>
 
     fun findById(id: UUID): Service?
 
