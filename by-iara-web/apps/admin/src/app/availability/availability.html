@@ -1,0 +1,250 @@
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Settings</p>
+    <h1>Availability Manager</h1>
+  </div>
+</div>
+
+<div class="tabs-navigation">
+  <button
+    type="button"
+    class="tab-btn"
+    [class.active]="activeTab() === 'rules'"
+    (click)="setActiveTab('rules')"
+  >
+    Weekly Hours
+  </button>
+  <button
+    type="button"
+    class="tab-btn"
+    [class.active]="activeTab() === 'blocks'"
+    (click)="setActiveTab('blocks')"
+  >
+    Blocked Times
+  </button>
+</div>
+
+<!-- Tab content: Rules -->
+@if (activeTab() === 'rules') {
+  <div class="tab-content">
+    <div class="availability-grid">
+      
+      <!-- Add rule Form -->
+      <div class="form-card">
+        <h2 class="form-title">Add Weekly Shift</h2>
+        
+        @if (ruleError()) {
+          <p class="alert" role="alert">{{ ruleError() }}</p>
+        }
+
+        <form [formGroup]="ruleForm" (ngSubmit)="submitRule()" novalidate>
+          <div class="form-group">
+            <label class="field">
+              <span>Day of the Week</span>
+              <select formControlName="dayOfWeek" [class.is-invalid]="ruleForm.get('dayOfWeek')?.invalid && ruleForm.get('dayOfWeek')?.touched">
+                <option value="" disabled selected>Select a day...</option>
+                @for (day of weekdays; track day.value) {
+                  <option [value]="day.value">{{ day.label }}</option>
+                }
+              </select>
+            </label>
+            @if (ruleForm.get('dayOfWeek')?.invalid && ruleForm.get('dayOfWeek')?.touched) {
+              <span class="error-message">Day of week is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="field">
+              <span>Start Time</span>
+              <input type="time" formControlName="startTime" step="900"
+                     [class.is-invalid]="ruleForm.get('startTime')?.invalid && ruleForm.get('startTime')?.touched" />
+            </label>
+            @if (ruleForm.get('startTime')?.invalid && ruleForm.get('startTime')?.touched) {
+              <span class="error-message">Start time is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="field">
+              <span>End Time</span>
+              <input type="time" formControlName="endTime" step="900"
+                     [class.is-invalid]="ruleForm.get('endTime')?.invalid && ruleForm.get('endTime')?.touched" />
+            </label>
+            @if (ruleForm.get('endTime')?.invalid && ruleForm.get('endTime')?.touched) {
+              <span class="error-message">End time is required</span>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="button-primary" [disabled]="submittingRule()">
+              {{ submittingRule() ? 'Adding…' : 'Add Shift' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Rules list -->
+      <div class="roster-container">
+        @if (loadingRules()) {
+          <div class="empty-state">
+            <span class="empty-text">Loading weekly hours...</span>
+          </div>
+        } @else {
+          @for (day of weekdays; track day.value) {
+            <div class="day-card">
+              <div class="day-info">
+                <span class="day-name">{{ day.label }}</span>
+                <div class="shifts-list">
+                  @if (getRulesForDay(day.value).length === 0) {
+                    <span class="no-hours">Off</span>
+                  } @else {
+                    @for (shift of getRulesForDay(day.value); track shift.id) {
+                      <span class="shift-badge">
+                        {{ formatTime(shift.startTime) }} - {{ formatTime(shift.endTime) }}
+                        <button
+                          type="button"
+                          class="shift-delete-btn"
+                          (click)="confirmDeleteRule(shift)"
+                          title="Remove shift"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </span>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Tab content: Blocks -->
+@if (activeTab() === 'blocks') {
+  <div class="tab-content">
+    <div class="availability-grid">
+      
+      <!-- Add block Form -->
+      <div class="form-card">
+        <h2 class="form-title">Block Calendar Period</h2>
+
+        @if (blockError()) {
+          <p class="alert" role="alert">{{ blockError() }}</p>
+        }
+
+        <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" novalidate>
+          <div class="form-group">
+            <label class="field">
+              <span>Start Date &amp; Time</span>
+              <input type="datetime-local" formControlName="startTime"
+                     [class.is-invalid]="blockForm.get('startTime')?.invalid && blockForm.get('startTime')?.touched" />
+            </label>
+            @if (blockForm.get('startTime')?.invalid && blockForm.get('startTime')?.touched) {
+              <span class="error-message">Start date/time is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="field">
+              <span>End Date &amp; Time</span>
+              <input type="datetime-local" formControlName="endTime"
+                     [class.is-invalid]="blockForm.get('endTime')?.invalid && blockForm.get('endTime')?.touched" />
+            </label>
+            @if (blockForm.get('endTime')?.invalid && blockForm.get('endTime')?.touched) {
+              <span class="error-message">End date/time is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="field">
+              <span>Reason / Description</span>
+              <input type="text" formControlName="reason" placeholder="e.g. Doctor appointment, Vacation" />
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="button-primary" [disabled]="submittingBlock()">
+              {{ submittingBlock() ? 'Adding…' : 'Add Block-out' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Blocks list -->
+      <div class="blocks-container">
+        @if (loadingBlocks()) {
+          <div class="empty-state">
+            <span class="empty-text">Loading blocked times...</span>
+          </div>
+        } @else {
+          <byiara-data-table
+            ariaLabel="Blocked times list"
+            [columns]="blockTableColumns"
+            [rows]="blocks()"
+            [loading]="loadingBlocks()"
+            [skeletonRows]="4"
+          >
+            <ng-template #rowTemplate let-block>
+              <tr>
+                <td>{{ formatDateTime(block.startTime) }}</td>
+                <td>{{ formatDateTime(block.endTime) }}</td>
+                <td>
+                  @if (block.reason) {
+                    <span class="reason-text">{{ block.reason }}</span>
+                  } @else {
+                    <span class="reason-empty">No reason provided</span>
+                  }
+                </td>
+                <td class="actions-col">
+                  <div class="block-actions-cell">
+                    <button
+                      type="button"
+                      class="button-icon-ghost"
+                      (click)="confirmDeleteBlock(block)"
+                      title="Remove block-out"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </ng-template>
+          </byiara-data-table>
+        }
+      </div>
+
+    </div>
+  </div>
+}
+
+<!-- Confirmation Modals -->
+<byiara-confirmation-modal
+  #confirmDeleteRuleModal
+  title="Remove Weekly Shift"
+  message="Are you sure you want to remove this weekly shift? This will open up this period for future bookings."
+  confirmText="Remove Shift"
+  variant="danger"
+  (confirmed)="onConfirmDeleteRule()"
+  (cancelled)="onCancelDeleteRule()"
+></byiara-confirmation-modal>
+
+<byiara-confirmation-modal
+  #confirmDeleteBlockModal
+  title="Remove Calendar Block"
+  message="Are you sure you want to remove this blocked period? This period will become available for booking again according to your weekly hours."
+  confirmText="Remove Block-out"
+  variant="danger"
+  (confirmed)="onConfirmDeleteBlock()"
+  (cancelled)="onCancelDeleteBlock()"
+></byiara-confirmation-modal>
