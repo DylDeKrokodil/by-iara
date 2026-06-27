@@ -15,8 +15,7 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@by-iara/theme": ["./libs/shared/theme/src/index.ts"],
-      "@by-iara/shared-ui": ["./libs/shared/ui/src/index.ts"]
+      "@by-iara/theme": ["./libs/shared/theme/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

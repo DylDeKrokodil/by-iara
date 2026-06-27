@@ -11,7 +11,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm nx run-many -t build --projects=website,admin --configuration=production --parallel=1
+RUN pnpm nx run-many -t build --projects=website,admin --configuration=production
 
 # ---- website: SSR, runs as a self-contained Node server ----
 FROM node:22-alpine AS website

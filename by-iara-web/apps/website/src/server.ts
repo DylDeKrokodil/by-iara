@@ -7,7 +7,6 @@ import {
 import express from 'express';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import http from 'node:http';
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -16,35 +15,16 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
- * Proxy API requests to the backend API container
+ * Example Express Rest API endpoints can be defined here.
+ * Uncomment and define endpoints as necessary.
+ *
+ * Example:
+ * ```ts
+ * app.get('/api/**', (req, res) => {
+ *   // Handle API request
+ * });
+ * ```
  */
-app.use('/api/**', (req, res) => {
-  const target = process.env['API_PROXY_TARGET'] || 'http://localhost:8080';
-  const targetUrl = new URL(req.originalUrl, target);
-
-  const proxyReq = http.request(
-    {
-      hostname: targetUrl.hostname,
-      port: targetUrl.port,
-      path: targetUrl.pathname + targetUrl.search,
-      method: req.method,
-      headers: req.headers,
-    },
-    (proxyRes) => {
-      if (proxyRes.statusCode) {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-      }
-      proxyRes.pipe(res, { end: true });
-    }
-  );
-
-  proxyReq.on('error', (err) => {
-    console.error('API proxy error:', err);
-    res.status(502).send('Bad Gateway');
-  });
-
-  req.pipe(proxyReq, { end: true });
-});
 
 /**
  * Serve static files from /browser
