@@ -76,3 +76,14 @@
     </table>
   </div>
 }
+
+<byiara-confirmation-modal
+  #confirmDeactivateModal
+  title="Deactivate Service"
+  [message]="serviceToDeactivate() ? 'Are you sure you want to deactivate the service &ldquo;' + serviceToDeactivate()?.name + '&rdquo;? It will be hidden from the public catalogue.' : ''"
+  confirmText="Deactivate"
+  cancelText="Cancel"
+  variant="primary"
+  (confirm)="onConfirmDeactivate()"
+  (cancel)="onCancelDeactivate()">
+</byiara-confirmation-modal>

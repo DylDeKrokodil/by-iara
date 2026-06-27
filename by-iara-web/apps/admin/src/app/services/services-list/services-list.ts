@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { formatMoney, Service, ServiceVariant } from '../service.models';
-import { StatusChip, DurationChip } from '@by-iara/shared-ui';
+import { StatusChip, DurationChip, ConfirmationModal } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-services-list',
-  imports: [RouterLink, StatusChip, DurationChip],
+  imports: [RouterLink, StatusChip, DurationChip, ConfirmationModal],
   templateUrl: './services-list.html',
   styleUrl: './services-list.css',
 })
@@ -22,6 +22,9 @@ export class ServicesList implements OnInit {
   ngOnInit(): void {
     this.reload();
   }
+
+  @ViewChild('confirmDeactivateModal') private confirmDeactivateModal!: ConfirmationModal;
+  protected serviceToDeactivate = signal<Service | null>(null);
 
   protected reload(): void {
     this.loading.set(true);
@@ -39,13 +42,28 @@ export class ServicesList implements OnInit {
   }
 
   protected deactivate(service: Service): void {
-    if (!confirm(`Deactivate "${service.name}"? It will be hidden from the public catalogue.`)) {
-      return;
-    }
+    this.serviceToDeactivate.set(service);
+    this.confirmDeactivateModal.open();
+  }
+
+  protected onConfirmDeactivate(): void {
+    const service = this.serviceToDeactivate();
+    if (!service) return;
+
     this.api.remove(service.id).subscribe({
-      next: () => this.reload(),
-      error: () => this.error.set('Could not deactivate the service.'),
+      next: () => {
+        this.reload();
+        this.serviceToDeactivate.set(null);
+      },
+      error: () => {
+        this.error.set('Could not deactivate the service.');
+        this.serviceToDeactivate.set(null);
+      },
     });
+  }
+
+  protected onCancelDeactivate(): void {
+    this.serviceToDeactivate.set(null);
   }
 
   protected variantLabel(variant: ServiceVariant): string {
