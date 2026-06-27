@@ -18,6 +18,14 @@ cd by-iara-web
 pnpm nx serve admin --port=4201
 ```
 
+Run the admin dashboard in Docker with hot reload:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile web up --build admin
+```
+
+Open [http://localhost:4201](http://localhost:4201). The admin container runs the Angular dev server with the local frontend mounted into the container, so frontend changes update without rebuilding the Docker frontend image.
+
 Validate the workspace:
 
 ```bash
