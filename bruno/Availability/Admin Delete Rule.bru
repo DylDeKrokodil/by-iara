@@ -1,0 +1,21 @@
+meta {
+  name: Admin Delete Rule
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/availability/rules/{{ruleId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("deletes a rule", function () {
+    expect(res.status).to.equal(204);
+  });
+}
