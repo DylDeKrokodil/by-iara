@@ -1,0 +1,18 @@
+meta {
+  name: Availability List
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/availability?startDate=2026-07-06&endDate=2026-07-12&durationMinutes=60
+  body: none
+  auth: none
+}
+
+tests {
+  test("returns available slots", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.be.an("array");
+  });
+}

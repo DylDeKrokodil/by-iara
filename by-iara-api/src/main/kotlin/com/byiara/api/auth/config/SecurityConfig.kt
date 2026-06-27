@@ -16,8 +16,9 @@ class SecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers(HttpMethod.GET, "/health").permitAll()
+                it.requestMatchers("/error").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/admin/auth/login").permitAll()
-                it.requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
+                it.requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**", "/api/availability", "/api/availability/**").permitAll()
                 it.requestMatchers("/api/admin/**").authenticated()
                 it.anyRequest().denyAll()
             }
