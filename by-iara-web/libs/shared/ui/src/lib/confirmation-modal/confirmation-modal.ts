@@ -13,8 +13,8 @@ export class ConfirmationModal {
   cancelText = input<string>('Cancel');
   variant = input<'primary' | 'danger'>('primary');
 
-  confirm = output<void>();
-  cancel = output<void>();
+  confirmed = output<void>();
+  cancelled = output<void>();
 
   @ViewChild('dialog') private dialogRef!: ElementRef<HTMLDialogElement>;
 
@@ -44,11 +44,11 @@ export class ConfirmationModal {
 
   public close(): void {
     this.dialogRef.nativeElement.close();
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   protected onConfirm(): void {
     this.dialogRef.nativeElement.close();
-    this.confirm.emit();
+    this.confirmed.emit();
   }
 }

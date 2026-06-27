@@ -2,11 +2,31 @@ import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { formatMoney, Service, ServiceVariant } from '../service.models';
-import { StatusChip, DurationChip, ConfirmationModal, ToastService } from '@by-iara/shared-ui';
+import {
+  ConfirmationModal,
+  DurationChip,
+  SelectField,
+  StatusChip,
+  ToastService,
+} from '@by-iara/shared-ui';
+
+const serviceStatusFilterValues = ['all', 'active', 'inactive'] as const;
+
+type ServiceStatusFilter = (typeof serviceStatusFilterValues)[number];
+
+const statusFilters: ReadonlyArray<{ label: string; value: ServiceStatusFilter }> = [
+  { label: 'All', value: 'all' },
+  { label: 'Active', value: 'active' },
+  { label: 'Inactive', value: 'inactive' },
+];
+
+function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
+  return serviceStatusFilterValues.includes(value as ServiceStatusFilter);
+}
 
 @Component({
   selector: 'byiara-services-list',
-  imports: [RouterLink, StatusChip, DurationChip, ConfirmationModal],
+  imports: [RouterLink, StatusChip, DurationChip, ConfirmationModal, SelectField],
   templateUrl: './services-list.html',
   styleUrl: './services-list.css',
 })
@@ -17,6 +37,8 @@ export class ServicesList implements OnInit {
   protected readonly services = signal<Service[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly selectedStatus = signal<ServiceStatusFilter>('all');
+  protected readonly statusFilters = statusFilters;
 
   protected readonly formatMoney = formatMoney;
 
@@ -30,7 +52,7 @@ export class ServicesList implements OnInit {
   protected reload(): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.list().subscribe({
+    this.api.list(this.activeFilter()).subscribe({
       next: (services) => {
         this.services.set(services);
         this.loading.set(false);
@@ -40,6 +62,23 @@ export class ServicesList implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected setStatusFilter(filter: ServiceStatusFilter): void {
+    if (this.selectedStatus() === filter) {
+      return;
+    }
+
+    this.selectedStatus.set(filter);
+    this.reload();
+  }
+
+  protected onStatusFilterChange(filter: string): void {
+    if (!isServiceStatusFilter(filter)) {
+      return;
+    }
+
+    this.setStatusFilter(filter);
   }
 
   protected deactivate(service: Service): void {
@@ -70,5 +109,16 @@ export class ServicesList implements OnInit {
 
   protected variantLabel(variant: ServiceVariant): string {
     return `${variant.durationMinutes} min · ${this.formatMoney(variant.price)}`;
+  }
+
+  private activeFilter(): boolean | undefined {
+    switch (this.selectedStatus()) {
+      case 'active':
+        return true;
+      case 'inactive':
+        return false;
+      default:
+        return undefined;
+    }
   }
 }

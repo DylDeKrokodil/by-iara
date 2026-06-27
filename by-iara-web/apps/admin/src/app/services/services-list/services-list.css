@@ -35,6 +35,12 @@ h1 {
   font-size: var(--byiara-font-size-sm);
 }
 
+.list-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--byiara-space-md);
+}
+
 .empty {
   display: grid;
   justify-items: start;
@@ -120,8 +126,6 @@ h1 {
   gap: var(--byiara-space-xs);
 }
 
-
-
 .actions-col {
   white-space: nowrap;
   width: 1%;
@@ -179,4 +183,13 @@ h1 {
   transform: translateY(0);
 }
 
+@media (max-width: 40rem) {
+  .page-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 
+  .list-toolbar {
+    justify-content: stretch;
+  }
+}

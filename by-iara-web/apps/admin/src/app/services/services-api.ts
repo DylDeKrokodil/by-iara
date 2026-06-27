@@ -8,8 +8,10 @@ export class ServicesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = '/api/admin/services';
 
-  list(): Observable<Service[]> {
-    return this.http.get<Service[]>(this.baseUrl);
+  list(active?: boolean): Observable<Service[]> {
+    const options = active === undefined ? undefined : { params: { active } };
+
+    return this.http.get<Service[]>(this.baseUrl, options);
   }
 
   get(id: string): Observable<Service> {

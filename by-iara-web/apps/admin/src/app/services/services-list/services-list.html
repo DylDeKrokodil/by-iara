@@ -10,6 +10,15 @@
   <p class="alert" role="alert">{{ error() }}</p>
 }
 
+<div class="list-toolbar" aria-label="Service list filters">
+  <byiara-select-field
+    label="Status"
+    [options]="statusFilters"
+    [value]="selectedStatus()"
+    (valueChange)="onStatusFilterChange($event)">
+  </byiara-select-field>
+</div>
+
 @if (loading()) {
   <p class="muted">Loading services…</p>
 } @else if (services().length === 0) {
@@ -84,6 +93,6 @@
   confirmText="Deactivate"
   cancelText="Cancel"
   variant="primary"
-  (confirm)="onConfirmDeactivate()"
-  (cancel)="onCancelDeactivate()">
+  (confirmed)="onConfirmDeactivate()"
+  (cancelled)="onCancelDeactivate()">
 </byiara-confirmation-modal>
