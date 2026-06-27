@@ -51,53 +51,12 @@ h1 {
   background: var(--byiara-color-surface);
 }
 
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-lg);
-  background: var(--byiara-color-surface);
-  box-shadow: var(--byiara-shadow-sm);
-  overflow: hidden;
-}
-
-.services-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.services-table th,
-.services-table td {
-  padding: 0.875rem 1.25rem;
-  vertical-align: middle;
-  border: 1px solid rgba(252, 194, 219, 0.25);
-}
-
-.services-table th {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-xs);
-  font-weight: var(--byiara-font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  background: var(--byiara-color-blush-50);
-  border-bottom: 2px solid var(--byiara-color-border);
-}
-
-.services-table tbody tr {
-  transition: all 0.15s ease;
-}
-
-.services-table tbody tr:hover td {
-  background-color: rgba(225, 29, 116, 0.02);
-}
-
-.services-table tr.inactive td {
+.inactive td {
   opacity: 0.65;
   background-color: rgba(36, 17, 28, 0.01);
 }
 
-.services-table tr.inactive:hover td {
+.inactive:hover td {
   background-color: rgba(36, 17, 28, 0.02);
 }
 

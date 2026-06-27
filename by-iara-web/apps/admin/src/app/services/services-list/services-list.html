@@ -7,7 +7,7 @@
 </div>
 
 @if (error()) {
-  <p class="alert" role="alert">{{ error() }}</p>
+<p class="alert" role="alert">{{ error() }}</p>
 }
 
 <div class="list-toolbar" aria-label="Service list filters">
@@ -15,75 +15,100 @@
     label="Status"
     [options]="statusFilters"
     [value]="selectedStatus()"
-    (valueChange)="onStatusFilterChange($event)">
+    (valueChange)="onStatusFilterChange($event)"
+  >
   </byiara-select-field>
 </div>
 
-@if (loading()) {
-  <p class="muted">Loading services…</p>
-} @else if (services().length === 0) {
-  <div class="empty">
-    <p>No services yet.</p>
-    <a class="button-primary" routerLink="/services/new">Create your first service</a>
-  </div>
+@if (!loading() && services().length === 0) {
+<div class="empty">
+  <p>No services yet.</p>
+  <a class="button-primary" routerLink="/services/new"
+    >Create your first service</a
+  >
+</div>
 } @else {
-  <div class="table-container">
-    <table class="services-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Durations</th>
-          <th>Status</th>
-          <th class="actions-col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (service of services(); track service.id) {
-          <tr [class.inactive]="!service.active">
-            <td>
-              <div class="name-cell">
-                <span class="service-name">{{ service.name }}</span>
-                <span class="slug">/{{ service.slug }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="variants">
-                @for (variant of service.variants; track variant.id) {
-                  <byiara-duration-chip
-                    [label]="variantLabel(variant)"
-                    [active]="variant.active">
-                  </byiara-duration-chip>
-                } @empty {
-                  <span class="muted">No durations</span>
-                }
-              </div>
-            </td>
-            <td>
-              <byiara-status-chip [active]="service.active"></byiara-status-chip>
-            </td>
-            <td class="actions-col">
-              <div class="actions-wrapper">
-                <a class="button-icon-secondary" [routerLink]="['/services', service.id]" title="Edit service">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9"/>
-                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-                  </svg>
-                </a>
-                @if (service.active) {
-                  <button type="button" class="button-icon-ghost" (click)="deactivate(service)" title="Deactivate service">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="m4.9 4.9 14.2 14.2"/>
-                    </svg>
-                  </button>
-                }
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+<byiara-data-table
+  ariaLabel="Services"
+  [columns]="serviceTableColumns"
+  [rows]="services()"
+  [loading]="loading()"
+  [skeletonRows]="4"
+>
+  <ng-template #rowTemplate let-service>
+    <tr [class.inactive]="!service.active">
+      <td>
+        <div class="name-cell">
+          <span class="service-name">{{ service.name }}</span>
+          <span class="slug">/{{ service.slug }}</span>
+        </div>
+      </td>
+      <td>
+        <div class="variants">
+          @for (variant of service.variants; track variant.id) {
+          <byiara-duration-chip
+            [label]="variantLabel(variant)"
+            [active]="variant.active"
+          >
+          </byiara-duration-chip>
+          } @empty {
+          <span class="muted">No durations</span>
+          }
+        </div>
+      </td>
+      <td>
+        <byiara-status-chip [active]="service.active"></byiara-status-chip>
+      </td>
+      <td class="actions-col">
+        <div class="actions-wrapper">
+          <a
+            class="button-icon-secondary"
+            [routerLink]="['/services', service.id]"
+            title="Edit service"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          </a>
+          @if (service.active) {
+          <button
+            type="button"
+            class="button-icon-ghost"
+            (click)="deactivate(service)"
+            title="Deactivate service"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="m4.9 4.9 14.2 14.2" />
+            </svg>
+          </button>
+          }
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</byiara-data-table>
 }
 
 <byiara-confirmation-modal
@@ -94,5 +119,6 @@
   cancelText="Cancel"
   variant="primary"
   (confirmed)="onConfirmDeactivate()"
-  (cancelled)="onCancelDeactivate()">
+  (cancelled)="onCancelDeactivate()"
+>
 </byiara-confirmation-modal>

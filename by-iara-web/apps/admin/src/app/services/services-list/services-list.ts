@@ -4,6 +4,8 @@ import { ServicesApi } from '../services-api';
 import { formatMoney, Service, ServiceVariant } from '../service.models';
 import {
   ConfirmationModal,
+  DataTable,
+  DataTableColumn,
   DurationChip,
   SelectField,
   StatusChip,
@@ -14,10 +16,20 @@ const serviceStatusFilterValues = ['all', 'active', 'inactive'] as const;
 
 type ServiceStatusFilter = (typeof serviceStatusFilterValues)[number];
 
-const statusFilters: ReadonlyArray<{ label: string; value: ServiceStatusFilter }> = [
+const statusFilters: ReadonlyArray<{
+  label: string;
+  value: ServiceStatusFilter;
+}> = [
   { label: 'All', value: 'all' },
   { label: 'Active', value: 'active' },
   { label: 'Inactive', value: 'inactive' },
+];
+
+const serviceTableColumns: ReadonlyArray<DataTableColumn> = [
+  { key: 'name', label: 'Name' },
+  { key: 'durations', label: 'Durations' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Actions', fit: true },
 ];
 
 function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
@@ -26,7 +38,14 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 
 @Component({
   selector: 'byiara-services-list',
-  imports: [RouterLink, StatusChip, DurationChip, ConfirmationModal, SelectField],
+  imports: [
+    RouterLink,
+    StatusChip,
+    DurationChip,
+    ConfirmationModal,
+    SelectField,
+    DataTable,
+  ],
   templateUrl: './services-list.html',
   styleUrl: './services-list.css',
 })
@@ -39,6 +58,7 @@ export class ServicesList implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly selectedStatus = signal<ServiceStatusFilter>('all');
   protected readonly statusFilters = statusFilters;
+  protected readonly serviceTableColumns = serviceTableColumns;
 
   protected readonly formatMoney = formatMoney;
 
@@ -46,7 +66,8 @@ export class ServicesList implements OnInit {
     this.reload();
   }
 
-  @ViewChild('confirmDeactivateModal') private confirmDeactivateModal!: ConfirmationModal;
+  @ViewChild('confirmDeactivateModal')
+  private confirmDeactivateModal!: ConfirmationModal;
   protected serviceToDeactivate = signal<Service | null>(null);
 
   protected reload(): void {
@@ -93,7 +114,10 @@ export class ServicesList implements OnInit {
     this.api.remove(service.id).subscribe({
       next: () => {
         this.reload();
-        this.toast.show(`Service "${service.name}" deactivated successfully.`, 'success');
+        this.toast.show(
+          `Service "${service.name}" deactivated successfully.`,
+          'success',
+        );
         this.serviceToDeactivate.set(null);
       },
       error: () => {
