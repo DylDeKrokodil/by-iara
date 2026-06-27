@@ -33,6 +33,7 @@ export class ServiceForm implements OnInit {
     name: ['', Validators.required],
     description: [''],
     active: [true],
+    featured: [false],
     variants: this.fb.array([this.variantGroup()]),
   });
 
@@ -57,6 +58,7 @@ export class ServiceForm implements OnInit {
           name: service.name,
           description: service.description ?? '',
           active: service.active,
+          featured: service.featured,
         });
         this.variants.clear();
         service.variants.forEach((variant) =>
@@ -103,6 +105,7 @@ export class ServiceForm implements OnInit {
       name: raw.name,
       description: raw.description,
       active: raw.active,
+      featured: raw.featured,
       variants: raw.variants.map((variant) => ({
         durationMinutes: variant['durationMinutes'],
         priceCents: Math.round(variant['priceEuros'] * 100),

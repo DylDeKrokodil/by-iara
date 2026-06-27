@@ -1,0 +1,70 @@
+<main class="public-shell">
+  <div class="catalog-container">
+    
+    <!-- Welcome Header -->
+    <header class="catalog-header">
+      <p class="eyebrow">Our Menu</p>
+      <h2>Services &amp; Treatments</h2>
+      <p>Discover our range of therapeutic and relaxing massages designed to restore balance and harmony.</p>
+    </header>
+
+    <!-- Error state -->
+    @if (error()) {
+      <div class="error-catalog">
+        <p>{{ error() }}</p>
+      </div>
+    }
+
+    <!-- Loading state -->
+    @if (loading()) {
+      <div class="loading-catalog">
+        <div class="spinner" aria-hidden="true"></div>
+        <span>Loading our catalog...</span>
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!loading() && !error() && services().length === 0) {
+      <div class="empty-catalog">
+        <p>No services are currently available for booking.</p>
+      </div>
+    }
+
+    <!-- Grid of Services -->
+    @if (!loading() && !error() && services().length > 0) {
+      <div class="services-grid">
+        @for (service of services(); track service.id) {
+          <article class="service-card">
+            
+            <div class="card-header">
+              <h3 class="service-name">{{ service.name }}</h3>
+              @if (service.description) {
+                <p class="service-description">{{ service.description }}</p>
+              }
+            </div>
+
+            <!-- Pricing and Options -->
+            <div class="variants-container">
+              <span class="variants-title">Options &amp; Prices</span>
+              @for (variant of service.variants; track variant.id) {
+                @if (variant.active) {
+                  <div class="variant-row">
+                    <div class="variant-info">
+                      <span class="duration">{{ variant.durationMinutes }} min</span>
+                      <span class="price">€{{ formatPrice(variant.price.amountCents) }}</span>
+                    </div>
+                    <button type="button" class="book-btn" (click)="onBook(service, variant)">
+                      Book
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+
+          </article>
+        }
+      </div>
+    }
+
+  </div>
+</main>

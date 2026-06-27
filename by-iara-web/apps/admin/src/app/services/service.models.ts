@@ -18,6 +18,7 @@ export interface Service {
   description: string | null;
   active: boolean;
   sortOrder: number;
+  featured: boolean;
   variants: ServiceVariant[];
 }
 
@@ -33,6 +34,7 @@ export interface ServiceInput {
   description?: string | null;
   active?: boolean;
   sortOrder?: number;
+  featured?: boolean;
   variants: VariantInput[];
 }
 

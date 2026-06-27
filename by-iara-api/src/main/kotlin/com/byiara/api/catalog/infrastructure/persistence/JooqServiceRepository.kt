@@ -28,6 +28,7 @@ class JooqServiceRepository(
     private val sDescription = field(name("description"), String::class.java)
     private val sActive = field(name("active"), Boolean::class.java)
     private val sSortOrder = field(name("sort_order"), Int::class.java)
+    private val sFeatured = field(name("featured"), Boolean::class.java)
     private val sUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
 
     private val variants = table(name("service_variants"))
@@ -45,7 +46,7 @@ class JooqServiceRepository(
 
     override fun findById(id: UUID): Service? {
         val record = dsl
-            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder)
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
             .from(services)
             .where(sId.eq(id))
             .fetchOne()
@@ -60,8 +61,8 @@ class JooqServiceRepository(
     override fun create(slug: String, command: ServiceCommand): Service {
         val newId = dsl
             .insertInto(services)
-            .columns(sSlug, sName, sDescription, sActive, sSortOrder)
-            .values(slug, command.name, command.description, command.active, command.sortOrder)
+            .columns(sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
+            .values(slug, command.name, command.description, command.active, command.sortOrder, command.featured)
             .returning(sId)
             .fetchOne()!!
             .get(sId)
@@ -77,6 +78,7 @@ class JooqServiceRepository(
             .set(sDescription, command.description)
             .set(sActive, command.active)
             .set(sSortOrder, command.sortOrder)
+            .set(sFeatured, command.featured)
             .set(sUpdatedAt, currentOffsetDateTime())
             .where(sId.eq(id))
             .execute()
@@ -113,7 +115,7 @@ class JooqServiceRepository(
 
     private fun loadServices(activeFilter: Boolean?, variantsActiveOnly: Boolean): List<Service> {
         val records = dsl
-            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder)
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
             .from(services)
             .where(
                 when (activeFilter) {
@@ -164,6 +166,7 @@ class JooqServiceRepository(
             description = record.get(sDescription),
             active = record.get(sActive),
             sortOrder = record.get(sSortOrder),
+            featured = record.get(sFeatured),
             variants = variants,
         )
 
