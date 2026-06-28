@@ -73,6 +73,41 @@ class AvailabilityService(
 
     // --- Availability Calculation ---
 
+    /**
+     * Whether a [durationMinutes] appointment starting at [start] fits entirely within a working
+     * rule for that weekday, is in the future, and does not overlap a block. Does not consider
+     * existing reservations — overlap with other bookings is enforced by the reservation domain.
+     */
+    @Transactional(readOnly = true)
+    fun isAvailable(start: OffsetDateTime, durationMinutes: Int): Boolean {
+        if (durationMinutes <= 0) {
+            return false
+        }
+        if (!start.isAfter(OffsetDateTime.now(zoneId))) {
+            return false
+        }
+
+        val localStart = start.atZoneSameInstant(zoneId).toLocalDateTime()
+        val localEnd = localStart.plusMinutes(durationMinutes.toLong())
+
+        // The appointment must fall inside a single same-day working rule.
+        val fitsRule = localEnd.toLocalDate() == localStart.toLocalDate() &&
+            availabilityRepository.findAllRules()
+                .filter { it.dayOfWeek == localStart.dayOfWeek }
+                .any { rule ->
+                    !localStart.toLocalTime().isBefore(rule.startTime) &&
+                        !localEnd.toLocalTime().isAfter(rule.endTime)
+                }
+        if (!fitsRule) {
+            return false
+        }
+
+        val end = localEnd.atZone(zoneId).toOffsetDateTime()
+        return availabilityRepository.findBlocksOverlapping(start, end).none { block ->
+            start.isBefore(block.endTime) && end.isAfter(block.startTime)
+        }
+    }
+
     @Transactional(readOnly = true)
     fun findAvailableSlots(
         startDate: LocalDate,
