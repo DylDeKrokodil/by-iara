@@ -9,12 +9,23 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
-import { ServiceInput } from '../service.models';
-import { ToastService } from '@by-iara/shared-ui';
+import { Service, ServiceInput, ServiceLocale } from '../service.models';
+import { TabOption, Tabs, ToastService } from '@by-iara/shared-ui';
+
+type TranslationFormKey = 'ptPT' | 'enUS';
+
+const languageTabs: ReadonlyArray<TabOption> = [
+  { label: 'Portuguese (pt-PT)', value: 'ptPT' },
+  { label: 'English (en-US)', value: 'enUS' },
+];
+
+function isTranslationFormKey(value: string): value is TranslationFormKey {
+  return value === 'ptPT' || value === 'enUS';
+}
 
 @Component({
   selector: 'byiara-service-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, Tabs],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })
@@ -27,11 +38,15 @@ export class ServiceForm implements OnInit {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly activeLanguageTab = signal<TranslationFormKey>('ptPT');
+  protected readonly languageTabs = languageTabs;
   protected serviceId: string | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    description: [''],
+    translations: this.fb.nonNullable.group({
+      ptPT: this.translationGroup(),
+      enUS: this.translationGroup(),
+    }),
     active: [true],
     featured: [false],
     variants: this.fb.array([this.variantGroup()]),
@@ -54,9 +69,19 @@ export class ServiceForm implements OnInit {
     this.serviceId = id;
     this.api.get(id).subscribe({
       next: (service) => {
+        const ptTranslation = this.translationFor(service, 'pt-PT');
+        const enTranslation = this.translationFor(service, 'en-US');
         this.form.patchValue({
-          name: service.name,
-          description: service.description ?? '',
+          translations: {
+            ptPT: {
+              name: ptTranslation.name,
+              description: ptTranslation.description ?? '',
+            },
+            enUS: {
+              name: enTranslation.name,
+              description: enTranslation.description ?? '',
+            },
+          },
           active: service.active,
           featured: service.featured,
         });
@@ -94,6 +119,7 @@ export class ServiceForm implements OnInit {
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.activateFirstInvalidLanguageTab();
       return;
     }
 
@@ -101,11 +127,22 @@ export class ServiceForm implements OnInit {
     this.error.set(null);
 
     const raw = this.form.getRawValue();
+    const translations = {
+      'pt-PT': {
+        name: raw.translations.ptPT['name'],
+        description: raw.translations.ptPT['description'] || null,
+      },
+      'en-US': {
+        name: raw.translations.enUS['name'],
+        description: raw.translations.enUS['description'] || null,
+      },
+    } satisfies ServiceInput['translations'];
     const input: ServiceInput = {
-      name: raw.name,
-      description: raw.description,
+      name: translations['pt-PT'].name,
+      description: translations['pt-PT'].description,
       active: raw.active,
       featured: raw.featured,
+      translations,
       variants: raw.variants.map((variant) => ({
         durationMinutes: variant['durationMinutes'],
         priceCents: Math.round(variant['priceEuros'] * 100),
@@ -130,6 +167,52 @@ export class ServiceForm implements OnInit {
         this.toast.show(errMsg, 'error');
         this.error.set(errMsg);
       },
+    });
+  }
+
+  protected translationNameInvalid(key: TranslationFormKey): boolean {
+    const control = this.form.get(['translations', key, 'name']);
+    return !!control?.invalid && !!control?.touched;
+  }
+
+  protected setActiveLanguageTab(value: string): void {
+    if (!isTranslationFormKey(value)) {
+      return;
+    }
+
+    this.activeLanguageTab.set(value);
+  }
+
+  private activateFirstInvalidLanguageTab(): void {
+    if (this.form.get(['translations', 'ptPT'])?.invalid) {
+      this.activeLanguageTab.set('ptPT');
+      return;
+    }
+
+    if (this.form.get(['translations', 'enUS'])?.invalid) {
+      this.activeLanguageTab.set('enUS');
+    }
+  }
+
+  private translationFor(
+    service: Service,
+    locale: ServiceLocale,
+  ): { name: string; description: string | null } {
+    return (
+      service.translations?.[locale] ?? {
+        name: service.name,
+        description: service.description,
+      }
+    );
+  }
+
+  private translationGroup(value?: {
+    name: string;
+    description: string | null;
+  }): FormGroup {
+    return this.fb.nonNullable.group({
+      name: [value?.name ?? '', Validators.required],
+      description: [value?.description ?? ''],
     });
   }
 

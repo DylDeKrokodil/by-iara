@@ -11,6 +11,13 @@ export interface ServiceVariant {
   sortOrder: number;
 }
 
+export type ServiceLocale = 'pt-PT' | 'en-US';
+
+export interface ServiceTranslation {
+  name: string;
+  description: string | null;
+}
+
 export interface Service {
   id: string;
   slug: string;
@@ -19,6 +26,7 @@ export interface Service {
   active: boolean;
   sortOrder: number;
   featured: boolean;
+  translations?: Partial<Record<ServiceLocale, ServiceTranslation>>;
   variants: ServiceVariant[];
 }
 
@@ -35,6 +43,7 @@ export interface ServiceInput {
   active?: boolean;
   sortOrder?: number;
   featured?: boolean;
+  translations: Record<ServiceLocale, ServiceTranslation>;
   variants: VariantInput[];
 }
 

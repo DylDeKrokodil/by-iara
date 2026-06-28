@@ -13,12 +13,32 @@ import {
   DataTable,
   DataTableColumn,
   SelectField,
+  TabOption,
+  Tabs,
   ToastService,
 } from '@by-iara/shared-ui';
 
+const availabilityTabValues = ['rules', 'blocks'] as const;
+type AvailabilityTab = (typeof availabilityTabValues)[number];
+
+const availabilityTabs: ReadonlyArray<TabOption> = [
+  { label: 'Weekly Hours', value: 'rules' },
+  { label: 'Blocked Times', value: 'blocks' },
+];
+
+function isAvailabilityTab(value: string): value is AvailabilityTab {
+  return availabilityTabValues.includes(value as AvailabilityTab);
+}
+
 @Component({
   selector: 'byiara-availability',
-  imports: [ReactiveFormsModule, DataTable, ConfirmationModal, SelectField],
+  imports: [
+    ReactiveFormsModule,
+    DataTable,
+    ConfirmationModal,
+    SelectField,
+    Tabs,
+  ],
   templateUrl: './availability.html',
   styleUrl: './availability.css',
 })
@@ -28,7 +48,8 @@ export class Availability implements OnInit {
   private readonly toast = inject(ToastService);
 
   // Navigation State
-  protected readonly activeTab = signal<'rules' | 'blocks'>('rules');
+  protected readonly activeTab = signal<AvailabilityTab>('rules');
+  protected readonly availabilityTabs = availabilityTabs;
 
   // Loading & Error states
   protected readonly loadingRules = signal(true);
@@ -89,7 +110,11 @@ export class Availability implements OnInit {
     this.reloadBlocks();
   }
 
-  protected setActiveTab(tab: 'rules' | 'blocks'): void {
+  protected setActiveTab(tab: string): void {
+    if (!isAvailabilityTab(tab)) {
+      return;
+    }
+
     this.activeTab.set(tab);
   }
 

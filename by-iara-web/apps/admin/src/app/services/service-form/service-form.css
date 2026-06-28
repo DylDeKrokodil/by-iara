@@ -66,6 +66,29 @@ h1 {
   color: var(--byiara-color-text-muted);
 }
 
+.localized-content-grid {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
+.locale-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-md);
+  margin: 0;
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+}
+
+.locale-panel legend {
+  padding: 0 var(--byiara-space-2xs);
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-bold);
+}
+
 .section-divider {
   border: 0;
   border-top: 1px solid rgba(252, 194, 219, 0.2);
