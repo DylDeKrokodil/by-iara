@@ -16,8 +16,20 @@ auth:bearer {
 
 body:json {
   {
-    "name": "Deep Tissue Massage",
-    "description": "Firm, focused pressure for tension relief",
+    "name": "Massagem de tecido profundo",
+    "description": "Pressao firme e focada para alivio de tensao",
+    "featured": true,
+    "sortOrder": 0,
+    "translations": {
+      "pt-PT": {
+        "name": "Massagem de tecido profundo",
+        "description": "Pressao firme e focada para alivio de tensao"
+      },
+      "en-US": {
+        "name": "Deep Tissue Massage",
+        "description": "Firm, focused pressure for tension relief"
+      }
+    },
     "variants": [
       { "durationMinutes": 30, "priceCents": 4500 },
       { "durationMinutes": 45, "priceCents": 6000 },
@@ -38,5 +50,10 @@ tests {
     expect(res.body.slug).to.be.a("string");
     expect(res.body.variants).to.have.length(3);
     expect(res.body.variants[0].price.currency).to.equal("EUR");
+  });
+
+  test("stores translations for both locales", function () {
+    expect(res.body.translations["pt-PT"].name).to.equal("Massagem de tecido profundo");
+    expect(res.body.translations["en-US"].name).to.equal("Deep Tissue Massage");
   });
 }
