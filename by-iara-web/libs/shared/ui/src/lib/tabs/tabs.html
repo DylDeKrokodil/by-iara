@@ -1,0 +1,17 @@
+<div class="tabs-navigation" role="tablist" [attr.aria-label]="ariaLabel()">
+  @for (tab of tabs(); track tab.value; let tabIndex = $index) {
+    <button
+      type="button"
+      class="tab-btn"
+      role="tab"
+      [id]="tabId(tabIndex)"
+      [class.active]="tab.value === activeValue()"
+      [attr.aria-selected]="tab.value === activeValue()"
+      [attr.tabindex]="tab.value === activeValue() ? 0 : -1"
+      (click)="selectTab(tab.value)"
+      (keydown)="onKeydown($event)"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</div>
