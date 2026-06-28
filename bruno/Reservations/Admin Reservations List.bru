@@ -1,0 +1,27 @@
+meta {
+  name: Admin Reservations List
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/admin/reservations?page=0&size=20
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+docs {
+  Add &status=PENDING|CONFIRMED|REJECTED|CANCELLED|COMPLETED to filter by status.
+}
+
+tests {
+  test("returns a page of reservations", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.items).to.be.an("array");
+    expect(res.body.total).to.be.a("number");
+  });
+}
