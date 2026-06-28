@@ -82,11 +82,18 @@ h1 {
   background: var(--byiara-color-surface-muted);
 }
 
+/* The active language tab already labels this panel, so hide the legend
+   visually while keeping it as a group label for assistive tech. */
 .locale-panel legend {
-  padding: 0 var(--byiara-space-2xs);
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-bold);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .section-divider {
