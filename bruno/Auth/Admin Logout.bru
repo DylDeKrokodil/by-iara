@@ -1,0 +1,23 @@
+meta {
+  name: Admin Logout
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/admin/auth/logout
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "refreshToken": "{{refreshToken}}"
+  }
+}
+
+tests {
+  test("revokes the refresh token", function () {
+    expect(res.status).to.equal(204);
+  });
+}
