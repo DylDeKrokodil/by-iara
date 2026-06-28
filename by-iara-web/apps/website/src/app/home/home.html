@@ -37,9 +37,9 @@
             <span class="featured-badge">{{ copy().featuredBadge }}</span>
 
             <div class="card-header">
-              <h3 class="service-name">{{ service.name }}</h3>
-              @if (service.description) {
-                <p class="service-description">{{ service.description }}</p>
+              <h3 class="service-name">{{ localized(service).name }}</h3>
+              @if (localized(service).description) {
+                <p class="service-description">{{ localized(service).description }}</p>
               }
             </div>
 

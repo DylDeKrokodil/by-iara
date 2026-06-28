@@ -7,7 +7,13 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { ServicesApi, Service, ServiceVariant } from './services-api';
+import {
+  ServicesApi,
+  Service,
+  ServiceTranslation,
+  ServiceVariant,
+  localizedService,
+} from './services-api';
 import { ToastService } from '@by-iara/shared-ui';
 import { LanguageService } from '../i18n/language.service';
 
@@ -60,9 +66,16 @@ export class ServicesCatalog implements OnInit {
     }).format(cents / 100);
   }
 
+  protected localized(service: Service): ServiceTranslation {
+    return localizedService(service, this.language.current().locale);
+  }
+
   protected onBook(service: Service, variant: ServiceVariant): void {
     this.toast.show(
-      this.copy().bookingComingSoon(service.name, variant.durationMinutes),
+      this.copy().bookingComingSoon(
+        this.localized(service).name,
+        variant.durationMinutes,
+      ),
       'success',
     );
   }
