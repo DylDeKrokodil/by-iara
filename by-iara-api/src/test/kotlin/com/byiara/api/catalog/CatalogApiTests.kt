@@ -27,6 +27,7 @@ class CatalogApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
         dsl.execute(
@@ -57,6 +58,19 @@ class CatalogApiTests {
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now(),
                 constraint service_variants_service_duration_unique unique (service_id, duration_minutes)
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_translations (
+                service_id uuid not null references services(id) on delete cascade,
+                locale varchar(10) not null,
+                name varchar(160) not null,
+                description text,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now(),
+                primary key (service_id, locale)
             )
             """.trimIndent(),
         )
@@ -96,6 +110,44 @@ class CatalogApiTests {
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].name").value("Deep tissue"))
             .andExpect(jsonPath("$[0].variants.length()").value(2))
+    }
+
+    @Test
+    fun `creating a service stores localized pt and en content`() {
+        mockMvc.perform(
+            post("/api/admin/services").with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name": "Massagem relaxante",
+                      "description": "Pressao suave para relaxamento",
+                      "translations": {
+                        "pt-PT": {
+                          "name": "Massagem relaxante",
+                          "description": "Pressao suave para relaxamento"
+                        },
+                        "en-US": {
+                          "name": "Relaxing massage",
+                          "description": "Gentle pressure for relaxation"
+                        }
+                      },
+                      "variants": [
+                        { "durationMinutes": 60, "priceCents": 7500 }
+                      ]
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.name").value("Massagem relaxante"))
+            .andExpect(jsonPath("$.translations['pt-PT'].name").value("Massagem relaxante"))
+            .andExpect(jsonPath("$.translations['en-US'].name").value("Relaxing massage"))
+
+        mockMvc.perform(get("/api/admin/services").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].translations['pt-PT'].description").value("Pressao suave para relaxamento"))
+            .andExpect(jsonPath("$[0].translations['en-US'].description").value("Gentle pressure for relaxation"))
     }
 
     @Test

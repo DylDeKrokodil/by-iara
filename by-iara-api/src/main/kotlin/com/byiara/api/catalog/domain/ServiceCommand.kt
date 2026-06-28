@@ -6,7 +6,13 @@ data class ServiceCommand(
     val active: Boolean,
     val sortOrder: Int,
     val featured: Boolean = false,
+    val translations: Map<String, ServiceTranslationCommand> = emptyMap(),
     val variants: List<VariantCommand>,
+)
+
+data class ServiceTranslationCommand(
+    val name: String,
+    val description: String?,
 )
 
 data class VariantCommand(
