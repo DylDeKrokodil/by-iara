@@ -20,6 +20,7 @@ body:json {
 script:post-response {
   if (res.status === 200 && res.body?.accessToken) {
     bru.setEnvVar("accessToken", res.body.accessToken);
+    bru.setEnvVar("refreshToken", res.body.refreshToken);
   }
 }
 
@@ -31,5 +32,9 @@ tests {
     expect(res.body.admin.role).to.equal("ADMIN");
     expect(res.body.accessToken).to.be.a("string");
     expect(res.body.accessToken.split(".")).to.have.length(3);
+  });
+
+  test("returns a refresh token", function () {
+    expect(res.body.refreshToken).to.be.a("string");
   });
 }

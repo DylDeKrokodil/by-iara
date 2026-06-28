@@ -49,7 +49,21 @@ class ByIaraApiApplicationTests {
 			""".trimIndent(),
 		)
 
+		dsl.execute(
+			"""
+			create table if not exists refresh_tokens (
+			    id uuid default random_uuid() primary key,
+			    admin_user_id uuid not null,
+			    token_hash varchar(64) not null unique,
+			    expires_at timestamp with time zone not null,
+			    revoked_at timestamp with time zone,
+			    created_at timestamp with time zone not null default now()
+			)
+			""".trimIndent(),
+		)
+
 		val adminUsers = table(name("admin_users"))
+		dsl.deleteFrom(table(name("refresh_tokens"))).execute()
 		dsl.deleteFrom(adminUsers).execute()
 		dsl.insertInto(adminUsers)
 			.columns(
@@ -94,11 +108,72 @@ class ByIaraApiApplicationTests {
 		)
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.accessToken").isString)
+			.andExpect(jsonPath("$.refreshToken").isString)
 			.andExpect(jsonPath("$.tokenType").value("Bearer"))
 			.andExpect(jsonPath("$.expiresInSeconds").value(3600))
 			.andExpect(jsonPath("$.admin.email").value("admin@by-iara.local"))
 			.andExpect(jsonPath("$.admin.role").value("ADMIN"))
 	}
+
+	@Test
+	fun `refresh token issues a new session`() {
+		val refreshToken = refreshTokenFrom(login())
+
+		mockMvc.perform(
+			post("/api/admin/auth/refresh")
+				.contentType("application/json")
+				.content("""{"refreshToken":"$refreshToken"}"""),
+		)
+			.andExpect(status().isOk)
+			.andExpect(jsonPath("$.accessToken").isString)
+			.andExpect(jsonPath("$.refreshToken").isString)
+			.andExpect(jsonPath("$.admin.email").value("admin@by-iara.local"))
+	}
+
+	@Test
+	fun `reusing a rotated refresh token is rejected`() {
+		val originalToken = refreshTokenFrom(login())
+
+		// First refresh rotates the token (revoking the original).
+		mockMvc.perform(
+			post("/api/admin/auth/refresh")
+				.contentType("application/json")
+				.content("""{"refreshToken":"$originalToken"}"""),
+		).andExpect(status().isOk)
+
+		// Replaying the original (now-revoked) token is treated as reuse.
+		mockMvc.perform(
+			post("/api/admin/auth/refresh")
+				.contentType("application/json")
+				.content("""{"refreshToken":"$originalToken"}"""),
+		)
+			.andExpect(status().isUnauthorized)
+			.andExpect(jsonPath("$.message").value("Invalid or expired refresh token"))
+	}
+
+	@Test
+	fun `logout revokes the refresh token`() {
+		val refreshToken = refreshTokenFrom(login())
+
+		mockMvc.perform(
+			post("/api/admin/auth/logout")
+				.contentType("application/json")
+				.content("""{"refreshToken":"$refreshToken"}"""),
+		).andExpect(status().isNoContent)
+
+		mockMvc.perform(
+			post("/api/admin/auth/refresh")
+				.contentType("application/json")
+				.content("""{"refreshToken":"$refreshToken"}"""),
+		).andExpect(status().isUnauthorized)
+	}
+
+	private fun refreshTokenFrom(result: MvcResult): String =
+		Regex(""""refreshToken":"([^"]+)"""")
+			.find(result.response.contentAsString)
+			?.groupValues
+			?.get(1)
+			?: error("Missing refreshToken")
 
 	@Test
 	fun `admin login returns a signed JWT that can access protected admin routes`() {
