@@ -1,26 +1,34 @@
 <div class="site-frame">
-  <!-- Website Header -->
   <header class="site-header">
     <div class="header-container">
-      <a class="logo-link" routerLink="/">
+      <a class="logo-link" [routerLink]="language.localizedLink()">
         <span class="logo-text">By Iara</span>
       </a>
-      <nav class="header-nav">
-        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a>
-        <a routerLink="/services" routerLinkActive="active">Services</a>
-      </nav>
+      <div class="header-actions">
+        <nav class="header-nav">
+          <a
+            [routerLink]="language.localizedLink()"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
+            {{ copy().nav.home }}
+          </a>
+          <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
+            {{ copy().nav.services }}
+          </a>
+        </nav>
+        <byiara-language-switcher></byiara-language-switcher>
+      </div>
     </div>
   </header>
 
-  <!-- Main Content Space -->
   <main class="site-main">
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Website Footer -->
   <footer class="site-footer">
     <div class="footer-container">
-      <p class="footer-text">&copy; 2026 By Iara. All rights reserved.</p>
+      <p class="footer-text">{{ copy().footer }}</p>
     </div>
   </footer>
 </div>

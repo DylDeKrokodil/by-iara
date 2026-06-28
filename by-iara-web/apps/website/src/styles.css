@@ -148,6 +148,17 @@ body {
   margin-top: var(--byiara-space-2xl);
 }
 
+.featured-error {
+  background: rgba(177, 47, 77, 0.05);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  color: var(--byiara-color-danger);
+  margin: 0 auto;
+  max-width: 28rem;
+  padding: var(--byiara-space-lg);
+  text-align: center;
+}
+
 /* Shared Services Grid & Card Layout (Global) */
 .services-grid {
   display: grid;

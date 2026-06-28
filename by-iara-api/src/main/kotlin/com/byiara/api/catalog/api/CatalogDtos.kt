@@ -2,6 +2,8 @@ package com.byiara.api.catalog.api
 
 import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
+import com.byiara.api.catalog.domain.ServiceTranslation
+import com.byiara.api.catalog.domain.ServiceTranslationCommand
 import com.byiara.api.catalog.domain.ServiceVariant
 import com.byiara.api.catalog.domain.VariantCommand
 import jakarta.validation.Valid
@@ -24,18 +26,47 @@ data class ServiceRequest(
 
     val featured: Boolean = false,
 
+    val translations: Map<String, @Valid ServiceTranslationRequest> = emptyMap(),
+
     @field:NotEmpty
     @field:Valid
     val variants: List<VariantRequest> = emptyList(),
 ) {
-    fun toCommand(): ServiceCommand =
-        ServiceCommand(
-            name = name.trim(),
-            description = description?.trim()?.ifBlank { null },
+    fun toCommand(): ServiceCommand {
+        val normalizedName = name.trim()
+        val normalizedDescription = description?.trim()?.ifBlank { null }
+        val normalizedTranslations = translations
+            .mapNotNull { (locale, translation) ->
+                val normalizedLocale = normalizeLocale(locale) ?: return@mapNotNull null
+                normalizedLocale to translation.toCommand()
+            }
+            .toMap()
+            .ifEmpty {
+                mapOf(PRIMARY_LOCALE to ServiceTranslationCommand(normalizedName, normalizedDescription))
+            }
+
+        return ServiceCommand(
+            name = normalizedName,
+            description = normalizedDescription,
             active = active,
             sortOrder = sortOrder,
             featured = featured,
+            translations = normalizedTranslations,
             variants = variants.map { it.toCommand() },
+        )
+    }
+}
+
+data class ServiceTranslationRequest(
+    @field:NotBlank
+    val name: String,
+
+    val description: String? = null,
+) {
+    fun toCommand(): ServiceTranslationCommand =
+        ServiceTranslationCommand(
+            name = name.trim(),
+            description = description?.trim()?.ifBlank { null },
         )
 }
 
@@ -71,7 +102,13 @@ data class ServiceResponse(
     val active: Boolean,
     val sortOrder: Int,
     val featured: Boolean,
+    val translations: Map<String, ServiceTranslationResponse>,
     val variants: List<ServiceVariantResponse>,
+)
+
+data class ServiceTranslationResponse(
+    val name: String,
+    val description: String?,
 )
 
 data class ServiceVariantResponse(
@@ -96,7 +133,14 @@ fun Service.toResponse(): ServiceResponse =
         active = active,
         sortOrder = sortOrder,
         featured = featured,
+        translations = translations.mapValues { it.value.toResponse() },
         variants = variants.map { it.toResponse() },
+    )
+
+fun ServiceTranslation.toResponse(): ServiceTranslationResponse =
+    ServiceTranslationResponse(
+        name = name,
+        description = description,
     )
 
 fun ServiceVariant.toResponse(): ServiceVariantResponse =
@@ -107,3 +151,12 @@ fun ServiceVariant.toResponse(): ServiceVariantResponse =
         active = active,
         sortOrder = sortOrder,
     )
+
+private const val PRIMARY_LOCALE = "pt-PT"
+
+private fun normalizeLocale(locale: String): String? =
+    when (locale.trim()) {
+        "pt", "pt-PT" -> "pt-PT"
+        "en", "en-US" -> "en-US"
+        else -> null
+    }

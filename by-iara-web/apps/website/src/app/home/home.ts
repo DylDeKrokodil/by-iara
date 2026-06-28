@@ -1,8 +1,22 @@
-import { Component, inject, OnInit, signal, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ServicesApi, Service, ServiceVariant } from '../services/services-api';
+import {
+  ServicesApi,
+  Service,
+  ServiceTranslation,
+  ServiceVariant,
+  localizedService,
+} from '../services/services-api';
 import { ToastService } from '@by-iara/shared-ui';
+import { LanguageService } from '../i18n/language.service';
 
 @Component({
   selector: 'byiara-home',
@@ -13,10 +27,12 @@ export class Home implements OnInit {
   private readonly api = inject(ServicesApi);
   private readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
+  protected readonly language = inject(LanguageService);
 
   protected readonly featuredServices = signal<Service[]>([]);
   protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
+  protected readonly hasError = signal(false);
+  protected readonly copy = computed(() => this.language.messages().home);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -28,10 +44,9 @@ export class Home implements OnInit {
 
   protected loadFeaturedServices(): void {
     this.loading.set(true);
-    this.error.set(null);
+    this.hasError.set(false);
     this.api.list().subscribe({
       next: (data) => {
-        // Filter featured services and sort them by sortOrder
         const featured = data
           .filter((s) => s.featured && s.active)
           .sort((a, b) => a.sortOrder - b.sortOrder);
@@ -39,19 +54,29 @@ export class Home implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Could not load featured services.');
+        this.hasError.set(true);
         this.loading.set(false);
       },
     });
   }
 
   protected formatPrice(cents: number): string {
-    return (cents / 100).toFixed(2);
+    return new Intl.NumberFormat(this.language.current().locale, {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(cents / 100);
+  }
+
+  protected localized(service: Service): ServiceTranslation {
+    return localizedService(service, this.language.current().locale);
   }
 
   protected onBook(service: Service, variant: ServiceVariant): void {
     this.toast.show(
-      `Booking for "${service.name}" (${variant.durationMinutes} min) is coming soon!`,
+      this.copy().bookingComingSoon(
+        this.localized(service).name,
+        variant.durationMinutes,
+      ),
       'success',
     );
   }

@@ -5,24 +5,12 @@
   </div>
 </div>
 
-<div class="tabs-navigation">
-  <button
-    type="button"
-    class="tab-btn"
-    [class.active]="activeTab() === 'rules'"
-    (click)="setActiveTab('rules')"
-  >
-    Weekly Hours
-  </button>
-  <button
-    type="button"
-    class="tab-btn"
-    [class.active]="activeTab() === 'blocks'"
-    (click)="setActiveTab('blocks')"
-  >
-    Blocked Times
-  </button>
-</div>
+<byiara-tabs
+  ariaLabel="Availability sections"
+  [tabs]="availabilityTabs"
+  [activeValue]="activeTab()"
+  (activeValueChange)="setActiveTab($event)"
+></byiara-tabs>
 
 <!-- Tab content: Rules -->
 @if (activeTab() === 'rules') {

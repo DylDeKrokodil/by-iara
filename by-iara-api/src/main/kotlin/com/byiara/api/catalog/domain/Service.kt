@@ -10,7 +10,13 @@ data class Service(
     val active: Boolean,
     val sortOrder: Int,
     val featured: Boolean = false,
+    val translations: Map<String, ServiceTranslation> = emptyMap(),
     val variants: List<ServiceVariant>,
+)
+
+data class ServiceTranslation(
+    val name: String,
+    val description: String?,
 )
 
 data class ServiceVariant(

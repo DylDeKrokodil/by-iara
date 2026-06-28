@@ -15,6 +15,11 @@ export interface ServiceVariant {
   sortOrder: number;
 }
 
+export interface ServiceTranslation {
+  name: string;
+  description: string | null;
+}
+
 export interface Service {
   id: string;
   slug: string;
@@ -23,7 +28,24 @@ export interface Service {
   active: boolean;
   sortOrder: number;
   featured: boolean;
+  translations: Record<string, ServiceTranslation>;
   variants: ServiceVariant[];
+}
+
+/**
+ * Resolves the service name/description for a locale, falling back to the base
+ * columns when the requested locale has no translation row.
+ */
+export function localizedService(
+  service: Service,
+  locale: string,
+): ServiceTranslation {
+  return (
+    service.translations?.[locale] ?? {
+      name: service.name,
+      description: service.description,
+    }
+  );
 }
 
 @Injectable({ providedIn: 'root' })

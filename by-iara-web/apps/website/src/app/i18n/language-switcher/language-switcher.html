@@ -1,0 +1,13 @@
+<nav class="language-switcher" [attr.aria-label]="copy().ariaLabel">
+  @for (locale of language.locales; track locale.path) {
+    <a
+      class="language-option"
+      [routerLink]="language.switchLocaleLink(locale.path)"
+      routerLinkActive="active"
+      [attr.aria-current]="language.current().path === locale.path ? 'true' : null"
+      [attr.title]="locale.nativeName"
+    >
+      {{ locale.shortLabel }}
+    </a>
+  }
+</nav>

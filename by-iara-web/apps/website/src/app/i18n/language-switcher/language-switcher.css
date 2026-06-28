@@ -1,0 +1,34 @@
+.language-switcher {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-surface);
+  padding: 0.125rem;
+}
+
+.language-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  min-height: 2rem;
+  border-radius: var(--byiara-radius-pill);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.language-option:hover {
+  color: var(--byiara-color-primary);
+}
+
+.language-option.active {
+  background: var(--byiara-color-primary);
+  color: var(--byiara-color-white);
+}

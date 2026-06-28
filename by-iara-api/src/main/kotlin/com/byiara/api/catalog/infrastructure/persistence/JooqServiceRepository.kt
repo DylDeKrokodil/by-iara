@@ -4,6 +4,8 @@ import com.byiara.api.catalog.domain.Money
 import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.catalog.domain.ServiceTranslation
+import com.byiara.api.catalog.domain.ServiceTranslationCommand
 import com.byiara.api.catalog.domain.ServiceVariant
 import com.byiara.api.catalog.domain.VariantCommand
 import org.jooq.DSLContext
@@ -40,6 +42,12 @@ class JooqServiceRepository(
     private val vActive = field(name("active"), Boolean::class.java)
     private val vSortOrder = field(name("sort_order"), Int::class.java)
 
+    private val serviceTranslations = table(name("service_translations"))
+    private val stServiceId = field(name("service_id"), UUID::class.java)
+    private val stLocale = field(name("locale"), String::class.java)
+    private val stName = field(name("name"), String::class.java)
+    private val stDescription = field(name("description"), String::class.java)
+
     override fun findCatalog(): List<Service> = loadServices(activeFilter = true, variantsActiveOnly = true)
 
     override fun findAll(active: Boolean?): List<Service> = loadServices(activeFilter = active, variantsActiveOnly = false)
@@ -52,7 +60,11 @@ class JooqServiceRepository(
             .fetchOne()
             ?: return null
 
-        return mapService(record, loadVariants(listOf(id), activeOnly = false).map { it.variant })
+        return mapService(
+            record,
+            loadVariants(listOf(id), activeOnly = false).map { it.variant },
+            loadTranslations(listOf(id))[id].orEmpty(),
+        )
     }
 
     override fun existsBySlug(slug: String): Boolean =
@@ -68,6 +80,7 @@ class JooqServiceRepository(
             .get(sId)
 
         insertVariants(newId, command.variants)
+        insertTranslations(newId, command.translations)
 
         return findById(newId)!!
     }
@@ -86,6 +99,9 @@ class JooqServiceRepository(
         // Variants are owned by the service; replace them wholesale on update.
         dsl.deleteFrom(variants).where(vServiceId.eq(id)).execute()
         insertVariants(id, command.variants)
+
+        dsl.deleteFrom(serviceTranslations).where(stServiceId.eq(id)).execute()
+        insertTranslations(id, command.translations)
 
         return findById(id)!!
     }
@@ -113,6 +129,20 @@ class JooqServiceRepository(
         }
     }
 
+    private fun insertTranslations(serviceId: UUID, commands: Map<String, ServiceTranslationCommand>) {
+        commands.forEach { (locale, translation) ->
+            dsl.insertInto(serviceTranslations)
+                .columns(stServiceId, stLocale, stName, stDescription)
+                .values(
+                    serviceId,
+                    locale,
+                    translation.name,
+                    translation.description,
+                )
+                .execute()
+        }
+    }
+
     private fun loadServices(activeFilter: Boolean?, variantsActiveOnly: Boolean): List<Service> {
         val records = dsl
             .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
@@ -133,10 +163,36 @@ class JooqServiceRepository(
 
         val variantsByService = loadVariants(records.map { it.get(sId) }, variantsActiveOnly)
             .groupBy { it.serviceId }
+        val translationsByService = loadTranslations(records.map { it.get(sId) })
 
         return records.map { record ->
-            mapService(record, variantsByService[record.get(sId)].orEmpty().map { it.variant })
+            mapService(
+                record,
+                variantsByService[record.get(sId)].orEmpty().map { it.variant },
+                translationsByService[record.get(sId)].orEmpty(),
+            )
         }
+    }
+
+    private fun loadTranslations(serviceIds: List<UUID>): Map<UUID, Map<String, ServiceTranslation>> {
+        if (serviceIds.isEmpty()) {
+            return emptyMap()
+        }
+
+        return dsl
+            .select(stServiceId, stLocale, stName, stDescription)
+            .from(serviceTranslations)
+            .where(stServiceId.`in`(serviceIds))
+            .fetch()
+            .groupBy { it.get(stServiceId) }
+            .mapValues { (_, records) ->
+                records.associate { record ->
+                    record.get(stLocale) to ServiceTranslation(
+                        name = record.get(stName),
+                        description = record.get(stDescription),
+                    )
+                }
+            }
     }
 
     private fun loadVariants(serviceIds: List<UUID>, activeOnly: Boolean): List<OwnedVariant> {
@@ -158,7 +214,11 @@ class JooqServiceRepository(
             }
     }
 
-    private fun mapService(record: Record, variants: List<ServiceVariant>): Service =
+    private fun mapService(
+        record: Record,
+        variants: List<ServiceVariant>,
+        translations: Map<String, ServiceTranslation>,
+    ): Service =
         Service(
             id = record.get(sId),
             slug = record.get(sSlug),
@@ -167,6 +227,7 @@ class JooqServiceRepository(
             active = record.get(sActive),
             sortOrder = record.get(sSortOrder),
             featured = record.get(sFeatured),
+            translations = translations,
             variants = variants,
         )
 

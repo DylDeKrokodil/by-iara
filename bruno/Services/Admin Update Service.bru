@@ -16,9 +16,21 @@ auth:bearer {
 
 body:json {
   {
-    "name": "Deep Tissue Massage",
-    "description": "Updated description",
+    "name": "Massagem de tecido profundo",
+    "description": "Descricao atualizada",
     "active": true,
+    "featured": false,
+    "sortOrder": 1,
+    "translations": {
+      "pt-PT": {
+        "name": "Massagem de tecido profundo",
+        "description": "Descricao atualizada"
+      },
+      "en-US": {
+        "name": "Deep Tissue Massage",
+        "description": "Updated description"
+      }
+    },
     "variants": [
       { "durationMinutes": 45, "priceCents": 6500 },
       { "durationMinutes": 60, "priceCents": 8000 }
@@ -30,5 +42,10 @@ tests {
   test("updates the service and replaces its variants", function () {
     expect(res.status).to.equal(200);
     expect(res.body.variants).to.have.length(2);
+  });
+
+  test("updates translations for both locales", function () {
+    expect(res.body.translations["pt-PT"].description).to.equal("Descricao atualizada");
+    expect(res.body.translations["en-US"].name).to.equal("Deep Tissue Massage");
   });
 }

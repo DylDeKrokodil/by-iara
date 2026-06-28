@@ -17,32 +17,79 @@
 
 <form class="service-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
   <div class="form-card">
-    
-    <!-- General Info Section -->
     <div class="form-section">
-      <h3 class="section-title">General Information</h3>
-      
-      <!-- Name -->
-      <div class="form-group">
-        <label class="field">
-          <span>Service Name</span>
-          <input type="text" formControlName="name" placeholder="e.g. Deep Tissue Massage"
-                 [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched" />
-        </label>
-        @if (form.get('name')?.invalid && form.get('name')?.touched) {
-          <span class="error-message">Service name is required</span>
+      <h3 class="section-title">Localized Content</h3>
+      <p class="section-subtitle">Create the public service copy in Portuguese and English.</p>
+
+      <div class="localized-content-grid" formGroupName="translations">
+        <byiara-tabs
+          ariaLabel="Service content languages"
+          [tabs]="languageTabs"
+          [activeValue]="activeLanguageTab()"
+          (activeValueChange)="setActiveLanguageTab($event)"
+        ></byiara-tabs>
+
+        @if (activeLanguageTab() === 'ptPT') {
+          <fieldset class="locale-panel" formGroupName="ptPT">
+            <legend>Portuguese content</legend>
+            <div class="form-group">
+              <label class="field">
+                <span>Service name</span>
+                <input
+                  type="text"
+                  formControlName="name"
+                  placeholder="ex. Massagem de tecidos profundos"
+                  [class.is-invalid]="translationNameInvalid('ptPT')"
+                />
+              </label>
+              @if (translationNameInvalid('ptPT')) {
+                <span class="error-message">Portuguese service name is required</span>
+              }
+            </div>
+            <div class="form-group">
+              <label class="field">
+                <span>Description</span>
+                <textarea
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Descreva o tratamento em português..."
+                ></textarea>
+              </label>
+            </div>
+          </fieldset>
+        }
+
+        @if (activeLanguageTab() === 'enUS') {
+          <fieldset class="locale-panel" formGroupName="enUS">
+            <legend>English content</legend>
+            <div class="form-group">
+              <label class="field">
+                <span>Service name</span>
+                <input
+                  type="text"
+                  formControlName="name"
+                  placeholder="e.g. Deep Tissue Massage"
+                  [class.is-invalid]="translationNameInvalid('enUS')"
+                />
+              </label>
+              @if (translationNameInvalid('enUS')) {
+                <span class="error-message">English service name is required</span>
+              }
+            </div>
+            <div class="form-group">
+              <label class="field">
+                <span>Description</span>
+                <textarea
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Describe what makes this service unique..."
+                ></textarea>
+              </label>
+            </div>
+          </fieldset>
         }
       </div>
 
-      <!-- Description -->
-      <div class="form-group">
-        <label class="field">
-          <span>Description</span>
-          <textarea formControlName="description" rows="3" placeholder="Describe what makes this service unique..."></textarea>
-        </label>
-      </div>
-
-      <!-- Toggle Switch for Active Status -->
       <div class="form-group toggle-group">
         <div class="toggle-container">
           <span class="toggle-label">Active Visibility</span>
@@ -54,7 +101,6 @@
         </label>
       </div>
 
-      <!-- Toggle Switch for Featured Status -->
       <div class="form-group toggle-group">
         <div class="toggle-container">
           <span class="toggle-label">Featured Service</span>
