@@ -11,5 +11,5 @@ create table service_translations (
 create index idx_service_translations_locale on service_translations(locale);
 
 insert into service_translations (service_id, locale, name, description)
-select id, 'en-US', name, description
+select id, 'pt-PT', name, description
 from services;
