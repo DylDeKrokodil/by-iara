@@ -15,22 +15,21 @@ import java.util.UUID
 class JooqAdminCredentialsRepository(
     private val dsl: DSLContext,
 ) : AdminCredentialsRepository {
-    override fun findActiveCredentialsByEmail(email: String): AdminCredentials? {
-        val adminUsers = table(name("admin_users"))
-        val id = field(name("id"), UUID::class.java)
-        val emailField = field(name("email"), String::class.java)
-        val passwordHash = field(name("password_hash"), String::class.java)
-        val role = field(name("role"), String::class.java)
-        val active = field(name("active"), Boolean::class.java)
+    private val adminUsers = table(name("admin_users"))
+    private val id = field(name("id"), UUID::class.java)
+    private val emailField = field(name("email"), String::class.java)
+    private val passwordHash = field(name("password_hash"), String::class.java)
+    private val role = field(name("role"), String::class.java)
+    private val active = field(name("active"), Boolean::class.java)
 
-        return dsl
+    override fun findActiveCredentialsByEmail(email: String): AdminCredentials? =
+        dsl
             .select(id, emailField, passwordHash, role)
             .from(adminUsers)
             .where(emailField.equalIgnoreCase(email))
             .and(active.isTrue)
             .limit(1)
             .fetchOne { record ->
-                val adminRole = AdminRole.valueOf(record.get(role))
                 val adminEmail = record.get(emailField)
 
                 AdminCredentials(
@@ -39,9 +38,22 @@ class JooqAdminCredentialsRepository(
                     passwordHash = record.get(passwordHash),
                     identity = AdminIdentity(
                         email = adminEmail,
-                        role = adminRole,
+                        role = AdminRole.valueOf(record.get(role)),
                     ),
                 )
             }
-    }
+
+    override fun findActiveIdentityById(id: UUID): AdminIdentity? =
+        dsl
+            .select(emailField, role)
+            .from(adminUsers)
+            .where(this.id.eq(id))
+            .and(active.isTrue)
+            .limit(1)
+            .fetchOne { record ->
+                AdminIdentity(
+                    email = record.get(emailField),
+                    role = AdminRole.valueOf(record.get(role)),
+                )
+            }
 }
