@@ -1,7 +1,15 @@
-import { Component, inject, OnInit, signal, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { ServicesApi, Service, ServiceVariant } from './services-api';
 import { ToastService } from '@by-iara/shared-ui';
+import { LanguageService } from '../i18n/language.service';
 
 @Component({
   selector: 'byiara-services-catalog',
@@ -13,10 +21,12 @@ export class ServicesCatalog implements OnInit {
   private readonly api = inject(ServicesApi);
   private readonly toast = inject(ToastService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly language = inject(LanguageService);
 
   protected readonly services = signal<Service[]>([]);
   protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
+  protected readonly hasError = signal(false);
+  protected readonly copy = computed(() => this.language.messages().services);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -29,28 +39,30 @@ export class ServicesCatalog implements OnInit {
 
   protected loadCatalog(): void {
     this.loading.set(true);
-    this.error.set(null);
+    this.hasError.set(false);
     this.api.list().subscribe({
       next: (data) => {
-        // Sort services by sortOrder
         const sorted = [...data].sort((a, b) => a.sortOrder - b.sortOrder);
         this.services.set(sorted);
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Could not load the services catalog. Please try again later.');
+        this.hasError.set(true);
         this.loading.set(false);
       },
     });
   }
 
   protected formatPrice(cents: number): string {
-    return (cents / 100).toFixed(2);
+    return new Intl.NumberFormat(this.language.current().locale, {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(cents / 100);
   }
 
   protected onBook(service: Service, variant: ServiceVariant): void {
     this.toast.show(
-      `Booking for "${service.name}" (${variant.durationMinutes} min) is coming soon!`,
+      this.copy().bookingComingSoon(service.name, variant.durationMinutes),
       'success',
     );
   }

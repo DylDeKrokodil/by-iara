@@ -37,7 +37,13 @@
   font-size: var(--byiara-font-size-2xl);
   font-weight: var(--byiara-font-weight-bold);
   color: var(--byiara-color-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--byiara-space-md);
 }
 
 .header-nav {
@@ -87,4 +93,17 @@
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-xs);
   margin: 0;
+}
+
+@media (max-width: 40rem) {
+  .header-container {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--byiara-space-sm);
+  }
+
+  .header-actions {
+    justify-content: space-between;
+    width: 100%;
+  }
 }

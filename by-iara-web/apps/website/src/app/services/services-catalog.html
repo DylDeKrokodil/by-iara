@@ -1,41 +1,34 @@
 <main class="public-shell">
   <div class="catalog-container">
-    
-    <!-- Welcome Header -->
     <header class="catalog-header">
-      <p class="eyebrow">Our Menu</p>
-      <h2>Services &amp; Treatments</h2>
-      <p>Discover our range of therapeutic and relaxing massages designed to restore balance and harmony.</p>
+      <p class="eyebrow">{{ copy().eyebrow }}</p>
+      <h2>{{ copy().title }}</h2>
+      <p>{{ copy().lede }}</p>
     </header>
 
-    <!-- Error state -->
-    @if (error()) {
+    @if (hasError()) {
       <div class="error-catalog">
-        <p>{{ error() }}</p>
+        <p>{{ copy().loadError }}</p>
       </div>
     }
 
-    <!-- Loading state -->
     @if (loading()) {
       <div class="loading-catalog">
         <div class="spinner" aria-hidden="true"></div>
-        <span>Loading our catalog...</span>
+        <span>{{ copy().loading }}</span>
       </div>
     }
 
-    <!-- Empty state -->
-    @if (!loading() && !error() && services().length === 0) {
+    @if (!loading() && !hasError() && services().length === 0) {
       <div class="empty-catalog">
-        <p>No services are currently available for booking.</p>
+        <p>{{ copy().empty }}</p>
       </div>
     }
 
-    <!-- Grid of Services -->
-    @if (!loading() && !error() && services().length > 0) {
+    @if (!loading() && !hasError() && services().length > 0) {
       <div class="services-grid">
         @for (service of services(); track service.id) {
           <article class="service-card">
-            
             <div class="card-header">
               <h3 class="service-name">{{ service.name }}</h3>
               @if (service.description) {
@@ -43,18 +36,17 @@
               }
             </div>
 
-            <!-- Pricing and Options -->
             <div class="variants-container">
-              <span class="variants-title">Options &amp; Prices</span>
+              <span class="variants-title">{{ copy().variantsTitle }}</span>
               @for (variant of service.variants; track variant.id) {
                 @if (variant.active) {
                   <div class="variant-row">
                     <div class="variant-info">
                       <span class="duration">{{ variant.durationMinutes }} min</span>
-                      <span class="price">€{{ formatPrice(variant.price.amountCents) }}</span>
+                      <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
                     </div>
                     <button type="button" class="book-btn" (click)="onBook(service, variant)">
-                      Book
+                      {{ copy().bookAction }}
                     </button>
                   </div>
                 }

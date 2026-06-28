@@ -1,31 +1,40 @@
 <main class="public-shell">
-  <!-- Hero Section -->
   <section class="hero" aria-labelledby="page-title">
-    <p class="eyebrow">By Iara</p>
-    <h1 id="page-title">Massage bookings, built with room to grow.</h1>
+    <p class="eyebrow">{{ copy().eyebrow }}</p>
+    <h1 id="page-title">{{ copy().title }}</h1>
     <p class="lede">
-      The public website will use this shared theme for service pages,
-      availability, and reservation requests.
+      {{ copy().lede }}
     </p>
-    <div class="actions" aria-label="Primary actions">
-      <a class="button button-primary" routerLink="/services">Start booking</a>
-      <a class="button button-secondary" routerLink="/services">View services</a>
+    <div class="actions" [attr.aria-label]="copy().primaryActionsLabel">
+      <a class="button button-primary" [routerLink]="language.localizedLink('services')">
+        {{ copy().primaryAction }}
+      </a>
+      <a class="button button-secondary" [routerLink]="language.localizedLink('services')">
+        {{ copy().secondaryAction }}
+      </a>
     </div>
   </section>
 
-  <!-- Featured Services Section -->
+  @if (hasError()) {
+    <section class="featured-section" aria-live="polite">
+      <div class="featured-error">
+        <p>{{ copy().featuredServicesError }}</p>
+      </div>
+    </section>
+  }
+
   @if (featuredServices().length > 0) {
     <section class="featured-section" aria-labelledby="featured-title">
       <div class="featured-header">
-        <p class="eyebrow">Highlights</p>
-        <h2 id="featured-title">Featured Treatments</h2>
-        <p>A selection of our client-favourite restorative experiences.</p>
+        <p class="eyebrow">{{ copy().featuredEyebrow }}</p>
+        <h2 id="featured-title">{{ copy().featuredTitle }}</h2>
+        <p>{{ copy().featuredLede }}</p>
       </div>
 
       <div class="services-grid">
         @for (service of featuredServices(); track service.id) {
           <article class="service-card featured-card">
-            <span class="featured-badge">Featured</span>
+            <span class="featured-badge">{{ copy().featuredBadge }}</span>
 
             <div class="card-header">
               <h3 class="service-name">{{ service.name }}</h3>
@@ -35,16 +44,16 @@
             </div>
 
             <div class="variants-container">
-              <span class="variants-title">Options &amp; Prices</span>
+              <span class="variants-title">{{ copy().variantsTitle }}</span>
               @for (variant of service.variants; track variant.id) {
                 @if (variant.active) {
                   <div class="variant-row">
                     <div class="variant-info">
                       <span class="duration">{{ variant.durationMinutes }} min</span>
-                      <span class="price">€{{ formatPrice(variant.price.amountCents) }}</span>
+                      <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
                     </div>
                     <button type="button" class="book-btn" (click)="onBook(service, variant)">
-                      Book
+                      {{ copy().bookAction }}
                     </button>
                   </div>
                 }
@@ -55,8 +64,8 @@
       </div>
 
       <div class="featured-cta">
-        <a class="button button-secondary" routerLink="/services">
-          View All Services
+        <a class="button button-secondary" [routerLink]="language.localizedLink('services')">
+          {{ copy().viewAllServices }}
           <svg class="btn-icon-right" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M5 12h14"/>
             <path d="m12 5 7 7-7 7"/>
