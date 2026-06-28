@@ -16,6 +16,25 @@ const app = express();
 const angularApp = new AngularNodeAppEngine();
 
 /**
+ * Security headers for the public site. script-src keeps 'unsafe-inline' because
+ * Angular SSR hydration emits inline scripts (ng-event-dispatch-contract + the
+ * bootstrap block); the public site holds no credentials, so this is an acceptable
+ * baseline. Tightening to a nonce-based script-src is a follow-up.
+ */
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
+
+/**
  * Proxy API requests to the backend API container
  */
 app.use('/api/**', (req, res) => {
@@ -44,6 +63,18 @@ app.use('/api/**', (req, res) => {
   });
 
   req.pipe(proxyReq, { end: true });
+});
+
+/**
+ * Apply security headers to all app responses (static assets + rendered HTML).
+ * Registered after the API proxy so proxied API traffic is left untouched.
+ */
+app.use((_req, res, next) => {
+  res.setHeader('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Frame-Options', 'DENY');
+  next();
 });
 
 /**
