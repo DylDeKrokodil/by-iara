@@ -5,6 +5,7 @@ export interface WebsiteMessages {
     readonly nav: {
       readonly home: string;
       readonly services: string;
+      readonly book: string;
     };
     readonly footer: string;
   };
@@ -93,6 +94,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Serviços',
+        book: 'Marcações',
       },
       footer: '© 2026 By Iara. Todos os direitos reservados.',
     },
@@ -185,6 +187,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Home',
         services: 'Services',
+        book: 'Booking',
       },
       footer: '© 2026 By Iara. All rights reserved.',
     },
