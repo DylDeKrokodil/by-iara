@@ -44,6 +44,11 @@ export interface WebsiteMessages {
     readonly loadError: string;
     readonly noServices: string;
     readonly pageTitle: string;
+    readonly bookingSteps: string;
+    readonly serviceStep: string;
+    readonly timeStep: string;
+    readonly detailsStep: string;
+    readonly reviewStep: string;
     readonly chooseService: string;
     readonly chooseOption: string;
     readonly chooseDate: string;
@@ -61,6 +66,11 @@ export interface WebsiteMessages {
     readonly required: string;
     readonly invalidEmail: string;
     readonly selectSlotFirst: string;
+    readonly previous: string;
+    readonly next: string;
+    readonly reviewBooking: string;
+    readonly summary: string;
+    readonly notSelected: string;
     readonly submit: string;
     readonly submitting: string;
     readonly submitError: string;
@@ -124,6 +134,11 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       loadError: 'Não foi possível carregar os serviços. Tente novamente.',
       noServices: 'Não existem serviços disponíveis para reserva neste momento.',
       pageTitle: 'Marcar uma sessão',
+      bookingSteps: 'Passos da reserva',
+      serviceStep: 'Serviço',
+      timeStep: 'Data e hora',
+      detailsStep: 'Dados',
+      reviewStep: 'Revisão',
       chooseService: 'Escolha o serviço',
       chooseOption: 'Escolha uma opção',
       chooseDate: 'Escolha uma data',
@@ -141,6 +156,11 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       required: 'Obrigatório',
       invalidEmail: 'Introduza um email válido',
       selectSlotFirst: 'Escolha primeiro um horário.',
+      previous: 'Voltar',
+      next: 'Continuar',
+      reviewBooking: 'Rever reserva',
+      summary: 'Resumo',
+      notSelected: 'Por escolher',
       submit: 'Pedir reserva',
       submitting: 'A enviar...',
       submitError: 'Ocorreu um erro. Tente novamente.',
@@ -202,6 +222,11 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       loadError: 'Could not load services. Please try again.',
       noServices: 'No services are currently available for booking.',
       pageTitle: 'Book a session',
+      bookingSteps: 'Booking steps',
+      serviceStep: 'Service',
+      timeStep: 'Date and time',
+      detailsStep: 'Details',
+      reviewStep: 'Review',
       chooseService: 'Choose a service',
       chooseOption: 'Choose an option',
       chooseDate: 'Choose a date',
@@ -219,6 +244,11 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       required: 'Required',
       invalidEmail: 'Enter a valid email',
       selectSlotFirst: 'Please pick a time first.',
+      previous: 'Back',
+      next: 'Continue',
+      reviewBooking: 'Review booking',
+      summary: 'Summary',
+      notSelected: 'Not selected',
       submit: 'Request booking',
       submitting: 'Sending...',
       submitError: 'Something went wrong. Please try again.',

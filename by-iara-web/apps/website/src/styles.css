@@ -81,6 +81,73 @@ body {
   color: var(--byiara-color-primary);
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-2xs);
+}
+
+.field > span {
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-medium);
+}
+
+.field em {
+  color: var(--byiara-color-text-muted);
+  font-style: normal;
+  font-weight: var(--byiara-font-weight-regular);
+}
+
+.field input,
+.field textarea {
+  padding: var(--byiara-space-sm);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface);
+  font: inherit;
+  color: var(--byiara-color-text);
+}
+
+.field input:focus,
+.field textarea:focus {
+  outline: 2px solid var(--byiara-color-focus);
+  outline-offset: 1px;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--byiara-color-danger);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.muted {
+  color: var(--byiara-color-text-muted);
+}
+
+.public-status {
+  display: flex;
+  align-items: center;
+  gap: var(--byiara-space-sm);
+  color: var(--byiara-color-text-muted);
+}
+
+.public-status.error {
+  color: var(--byiara-color-danger);
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--byiara-color-border);
+  border-top-color: var(--byiara-color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Home / Hero Layout */
 .hero {
   display: flex;

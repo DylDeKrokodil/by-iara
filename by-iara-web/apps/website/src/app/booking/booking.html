@@ -5,16 +5,16 @@
     </a>
 
     @if (loading()) {
-      <div class="booking-status">
+      <div class="public-status">
         <div class="spinner" aria-hidden="true"></div>
         <span>{{ copy().loading }}</span>
       </div>
     } @else if (loadError()) {
-      <div class="booking-status error">
+      <div class="public-status error">
         <p>{{ copy().loadError }}</p>
       </div>
     } @else if (services().length === 0) {
-      <div class="booking-status">
+      <div class="public-status">
         <p>{{ copy().noServices }}</p>
       </div>
     } @else if (confirmation(); as confirmed) {
@@ -44,130 +44,252 @@
         <h1>{{ copy().pageTitle }}</h1>
       </header>
 
+      <nav class="stepper" [attr.aria-label]="copy().bookingSteps">
+        @for (step of steps(); track step.id; let stepIndex = $index) {
+          <button
+            type="button"
+            class="step-button"
+            [class.selected]="step.id === currentStep()"
+            [class.complete]="stepIndex < currentStepIndex()"
+            [disabled]="!canOpenStep(step.id)"
+            (click)="openStep(step.id)"
+          >
+            <span class="step-number">{{ stepIndex + 1 }}</span>
+            <span>{{ step.label }}</span>
+          </button>
+        }
+      </nav>
+
       <div class="booking-flow">
-        <div class="booking-options">
-          <!-- 1. Service -->
-          <section class="booking-section">
-            <byiara-select-field
-              [label]="copy().chooseService"
-              [options]="serviceOptions()"
-              [value]="selectedServiceId() ?? ''"
-              (valueChange)="onServiceChange($event)"
-            ></byiara-select-field>
-          </section>
+        <section class="step-panel">
+          @switch (currentStep()) {
+            @case ('service') {
+              <div class="booking-section">
+                <byiara-select-field
+                  [label]="copy().chooseService"
+                  [options]="serviceOptions()"
+                  [value]="selectedServiceId() ?? ''"
+                  (valueChange)="onServiceChange($event)"
+                ></byiara-select-field>
+              </div>
 
-          <!-- 2. Option -->
-          <section class="booking-section" aria-labelledby="choose-option">
-            <h2 id="choose-option">{{ copy().chooseOption }}</h2>
-            <div class="option-grid" role="radiogroup" [attr.aria-label]="copy().chooseOption">
-              @for (variant of activeVariants(); track variant.id) {
-                <button
-                  type="button"
-                  role="radio"
-                  class="option-chip"
-                  [class.selected]="variant.id === selectedVariantId()"
-                  [attr.aria-checked]="variant.id === selectedVariantId()"
-                  (click)="selectVariant(variant.id)"
-                >
-                  {{ variantLabel(variant) }}
+              <div class="booking-section" aria-labelledby="choose-option">
+                <h2 id="choose-option">{{ copy().chooseOption }}</h2>
+                <div class="option-grid" role="radiogroup" [attr.aria-label]="copy().chooseOption">
+                  @for (variant of activeVariants(); track variant.id) {
+                    <button
+                      type="button"
+                      role="radio"
+                      class="option-chip"
+                      [class.selected]="variant.id === selectedVariantId()"
+                      [attr.aria-checked]="variant.id === selectedVariantId()"
+                      (click)="selectVariant(variant.id)"
+                    >
+                      {{ variantLabel(variant) }}
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="step-actions">
+                <button type="button" class="button button-primary" (click)="nextStep()">
+                  {{ copy().next }}
                 </button>
-              }
-            </div>
-          </section>
-
-          <!-- 3. Date and time -->
-          <section class="booking-section" aria-labelledby="choose-date">
-            <h2 id="choose-date">{{ copy().chooseDate }}</h2>
-
-            @if (slotsLoading()) {
-              <div class="booking-status">
-                <div class="spinner" aria-hidden="true"></div>
-                <span>{{ copy().slotsLoading }}</span>
               </div>
-            } @else if (slotsError()) {
-              <p class="field-error">{{ copy().slotsError }}</p>
-            } @else if (availableDates().length === 0) {
-              <p class="muted">{{ copy().noSlots }}</p>
-            } @else {
-              <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
-                @for (date of availableDates(); track date.key) {
-                  <button
-                    type="button"
-                    role="radio"
-                    class="date-chip"
-                    [class.selected]="date.key === selectedDateKey()"
-                    [attr.aria-checked]="date.key === selectedDateKey()"
-                    (click)="selectDate(date.key)"
-                  >
-                    <span class="date-weekday">{{ date.weekday }}</span>
-                    <span class="date-day">{{ date.day }}</span>
-                    <span class="date-month">{{ date.month }}</span>
-                  </button>
-                }
-              </div>
+            }
 
-              <div class="booking-section" aria-labelledby="choose-slot">
-                <h3 id="choose-slot">{{ copy().chooseSlot }}</h3>
-                @if (selectedDateSlots().length === 0) {
-                  <p class="muted">{{ copy().noSlotsForDate }}</p>
+            @case ('time') {
+              <div class="booking-section" aria-labelledby="choose-date">
+                <h2 id="choose-date">{{ copy().chooseDate }}</h2>
+
+                @if (slotsLoading()) {
+                  <div class="public-status">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <span>{{ copy().slotsLoading }}</span>
+                  </div>
+                } @else if (slotsError()) {
+                  <p class="field-error">{{ copy().slotsError }}</p>
+                } @else if (availableDates().length === 0) {
+                  <p class="muted">{{ copy().noSlots }}</p>
                 } @else {
-                  <div class="slot-grid">
-                    @for (slot of selectedDateSlots(); track slot.iso) {
+                  <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
+                    @for (date of availableDates(); track date.key) {
                       <button
                         type="button"
-                        class="slot-chip"
-                        [class.selected]="slot.iso === selectedSlot()"
-                        (click)="selectSlot(slot.iso)"
+                        role="radio"
+                        class="date-chip"
+                        [class.selected]="date.key === selectedDateKey()"
+                        [attr.aria-checked]="date.key === selectedDateKey()"
+                        (click)="selectDate(date.key)"
                       >
-                        {{ slot.time }}
+                        <span class="date-weekday">{{ date.weekday }}</span>
+                        <span class="date-day">{{ date.day }}</span>
+                        <span class="date-month">{{ date.month }}</span>
                       </button>
+                    }
+                  </div>
+
+                  <div class="booking-section" aria-labelledby="choose-slot">
+                    <h3 id="choose-slot">{{ copy().chooseSlot }}</h3>
+                    @if (selectedDateSlots().length === 0) {
+                      <p class="muted">{{ copy().noSlotsForDate }}</p>
+                    } @else {
+                      <div class="slot-grid">
+                        @for (slot of selectedDateSlots(); track slot.iso) {
+                          <button
+                            type="button"
+                            class="slot-chip"
+                            [class.selected]="slot.iso === selectedSlot()"
+                            (click)="selectSlot(slot.iso)"
+                          >
+                            {{ slot.time }}
+                          </button>
+                        }
+                      </div>
                     }
                   </div>
                 }
               </div>
-            }
-          </section>
-        </div>
 
-        <!-- 4. Details -->
-        <section class="booking-section details-section" aria-labelledby="your-details">
-          <h2 id="your-details">{{ copy().yourDetails }}</h2>
-          <form class="booking-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-            <label class="field">
-              <span>{{ copy().name }}</span>
-              <input type="text" formControlName="name" autocomplete="name" />
-              @if (form.controls.name.touched && form.controls.name.invalid) {
-                <span class="field-error">{{ copy().required }}</span>
+              @if (submitError()) {
+                <p class="field-error" role="alert">{{ submitError() }}</p>
               }
-            </label>
 
-            <label class="field">
-              <span>{{ copy().email }}</span>
-              <input type="email" formControlName="email" autocomplete="email" />
-              @if (form.controls.email.touched && form.controls.email.invalid) {
-                <span class="field-error">{{ copy().invalidEmail }}</span>
-              }
-            </label>
-
-            <label class="field">
-              <span>{{ copy().phone }} <em>{{ copy().optional }}</em></span>
-              <input type="tel" formControlName="phone" autocomplete="tel" />
-            </label>
-
-            <label class="field">
-              <span>{{ copy().notes }} <em>{{ copy().optional }}</em></span>
-              <textarea formControlName="notes" rows="3"></textarea>
-            </label>
-
-            @if (submitError()) {
-              <p class="field-error" role="alert">{{ submitError() }}</p>
+              <div class="step-actions">
+                <button type="button" class="button button-secondary" (click)="previousStep()">
+                  {{ copy().previous }}
+                </button>
+                <button type="button" class="button button-primary" (click)="nextStep()">
+                  {{ copy().next }}
+                </button>
+              </div>
             }
 
-            <button type="submit" class="button button-primary" [disabled]="submitting()">
-              {{ submitting() ? copy().submitting : copy().submit }}
-            </button>
-          </form>
+            @case ('details') {
+              <form class="booking-form" [formGroup]="form" (ngSubmit)="nextStep()" novalidate>
+                <h2>{{ copy().yourDetails }}</h2>
+
+                <label class="field">
+                  <span>{{ copy().name }}</span>
+                  <input type="text" formControlName="name" autocomplete="name" />
+                  @if (form.controls.name.touched && form.controls.name.invalid) {
+                    <span class="field-error">{{ copy().required }}</span>
+                  }
+                </label>
+
+                <label class="field">
+                  <span>{{ copy().email }}</span>
+                  <input type="email" formControlName="email" autocomplete="email" />
+                  @if (form.controls.email.touched && form.controls.email.invalid) {
+                    <span class="field-error">{{ copy().invalidEmail }}</span>
+                  }
+                </label>
+
+                <label class="field">
+                  <span>{{ copy().phone }} <em>{{ copy().optional }}</em></span>
+                  <input type="tel" formControlName="phone" autocomplete="tel" />
+                </label>
+
+                <label class="field">
+                  <span>{{ copy().notes }} <em>{{ copy().optional }}</em></span>
+                  <textarea formControlName="notes" rows="3"></textarea>
+                </label>
+
+                <div class="step-actions">
+                  <button type="button" class="button button-secondary" (click)="previousStep()">
+                    {{ copy().previous }}
+                  </button>
+                  <button type="submit" class="button button-primary">
+                    {{ copy().reviewBooking }}
+                  </button>
+                </div>
+              </form>
+            }
+
+            @case ('review') {
+              <div class="booking-section">
+                <h2>{{ copy().reviewStep }}</h2>
+                <dl class="review-list">
+                  <div>
+                    <dt>{{ copy().confirmedService }}</dt>
+                    <dd>{{ serviceTitle() }}</dd>
+                  </div>
+                  @if (selectedVariant(); as variant) {
+                    <div>
+                      <dt>{{ copy().chooseOption }}</dt>
+                      <dd>{{ variantLabel(variant) }}</dd>
+                    </div>
+                  }
+                  <div>
+                    <dt>{{ copy().confirmedWhen }}</dt>
+                    <dd>{{ selectedSlotLabel() }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ copy().name }}</dt>
+                    <dd>{{ form.controls.name.value }}</dd>
+                  </div>
+                  <div>
+                    <dt>{{ copy().email }}</dt>
+                    <dd>{{ form.controls.email.value }}</dd>
+                  </div>
+                  @if (form.controls.phone.value) {
+                    <div>
+                      <dt>{{ copy().phone }}</dt>
+                      <dd>{{ form.controls.phone.value }}</dd>
+                    </div>
+                  }
+                  @if (form.controls.notes.value) {
+                    <div>
+                      <dt>{{ copy().notes }}</dt>
+                      <dd>{{ form.controls.notes.value }}</dd>
+                    </div>
+                  }
+                </dl>
+              </div>
+
+              @if (submitError()) {
+                <p class="field-error" role="alert">{{ submitError() }}</p>
+              }
+
+              <div class="step-actions">
+                <button type="button" class="button button-secondary" (click)="previousStep()">
+                  {{ copy().previous }}
+                </button>
+                <button type="button" class="button button-primary" [disabled]="submitting()" (click)="submit()">
+                  {{ submitting() ? copy().submitting : copy().submit }}
+                </button>
+              </div>
+            }
+          }
         </section>
+
+        <aside class="booking-summary" aria-labelledby="booking-summary">
+          <h2 id="booking-summary">{{ copy().summary }}</h2>
+          <dl class="summary-list">
+            <div>
+              <dt>{{ copy().confirmedService }}</dt>
+              <dd>{{ serviceTitle() || copy().notSelected }}</dd>
+            </div>
+            <div>
+              <dt>{{ copy().chooseOption }}</dt>
+              <dd>
+                @if (selectedVariant(); as variant) {
+                  {{ variantLabel(variant) }}
+                } @else {
+                  {{ copy().notSelected }}
+                }
+              </dd>
+            </div>
+            <div>
+              <dt>{{ copy().chooseDate }}</dt>
+              <dd>{{ selectedDateLabel() || copy().notSelected }}</dd>
+            </div>
+            <div>
+              <dt>{{ copy().chooseSlot }}</dt>
+              <dd>{{ selectedSlotLabel() || copy().notSelected }}</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
     }
   </div>

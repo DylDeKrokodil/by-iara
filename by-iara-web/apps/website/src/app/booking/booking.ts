@@ -25,6 +25,9 @@ import { BookingApi, ReservationConfirmation } from './booking-api';
 const BUSINESS_TIMEZONE = 'Europe/Brussels';
 const BOOKING_WINDOW_DAYS = 28;
 
+type BookingStep = 'service' | 'time' | 'details' | 'review';
+const BOOKING_STEPS: readonly BookingStep[] = ['service', 'time', 'details', 'review'];
+
 interface SlotView {
   readonly iso: string;
   readonly time: string;
@@ -66,6 +69,7 @@ export class Booking implements OnInit {
   protected readonly slotsError = signal(false);
   protected readonly selectedDateKey = signal<string | null>(null);
   protected readonly selectedSlot = signal<string | null>(null);
+  protected readonly currentStep = signal<BookingStep>('service');
 
   protected readonly submitting = signal(false);
   protected readonly submitError = signal<string | null>(null);
@@ -114,6 +118,29 @@ export class Booking implements OnInit {
 
     return this.availableDates().find((date) => date.key === selectedDateKey)?.slots ?? [];
   });
+
+  protected readonly selectedDateLabel = computed(
+    () => this.availableDates().find((date) => date.key === this.selectedDateKey())?.label ?? '',
+  );
+
+  protected readonly selectedSlotLabel = computed(() => {
+    const slot = this.selectedSlot();
+    return slot ? this.formatDateTime(slot) : '';
+  });
+
+  protected readonly steps = computed(() => {
+    const copy = this.copy();
+    return [
+      { id: 'service' as const, label: copy.serviceStep },
+      { id: 'time' as const, label: copy.timeStep },
+      { id: 'details' as const, label: copy.detailsStep },
+      { id: 'review' as const, label: copy.reviewStep },
+    ];
+  });
+
+  protected readonly currentStepIndex = computed(() =>
+    BOOKING_STEPS.indexOf(this.currentStep()),
+  );
 
   private readonly slotCache = new Map<string, string[]>();
   private slotRequestId = 0;
@@ -176,6 +203,60 @@ export class Booking implements OnInit {
     this.submitError.set(null);
   }
 
+  protected openStep(step: BookingStep): void {
+    if (this.canOpenStep(step)) {
+      this.currentStep.set(step);
+    }
+  }
+
+  protected canOpenStep(step: BookingStep): boolean {
+    switch (step) {
+      case 'service':
+        return true;
+      case 'time':
+        return Boolean(this.selectedService() && this.selectedVariant());
+      case 'details':
+        return Boolean(this.selectedSlot());
+      case 'review':
+        return Boolean(this.selectedSlot() && this.form.valid);
+    }
+  }
+
+  protected nextStep(): void {
+    switch (this.currentStep()) {
+      case 'service':
+        if (this.selectedService() && this.selectedVariant()) {
+          this.currentStep.set('time');
+        }
+        return;
+      case 'time':
+        if (!this.selectedSlot()) {
+          this.submitError.set(this.copy().selectSlotFirst);
+          return;
+        }
+        this.submitError.set(null);
+        this.currentStep.set('details');
+        return;
+      case 'details':
+        if (this.form.invalid) {
+          this.form.markAllAsTouched();
+          return;
+        }
+        this.currentStep.set('review');
+        return;
+      case 'review':
+        this.submit();
+        return;
+    }
+  }
+
+  protected previousStep(): void {
+    const index = this.currentStepIndex();
+    if (index > 0) {
+      this.currentStep.set(BOOKING_STEPS[index - 1]);
+    }
+  }
+
   protected submit(): void {
     const service = this.selectedService();
     const variant = this.selectedVariant();
@@ -185,10 +266,12 @@ export class Booking implements OnInit {
     }
     if (!slot) {
       this.submitError.set(this.copy().selectSlotFirst);
+      this.currentStep.set('time');
       return;
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.currentStep.set('details');
       return;
     }
 
@@ -214,6 +297,7 @@ export class Booking implements OnInit {
           if (err.status === 409 || err.status === 422) {
             this.submitError.set(this.copy().slotTakenError);
             this.selectedSlot.set(null);
+            this.currentStep.set('time');
             this.loadSlots({ forceRefresh: true });
           } else {
             this.submitError.set(this.copy().submitError);
@@ -224,6 +308,7 @@ export class Booking implements OnInit {
 
   protected resetForAnother(): void {
     this.confirmation.set(null);
+    this.currentStep.set('service');
     this.selectedSlot.set(null);
     this.form.reset();
     this.loadSlots({ forceRefresh: true });
