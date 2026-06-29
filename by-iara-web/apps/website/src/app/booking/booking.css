@@ -9,13 +9,18 @@
 .booking-flow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20rem;
-  gap: var(--byiara-space-2xl);
+  align-items: start;
+  gap: var(--byiara-space-xl);
 }
 
 .stepper {
   display: flex;
   gap: var(--byiara-space-xs);
   overflow-x: auto;
+  padding: var(--byiara-space-xs);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-surface-muted);
 }
 
 .step-button {
@@ -24,17 +29,24 @@
   gap: var(--byiara-space-xs);
   min-height: 2.75rem;
   padding: 0 var(--byiara-space-sm);
-  border: 1px solid var(--byiara-color-border);
+  border: 1px solid transparent;
   border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-surface);
+  background: transparent;
   color: var(--byiara-color-text-muted);
   font: inherit;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
 }
 
-.step-button.selected,
 .step-button.complete {
-  border-color: var(--byiara-color-primary);
   color: var(--byiara-color-primary);
+}
+
+.step-button.selected {
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  box-shadow: var(--byiara-shadow-sm);
 }
 
 .step-button:disabled {
@@ -43,7 +55,20 @@
 }
 
 .step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-rose-100);
+  color: var(--byiara-color-primary);
+  font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
+}
+
+.step-button.selected .step-number {
+  background: var(--byiara-color-primary);
+  color: var(--byiara-color-white);
 }
 
 .step-panel {
@@ -79,33 +104,9 @@
 }
 
 .option-chip,
-.slot-chip,
-.date-chip {
-  border: 1px solid var(--byiara-color-border);
-  background: var(--byiara-color-surface);
-  color: var(--byiara-color-text);
-  font: inherit;
-  cursor: pointer;
-}
-
-.option-chip,
 .slot-chip {
   padding: var(--byiara-space-xs) var(--byiara-space-md);
   border-radius: var(--byiara-radius-pill);
-}
-
-.option-chip:hover,
-.slot-chip:hover,
-.date-chip:hover {
-  border-color: var(--byiara-color-primary);
-}
-
-.option-chip.selected,
-.slot-chip.selected,
-.date-chip.selected {
-  background: var(--byiara-color-primary);
-  border-color: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
 }
 
 .date-strip {
@@ -150,19 +151,10 @@
   font-size: var(--byiara-font-size-lg);
 }
 
-.booking-container .button {
-  align-self: flex-start;
-}
-
 .step-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--byiara-space-sm);
-}
-
-.button-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .confirmation h1 {
@@ -184,10 +176,9 @@
 }
 
 .booking-summary {
-  padding: var(--byiara-space-md);
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-surface-muted);
+  align-self: start;
+  position: sticky;
+  top: var(--byiara-space-lg);
 }
 
 .booking-summary h2 {
@@ -216,6 +207,7 @@
 .review-list dd,
 .confirmation-details dd {
   margin: var(--byiara-space-2xs) 0 0;
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
 .pending-note {
@@ -227,5 +219,9 @@
   .booking-flow {
     grid-template-columns: 1fr;
     gap: var(--byiara-space-xl);
+  }
+
+  .booking-summary {
+    position: static;
   }
 }

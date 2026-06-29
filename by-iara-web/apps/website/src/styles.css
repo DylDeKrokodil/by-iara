@@ -64,6 +64,11 @@ body {
   box-shadow: var(--byiara-shadow-md);
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-icon-right {
   margin-left: var(--byiara-space-2xs);
 }
@@ -133,6 +138,34 @@ body {
 
 .public-status.error {
   color: var(--byiara-color-danger);
+}
+
+.public-panel {
+  padding: var(--byiara-space-xl);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+  box-shadow: var(--byiara-shadow-sm);
+}
+
+.choice-chip {
+  border: 1px solid var(--byiara-color-border);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.choice-chip:hover {
+  border-color: var(--byiara-color-primary);
+}
+
+.choice-chip.selected {
+  background: var(--byiara-color-primary);
+  border-color: var(--byiara-color-primary);
+  color: var(--byiara-color-white);
+  box-shadow: 0 0.5rem 1.5rem rgb(225 29 116 / 16%);
 }
 
 .spinner {

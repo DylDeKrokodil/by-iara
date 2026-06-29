@@ -51,6 +51,7 @@
             class="step-button"
             [class.selected]="step.id === currentStep()"
             [class.complete]="stepIndex < currentStepIndex()"
+            [attr.aria-current]="step.id === currentStep() ? 'step' : null"
             [disabled]="!canOpenStep(step.id)"
             (click)="openStep(step.id)"
           >
@@ -61,7 +62,7 @@
       </nav>
 
       <div class="booking-flow">
-        <section class="step-panel">
+        <section class="step-panel public-panel">
           @switch (currentStep()) {
             @case ('service') {
               <div class="booking-section">
@@ -80,7 +81,7 @@
                     <button
                       type="button"
                       role="radio"
-                      class="option-chip"
+                      class="option-chip choice-chip"
                       [class.selected]="variant.id === selectedVariantId()"
                       [attr.aria-checked]="variant.id === selectedVariantId()"
                       (click)="selectVariant(variant.id)"
@@ -117,7 +118,7 @@
                       <button
                         type="button"
                         role="radio"
-                        class="date-chip"
+                        class="date-chip choice-chip"
                         [class.selected]="date.key === selectedDateKey()"
                         [attr.aria-checked]="date.key === selectedDateKey()"
                         (click)="selectDate(date.key)"
@@ -134,12 +135,14 @@
                     @if (selectedDateSlots().length === 0) {
                       <p class="muted">{{ copy().noSlotsForDate }}</p>
                     } @else {
-                      <div class="slot-grid">
+                      <div class="slot-grid" role="radiogroup" [attr.aria-label]="copy().chooseSlot">
                         @for (slot of selectedDateSlots(); track slot.iso) {
                           <button
                             type="button"
-                            class="slot-chip"
+                            role="radio"
+                            class="slot-chip choice-chip"
                             [class.selected]="slot.iso === selectedSlot()"
+                            [attr.aria-checked]="slot.iso === selectedSlot()"
                             (click)="selectSlot(slot.iso)"
                           >
                             {{ slot.time }}
@@ -263,7 +266,7 @@
           }
         </section>
 
-        <aside class="booking-summary" aria-labelledby="booking-summary">
+        <aside class="booking-summary public-panel" aria-labelledby="booking-summary">
           <h2 id="booking-summary">{{ copy().summary }}</h2>
           <dl class="summary-list">
             <div>
