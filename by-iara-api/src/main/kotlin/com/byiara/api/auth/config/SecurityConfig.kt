@@ -23,7 +23,14 @@ class SecurityConfig {
                     "/api/admin/auth/refresh",
                     "/api/admin/auth/logout",
                 ).permitAll()
-                it.requestMatchers(HttpMethod.GET, "/api/services", "/api/services/**", "/api/availability", "/api/availability/**").permitAll()
+                it.requestMatchers(
+                    HttpMethod.GET,
+                    "/api/services",
+                    "/api/services/**",
+                    "/api/availability",
+                    "/api/availability/**",
+                    "/api/reservations/availability",
+                ).permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
                 it.requestMatchers("/api/admin/**").authenticated()
                 it.anyRequest().denyAll()

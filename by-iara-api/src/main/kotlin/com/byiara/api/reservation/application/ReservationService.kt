@@ -1,8 +1,10 @@
 package com.byiara.api.reservation.application
 
 import com.byiara.api.availability.application.AvailabilityService
+import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
 import com.byiara.api.reservation.domain.NewReservation
@@ -14,6 +16,7 @@ import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.OffsetDateTime
 import java.util.UUID
 
 @Service
@@ -24,12 +27,8 @@ class ReservationService(
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
-        val service = serviceRepository.findById(command.serviceId)
-            ?.takeIf { it.active }
-            ?: throw InvalidReservationRequestException("Service is not available for booking")
-
-        val variant = service.variants.firstOrNull { it.id == command.serviceVariantId && it.active }
-            ?: throw InvalidReservationRequestException("Selected option is not available for booking")
+        val service = requireActiveService(command.serviceId)
+        val variant = requireActiveVariant(service, command.serviceVariantId)
 
         val endsAt = command.startsAt.plusMinutes(variant.durationMinutes.toLong())
 
@@ -55,6 +54,33 @@ class ReservationService(
                 notes = command.notes,
             ),
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun findBookableSlots(command: FindBookableSlotsCommand): List<OffsetDateTime> {
+        val service = requireActiveService(command.serviceId)
+        val variant = requireActiveVariant(service, command.serviceVariantId)
+        val durationMinutes = variant.durationMinutes
+        val slots = availabilityService.findAvailableSlots(
+            command.startDate,
+            command.endDate,
+            durationMinutes,
+        )
+
+        if (slots.isEmpty()) {
+            return emptyList()
+        }
+
+        val queryStart = slots.first()
+        val queryEnd = slots.last().plusMinutes(durationMinutes.toLong())
+        val activeWindows = reservationRepository.findActiveWindowsOverlapping(queryStart, queryEnd)
+
+        return slots.filter { slotStart ->
+            val slotEnd = slotStart.plusMinutes(durationMinutes.toLong())
+            activeWindows.none { window ->
+                slotStart.isBefore(window.endsAt) && slotEnd.isAfter(window.startsAt)
+            }
+        }
     }
 
     @Transactional(readOnly = true)
@@ -84,6 +110,15 @@ class ReservationService(
         reservationRepository.updateStatus(id, target)
         return reservation.copy(status = target)
     }
+
+    private fun requireActiveService(serviceId: UUID) =
+        serviceRepository.findById(serviceId)
+            ?.takeIf { it.active }
+            ?: throw InvalidReservationRequestException("Service is not available for booking")
+
+    private fun requireActiveVariant(service: CatalogService, variantId: UUID) =
+        service.variants.firstOrNull { it.id == variantId && it.active }
+            ?: throw InvalidReservationRequestException("Selected option is not available for booking")
 
     companion object {
         private const val MAX_PAGE_SIZE = 100

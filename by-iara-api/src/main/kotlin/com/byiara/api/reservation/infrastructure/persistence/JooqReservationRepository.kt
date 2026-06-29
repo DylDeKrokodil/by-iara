@@ -7,6 +7,7 @@ import com.byiara.api.reservation.domain.NewReservation
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationRepository
 import com.byiara.api.reservation.domain.ReservationStatus
+import com.byiara.api.reservation.domain.ReservationWindow
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL.currentOffsetDateTime
@@ -70,6 +71,19 @@ class JooqReservationRepository(
                 .and(rStartsAt.lessThan(endsAt))
                 .and(rEndsAt.greaterThan(startsAt)),
         )
+
+    override fun findActiveWindowsOverlapping(startsAt: OffsetDateTime, endsAt: OffsetDateTime): List<ReservationWindow> =
+        dsl.select(rStartsAt, rEndsAt)
+            .from(reservations)
+            .where(rStatus.`in`(activeStatuses))
+            .and(rStartsAt.lessThan(endsAt))
+            .and(rEndsAt.greaterThan(startsAt))
+            .fetch { record ->
+                ReservationWindow(
+                    startsAt = record.get(rStartsAt),
+                    endsAt = record.get(rEndsAt),
+                )
+            }
 
     override fun create(reservation: NewReservation): Reservation {
         val newId = dsl

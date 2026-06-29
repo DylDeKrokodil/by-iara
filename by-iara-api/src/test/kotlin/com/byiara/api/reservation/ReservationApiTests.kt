@@ -1,5 +1,7 @@
 package com.byiara.api.reservation
 
+import org.hamcrest.Matchers.hasItem
+import org.hamcrest.Matchers.not
 import org.jooq.DSLContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -204,6 +206,25 @@ class ReservationApiTests {
         // Overlaps the 10:00-11:00 booking, still inside working hours.
         book(slotStart.plusMinutes(30), email = "second@example.com")
             .andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `public bookable availability excludes active reservations`() {
+        book(slotStart, email = "first@example.com").andExpect(status().isCreated)
+
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+
+        mockMvc.perform(
+            get("/api/reservations/availability")
+                .param("serviceId", serviceId)
+                .param("serviceVariantId", variantId)
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$", not(hasItem(iso(slotStart)))))
+            .andExpect(jsonPath("$", hasItem(iso(slotStart.minusHours(1)))))
+            .andExpect(jsonPath("$", hasItem(iso(slotStart.plusHours(1)))))
     }
 
     @Test

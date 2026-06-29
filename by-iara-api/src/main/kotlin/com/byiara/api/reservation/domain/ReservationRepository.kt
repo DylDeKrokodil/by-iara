@@ -13,9 +13,17 @@ interface ReservationRepository {
     /** Active reservations (PENDING/CONFIRMED) that overlap the given half-open interval. */
     fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime): Boolean
 
+    /** Active reservation windows (PENDING/CONFIRMED) that overlap the given half-open interval. */
+    fun findActiveWindowsOverlapping(startsAt: OffsetDateTime, endsAt: OffsetDateTime): List<ReservationWindow>
+
     fun create(reservation: NewReservation): Reservation
 
     fun updateStatus(id: UUID, status: ReservationStatus): Boolean
 
     fun findOrCreateCustomer(details: CustomerDetails): Customer
 }
+
+data class ReservationWindow(
+    val startsAt: OffsetDateTime,
+    val endsAt: OffsetDateTime,
+)
