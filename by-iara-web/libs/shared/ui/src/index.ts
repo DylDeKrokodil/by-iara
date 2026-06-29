@@ -2,6 +2,7 @@ export * from './lib/status-chip/status-chip';
 
 export * from './lib/choice-chip/choice-chip';
 export * from './lib/data-table/data-table';
+export * from './lib/detail-list/detail-list';
 export * from './lib/duration-chip/duration-chip';
 export * from './lib/select-field/select-field';
 export * from './lib/stepper/stepper';

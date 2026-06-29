@@ -1,0 +1,8 @@
+<dl class="detail-list" [class.boxed]="boxed()">
+  @for (item of items(); track $index) {
+    <div>
+      <dt>{{ item.term }}</dt>
+      <dd>{{ item.detail }}</dd>
+    </div>
+  }
+</dl>

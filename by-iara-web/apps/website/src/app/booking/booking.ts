@@ -12,6 +12,8 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   ChoiceChip,
+  DetailList,
+  DetailListItem,
   SelectField,
   SelectFieldOption,
   Stepper,
@@ -59,7 +61,15 @@ interface DateSlots {
 
 @Component({
   selector: 'byiara-booking',
-  imports: [ReactiveFormsModule, RouterLink, SelectField, ChoiceChip, Stepper, TextField],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    SelectField,
+    ChoiceChip,
+    Stepper,
+    TextField,
+    DetailList,
+  ],
   templateUrl: './booking.html',
   styleUrl: './booking.css',
 })
@@ -389,6 +399,52 @@ export class Booking implements OnInit {
       minute: '2-digit',
       timeZone: BUSINESS_TIMEZONE,
     }).format(new Date(iso));
+  }
+
+  protected summaryItems(): DetailListItem[] {
+    const copy = this.copy();
+    const variant = this.selectedVariant();
+    return [
+      { term: copy.confirmedService, detail: this.serviceTitle() || copy.notSelected },
+      { term: copy.chooseOption, detail: variant ? this.variantLabel(variant) : copy.notSelected },
+      { term: copy.chooseDate, detail: this.selectedDateLabel() || copy.notSelected },
+      { term: copy.chooseSlot, detail: this.selectedSlotLabel() || copy.notSelected },
+    ];
+  }
+
+  // A plain method, not a computed: the review reads live form values, which
+  // are not signals, so it must re-evaluate on every change detection.
+  protected reviewItems(): DetailListItem[] {
+    const copy = this.copy();
+    const variant = this.selectedVariant();
+    const { name, email, phone, notes } = this.form.getRawValue();
+    const items: DetailListItem[] = [
+      { term: copy.confirmedService, detail: this.serviceTitle() },
+    ];
+    if (variant) {
+      items.push({ term: copy.chooseOption, detail: this.variantLabel(variant) });
+    }
+    items.push({ term: copy.confirmedWhen, detail: this.selectedSlotLabel() });
+    items.push({ term: copy.name, detail: name });
+    items.push({ term: copy.email, detail: email });
+    if (phone) {
+      items.push({ term: copy.phone, detail: phone });
+    }
+    if (notes) {
+      items.push({ term: copy.notes, detail: notes });
+    }
+    return items;
+  }
+
+  protected confirmationItems(confirmed: ReservationConfirmation): DetailListItem[] {
+    const copy = this.copy();
+    return [
+      {
+        term: copy.confirmedService,
+        detail: `${this.serviceTitle()} · ${confirmed.durationMinutes} min`,
+      },
+      { term: copy.confirmedWhen, detail: this.formatDateTime(confirmed.startsAt) },
+    ];
   }
 
   private selectService(serviceId: string, preselectedVariant: string | null): void {

@@ -28,16 +28,11 @@
         </div>
         <p class="eyebrow">{{ copy().confirmedTitle }}</p>
         <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
-        <dl class="confirmation-details">
-          <div>
-            <dt>{{ copy().confirmedService }}</dt>
-            <dd>{{ serviceTitle() }} · {{ confirmed.durationMinutes }} min</dd>
-          </div>
-          <div>
-            <dt>{{ copy().confirmedWhen }}</dt>
-            <dd>{{ formatDateTime(confirmed.startsAt) }}</dd>
-          </div>
-        </dl>
+        <byiara-detail-list
+          boxed
+          class="confirmation-details"
+          [items]="confirmationItems(confirmed)"
+        ></byiara-detail-list>
         <p class="pending-note">{{ copy().pendingNote }}</p>
         <button type="button" class="button button-secondary" (click)="resetForAnother()">
           {{ copy().bookAnother }}
@@ -214,42 +209,7 @@
             @case ('review') {
               <div class="booking-section">
                 <h2>{{ copy().reviewStep }}</h2>
-                <dl class="review-list">
-                  <div>
-                    <dt>{{ copy().confirmedService }}</dt>
-                    <dd>{{ serviceTitle() }}</dd>
-                  </div>
-                  @if (selectedVariant(); as variant) {
-                    <div>
-                      <dt>{{ copy().chooseOption }}</dt>
-                      <dd>{{ variantLabel(variant) }}</dd>
-                    </div>
-                  }
-                  <div>
-                    <dt>{{ copy().confirmedWhen }}</dt>
-                    <dd>{{ selectedSlotLabel() }}</dd>
-                  </div>
-                  <div>
-                    <dt>{{ copy().name }}</dt>
-                    <dd>{{ form.controls.name.value }}</dd>
-                  </div>
-                  <div>
-                    <dt>{{ copy().email }}</dt>
-                    <dd>{{ form.controls.email.value }}</dd>
-                  </div>
-                  @if (form.controls.phone.value) {
-                    <div>
-                      <dt>{{ copy().phone }}</dt>
-                      <dd>{{ form.controls.phone.value }}</dd>
-                    </div>
-                  }
-                  @if (form.controls.notes.value) {
-                    <div>
-                      <dt>{{ copy().notes }}</dt>
-                      <dd>{{ form.controls.notes.value }}</dd>
-                    </div>
-                  }
-                </dl>
+                <byiara-detail-list [items]="reviewItems()"></byiara-detail-list>
               </div>
 
               @if (submitError()) {
@@ -270,30 +230,7 @@
 
         <aside class="booking-summary public-panel" aria-labelledby="booking-summary">
           <h2 id="booking-summary">{{ copy().summary }}</h2>
-          <dl class="summary-list">
-            <div>
-              <dt>{{ copy().confirmedService }}</dt>
-              <dd>{{ serviceTitle() || copy().notSelected }}</dd>
-            </div>
-            <div>
-              <dt>{{ copy().chooseOption }}</dt>
-              <dd>
-                @if (selectedVariant(); as variant) {
-                  {{ variantLabel(variant) }}
-                } @else {
-                  {{ copy().notSelected }}
-                }
-              </dd>
-            </div>
-            <div>
-              <dt>{{ copy().chooseDate }}</dt>
-              <dd>{{ selectedDateLabel() || copy().notSelected }}</dd>
-            </div>
-            <div>
-              <dt>{{ copy().chooseSlot }}</dt>
-              <dd>{{ selectedSlotLabel() || copy().notSelected }}</dd>
-            </div>
-          </dl>
+          <byiara-detail-list [items]="summaryItems()"></byiara-detail-list>
         </aside>
       </div>
     }
