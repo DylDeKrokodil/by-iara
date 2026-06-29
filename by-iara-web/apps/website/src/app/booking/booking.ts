@@ -10,7 +10,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { SelectField, SelectFieldOption } from '@by-iara/shared-ui';
+import { ChoiceChip, SelectField, SelectFieldOption } from '@by-iara/shared-ui';
 import {
   Service,
   ServicesApi,
@@ -53,7 +53,7 @@ interface DateSlots {
 
 @Component({
   selector: 'byiara-booking',
-  imports: [ReactiveFormsModule, RouterLink, SelectField],
+  imports: [ReactiveFormsModule, RouterLink, SelectField, ChoiceChip],
   templateUrl: './booking.html',
   styleUrl: './booking.css',
 })

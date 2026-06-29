@@ -136,12 +136,6 @@
   gap: var(--byiara-space-xs);
 }
 
-.option-chip,
-.slot-chip {
-  padding: var(--byiara-space-xs) var(--byiara-space-md);
-  border-radius: var(--byiara-radius-pill);
-}
-
 .slot-group {
   display: flex;
   flex-direction: column;
@@ -169,6 +163,10 @@
   min-height: 5.25rem;
   padding: var(--byiara-space-sm);
   border-radius: var(--byiara-radius-md);
+  /* Override the chip's default centered row so the date stacks, left-aligned. */
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   text-align: left;
 }
 

@@ -1,0 +1,39 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--byiara-space-xs) var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color var(--byiara-duration-base) var(--byiara-ease-out),
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
+}
+
+:host(:hover) {
+  border-color: var(--byiara-color-primary);
+}
+
+/* Confirm the press was heard. */
+:host(:active) {
+  transform: scale(0.97);
+}
+
+:host(.selected) {
+  background: var(--byiara-color-primary);
+  border-color: var(--byiara-color-primary);
+  color: var(--byiara-color-white);
+  box-shadow: 0 0.5rem 1.5rem rgb(225 29 116 / 16%);
+}
+
+:host(:disabled) {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

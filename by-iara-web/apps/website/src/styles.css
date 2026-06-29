@@ -152,36 +152,6 @@ body {
   box-shadow: var(--byiara-shadow-sm);
 }
 
-.choice-chip {
-  border: 1px solid var(--byiara-color-border);
-  background: var(--byiara-color-surface);
-  color: var(--byiara-color-text);
-  font: inherit;
-  cursor: pointer;
-  transition:
-    border-color var(--byiara-duration-base) var(--byiara-ease-out),
-    background var(--byiara-duration-base) var(--byiara-ease-out),
-    color var(--byiara-duration-base) var(--byiara-ease-out),
-    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
-    transform var(--byiara-duration-fast) var(--byiara-ease-out);
-}
-
-.choice-chip:hover {
-  border-color: var(--byiara-color-primary);
-}
-
-/* Confirm the press was heard. */
-.choice-chip:active {
-  transform: scale(0.97);
-}
-
-.choice-chip.selected {
-  background: var(--byiara-color-primary);
-  border-color: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
-  box-shadow: 0 0.5rem 1.5rem rgb(225 29 116 / 16%);
-}
-
 .spinner {
   width: 1.25rem;
   height: 1.25rem;

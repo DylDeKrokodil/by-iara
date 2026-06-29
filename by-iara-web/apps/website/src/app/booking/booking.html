@@ -93,11 +93,9 @@
                 <div class="option-grid" role="radiogroup" [attr.aria-label]="copy().chooseOption">
                   @for (variant of activeVariants(); track variant.id) {
                     <button
-                      type="button"
-                      role="radio"
-                      class="option-chip choice-chip"
-                      [class.selected]="variant.id === selectedVariantId()"
-                      [attr.aria-checked]="variant.id === selectedVariantId()"
+                      byiara-choice-chip
+                      class="option-chip"
+                      [selected]="variant.id === selectedVariantId()"
                       (click)="selectVariant(variant.id)"
                     >
                       {{ variantLabel(variant) }}
@@ -130,11 +128,9 @@
                   <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
                     @for (date of availableDates(); track date.key; let i = $index) {
                       <button
-                        type="button"
-                        role="radio"
-                        class="date-chip choice-chip"
-                        [class.selected]="date.key === selectedDateKey()"
-                        [attr.aria-checked]="date.key === selectedDateKey()"
+                        byiara-choice-chip
+                        class="date-chip"
+                        [selected]="date.key === selectedDateKey()"
                         [style.--stagger]="i"
                         (click)="selectDate(date.key)"
                       >
@@ -156,11 +152,9 @@
                           <div class="slot-grid" role="radiogroup" [attr.aria-label]="group.label">
                             @for (slot of group.slots; track slot.iso; let i = $index) {
                               <button
-                                type="button"
-                                role="radio"
-                                class="slot-chip choice-chip"
-                                [class.selected]="slot.iso === selectedSlot()"
-                                [attr.aria-checked]="slot.iso === selectedSlot()"
+                                byiara-choice-chip
+                                class="slot-chip"
+                                [selected]="slot.iso === selectedSlot()"
                                 [style.--stagger]="i"
                                 (click)="selectSlot(slot.iso)"
                               >
