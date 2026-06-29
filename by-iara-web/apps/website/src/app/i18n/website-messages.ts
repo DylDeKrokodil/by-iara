@@ -26,10 +26,6 @@ export interface WebsiteMessages {
     readonly bookAction: string;
     readonly viewAllServices: string;
     readonly featuredServicesError: string;
-    readonly bookingComingSoon: (
-      serviceName: string,
-      durationMinutes: number,
-    ) => string;
   };
   readonly services: {
     readonly eyebrow: string;
@@ -40,10 +36,41 @@ export interface WebsiteMessages {
     readonly empty: string;
     readonly variantsTitle: string;
     readonly bookAction: string;
-    readonly bookingComingSoon: (
-      serviceName: string,
-      durationMinutes: number,
-    ) => string;
+  };
+  readonly booking: {
+    readonly eyebrow: string;
+    readonly back: string;
+    readonly loading: string;
+    readonly loadError: string;
+    readonly noServices: string;
+    readonly pageTitle: string;
+    readonly chooseService: string;
+    readonly chooseOption: string;
+    readonly chooseDate: string;
+    readonly chooseSlot: string;
+    readonly slotsLoading: string;
+    readonly slotsError: string;
+    readonly noSlots: string;
+    readonly noSlotsForDate: string;
+    readonly yourDetails: string;
+    readonly name: string;
+    readonly email: string;
+    readonly phone: string;
+    readonly notes: string;
+    readonly optional: string;
+    readonly required: string;
+    readonly invalidEmail: string;
+    readonly selectSlotFirst: string;
+    readonly submit: string;
+    readonly submitting: string;
+    readonly submitError: string;
+    readonly slotTakenError: string;
+    readonly confirmedTitle: string;
+    readonly confirmedLede: (name: string) => string;
+    readonly confirmedService: string;
+    readonly confirmedWhen: string;
+    readonly pendingNote: string;
+    readonly bookAnother: string;
   };
 }
 
@@ -77,8 +104,6 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       viewAllServices: 'Ver todos os serviços',
       featuredServicesError:
         'Não foi possível carregar os serviços em destaque.',
-      bookingComingSoon: (serviceName, durationMinutes) =>
-        `A marcação para "${serviceName}" (${durationMinutes} min) estará disponível em breve!`,
     },
     services: {
       eyebrow: 'O nosso menu',
@@ -91,8 +116,42 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       empty: 'Não existem serviços disponíveis para reserva neste momento.',
       variantsTitle: 'Opções e preços',
       bookAction: 'Reservar',
-      bookingComingSoon: (serviceName, durationMinutes) =>
-        `A marcação para "${serviceName}" (${durationMinutes} min) estará disponível em breve!`,
+    },
+    booking: {
+      eyebrow: 'Reserva',
+      back: 'Voltar ao início',
+      loading: 'A carregar...',
+      loadError: 'Não foi possível carregar os serviços. Tente novamente.',
+      noServices: 'Não existem serviços disponíveis para reserva neste momento.',
+      pageTitle: 'Marcar uma sessão',
+      chooseService: 'Escolha o serviço',
+      chooseOption: 'Escolha uma opção',
+      chooseDate: 'Escolha uma data',
+      chooseSlot: 'Escolha um horário',
+      slotsLoading: 'A carregar horários...',
+      slotsError: 'Não foi possível carregar a disponibilidade.',
+      noSlots: 'Sem horários disponíveis nas próximas semanas.',
+      noSlotsForDate: 'Sem horários disponíveis para esta data.',
+      yourDetails: 'Os seus dados',
+      name: 'Nome',
+      email: 'Email',
+      phone: 'Telefone',
+      notes: 'Notas',
+      optional: '(opcional)',
+      required: 'Obrigatório',
+      invalidEmail: 'Introduza um email válido',
+      selectSlotFirst: 'Escolha primeiro um horário.',
+      submit: 'Pedir reserva',
+      submitting: 'A enviar...',
+      submitError: 'Ocorreu um erro. Tente novamente.',
+      slotTakenError: 'Esse horário já não está disponível. Escolha outro.',
+      confirmedTitle: 'Reserva pedida!',
+      confirmedLede: (name) =>
+        `Obrigado, ${name}. Confirmaremos a sua marcação por email em breve.`,
+      confirmedService: 'Serviço',
+      confirmedWhen: 'Quando',
+      pendingNote: 'O seu pedido está pendente de confirmação.',
+      bookAnother: 'Fazer outra reserva',
     },
   },
   'en-US': {
@@ -123,8 +182,6 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       bookAction: 'Book',
       viewAllServices: 'View all services',
       featuredServicesError: 'Could not load featured services.',
-      bookingComingSoon: (serviceName, durationMinutes) =>
-        `Booking for "${serviceName}" (${durationMinutes} min) is coming soon!`,
     },
     services: {
       eyebrow: 'Our menu',
@@ -137,8 +194,42 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       empty: 'No services are currently available for booking.',
       variantsTitle: 'Options and prices',
       bookAction: 'Book',
-      bookingComingSoon: (serviceName, durationMinutes) =>
-        `Booking for "${serviceName}" (${durationMinutes} min) is coming soon!`,
+    },
+    booking: {
+      eyebrow: 'Booking',
+      back: 'Back to home',
+      loading: 'Loading...',
+      loadError: 'Could not load services. Please try again.',
+      noServices: 'No services are currently available for booking.',
+      pageTitle: 'Book a session',
+      chooseService: 'Choose a service',
+      chooseOption: 'Choose an option',
+      chooseDate: 'Choose a date',
+      chooseSlot: 'Choose a time',
+      slotsLoading: 'Loading available times...',
+      slotsError: 'Could not load availability.',
+      noSlots: 'No times available in the next weeks.',
+      noSlotsForDate: 'No times available for this date.',
+      yourDetails: 'Your details',
+      name: 'Name',
+      email: 'Email',
+      phone: 'Phone',
+      notes: 'Notes',
+      optional: '(optional)',
+      required: 'Required',
+      invalidEmail: 'Enter a valid email',
+      selectSlotFirst: 'Please pick a time first.',
+      submit: 'Request booking',
+      submitting: 'Sending...',
+      submitError: 'Something went wrong. Please try again.',
+      slotTakenError: 'That time is no longer available. Please choose another.',
+      confirmedTitle: 'Booking requested!',
+      confirmedLede: (name) =>
+        `Thanks, ${name}. We'll confirm your appointment by email shortly.`,
+      confirmedService: 'Service',
+      confirmedWhen: 'When',
+      pendingNote: 'Your request is pending confirmation.',
+      bookAnother: 'Book another',
     },
   },
 };

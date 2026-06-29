@@ -14,6 +14,10 @@ const localizedRoutes: Route[] = [
     loadComponent: () =>
       import('./services/services-catalog').then((m) => m.ServicesCatalog),
   },
+  {
+    path: 'book',
+    loadComponent: () => import('./booking/booking').then((m) => m.Booking),
+  },
 ];
 
 export const appRoutes: Route[] = [

@@ -1,6 +1,6 @@
 export type LocaleCode = 'pt-PT' | 'en-US';
 export type LocalePath = 'pt' | 'en';
-export type PublicPagePath = '' | 'services';
+export type PublicPagePath = '' | 'services' | 'book';
 
 export interface SupportedLocale {
   readonly locale: LocaleCode;

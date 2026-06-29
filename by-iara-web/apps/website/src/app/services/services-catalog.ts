@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   ServicesApi,
   Service,
@@ -14,7 +15,6 @@ import {
   ServiceVariant,
   localizedService,
 } from './services-api';
-import { ToastService } from '@by-iara/shared-ui';
 import { LanguageService } from '../i18n/language.service';
 
 @Component({
@@ -25,7 +25,7 @@ import { LanguageService } from '../i18n/language.service';
 })
 export class ServicesCatalog implements OnInit {
   private readonly api = inject(ServicesApi);
-  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly language = inject(LanguageService);
 
@@ -71,12 +71,8 @@ export class ServicesCatalog implements OnInit {
   }
 
   protected onBook(service: Service, variant: ServiceVariant): void {
-    this.toast.show(
-      this.copy().bookingComingSoon(
-        this.localized(service).name,
-        variant.durationMinutes,
-      ),
-      'success',
-    );
+    this.router.navigate(['/', this.language.current().path, 'book'], {
+      queryParams: { service: service.slug, variant: variant.id },
+    });
   }
 }
