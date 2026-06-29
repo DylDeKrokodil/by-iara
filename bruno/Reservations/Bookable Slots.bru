@@ -1,0 +1,30 @@
+meta {
+  name: Bookable Slots
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/reservations/availability?serviceId={{serviceId}}&serviceVariantId={{serviceVariantId}}&startDate=2026-07-06&endDate=2026-07-12
+  body: none
+  auth: none
+}
+
+script:post-response {
+  if (res.status === 200 && res.body?.length) {
+    bru.setEnvVar("reservationStart", res.body[0]);
+  }
+}
+
+docs {
+  Customer-facing booking slots for a selected service variant. Unlike
+  `Availability > Availability List`, this excludes existing pending and
+  confirmed reservations.
+}
+
+tests {
+  test("returns bookable slots", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.be.an("array");
+  });
+}

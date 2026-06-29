@@ -1,7 +1,7 @@
 meta {
   name: Create Reservation
   type: http
-  seq: 1
+  seq: 2
 }
 
 post {
@@ -32,7 +32,7 @@ script:post-response {
 
 docs {
   Run `Auth > Admin Login`, `Services > Admin Create Service`, seed availability rules,
-  then `Availability > Availability List` (captures the first free slot into reservationStart)
+  then `Reservations > Bookable Slots` (captures the first free slot into reservationStart)
   before sending this request.
 }
 
