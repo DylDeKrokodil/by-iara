@@ -9,7 +9,7 @@
         <line x1="4" x2="20" y1="18" y2="18"></line>
       </svg>
     </button>
-    <span class="mobile-brand">By Iara</span>
+    <img class="mobile-brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
   </header>
 
   <!-- Backdrop overlay for mobile menu -->
@@ -22,9 +22,9 @@
     <div class="brand-container">
       <p class="brand" routerLink="/dashboard">
         @if (isCollapsed()) {
-          <span class="logo-collapsed">I</span>
+          <img class="brand-logo-mark" src="brand/by-iara-monogram.svg" alt="By Iara" />
         } @else {
-          <span>By Iara</span>
+          <img class="brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
         }
       </p>
       

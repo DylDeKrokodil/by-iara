@@ -28,8 +28,16 @@
 }
 
 .logo-link {
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
   cursor: pointer;
+}
+
+.logo-img {
+  display: block;
+  height: 2.25rem;
+  width: auto;
 }
 
 .logo-text {
