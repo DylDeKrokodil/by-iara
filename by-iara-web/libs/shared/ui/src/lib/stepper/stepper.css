@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.stepper {
+  display: flex;
+  gap: var(--byiara-space-xs);
+  overflow-x: auto;
+  padding: var(--byiara-space-xs);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-surface-muted);
+}
+
+.step-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--byiara-space-xs);
+  min-height: 2.75rem;
+  padding: 0 var(--byiara-space-sm);
+  border: 1px solid transparent;
+  border-radius: var(--byiara-radius-pill);
+  background: transparent;
+  color: var(--byiara-color-text-muted);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
+  white-space: nowrap;
+}
+
+.step-button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.step-button.complete {
+  color: var(--byiara-color-primary);
+}
+
+.step-button.selected {
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  box-shadow: var(--byiara-shadow-sm);
+}
+
+.step-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-rose-100);
+  color: var(--byiara-color-primary);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-bold);
+  transition:
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.step-check {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.step-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: drawCheck var(--byiara-duration-base) var(--byiara-ease-out) forwards;
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.step-button.selected .step-number {
+  background: var(--byiara-color-primary);
+  color: var(--byiara-color-white);
+}

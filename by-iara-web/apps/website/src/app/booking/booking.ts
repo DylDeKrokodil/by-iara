@@ -10,7 +10,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ChoiceChip, SelectField, SelectFieldOption } from '@by-iara/shared-ui';
+import { ChoiceChip, SelectField, SelectFieldOption, Stepper } from '@by-iara/shared-ui';
 import {
   Service,
   ServicesApi,
@@ -53,7 +53,7 @@ interface DateSlots {
 
 @Component({
   selector: 'byiara-booking',
-  imports: [ReactiveFormsModule, RouterLink, SelectField, ChoiceChip],
+  imports: [ReactiveFormsModule, RouterLink, SelectField, ChoiceChip, Stepper],
   templateUrl: './booking.html',
   styleUrl: './booking.css',
 })
@@ -165,10 +165,10 @@ export class Booking implements OnInit {
   protected readonly steps = computed(() => {
     const copy = this.copy();
     return [
-      { id: 'service' as const, label: copy.serviceStep },
-      { id: 'time' as const, label: copy.timeStep },
-      { id: 'details' as const, label: copy.detailsStep },
-      { id: 'review' as const, label: copy.reviewStep },
+      { id: 'service' as const, label: copy.serviceStep, disabled: !this.canOpenStep('service') },
+      { id: 'time' as const, label: copy.timeStep, disabled: !this.canOpenStep('time') },
+      { id: 'details' as const, label: copy.detailsStep, disabled: !this.canOpenStep('details') },
+      { id: 'review' as const, label: copy.reviewStep, disabled: !this.canOpenStep('review') },
     ];
   });
 
@@ -241,6 +241,10 @@ export class Booking implements OnInit {
     if (this.canOpenStep(step)) {
       this.goToStep(step);
     }
+  }
+
+  protected onStepSelect(id: string): void {
+    this.openStep(id as BookingStep);
   }
 
   private goToStep(step: BookingStep): void {

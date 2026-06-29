@@ -50,30 +50,12 @@
         <h1>{{ copy().pageTitle }}</h1>
       </header>
 
-      <nav class="stepper" [attr.aria-label]="copy().bookingSteps">
-        @for (step of steps(); track step.id; let stepIndex = $index) {
-          <button
-            type="button"
-            class="step-button"
-            [class.selected]="step.id === currentStep()"
-            [class.complete]="stepIndex < currentStepIndex()"
-            [attr.aria-current]="step.id === currentStep() ? 'step' : null"
-            [disabled]="!canOpenStep(step.id)"
-            (click)="openStep(step.id)"
-          >
-            <span class="step-number">
-              @if (stepIndex < currentStepIndex()) {
-                <svg class="step-check" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3.5 8.5l3 3 6-7" />
-                </svg>
-              } @else {
-                {{ stepIndex + 1 }}
-              }
-            </span>
-            <span>{{ step.label }}</span>
-          </button>
-        }
-      </nav>
+      <byiara-stepper
+        [steps]="steps()"
+        [current]="currentStep()"
+        [ariaLabel]="copy().bookingSteps"
+        (stepSelect)="onStepSelect($event)"
+      ></byiara-stepper>
 
       <div class="booking-flow">
         <section class="step-panel public-panel" [attr.data-direction]="stepDirection()">

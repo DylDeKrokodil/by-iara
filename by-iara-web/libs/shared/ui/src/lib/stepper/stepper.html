@@ -1,0 +1,24 @@
+<nav class="stepper" [attr.aria-label]="ariaLabel() || null">
+  @for (step of steps(); track step.id; let i = $index) {
+    <button
+      type="button"
+      class="step-button"
+      [class.selected]="step.id === current()"
+      [class.complete]="i < currentIndex()"
+      [attr.aria-current]="step.id === current() ? 'step' : null"
+      [disabled]="step.disabled"
+      (click)="onSelect(step)"
+    >
+      <span class="step-number">
+        @if (i < currentIndex()) {
+          <svg class="step-check" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M3.5 8.5l3 3 6-7" />
+          </svg>
+        } @else {
+          {{ i + 1 }}
+        }
+      </span>
+      <span>{{ step.label }}</span>
+    </button>
+  }
+</nav>
