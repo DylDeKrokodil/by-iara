@@ -97,6 +97,15 @@
   --byiara-container-sm: 40rem;
   --byiara-container-md: 64rem;
   --byiara-container-lg: 76rem;
+
+  /* Motion — strong custom curves; CSS defaults feel sluggish.
+     Durations stay under 300ms for in-task UI per our motion conventions. */
+  --byiara-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --byiara-ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
+  --byiara-ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --byiara-duration-fast: 140ms;
+  --byiara-duration-base: 220ms;
+  --byiara-duration-slow: 320ms;
 }
 
 .byiara-theme-admin {
@@ -149,4 +158,16 @@ button {
 ::selection {
   background: var(--byiara-color-rose-100);
   color: var(--byiara-color-plum-950);
+}
+
+/* Honour users who ask for less motion: keep state changes, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

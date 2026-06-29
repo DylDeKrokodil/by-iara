@@ -53,6 +53,9 @@ export interface WebsiteMessages {
     readonly chooseOption: string;
     readonly chooseDate: string;
     readonly chooseSlot: string;
+    readonly periodMorning: string;
+    readonly periodAfternoon: string;
+    readonly periodEvening: string;
     readonly slotsLoading: string;
     readonly slotsError: string;
     readonly noSlots: string;
@@ -143,6 +146,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       chooseOption: 'Escolha uma opção',
       chooseDate: 'Escolha uma data',
       chooseSlot: 'Escolha um horário',
+      periodMorning: 'Manhã',
+      periodAfternoon: 'Tarde',
+      periodEvening: 'Noite',
       slotsLoading: 'A carregar horários...',
       slotsError: 'Não foi possível carregar a disponibilidade.',
       noSlots: 'Sem horários disponíveis nas próximas semanas.',
@@ -231,6 +237,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       chooseOption: 'Choose an option',
       chooseDate: 'Choose a date',
       chooseSlot: 'Choose a time',
+      periodMorning: 'Morning',
+      periodAfternoon: 'Afternoon',
+      periodEvening: 'Evening',
       slotsLoading: 'Loading available times...',
       slotsError: 'Could not load availability.',
       noSlots: 'No times available in the next weeks.',

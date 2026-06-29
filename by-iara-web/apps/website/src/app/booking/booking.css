@@ -35,8 +35,16 @@
   color: var(--byiara-color-text-muted);
   font: inherit;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  transition:
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
   white-space: nowrap;
+}
+
+.step-button:not(:disabled):active {
+  transform: scale(0.97);
 }
 
 .step-button.complete {
@@ -64,6 +72,31 @@
   color: var(--byiara-color-primary);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
+  transition:
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.step-check {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.step-check path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 16;
+  stroke-dashoffset: 16;
+  animation: drawCheck var(--byiara-duration-base) var(--byiara-ease-out) forwards;
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .step-button.selected .step-number {
@@ -107,6 +140,21 @@
 .slot-chip {
   padding: var(--byiara-space-xs) var(--byiara-space-md);
   border-radius: var(--byiara-radius-pill);
+}
+
+.slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-xs);
+}
+
+.slot-group-label {
+  margin: 0;
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--byiara-color-text-muted);
 }
 
 .date-strip {
@@ -223,5 +271,116 @@
 
   .booking-summary {
     position: static;
+  }
+}
+
+/* ----- Motion ------------------------------------------------------------ */
+
+/* Step transitions: the panel's content enters from the direction of travel,
+   so moving forward and back feels spatially consistent. Fill is `backwards`
+   so the resting state matches the default styles and never locks transforms
+   (keeps :active press feedback working). */
+.step-panel > * {
+  animation: stepIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
+}
+
+.step-panel[data-direction='backward'] > * {
+  animation-name: stepInBack;
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stepInBack {
+  from {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Date/time options settle in with a short, capped stagger as they load or as
+   a new date is picked — list rhythm, not decoration. Capped at 10 so the
+   total reveal stays ~half a second even for a long day of slots. */
+.date-chip,
+.slot-chip {
+  animation: chipIn var(--byiara-duration-base) var(--byiara-ease-out) backwards;
+  animation-delay: calc(min(var(--stagger, 0), 10) * 28ms);
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Confirmation: a rare moment, so it earns a little delight — the card eases
+   up and the success mark draws itself in. */
+.confirmation {
+  animation: confirmIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
+}
+
+@keyframes confirmIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.confirmation-badge {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--byiara-space-md);
+}
+
+.confirmation-badge svg {
+  width: 100%;
+  height: 100%;
+}
+
+.confirmation-badge-circle,
+.confirmation-badge-check {
+  fill: none;
+  stroke: var(--byiara-color-success);
+  stroke-width: 3;
+}
+
+.confirmation-badge-circle {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: drawStroke 0.5s var(--byiara-ease-out) 120ms forwards;
+}
+
+.confirmation-badge-check {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: drawStroke 0.3s var(--byiara-ease-out) 480ms forwards;
+}
+
+@keyframes drawStroke {
+  to {
+    stroke-dashoffset: 0;
   }
 }

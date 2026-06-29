@@ -20,6 +20,12 @@
     } @else if (confirmation(); as confirmed) {
       <!-- Confirmation -->
       <section class="confirmation" aria-live="polite">
+        <div class="confirmation-badge" aria-hidden="true">
+          <svg viewBox="0 0 52 52">
+            <circle class="confirmation-badge-circle" cx="26" cy="26" r="24" />
+            <path class="confirmation-badge-check" d="M15 27l8 8 14-16" />
+          </svg>
+        </div>
         <p class="eyebrow">{{ copy().confirmedTitle }}</p>
         <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
         <dl class="confirmation-details">
@@ -55,14 +61,22 @@
             [disabled]="!canOpenStep(step.id)"
             (click)="openStep(step.id)"
           >
-            <span class="step-number">{{ stepIndex + 1 }}</span>
+            <span class="step-number">
+              @if (stepIndex < currentStepIndex()) {
+                <svg class="step-check" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M3.5 8.5l3 3 6-7" />
+                </svg>
+              } @else {
+                {{ stepIndex + 1 }}
+              }
+            </span>
             <span>{{ step.label }}</span>
           </button>
         }
       </nav>
 
       <div class="booking-flow">
-        <section class="step-panel public-panel">
+        <section class="step-panel public-panel" [attr.data-direction]="stepDirection()">
           @switch (currentStep()) {
             @case ('service') {
               <div class="booking-section">
@@ -114,13 +128,14 @@
                   <p class="muted">{{ copy().noSlots }}</p>
                 } @else {
                   <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
-                    @for (date of availableDates(); track date.key) {
+                    @for (date of availableDates(); track date.key; let i = $index) {
                       <button
                         type="button"
                         role="radio"
                         class="date-chip choice-chip"
                         [class.selected]="date.key === selectedDateKey()"
                         [attr.aria-checked]="date.key === selectedDateKey()"
+                        [style.--stagger]="i"
                         (click)="selectDate(date.key)"
                       >
                         <span class="date-weekday">{{ date.weekday }}</span>
@@ -135,20 +150,26 @@
                     @if (selectedDateSlots().length === 0) {
                       <p class="muted">{{ copy().noSlotsForDate }}</p>
                     } @else {
-                      <div class="slot-grid" role="radiogroup" [attr.aria-label]="copy().chooseSlot">
-                        @for (slot of selectedDateSlots(); track slot.iso) {
-                          <button
-                            type="button"
-                            role="radio"
-                            class="slot-chip choice-chip"
-                            [class.selected]="slot.iso === selectedSlot()"
-                            [attr.aria-checked]="slot.iso === selectedSlot()"
-                            (click)="selectSlot(slot.iso)"
-                          >
-                            {{ slot.time }}
-                          </button>
-                        }
-                      </div>
+                      @for (group of selectedDateSlotGroups(); track group.period) {
+                        <div class="slot-group">
+                          <p class="slot-group-label">{{ group.label }}</p>
+                          <div class="slot-grid" role="radiogroup" [attr.aria-label]="group.label">
+                            @for (slot of group.slots; track slot.iso; let i = $index) {
+                              <button
+                                type="button"
+                                role="radio"
+                                class="slot-chip choice-chip"
+                                [class.selected]="slot.iso === selectedSlot()"
+                                [attr.aria-checked]="slot.iso === selectedSlot()"
+                                [style.--stagger]="i"
+                                (click)="selectSlot(slot.iso)"
+                              >
+                                {{ slot.time }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                      }
                     }
                   </div>
                 }

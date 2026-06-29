@@ -31,6 +31,15 @@ const BOOKING_STEPS: readonly BookingStep[] = ['service', 'time', 'details', 're
 interface SlotView {
   readonly iso: string;
   readonly time: string;
+  readonly hour: number;
+}
+
+type SlotPeriod = 'morning' | 'afternoon' | 'evening';
+
+interface SlotGroup {
+  readonly period: SlotPeriod;
+  readonly label: string;
+  readonly slots: ReadonlyArray<SlotView>;
 }
 
 interface DateSlots {
@@ -70,6 +79,7 @@ export class Booking implements OnInit {
   protected readonly selectedDateKey = signal<string | null>(null);
   protected readonly selectedSlot = signal<string | null>(null);
   protected readonly currentStep = signal<BookingStep>('service');
+  protected readonly stepDirection = signal<'forward' | 'backward'>('forward');
 
   protected readonly submitting = signal(false);
   protected readonly submitError = signal<string | null>(null);
@@ -117,6 +127,30 @@ export class Booking implements OnInit {
     }
 
     return this.availableDates().find((date) => date.key === selectedDateKey)?.slots ?? [];
+  });
+
+  // Group the day's slots into morning / afternoon / evening, dropping any
+  // empty period so a quiet day never shows a hollow section.
+  protected readonly selectedDateSlotGroups = computed<SlotGroup[]>(() => {
+    const copy = this.copy();
+    const buckets: Record<SlotPeriod, SlotView[]> = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+    };
+    for (const slot of this.selectedDateSlots()) {
+      const period: SlotPeriod =
+        slot.hour < 12 ? 'morning' : slot.hour < 17 ? 'afternoon' : 'evening';
+      buckets[period].push(slot);
+    }
+    const labels: Record<SlotPeriod, string> = {
+      morning: copy.periodMorning,
+      afternoon: copy.periodAfternoon,
+      evening: copy.periodEvening,
+    };
+    return (['morning', 'afternoon', 'evening'] as const)
+      .filter((period) => buckets[period].length > 0)
+      .map((period) => ({ period, label: labels[period], slots: buckets[period] }));
   });
 
   protected readonly selectedDateLabel = computed(
@@ -205,8 +239,15 @@ export class Booking implements OnInit {
 
   protected openStep(step: BookingStep): void {
     if (this.canOpenStep(step)) {
-      this.currentStep.set(step);
+      this.goToStep(step);
     }
+  }
+
+  private goToStep(step: BookingStep): void {
+    this.stepDirection.set(
+      BOOKING_STEPS.indexOf(step) >= this.currentStepIndex() ? 'forward' : 'backward',
+    );
+    this.currentStep.set(step);
   }
 
   protected canOpenStep(step: BookingStep): boolean {
@@ -226,7 +267,7 @@ export class Booking implements OnInit {
     switch (this.currentStep()) {
       case 'service':
         if (this.selectedService() && this.selectedVariant()) {
-          this.currentStep.set('time');
+          this.goToStep('time');
         }
         return;
       case 'time':
@@ -235,14 +276,14 @@ export class Booking implements OnInit {
           return;
         }
         this.submitError.set(null);
-        this.currentStep.set('details');
+        this.goToStep('details');
         return;
       case 'details':
         if (this.form.invalid) {
           this.form.markAllAsTouched();
           return;
         }
-        this.currentStep.set('review');
+        this.goToStep('review');
         return;
       case 'review':
         this.submit();
@@ -253,7 +294,7 @@ export class Booking implements OnInit {
   protected previousStep(): void {
     const index = this.currentStepIndex();
     if (index > 0) {
-      this.currentStep.set(BOOKING_STEPS[index - 1]);
+      this.goToStep(BOOKING_STEPS[index - 1]);
     }
   }
 
@@ -266,12 +307,12 @@ export class Booking implements OnInit {
     }
     if (!slot) {
       this.submitError.set(this.copy().selectSlotFirst);
-      this.currentStep.set('time');
+      this.goToStep('time');
       return;
     }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.currentStep.set('details');
+      this.goToStep('details');
       return;
     }
 
@@ -297,7 +338,7 @@ export class Booking implements OnInit {
           if (err.status === 409 || err.status === 422) {
             this.submitError.set(this.copy().slotTakenError);
             this.selectedSlot.set(null);
-            this.currentStep.set('time');
+            this.goToStep('time');
             this.loadSlots({ forceRefresh: true });
           } else {
             this.submitError.set(this.copy().submitError);
@@ -308,7 +349,7 @@ export class Booking implements OnInit {
 
   protected resetForAnother(): void {
     this.confirmation.set(null);
-    this.currentStep.set('service');
+    this.goToStep('service');
     this.selectedSlot.set(null);
     this.form.reset();
     this.loadSlots({ forceRefresh: true });
@@ -427,6 +468,11 @@ export class Booking implements OnInit {
       minute: '2-digit',
       timeZone: BUSINESS_TIMEZONE,
     });
+    const hourFormat = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      hourCycle: 'h23',
+      timeZone: BUSINESS_TIMEZONE,
+    });
 
     const dates = new Map<string, DateSlots & { slots: SlotView[] }>();
     for (const iso of slots) {
@@ -442,7 +488,11 @@ export class Booking implements OnInit {
         };
         dates.set(key, dateSlots);
       }
-      dateSlots.slots.push({ iso, time: timeFormat.format(date) });
+      dateSlots.slots.push({
+        iso,
+        time: timeFormat.format(date),
+        hour: Number.parseInt(hourFormat.format(date), 10),
+      });
     }
 
     return [...dates.values()];

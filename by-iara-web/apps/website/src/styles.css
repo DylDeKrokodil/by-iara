@@ -64,6 +64,10 @@ body {
   box-shadow: var(--byiara-shadow-md);
 }
 
+.button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
 .button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -154,11 +158,21 @@ body {
   color: var(--byiara-color-text);
   font: inherit;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    border-color var(--byiara-duration-base) var(--byiara-ease-out),
+    background var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .choice-chip:hover {
   border-color: var(--byiara-color-primary);
+}
+
+/* Confirm the press was heard. */
+.choice-chip:active {
+  transform: scale(0.97);
 }
 
 .choice-chip.selected {
