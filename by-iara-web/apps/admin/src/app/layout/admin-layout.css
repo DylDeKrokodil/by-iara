@@ -49,6 +49,20 @@
   width: 100%;
 }
 
+.brand-logo {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+  max-width: 100%;
+}
+
+.brand-logo-mark {
+  display: block;
+  height: 2.25rem;
+  width: auto;
+  margin: 0 auto;
+}
+
 .collapse-btn {
   position: absolute;
   right: -2.25rem;
@@ -238,6 +252,12 @@ nav a.active {
     font-family: var(--byiara-font-family-display);
     font-size: var(--byiara-font-size-xl);
     font-weight: var(--byiara-font-weight-bold);
+  }
+
+  .mobile-brand-logo {
+    display: block;
+    height: 1.75rem;
+    width: auto;
   }
 
   /* Mobile Drawer Overlay */
