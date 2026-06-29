@@ -169,31 +169,36 @@
               <form class="booking-form" [formGroup]="form" (ngSubmit)="nextStep()" novalidate>
                 <h2>{{ copy().yourDetails }}</h2>
 
-                <label class="field">
-                  <span>{{ copy().name }}</span>
-                  <input type="text" formControlName="name" autocomplete="name" />
-                  @if (form.controls.name.touched && form.controls.name.invalid) {
-                    <span class="field-error">{{ copy().required }}</span>
-                  }
-                </label>
+                <byiara-text-field
+                  [label]="copy().name"
+                  formControlName="name"
+                  autocomplete="name"
+                  [error]="form.controls.name.touched && form.controls.name.invalid ? copy().required : null"
+                ></byiara-text-field>
 
-                <label class="field">
-                  <span>{{ copy().email }}</span>
-                  <input type="email" formControlName="email" autocomplete="email" />
-                  @if (form.controls.email.touched && form.controls.email.invalid) {
-                    <span class="field-error">{{ copy().invalidEmail }}</span>
-                  }
-                </label>
+                <byiara-text-field
+                  [label]="copy().email"
+                  type="email"
+                  formControlName="email"
+                  autocomplete="email"
+                  [error]="form.controls.email.touched && form.controls.email.invalid ? copy().invalidEmail : null"
+                ></byiara-text-field>
 
-                <label class="field">
-                  <span>{{ copy().phone }} <em>{{ copy().optional }}</em></span>
-                  <input type="tel" formControlName="phone" autocomplete="tel" />
-                </label>
+                <byiara-text-field
+                  [label]="copy().phone"
+                  type="tel"
+                  formControlName="phone"
+                  autocomplete="tel"
+                  [optionalLabel]="copy().optional"
+                ></byiara-text-field>
 
-                <label class="field">
-                  <span>{{ copy().notes }} <em>{{ copy().optional }}</em></span>
-                  <textarea formControlName="notes" rows="3"></textarea>
-                </label>
+                <byiara-text-field
+                  [label]="copy().notes"
+                  multiline
+                  [rows]="3"
+                  formControlName="notes"
+                  [optionalLabel]="copy().optional"
+                ></byiara-text-field>
 
                 <div class="step-actions">
                   <button type="button" class="button button-secondary" (click)="previousStep()">

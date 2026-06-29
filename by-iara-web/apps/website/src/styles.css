@@ -90,39 +90,6 @@ body {
   color: var(--byiara-color-primary);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-2xs);
-}
-
-.field > span {
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-medium);
-}
-
-.field em {
-  color: var(--byiara-color-text-muted);
-  font-style: normal;
-  font-weight: var(--byiara-font-weight-regular);
-}
-
-.field input,
-.field textarea {
-  padding: var(--byiara-space-sm);
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-surface);
-  font: inherit;
-  color: var(--byiara-color-text);
-}
-
-.field input:focus,
-.field textarea:focus {
-  outline: 2px solid var(--byiara-color-focus);
-  outline-offset: 1px;
-}
-
 .field-error {
   margin: 0;
   color: var(--byiara-color-danger);

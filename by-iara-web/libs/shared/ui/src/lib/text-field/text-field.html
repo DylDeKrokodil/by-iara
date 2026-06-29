@@ -1,0 +1,26 @@
+<label class="field">
+  <span>{{ label() }}@if (optionalLabel()) {&nbsp;<em>{{ optionalLabel() }}</em>}</span>
+  @if (multiline()) {
+    <textarea
+      [rows]="rows()"
+      [value]="value()"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="error() ? 'true' : null"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+    ></textarea>
+  } @else {
+    <input
+      [type]="type()"
+      [attr.autocomplete]="autocomplete() || null"
+      [value]="value()"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="error() ? 'true' : null"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+    />
+  }
+  @if (error()) {
+    <span class="field-error">{{ error() }}</span>
+  }
+</label>
