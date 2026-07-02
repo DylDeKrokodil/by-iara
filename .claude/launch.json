@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "website",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "cd by-iara-web && npx nx serve website --host=localhost --port=4300"],
+      "port": 4300
+    }
+  ]
+}
