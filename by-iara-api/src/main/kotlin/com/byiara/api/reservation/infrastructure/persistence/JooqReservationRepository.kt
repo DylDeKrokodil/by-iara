@@ -5,9 +5,12 @@ import com.byiara.api.reservation.domain.Customer
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.NewReservation
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationListQuery
 import com.byiara.api.reservation.domain.ReservationRepository
+import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.ReservationWindow
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.impl.DSL.currentOffsetDateTime
@@ -52,16 +55,22 @@ class JooqReservationRepository(
             .where(rId.eq(id))
             .fetchOne { mapReservation(it) }
 
-    override fun findAll(status: ReservationStatus?, limit: Int, offset: Int): List<Reservation> =
+    override fun findAll(query: ReservationListQuery, limit: Int, offset: Int): List<Reservation> =
         baseSelect()
-            .where(statusCondition(status))
-            .orderBy(rStartsAt.desc())
+            .where(listCondition(query))
+            .orderBy(
+                when (query.sort) {
+                    ReservationSort.STARTS_AT_ASC -> rStartsAt.asc()
+                    ReservationSort.STARTS_AT_DESC -> rStartsAt.desc()
+                },
+                rId.asc(),
+            )
             .limit(limit)
             .offset(offset)
             .fetch { mapReservation(it) }
 
-    override fun countAll(status: ReservationStatus?): Int =
-        dsl.fetchCount(dsl.selectFrom(reservations).where(statusCondition(status)))
+    override fun countAll(query: ReservationListQuery): Int =
+        dsl.fetchCount(dsl.selectFrom(reservations).where(listCondition(query)))
 
     override fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime): Boolean =
         dsl.fetchExists(
@@ -160,8 +169,35 @@ class JooqReservationRepository(
             .from(reservations)
             .join(customers).on(rCustomerId.eq(cId))
 
-    private fun statusCondition(status: ReservationStatus?) =
-        if (status == null) noCondition() else rStatus.eq(status.name)
+    private fun listCondition(query: ReservationListQuery): Condition {
+        var condition = noCondition()
+
+        if (query.statuses.isNotEmpty()) {
+            condition = condition.and(rStatus.`in`(query.statuses.map { it.name }))
+        }
+
+        if (query.startsFrom != null) {
+            condition = condition.and(rStartsAt.greaterOrEqual(query.startsFrom))
+        }
+
+        if (query.startsBefore != null) {
+            condition = condition.and(rStartsAt.lessThan(query.startsBefore))
+        }
+
+        if (query.historyBefore != null) {
+            val closedStatuses = listOf(
+                ReservationStatus.REJECTED.name,
+                ReservationStatus.CANCELLED.name,
+                ReservationStatus.COMPLETED.name,
+            )
+            condition = condition.and(
+                rStatus.`in`(closedStatuses)
+                    .or(rStatus.eq(ReservationStatus.CONFIRMED.name).and(rStartsAt.lessThan(query.historyBefore))),
+            )
+        }
+
+        return condition
+    }
 
     private fun mapReservation(record: Record): Reservation =
         Reservation(

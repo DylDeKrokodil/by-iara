@@ -22,6 +22,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -253,6 +254,103 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `admin can list upcoming confirmed reservations from a date sorted by start time`() {
+        val laterId = reservationIdFrom(book(slotStart.plusHours(2), "later@example.com").andExpect(status().isCreated).andReturn())
+        val soonerId = reservationIdFrom(book(slotStart, "sooner@example.com").andExpect(status().isCreated).andReturn())
+
+        mockMvc.perform(patch("/api/admin/reservations/$laterId/confirm").with(adminJwt())).andExpect(status().isOk)
+        mockMvc.perform(patch("/api/admin/reservations/$soonerId/confirm").with(adminJwt())).andExpect(status().isOk)
+
+        mockMvc.perform(
+            get("/api/admin/reservations")
+                .with(adminJwt())
+                .param("status", "CONFIRMED")
+                .param("from", iso(slotStart.minusMinutes(1)))
+                .param("sort", "STARTS_AT_ASC")
+                .param("page", "0")
+                .param("size", "10"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(2))
+            .andExpect(jsonPath("$.items[0].id").value(soonerId))
+            .andExpect(jsonPath("$.items[1].id").value(laterId))
+    }
+
+    @Test
+    fun `admin can list confirmed reservations inside a half open date range`() {
+        val rangeStart = slotStart.minusDays(1)
+        val rangeEnd = slotStart.plusDays(1)
+        val beforeRangeId = insertReservation(
+            start = rangeStart.minusHours(1),
+            status = "CONFIRMED",
+            email = "before-range@example.com",
+        )
+        val insideRangeId = insertReservation(
+            start = slotStart,
+            status = "CONFIRMED",
+            email = "inside-range@example.com",
+        )
+        val atRangeEndId = insertReservation(
+            start = rangeEnd,
+            status = "CONFIRMED",
+            email = "at-range-end@example.com",
+        )
+        val pendingInsideRangeId = insertReservation(
+            start = slotStart.plusHours(2),
+            status = "PENDING",
+            email = "pending-inside-range@example.com",
+        )
+
+        mockMvc.perform(
+            get("/api/admin/reservations")
+                .with(adminJwt())
+                .param("status", "CONFIRMED")
+                .param("from", iso(rangeStart))
+                .param("to", iso(rangeEnd))
+                .param("sort", "STARTS_AT_ASC")
+                .param("page", "0")
+                .param("size", "10"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.items[*].id", hasItem(insideRangeId)))
+            .andExpect(jsonPath("$.items[*].id", not(hasItem(beforeRangeId))))
+            .andExpect(jsonPath("$.items[*].id", not(hasItem(atRangeEndId))))
+            .andExpect(jsonPath("$.items[*].id", not(hasItem(pendingInsideRangeId))))
+    }
+
+    @Test
+    fun `admin history list includes closed reservations and past confirmed reservations`() {
+        val closedId = reservationIdFrom(book(slotStart, "closed@example.com").andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$closedId/reject").with(adminJwt())).andExpect(status().isOk)
+
+        val pastConfirmedId = insertReservation(
+            start = OffsetDateTime.now(zone).minusDays(2),
+            status = "CONFIRMED",
+            email = "past@example.com",
+        )
+
+        val futureConfirmedId = reservationIdFrom(
+            book(slotStart.plusHours(2), "future@example.com").andExpect(status().isCreated).andReturn(),
+        )
+        mockMvc.perform(patch("/api/admin/reservations/$futureConfirmedId/confirm").with(adminJwt())).andExpect(status().isOk)
+
+        mockMvc.perform(
+            get("/api/admin/reservations")
+                .with(adminJwt())
+                .param("historyBefore", iso(OffsetDateTime.now(zone)))
+                .param("sort", "STARTS_AT_DESC")
+                .param("page", "0")
+                .param("size", "10"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(2))
+            .andExpect(jsonPath("$.items[*].id", hasItem(closedId)))
+            .andExpect(jsonPath("$.items[*].id", hasItem(pastConfirmedId)))
+            .andExpect(jsonPath("$.items[*].id", not(hasItem(futureConfirmedId))))
+    }
+
+    @Test
     fun `admin reservation list requires authentication`() {
         mockMvc.perform(get("/api/admin/reservations"))
             .andExpect(status().isUnauthorized)
@@ -264,4 +362,39 @@ class ReservationApiTests {
             ?.groupValues
             ?.get(1)
             ?: error("Missing reservation id")
+
+    private fun insertReservation(start: OffsetDateTime, status: String, email: String): String {
+        val customerId = UUID.randomUUID()
+        val reservationId = UUID.randomUUID()
+
+        dsl.query(
+            "insert into customers (id, name, email, phone) values (?, ?, ?, ?)",
+            customerId,
+            "Ana",
+            email,
+            "+351912345678",
+        ).execute()
+        dsl.query(
+            """
+            insert into reservations (
+                id, customer_id, service_id, service_variant_id, service_name,
+                duration_minutes, price_cents, currency, starts_at, ends_at, status, notes
+            ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent(),
+            reservationId,
+            customerId,
+            UUID.fromString(serviceId),
+            UUID.fromString(variantId),
+            "Relaxing massage",
+            60,
+            7500,
+            "EUR",
+            start,
+            start.plusHours(1),
+            status,
+            "Imported request",
+        ).execute()
+
+        return reservationId.toString()
+    }
 }

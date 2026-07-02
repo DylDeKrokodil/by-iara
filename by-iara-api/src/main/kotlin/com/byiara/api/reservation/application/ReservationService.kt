@@ -9,8 +9,10 @@ import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
 import com.byiara.api.reservation.domain.NewReservation
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationListQuery
 import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.ReservationRepository
+import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
@@ -84,11 +86,26 @@ class ReservationService(
     }
 
     @Transactional(readOnly = true)
-    fun list(status: ReservationStatus?, page: Int, size: Int): ReservationPage {
+    fun list(
+        statuses: Set<ReservationStatus>,
+        startsFrom: OffsetDateTime?,
+        startsBefore: OffsetDateTime?,
+        historyBefore: OffsetDateTime?,
+        sort: ReservationSort,
+        page: Int,
+        size: Int,
+    ): ReservationPage {
         val safeSize = size.coerceIn(1, MAX_PAGE_SIZE)
         val safePage = page.coerceAtLeast(0)
-        val total = reservationRepository.countAll(status)
-        val items = reservationRepository.findAll(status, limit = safeSize, offset = safePage * safeSize)
+        val query = ReservationListQuery(
+            statuses = statuses,
+            startsFrom = startsFrom,
+            startsBefore = startsBefore,
+            historyBefore = historyBefore,
+            sort = sort,
+        )
+        val total = reservationRepository.countAll(query)
+        val items = reservationRepository.findAll(query, limit = safeSize, offset = safePage * safeSize)
         return ReservationPage(items = items, page = safePage, size = safeSize, total = total)
     }
 
