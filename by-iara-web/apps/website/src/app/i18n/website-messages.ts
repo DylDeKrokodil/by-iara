@@ -13,13 +13,11 @@ export interface WebsiteMessages {
     readonly ariaLabel: string;
   };
   readonly home: {
-    readonly eyebrow: string;
-    readonly title: string;
-    readonly lede: string;
+    readonly heroTitle: string;
+    readonly heroLede: string;
     readonly primaryAction: string;
     readonly secondaryAction: string;
     readonly primaryActionsLabel: string;
-    readonly featuredEyebrow: string;
     readonly featuredTitle: string;
     readonly featuredLede: string;
     readonly featuredBadge: string;
@@ -27,6 +25,11 @@ export interface WebsiteMessages {
     readonly bookAction: string;
     readonly viewAllServices: string;
     readonly featuredServicesError: string;
+    readonly experienceTitle: string;
+    readonly experienceBody: string;
+    readonly pillars: readonly { readonly title: string; readonly body: string }[];
+    readonly ctaTitle: string;
+    readonly ctaBody: string;
   };
   readonly services: {
     readonly eyebrow: string;
@@ -102,23 +105,41 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Escolher idioma',
     },
     home: {
-      eyebrow: 'By Iara',
-      title: 'Marcações de massagens, pensadas para crescer.',
-      lede:
-        'O website público usa este tema partilhado para páginas de serviços, disponibilidade e pedidos de reserva.',
-      primaryAction: 'Começar reserva',
-      secondaryAction: 'Ver serviços',
+      heroTitle: 'O seu momento de pausa, em boas mãos.',
+      heroLede:
+        'Massagens terapêuticas e relaxantes, adaptadas ao seu corpo, num espaço calmo pensado para restaurar o equilíbrio.',
+      primaryAction: 'Marcar sessão',
+      secondaryAction: 'Ver tratamentos',
       primaryActionsLabel: 'Ações principais',
-      featuredEyebrow: 'Destaques',
       featuredTitle: 'Tratamentos em destaque',
       featuredLede:
-        'Uma seleção das experiências restauradoras preferidas dos clientes.',
+        'Uma seleção das experiências restauradoras preferidas de quem nos visita.',
       featuredBadge: 'Destaque',
       variantsTitle: 'Opções e preços',
       bookAction: 'Reservar',
-      viewAllServices: 'Ver todos os serviços',
+      viewAllServices: 'Ver todos os tratamentos',
       featuredServicesError:
         'Não foi possível carregar os serviços em destaque.',
+      experienceTitle: 'Cuidado pensado à sua medida.',
+      experienceBody:
+        'Cada sessão começa por ouvir o que o seu corpo precisa. Ajustamos a pressão, o ritmo e o foco para que saia mais leve do que entrou.',
+      pillars: [
+        {
+          title: 'Pressão à sua medida',
+          body: 'Da mais suave à mais profunda, ajustada a cada momento da sessão.',
+        },
+        {
+          title: 'Um espaço que acalma',
+          body: 'Luz suave, silêncio e aromas pensados para desligar do dia.',
+        },
+        {
+          title: 'Foco terapêutico',
+          body: 'Técnicas que aliviam a tensão e devolvem mobilidade ao corpo.',
+        },
+      ],
+      ctaTitle: 'Está na hora de abrandar.',
+      ctaBody:
+        'Escolha o tratamento e o horário que lhe dão jeito. Tratamos do resto.',
     },
     services: {
       eyebrow: 'O nosso menu',
@@ -195,22 +216,40 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Choose language',
     },
     home: {
-      eyebrow: 'By Iara',
-      title: 'Massage bookings, built with room to grow.',
-      lede:
-        'The public website will use this shared theme for service pages, availability, and reservation requests.',
-      primaryAction: 'Start booking',
-      secondaryAction: 'View services',
+      heroTitle: 'Your moment of pause, in good hands.',
+      heroLede:
+        'Therapeutic and relaxing massages, tailored to your body, in a calm space made to restore balance.',
+      primaryAction: 'Book a session',
+      secondaryAction: 'View treatments',
       primaryActionsLabel: 'Primary actions',
-      featuredEyebrow: 'Highlights',
       featuredTitle: 'Featured treatments',
       featuredLede:
-        'A selection of our client-favorite restorative experiences.',
+        'A selection of the restorative experiences our visitors love most.',
       featuredBadge: 'Featured',
       variantsTitle: 'Options and prices',
       bookAction: 'Book',
-      viewAllServices: 'View all services',
+      viewAllServices: 'View all treatments',
       featuredServicesError: 'Could not load featured services.',
+      experienceTitle: 'Care shaped around you.',
+      experienceBody:
+        'Every session starts by listening to what your body needs. We adjust the pressure, pace and focus so you leave lighter than you arrived.',
+      pillars: [
+        {
+          title: 'Pressure to your measure',
+          body: 'From the gentlest to the deepest, adjusted throughout the session.',
+        },
+        {
+          title: 'A space that calms',
+          body: 'Soft light, quiet and scents made to switch off from the day.',
+        },
+        {
+          title: 'Therapeutic focus',
+          body: 'Techniques that release tension and restore the body’s mobility.',
+        },
+      ],
+      ctaTitle: 'It’s time to slow down.',
+      ctaBody:
+        'Pick the treatment and time that suit you. We’ll take care of the rest.',
     },
     services: {
       eyebrow: 'Our menu',

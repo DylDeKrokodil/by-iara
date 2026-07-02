@@ -1,3 +1,7 @@
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   min-width: 20rem;
   margin: 0;
@@ -132,84 +136,390 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Home / Hero Layout */
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(80vh - 4.5rem);
-  max-width: var(--byiara-container-md);
-  margin: 0 auto;
-  text-align: center;
-  gap: var(--byiara-space-lg);
-  animation: heroFadeIn 0.5s ease-out;
+/* ============================================================
+   Home page — By Iara
+   A calm, blush-lit landing built from the studio's own visual
+   language: soft palm-frond ambience, the bj monogram, Fraunces
+   display type. No stock imagery, by design.
+   ============================================================ */
+.home {
+  --home-pad-inline: clamp(1.25rem, 5vw, 3rem);
 }
 
-@keyframes heroFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+/* Centered container for in-flow sections. */
+.home-shell {
+  width: 100%;
+  max-width: var(--byiara-container-lg, 76rem);
+  margin-inline: auto;
+  padding-inline: var(--home-pad-inline);
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 88% 0%, var(--byiara-color-blush-100) 0%, transparent 58%),
+    linear-gradient(180deg, var(--byiara-color-blush-50) 0%, var(--byiara-color-surface) 100%);
+}
+
+.hero-shell {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  width: 100%;
+  max-width: var(--byiara-container-lg, 76rem);
+  margin-inline: auto;
+  padding: clamp(3rem, 7vw, 5.5rem) var(--home-pad-inline);
+  min-height: min(80vh, 44rem);
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--byiara-space-lg);
+}
+
+.hero-title {
+  margin: 0;
+  max-width: 16ch;
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2.4rem, 1.4rem + 3.6vw, 3.75rem);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: var(--byiara-line-height-tight);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.hero-lede {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--byiara-color-text-muted);
+  font-size: clamp(1.05rem, 1rem + 0.4vw, 1.2rem);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-2xs);
+}
+
+/* Soft blush panel: the bj monogram resting over blurred palm
+   fronds — the studio's own Instagram-collateral aesthetic. */
+.hero-visual {
+  position: relative;
+  justify-self: center;
+  width: 100%;
+  max-width: 26rem;
+}
+
+.visual-panel {
+  position: relative;
+  aspect-ratio: 5 / 6;
+  border-radius: calc(var(--byiara-radius-lg) * 2);
+  overflow: hidden;
+  border: 1px solid var(--byiara-color-blush-200);
+  background:
+    radial-gradient(80% 70% at 50% 28%, var(--byiara-color-white) 0%, var(--byiara-color-blush-50) 55%, var(--byiara-color-blush-100) 100%);
+  box-shadow: var(--byiara-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.fronds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--byiara-color-plum-800);
+}
+
+.frond {
+  opacity: 0.1;
+}
+
+.frond-a {
+  transform: translate(72%, 4%) rotate(28deg) scale(1.05);
+  transform-origin: top right;
+  animation: frondSway 19s var(--byiara-ease-out-soft) infinite alternate;
+}
+
+.frond-b {
+  transform: translate(-6%, 96%) rotate(-150deg) scale(0.85);
+  transform-origin: bottom left;
+  opacity: 0.08;
+  animation: frondSway 23s var(--byiara-ease-out-soft) -4s infinite alternate;
+}
+
+@keyframes frondSway {
+  to { rotate: 4deg; }
+}
+
+.visual-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46%;
+  height: auto;
+  translate: -50% -50%;
+  filter: drop-shadow(0 8px 18px rgba(74, 37, 57, 0.12));
+}
+
+/* One orchestrated entrance on load — gentle, to match the calm. */
+.hero-title,
+.hero-lede,
+.hero-actions,
+.hero-visual {
+  animation: riseIn var(--byiara-duration-slow) var(--byiara-ease-out) both;
+}
+
+.hero-title { animation-delay: 60ms; }
+.hero-lede { animation-delay: 140ms; }
+.hero-actions { animation-delay: 220ms; }
+.hero-visual { animation-delay: 160ms; }
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.hero h1 {
-  max-width: 18ch;
-  margin: 0;
-  color: var(--byiara-color-text);
-  font-family: var(--byiara-font-family-display);
-  font-size: var(--byiara-font-size-4xl);
-  font-weight: var(--byiara-font-weight-bold);
-  line-height: var(--byiara-line-height-tight);
+/* ---------- Featured treatments ---------- */
+.featured-section {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
 }
 
-.lede {
-  max-width: 36rem;
+#treatments {
+  scroll-margin-top: 5.5rem;
+}
+
+.section-head {
+  max-width: 42rem;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.section-head h2 {
+  margin: 0 0 var(--byiara-space-sm);
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.6rem);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: var(--byiara-line-height-title);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.section-head p {
   margin: 0;
+  max-width: 46ch;
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-lg);
   line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
 }
 
-.actions {
+/* Tracks cap at 22rem so a single featured card stays poised
+   rather than stretching the full width of the page. */
+.treatments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 22rem));
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.treatment-card {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  padding: clamp(1.4rem, 3vw, 1.9rem);
+  background: var(--byiara-color-surface);
+  border: 1px solid var(--byiara-color-blush-200);
+  border-radius: var(--byiara-radius-lg);
+  box-shadow: var(--byiara-shadow-sm);
+  transition:
+    transform var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    border-color var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.treatment-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: var(--byiara-space-sm);
 }
 
-/* Featured Section on Homepage */
-.featured-section {
-  padding: var(--byiara-space-2xl) 0;
-  margin-top: var(--byiara-space-2xl);
-  border-top: 1px solid var(--byiara-color-border);
-}
-
-.featured-header {
-  text-align: center;
-  margin-bottom: var(--byiara-space-2xl);
-  max-width: 36rem;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.featured-header h2 {
-  font-family: var(--byiara-font-family-display);
-  font-size: var(--byiara-font-size-3xl);
-  color: var(--byiara-color-text);
-  margin: var(--byiara-space-2xs) 0;
-  font-weight: var(--byiara-font-weight-bold);
-}
-
-.featured-header p {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-md);
+.treatment-name {
   margin: 0;
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: var(--byiara-font-size-xl);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: var(--byiara-line-height-title);
+}
+
+.treatment-tag {
+  flex-shrink: 0;
+  color: var(--byiara-color-primary);
+  font-size: 0.7rem;
+  font-weight: var(--byiara-font-weight-bold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.treatment-desc {
+  margin: var(--byiara-space-sm) 0 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
   line-height: var(--byiara-line-height-body);
 }
 
-.featured-cta {
+.variants {
+  margin-top: var(--byiara-space-lg);
+  padding-top: var(--byiara-space-md);
+  border-top: 1px solid var(--byiara-color-blush-100);
+}
+
+.section-cta {
+  margin-top: clamp(1.5rem, 3vw, 2.25rem);
+}
+
+.text-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--byiara-space-2xs);
+  color: var(--byiara-color-primary);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-decoration: none;
+}
+
+.text-cta svg {
+  transition: transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+/* ---------- Experience / approach ---------- */
+.experience {
+  border-top: 1px solid var(--byiara-color-blush-200);
+}
+
+.experience-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+.experience-lead h2 {
+  margin: 0 0 var(--byiara-space-md);
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(1.9rem, 1.4rem + 1.6vw, 2.6rem);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: var(--byiara-line-height-title);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.experience-lead p {
+  margin: 0;
+  max-width: 40ch;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-lg);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+.pillars {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: flex;
-  justify-content: center;
-  margin-top: var(--byiara-space-2xl);
+  flex-direction: column;
+}
+
+.pillar {
+  padding-block: var(--byiara-space-lg);
+  border-top: 1px solid var(--byiara-color-blush-200);
+}
+
+.pillar:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.pillar:last-child {
+  padding-bottom: 0;
+}
+
+.pillar h3 {
+  margin: 0 0 var(--byiara-space-2xs);
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-lg);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.pillar p {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  line-height: var(--byiara-line-height-body);
+}
+
+/* ---------- Closing booking invitation (the one saturated moment) ---------- */
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 120% at 82% -10%, var(--byiara-color-rose-600) 0%, var(--byiara-color-rose-700) 34%, var(--byiara-color-plum-800) 78%);
+  color: var(--byiara-color-white);
+}
+
+.cta-fronds {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.cta-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--byiara-space-md);
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+}
+
+.cta-inner h2 {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 3rem);
+  font-weight: var(--byiara-font-weight-bold);
+  line-height: var(--byiara-line-height-tight);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.cta-inner p {
+  margin: 0;
+  max-width: 44ch;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: var(--byiara-font-size-lg);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+.button-on-rose {
+  margin-top: var(--byiara-space-xs);
+  background: var(--byiara-color-white);
+  color: var(--byiara-color-primary);
+  box-shadow: 0 6px 20px rgba(36, 17, 28, 0.18);
 }
 
 .featured-error {
@@ -221,6 +531,35 @@ body {
   max-width: 28rem;
   padding: var(--byiara-space-lg);
   text-align: center;
+}
+
+/* Hover affordances, gated to real pointers. */
+@media (hover: hover) and (pointer: fine) {
+  .treatment-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--byiara-color-primary);
+    box-shadow: var(--byiara-shadow-md);
+  }
+
+  .text-cta:hover svg {
+    transform: translateX(3px);
+  }
+
+  .button-on-rose:hover {
+    background: var(--byiara-color-blush-50);
+    transform: translateY(-1px);
+  }
+}
+
+/* Respect reduced-motion: no entrance, no ambient sway. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-title,
+  .hero-lede,
+  .hero-actions,
+  .hero-visual,
+  .frond {
+    animation: none;
+  }
 }
 
 /* Shared Services Grid & Card Layout (Global) */
@@ -239,31 +578,18 @@ body {
   display: flex;
   flex-direction: column;
   box-shadow: var(--byiara-shadow-sm);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  transition:
+    transform var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    border-color var(--byiara-duration-base) var(--byiara-ease-out);
 }
 
-.service-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--byiara-color-primary), var(--byiara-color-accent));
-  opacity: 0;
-  transition: opacity 0.25s ease;
-}
-
-.service-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--byiara-color-blush-200);
-  box-shadow: var(--byiara-shadow-md);
-}
-
-.service-card:hover::before {
-  opacity: 1;
+/* Hover lift is gated to real pointers so a tap on touch never sticks. */
+@media (hover: hover) and (pointer: fine) {
+  .service-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--byiara-shadow-md);
+  }
 }
 
 .card-header {
@@ -287,7 +613,7 @@ body {
 }
 
 .variants-container {
-  border-top: 1px dashed var(--byiara-color-border);
+  border-top: 1px solid var(--byiara-color-blush-100);
   margin-top: var(--byiara-space-lg);
   padding-top: var(--byiara-space-md);
 }
@@ -345,39 +671,29 @@ body {
   padding: var(--byiara-space-2xs) var(--byiara-space-md);
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .book-btn:hover {
   background: var(--byiara-color-primary);
   border-color: var(--byiara-color-primary);
   color: var(--byiara-color-white);
-  box-shadow: 0 2px 8px rgba(225, 29, 116, 0.15);
 }
 
-/* Featured Card Highlights */
-.featured-card {
-  border-color: var(--byiara-color-blush-200);
-  box-shadow: 0 4px 20px rgba(225, 29, 116, 0.04);
+/* Press feedback: the button should feel like it heard the tap. */
+.book-btn:active {
+  transform: scale(0.97);
 }
 
-.featured-card:hover {
-  border-color: var(--byiara-color-primary);
-  box-shadow: 0 12px 30px rgba(225, 29, 116, 0.1);
-}
-
-.featured-badge {
-  align-self: flex-start;
-  background: var(--byiara-color-rose-100);
-  color: var(--byiara-color-primary);
-  font-size: 0.65rem;
-  font-weight: var(--byiara-font-weight-bold);
-  line-height: 1;
-  margin-bottom: var(--byiara-space-sm);
-  padding: var(--byiara-space-2xs) var(--byiara-space-sm);
-  border-radius: var(--byiara-radius-pill);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+@media (max-width: 60rem) {
+  .experience-shell {
+    grid-template-columns: 1fr;
+    gap: clamp(1.75rem, 5vw, 2.5rem);
+  }
 }
 
 @media (max-width: 48rem) {
@@ -389,11 +705,18 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .hero h1 {
-    font-size: var(--byiara-font-size-3xl);
+  .hero-shell {
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 8vw, 3rem);
+    min-height: 0;
+    padding-block: clamp(2.5rem, 9vw, 4rem);
   }
 
-  .hero {
-    min-height: calc(70vh - 4.5rem);
+  .hero-visual {
+    max-width: 19rem;
+  }
+
+  .treatments-grid {
+    grid-template-columns: 1fr;
   }
 }
