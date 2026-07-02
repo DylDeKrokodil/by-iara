@@ -1,0 +1,40 @@
+name: guard-main
+
+# Enforce that ONLY the `release` branch can be merged into `main`.
+#
+# Runs on every pull request that targets `main` and fails unless the PR's
+# source is the `release` branch of this repository. It is wired as a
+# required status check ("release-only") on `main` via the
+# `main-release-only` ruleset, so a failing or missing result blocks the
+# merge. It reads only PR metadata — no code is checked out.
+#
+# Note: this uses `pull_request` (not `pull_request_target`), so the check
+# runs from the PR head branch's copy of this file. Any PR from a branch
+# other than `release` is blocked (the check fails, or never reports and
+# stays required-but-pending). The one residual gap is a PR that ships a
+# doctored copy of this workflow; acceptable for this repo. To close it,
+# switch to `pull_request_target` with this file living on `main`.
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-only:
+    name: release-only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only the release branch may merge into main
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          echo "Pull request: ${HEAD_REPO}@${HEAD_REF} -> ${BASE_REPO}@main"
+          if [ "$HEAD_REF" != "release" ] || [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::Only the 'release' branch of ${BASE_REPO} may be merged into 'main'. This pull request's source is '${HEAD_REF}' from '${HEAD_REPO}'."
+            exit 1
+          fi
+          echo "Source is 'release' — merge into main is allowed."
