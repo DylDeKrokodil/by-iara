@@ -9,7 +9,7 @@
 
 .eyebrow {
   margin: 0;
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
   letter-spacing: 0.08em;
@@ -93,7 +93,7 @@ select {
   color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-sm);
   font-family: inherit;
-  box-shadow: 0 1px 2px rgba(36, 17, 28, 0.02);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
   transition: all 0.15s ease;
   box-sizing: border-box;
 }
@@ -102,7 +102,7 @@ input:focus,
 select:focus {
   outline: 0;
   border-color: var(--byiara-color-primary);
-  box-shadow: 0 0 0 3px rgba(225, 29, 116, 0.08);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--byiara-color-primary) 8%, transparent);
 }
 
 input.is-invalid,
@@ -147,7 +147,7 @@ select.is-invalid {
 }
 
 .day-card:hover {
-  border-color: var(--byiara-color-primary-blush);
+  border-color: var(--byiara-color-primary-soft);
   box-shadow: var(--byiara-shadow-md);
 }
 
@@ -160,7 +160,7 @@ select.is-invalid {
 .day-name {
   font-size: var(--byiara-font-size-md);
   font-weight: var(--byiara-font-weight-bold);
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   width: 7.5rem;
 }
 
@@ -186,7 +186,7 @@ select.is-invalid {
 
 .shift-badge:hover {
   border-color: var(--byiara-color-primary);
-  background: var(--byiara-color-blush-50);
+  background: var(--byiara-color-surface-tinted);
 }
 
 .shift-delete-btn {
@@ -206,7 +206,7 @@ select.is-invalid {
 
 .shift-delete-btn:hover {
   color: var(--byiara-color-danger);
-  background: rgba(177, 47, 77, 0.08);
+  background: color-mix(in srgb, var(--byiara-color-danger) 8%, transparent);
 }
 
 .no-hours {
@@ -231,7 +231,7 @@ select.is-invalid {
 }
 
 .empty-icon {
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   opacity: 0.6;
 }
 

@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--byiara-space-xs);
-  z-index: 9999;
+  z-index: var(--byiara-z-index-toast);
   pointer-events: none;
 }
 
@@ -19,7 +19,9 @@
   background: var(--byiara-color-surface);
   border: 1px solid var(--byiara-color-border);
   border-left-width: 4px;
-  box-shadow: 0 10px 25px -5px rgba(36, 17, 28, 0.08), 0 8px 16px -6px rgba(36, 17, 28, 0.04);
+  box-shadow:
+    0 10px 25px -5px color-mix(in srgb, var(--byiara-color-text) 8%, transparent),
+    0 8px 16px -6px color-mix(in srgb, var(--byiara-color-text) 4%, transparent);
   min-width: 18rem;
   max-width: 26rem;
   color: var(--byiara-color-text);
@@ -65,10 +67,10 @@
 
 /* Success Toast */
 .toast-item.success {
-  border-left-color: #10b981;
+  border-left-color: var(--byiara-color-success);
 }
 .toast-item.success .toast-icon {
-  color: #10b981;
+  color: var(--byiara-color-success);
 }
 
 /* Error Toast */
@@ -84,7 +86,7 @@
   border-left-color: var(--byiara-color-primary);
 }
 .toast-item.info .toast-icon {
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
 }
 
 @keyframes slide-in {

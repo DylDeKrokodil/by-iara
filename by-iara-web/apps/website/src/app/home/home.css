@@ -1,0 +1,181 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.home {
+  min-height: calc(100svh - 4.5rem);
+  background: var(--byiara-color-background);
+  color: var(--byiara-color-text);
+}
+
+.home-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.72fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 5rem);
+  width: min(100%, var(--byiara-container-lg, 76rem));
+  min-height: calc(100svh - 4.5rem);
+  margin-inline: auto;
+  padding: clamp(3rem, 7vw, 6.5rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.home-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  max-width: 43rem;
+}
+
+.home-location {
+  margin: 0;
+  color: var(--byiara-color-accent);
+  font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+h1 {
+  margin: 0;
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(3.1rem, 1.95rem + 5.5vw, 5.8rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.home-lede {
+  max-width: 49ch;
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.2rem);
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+.home-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-sm);
+  padding-top: var(--byiara-space-xs);
+}
+
+.home-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding-inline: clamp(1.1rem, 3vw, 1.6rem);
+  border: 1px solid transparent;
+  border-radius: var(--byiara-radius-pill);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-bold);
+  text-decoration: none;
+  transition:
+    background-color var(--byiara-duration-base) var(--byiara-ease-out),
+    border-color var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.home-action-primary {
+  background: var(--byiara-color-primary);
+  color: var(--byiara-color-on-primary);
+  box-shadow: 0 6px 20px
+    color-mix(in srgb, var(--byiara-color-primary) 28%, transparent);
+}
+
+.home-action-secondary {
+  border-color: var(--byiara-color-border);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+}
+
+.home-mark {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 28rem);
+  aspect-ratio: 4 / 5;
+}
+
+.home-mark > div,
+.home-mark img {
+  position: absolute;
+}
+
+.home-mark-rose {
+  inset: 0 10% 18% 0;
+  background: var(--byiara-color-primary);
+  border-radius: var(--byiara-radius-lg);
+  box-shadow: var(--byiara-shadow-md);
+}
+
+.home-mark-plum {
+  right: 0;
+  bottom: 0;
+  width: 62%;
+  height: 54%;
+  background: var(--byiara-color-accent);
+  border-radius: var(--byiara-radius-lg);
+  box-shadow: var(--byiara-shadow-md);
+}
+
+.home-mark-lime {
+  top: 12%;
+  right: 8%;
+  width: 28%;
+  aspect-ratio: 1;
+  background: var(--byiara-color-primary-soft);
+  border-radius: 50%;
+}
+
+.home-mark img {
+  left: 50%;
+  top: 51%;
+  width: 42%;
+  height: auto;
+  translate: -50% -50%;
+  /* Monogram reversed to pure white to sit on the rose panel. */
+  filter: brightness(0) invert(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .home-action:hover {
+    transform: translateY(-2px);
+  }
+
+  .home-action-primary:hover {
+    background: var(--byiara-color-primary-hover);
+    box-shadow: 0 10px 26px
+      color-mix(in srgb, var(--byiara-color-primary) 34%, transparent);
+  }
+
+  .home-action-secondary:hover {
+    border-color: var(--byiara-color-primary);
+    background: var(--byiara-color-surface-tinted);
+    color: var(--byiara-color-primary-strong);
+  }
+}
+
+@media (max-width: 48rem) {
+  .home-stage {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-block: clamp(2.5rem, 9vw, 4rem);
+  }
+
+  .home-mark {
+    justify-self: start;
+    width: min(100%, 20rem);
+  }
+}
+
+@media (max-width: 34rem) {
+  .home-actions,
+  .home-action {
+    width: 100%;
+  }
+}

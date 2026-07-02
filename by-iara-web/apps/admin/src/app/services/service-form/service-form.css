@@ -8,7 +8,7 @@
 
 .eyebrow {
   margin: 0;
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
   letter-spacing: 0.08em;
@@ -26,10 +26,10 @@ h1 {
   margin: 0 0 var(--byiara-space-lg);
   padding: var(--byiara-space-sm) var(--byiara-space-md);
   border-radius: var(--byiara-radius-md);
-  background: rgba(177, 47, 77, 0.05);
+  background: color-mix(in srgb, var(--byiara-color-danger) 5%, transparent);
   color: var(--byiara-color-danger);
   font-size: var(--byiara-font-size-sm);
-  border: 1px solid rgba(177, 47, 77, 0.15);
+  border: 1px solid color-mix(in srgb, var(--byiara-color-danger) 15%, transparent);
 }
 
 .service-form {
@@ -98,7 +98,7 @@ h1 {
 
 .section-divider {
   border: 0;
-  border-top: 1px solid rgba(252, 194, 219, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--byiara-color-border) 20%, transparent);
   margin: var(--byiara-space-lg) 0;
 }
 
@@ -140,9 +140,9 @@ h1 {
 .field input:focus-visible,
 .field textarea:focus-visible {
   border-color: var(--byiara-color-primary);
-  outline: 2px solid rgba(225, 29, 116, 0.15);
+  outline: 2px solid color-mix(in srgb, var(--byiara-color-primary) 15%, transparent);
   outline-offset: 0;
-  box-shadow: 0 0 0 3px rgba(225, 29, 116, 0.08);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--byiara-color-primary) 8%, transparent);
 }
 
 .is-invalid {
@@ -150,8 +150,8 @@ h1 {
 }
 
 .is-invalid:focus-visible {
-  outline-color: rgba(177, 47, 77, 0.2) !important;
-  box-shadow: 0 0 0 3px rgba(177, 47, 77, 0.08) !important;
+  outline-color: color-mix(in srgb, var(--byiara-color-danger) 20%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--byiara-color-danger) 8%, transparent) !important;
 }
 
 .error-message {
@@ -226,7 +226,7 @@ h1 {
   background-color: white;
   transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(36, 17, 28, 0.12);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--byiara-color-text) 12%, transparent);
 }
 
 .switch input:checked + .slider {
@@ -304,9 +304,9 @@ h1 {
 }
 
 .variant-card:hover {
-  border-color: rgba(225, 29, 116, 0.15);
+  border-color: color-mix(in srgb, var(--byiara-color-primary) 15%, transparent);
   background: var(--byiara-color-white);
-  box-shadow: 0 2px 8px rgba(36, 17, 28, 0.02);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
 }
 
 .variant-fields {
@@ -397,7 +397,7 @@ h1 {
 }
 
 .button-icon-danger:hover:not(:disabled) {
-  background: rgba(177, 47, 77, 0.05);
+  background: color-mix(in srgb, var(--byiara-color-danger) 5%, transparent);
   border-color: var(--byiara-color-danger);
   color: var(--byiara-color-danger);
 }
@@ -445,7 +445,7 @@ h1 {
   .form-section {
     max-width: none;
     padding-right: var(--byiara-space-xl);
-    border-right: 1px solid rgba(252, 194, 219, 0.15);
+    border-right: 1px solid color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
   }
 
   .variants-section {
@@ -459,7 +459,7 @@ h1 {
   .form-actions-bar {
     grid-column: 1 / -1;
     max-width: none;
-    border-top: 1px solid rgba(252, 194, 219, 0.15);
+    border-top: 1px solid color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
     padding-top: var(--byiara-space-lg);
     margin-top: var(--byiara-space-sm);
   }

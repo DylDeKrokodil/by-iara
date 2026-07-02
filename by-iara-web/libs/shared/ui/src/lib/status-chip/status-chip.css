@@ -34,7 +34,7 @@
 
 .badge-warning {
   background: color-mix(in srgb, var(--byiara-color-accent) 16%, transparent);
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   border: 1px solid
     color-mix(in srgb, var(--byiara-color-accent) 32%, transparent);
 }

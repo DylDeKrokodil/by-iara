@@ -1,140 +1,30 @@
-<main class="home">
-  <!-- Hero -->
-  <section class="hero" aria-labelledby="page-title">
-    <div class="hero-shell">
-      <div class="hero-content">
-        <h1 id="page-title" class="hero-title">{{ copy().heroTitle }}</h1>
-        <p class="hero-lede">{{ copy().heroLede }}</p>
-        <div class="hero-actions" [attr.aria-label]="copy().primaryActionsLabel">
-          <a class="button button-primary" [routerLink]="language.localizedLink('book')">
-            {{ copy().primaryAction }}
-          </a>
-          <a class="button button-secondary" href="#treatments">
-            {{ copy().secondaryAction }}
-          </a>
-        </div>
-      </div>
-
-      <div class="hero-visual" aria-hidden="true">
-        <div class="visual-panel">
-          <svg class="fronds" viewBox="0 0 520 620" preserveAspectRatio="xMidYMid slice">
-            <defs>
-              <filter id="frondBlur" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="7" />
-              </filter>
-              <g id="frond" fill="currentColor">
-                <path d="M0 0 Q 150 -8 300 28 Q 160 20 0 0 Z" />
-                <path d="M0 0 Q 135 20 255 86 Q 145 46 0 0 Z" />
-                <path d="M0 0 Q 160 -34 325 -46 Q 165 -8 0 0 Z" />
-                <path d="M0 0 Q 110 46 205 142 Q 130 72 0 0 Z" />
-                <path d="M0 0 Q 170 -58 345 -110 Q 175 -26 0 0 Z" />
-              </g>
-            </defs>
-            <g class="frond frond-a" filter="url(#frondBlur)"><use href="#frond" /></g>
-            <g class="frond frond-b" filter="url(#frondBlur)"><use href="#frond" /></g>
-          </svg>
-          <img class="visual-mark" src="brand/by-iara-monogram.svg" alt="" />
-        </div>
+<main class="home" aria-labelledby="home-title">
+  <section class="home-stage">
+    <div class="home-copy">
+      <p class="home-location">{{ copy().location }}</p>
+      <h1 id="home-title">{{ copy().title }}</h1>
+      <p class="home-lede">{{ copy().lede }}</p>
+      <div class="home-actions" [attr.aria-label]="copy().actionsLabel">
+        <a
+          class="home-action home-action-primary"
+          [routerLink]="language.localizedLink('book')"
+        >
+          {{ copy().primaryAction }}
+        </a>
+        <a
+          class="home-action home-action-secondary"
+          [routerLink]="language.localizedLink('services')"
+        >
+          {{ copy().secondaryAction }}
+        </a>
       </div>
     </div>
-  </section>
 
-  @if (hasError()) {
-    <section class="featured-section" aria-live="polite">
-      <div class="home-shell">
-        <div class="featured-error">
-          <p>{{ copy().featuredServicesError }}</p>
-        </div>
-      </div>
-    </section>
-  }
-
-  <!-- Featured treatments -->
-  @if (featuredServices().length > 0) {
-    <section id="treatments" class="featured-section" aria-labelledby="featured-title">
-      <div class="home-shell">
-        <header class="section-head">
-          <h2 id="featured-title">{{ copy().featuredTitle }}</h2>
-          <p>{{ copy().featuredLede }}</p>
-        </header>
-
-        <div class="treatments-grid">
-          @for (service of featuredServices(); track service.id) {
-            <article class="treatment-card">
-              <div class="treatment-head">
-                <h3 class="treatment-name">{{ localized(service).name }}</h3>
-                <span class="treatment-tag">{{ copy().featuredBadge }}</span>
-              </div>
-              @if (localized(service).description) {
-                <p class="treatment-desc">{{ localized(service).description }}</p>
-              }
-
-              <div class="variants">
-                <span class="variants-title">{{ copy().variantsTitle }}</span>
-                @for (variant of service.variants; track variant.id) {
-                  @if (variant.active) {
-                    <div class="variant-row">
-                      <div class="variant-info">
-                        <span class="duration">{{ variant.durationMinutes }} min</span>
-                        <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
-                      </div>
-                      <button type="button" class="book-btn" (click)="onBook(service, variant)">
-                        {{ copy().bookAction }}
-                      </button>
-                    </div>
-                  }
-                }
-              </div>
-            </article>
-          }
-        </div>
-
-        <div class="section-cta">
-          <a class="text-cta" [routerLink]="language.localizedLink('services')">
-            {{ copy().viewAllServices }}
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M5 12h14" />
-              <path d="m12 5 7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      </div>
-    </section>
-  }
-
-  <!-- Experience / approach -->
-  <section class="experience" aria-labelledby="experience-title">
-    <div class="home-shell experience-shell">
-      <div class="experience-lead">
-        <h2 id="experience-title">{{ copy().experienceTitle }}</h2>
-        <p>{{ copy().experienceBody }}</p>
-      </div>
-      <ul class="pillars">
-        @for (pillar of copy().pillars; track pillar.title) {
-          <li class="pillar">
-            <h3>{{ pillar.title }}</h3>
-            <p>{{ pillar.body }}</p>
-          </li>
-        }
-      </ul>
-    </div>
-  </section>
-
-  <!-- Closing booking invitation -->
-  <section class="cta-band" aria-labelledby="cta-title">
-    <svg class="cta-fronds" viewBox="0 0 600 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-      <g filter="url(#frondBlur)" fill="#ffffff" opacity="0.12" transform="translate(40 300) rotate(-26)">
-        <path d="M0 0 Q 180 -10 360 30 Q 190 22 0 0 Z" />
-        <path d="M0 0 Q 160 24 300 100 Q 170 52 0 0 Z" />
-        <path d="M0 0 Q 190 -40 380 -56 Q 195 -10 0 0 Z" />
-      </g>
-    </svg>
-    <div class="home-shell cta-inner">
-      <h2 id="cta-title">{{ copy().ctaTitle }}</h2>
-      <p>{{ copy().ctaBody }}</p>
-      <a class="button button-on-rose" [routerLink]="language.localizedLink('book')">
-        {{ copy().primaryAction }}
-      </a>
+    <div class="home-mark" aria-hidden="true">
+      <div class="home-mark-rose"></div>
+      <div class="home-mark-plum"></div>
+      <div class="home-mark-lime"></div>
+      <img src="brand/by-iara-monogram.svg" alt="" />
     </div>
   </section>
 </main>

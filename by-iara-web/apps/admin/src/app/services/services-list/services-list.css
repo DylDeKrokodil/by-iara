@@ -8,7 +8,7 @@
 
 .eyebrow {
   margin: 0;
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
   letter-spacing: 0.08em;
@@ -53,11 +53,11 @@ h1 {
 
 .inactive td {
   opacity: 0.65;
-  background-color: rgba(36, 17, 28, 0.01);
+  background-color: color-mix(in srgb, var(--byiara-color-text) 1%, transparent);
 }
 
 .inactive:hover td {
-  background-color: rgba(36, 17, 28, 0.02);
+  background-color: color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
 }
 
 .name-cell {
@@ -114,13 +114,13 @@ h1 {
   border: 1px solid var(--byiara-color-border);
   background: var(--byiara-color-white);
   color: var(--byiara-color-text-muted);
-  box-shadow: 0 1px 2px rgba(36, 17, 28, 0.02);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
 }
 
 .button-icon-secondary:hover {
-  background: var(--byiara-color-blush-50);
+  background: var(--byiara-color-surface-tinted);
   border-color: var(--byiara-color-primary);
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
   transform: translateY(-1px);
   box-shadow: var(--byiara-shadow-sm);
 }
@@ -132,7 +132,7 @@ h1 {
 }
 
 .button-icon-ghost:hover {
-  background: rgba(177, 47, 77, 0.06);
+  background: color-mix(in srgb, var(--byiara-color-danger) 6%, transparent);
   color: var(--byiara-color-danger);
   transform: translateY(-1px);
 }

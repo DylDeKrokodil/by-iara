@@ -27,17 +27,17 @@
 }
 
 .tab-btn:hover {
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
 }
 
 .tab-btn:focus-visible {
-  outline: 2px solid rgba(225, 29, 116, 0.2);
+  outline: 2px solid color-mix(in srgb, var(--byiara-color-primary) 20%, transparent);
   outline-offset: 2px;
 }
 
 .tab-btn.active {
   border-bottom-color: var(--byiara-color-primary);
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
 }
 
 @media (max-width: 40rem) {

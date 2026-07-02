@@ -22,7 +22,7 @@ byiara-data-table {
 .byiara-data-table td {
   padding: 0.875rem 1.25rem;
   vertical-align: middle;
-  border: 1px solid rgba(252, 194, 219, 0.25);
+  border: 1px solid color-mix(in srgb, var(--byiara-color-border) 25%, transparent);
 }
 
 .byiara-data-table th {
@@ -31,7 +31,7 @@ byiara-data-table {
   font-weight: var(--byiara-font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: var(--byiara-color-blush-50);
+  background: var(--byiara-color-surface-tinted);
   border-bottom: 2px solid var(--byiara-color-border);
 }
 
@@ -40,7 +40,7 @@ byiara-data-table {
 }
 
 .byiara-data-table tbody tr:not(.skeleton-row):hover td {
-  background-color: rgba(225, 29, 116, 0.02);
+  background-color: color-mix(in srgb, var(--byiara-color-primary) 2%, transparent);
 }
 
 .byiara-data-table .fit-column {
@@ -55,9 +55,9 @@ byiara-data-table {
   border-radius: var(--byiara-radius-pill);
   background: linear-gradient(
     90deg,
-    rgba(252, 194, 219, 0.28) 0%,
-    rgba(255, 255, 255, 0.82) 48%,
-    rgba(252, 194, 219, 0.28) 100%
+    color-mix(in srgb, var(--byiara-color-border) 28%, transparent) 0%,
+    color-mix(in srgb, var(--byiara-color-white) 82%, transparent) 48%,
+    color-mix(in srgb, var(--byiara-color-border) 28%, transparent) 100%
   );
   background-size: 220% 100%;
   animation: byiara-table-skeleton 1.35s ease-in-out infinite;

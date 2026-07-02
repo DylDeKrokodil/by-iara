@@ -2,7 +2,7 @@
   border: 0;
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface);
-  box-shadow: 0 10px 25px -5px rgba(36, 17, 28, 0.1), 0 8px 16px -6px rgba(36, 17, 28, 0.05);
+  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--byiara-color-text) 10%, transparent), 0 8px 16px -6px color-mix(in srgb, var(--byiara-color-text) 5%, transparent);
   padding: var(--byiara-space-xl);
   max-width: 26rem;
   width: 90%;
@@ -15,7 +15,7 @@
 }
 
 .confirmation-dialog::backdrop {
-  background-color: rgba(36, 17, 28, 0.35);
+  background-color: color-mix(in srgb, var(--byiara-color-text) 35%, transparent);
   backdrop-filter: blur(2px);
   animation: fade-in 0.2s ease-out;
 }

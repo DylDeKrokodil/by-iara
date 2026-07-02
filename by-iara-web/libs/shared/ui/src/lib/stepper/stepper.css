@@ -37,7 +37,7 @@
 }
 
 .step-button.complete {
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
 }
 
 .step-button.selected {
@@ -57,8 +57,8 @@
   width: 1.5rem;
   height: 1.5rem;
   border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-rose-100);
-  color: var(--byiara-color-primary);
+  background: var(--byiara-color-primary-soft);
+  color: var(--byiara-color-primary-strong);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-bold);
   transition:

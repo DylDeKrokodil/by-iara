@@ -58,7 +58,7 @@
 }
 
 .error-catalog {
-  background: rgba(177, 47, 77, 0.05);
+  background: color-mix(in srgb, var(--byiara-color-danger) 5%, transparent);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
   padding: var(--byiara-space-lg);

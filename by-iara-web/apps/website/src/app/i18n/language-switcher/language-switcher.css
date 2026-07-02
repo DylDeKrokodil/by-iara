@@ -25,7 +25,7 @@
 }
 
 .language-option:hover {
-  color: var(--byiara-color-primary);
+  color: var(--byiara-color-primary-strong);
 }
 
 .language-option.active {

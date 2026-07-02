@@ -30,7 +30,7 @@
   background: var(--byiara-color-primary);
   border-color: var(--byiara-color-primary);
   color: var(--byiara-color-white);
-  box-shadow: 0 0.5rem 1.5rem rgb(225 29 116 / 16%);
+  box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
 }
 
 :host(:disabled) {

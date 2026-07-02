@@ -25,34 +25,80 @@
 :root {
   color-scheme: light;
 
-  --byiara-color-plum-950: #24111c;
-  --byiara-color-plum-800: #4a2539;
-  --byiara-color-plum-600: #755267;
-  --byiara-color-plum-400: #a17b91;
-  --byiara-color-blush-50: #fff5fa;
-  --byiara-color-blush-100: #fce7f1;
-  --byiara-color-blush-200: #fcc2db;
-  --byiara-color-rose-700: #c2185b;
-  --byiara-color-rose-600: #e11d74;
-  --byiara-color-rose-100: #ffe3ef;
-  --byiara-color-orchid-500: #8f4da4;
-  --byiara-color-copper-500: #b8664f;
-  --byiara-color-amber-300: #f0bd65;
-  --byiara-color-mist-100: #f6edf3;
+  /* ============================================================
+     PRIMITIVES — the raw ramp.
+     Compose semantics from these. Do NOT reach for a primitive
+     (rose-500, ink-600, …) in component CSS; use a semantic token.
+     Authored in OKLCH; the hex is the sRGB equivalent that ships.
+     ============================================================ */
+
+  /* Ink — warm near-neutral with a faint rose undertone. Text + structure. */
+  --byiara-color-ink-950: #1e1616; /* oklch(0.21 0.014 14) */
+  --byiara-color-ink-800: #352b2c; /* oklch(0.30 0.014 14) */
+  --byiara-color-ink-700: #4e4545; /* oklch(0.40 0.013 14) */
+  --byiara-color-ink-600: #6a6161; /* oklch(0.50 0.012 14) */
+  --byiara-color-ink-500: #7b7272; /* oklch(0.56 0.012 14) */
+  --byiara-color-ink-400: #a49c9d; /* oklch(0.70 0.009 14) */
+
+  /* Rose — the brand. Bright, confident camellia pink. */
+  --byiara-color-rose-50: #fdf4f5; /* oklch(0.975 0.010 10) */
+  --byiara-color-rose-100: #fce4e8; /* oklch(0.94 0.026 8) */
+  --byiara-color-rose-200: #feccd3; /* oklch(0.89 0.058 8) */
+  --byiara-color-rose-300: #f9a6b5; /* oklch(0.81 0.10 8) */
+  --byiara-color-rose-400: #f2718e; /* oklch(0.71 0.16 8) */
+  --byiara-color-rose-500: #e73d6d; /* oklch(0.625 0.206 9) — primary fill */
+  --byiara-color-rose-600: #d0115f; /* oklch(0.555 0.216 6) — hover / focus */
+  --byiara-color-rose-700: #a7074b; /* oklch(0.47 0.185 6) — pink text on light */
+  --byiara-color-rose-800: #7d0333; /* oklch(0.38 0.15 8) — deep pink on tint */
+
+  /* Green — botanical accent (the camellia's stem). Deep eucalyptus. */
+  --byiara-color-green-50: #e4f7ed; /* oklch(0.96 0.025 162) */
+  --byiara-color-green-500: #126646; /* oklch(0.455 0.093 162) */
+
   --byiara-color-white: #ffffff;
 
-  --byiara-color-background: var(--byiara-color-blush-50);
+  /* ============================================================
+     SEMANTIC TOKENS — the public API. Use THESE in components.
+     ============================================================ */
+
+  /* Surfaces — a pure-white canvas; the rose carries the warmth. */
+  --byiara-color-background: var(--byiara-color-white);
   --byiara-color-surface: var(--byiara-color-white);
-  --byiara-color-surface-muted: var(--byiara-color-blush-100);
-  --byiara-color-text: var(--byiara-color-plum-950);
-  --byiara-color-text-muted: var(--byiara-color-plum-600);
-  --byiara-color-primary: var(--byiara-color-rose-600);
-  --byiara-color-primary-hover: var(--byiara-color-rose-700);
-  --byiara-color-accent: var(--byiara-color-orchid-500);
-  --byiara-color-border: var(--byiara-color-blush-200);
-  --byiara-color-focus: var(--byiara-color-amber-300);
-  --byiara-color-danger: #b12f4d;
-  --byiara-color-success: #35785f;
+  --byiara-color-surface-muted: #fbf5f5; /* oklch(0.975 0.006 14) */
+  --byiara-color-surface-tinted: var(--byiara-color-rose-50);
+
+  /* Text — body 17.8:1, muted 6.0:1, subtle 4.7:1 on white. */
+  --byiara-color-text: var(--byiara-color-ink-950);
+  --byiara-color-text-muted: var(--byiara-color-ink-600);
+  --byiara-color-text-subtle: var(--byiara-color-ink-500);
+
+  /* Primary — bright rose leads. FILLS use --primary; pink TEXT uses --primary-strong. */
+  --byiara-color-primary: var(--byiara-color-rose-500);
+  --byiara-color-primary-hover: var(--byiara-color-rose-600);
+  --byiara-color-primary-strong: var(--byiara-color-rose-700);
+  --byiara-color-on-primary: var(--byiara-color-white);
+  --byiara-color-primary-soft: var(--byiara-color-rose-100);
+  --byiara-color-primary-tint: var(--byiara-color-rose-50);
+
+  /* Accent — botanical green, used sparingly (never a primary CTA). */
+  --byiara-color-accent: var(--byiara-color-green-500);
+  --byiara-color-accent-soft: var(--byiara-color-green-50);
+  --byiara-color-on-accent: var(--byiara-color-white);
+
+  /* Borders — decorative (border/-subtle) vs. control boundaries (-strong, ≥3:1). */
+  --byiara-color-border: #e3dcdc; /* oklch(0.90 0.008 14) */
+  --byiara-color-border-subtle: #f1ebeb; /* oklch(0.945 0.006 14) */
+  --byiara-color-border-strong: #908282; /* oklch(0.62 0.016 18) — meets 3:1 on white */
+
+  /* Focus — a vivid rose ring; pair with outline-offset so it reads on any surface. */
+  --byiara-color-focus: var(--byiara-color-rose-600);
+
+  /* Feedback — each ≥4.5:1 on white; white text ≥4.5:1 on the fill. */
+  --byiara-color-danger: #c92f33; /* oklch(0.55 0.19 25) */
+  --byiara-color-danger-hover: #a9131f; /* oklch(0.47 0.18 25) */
+  --byiara-color-success: #2d7b44; /* oklch(0.52 0.115 150) */
+  --byiara-color-warning: #9a6922; /* oklch(0.56 0.105 72) */
+  --byiara-color-info: #1f6cb0; /* oklch(0.52 0.13 250) */
 
   --byiara-font-family-sans:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
@@ -61,6 +107,7 @@
 
   --byiara-font-size-xs: 0.75rem;
   --byiara-font-size-sm: 0.875rem;
+  --byiara-font-size-md: 1rem;
   --byiara-font-size-base: 1rem;
   --byiara-font-size-lg: 1.125rem;
   --byiara-font-size-xl: 1.25rem;
@@ -78,6 +125,7 @@
   --byiara-font-weight-bold: 700;
 
   --byiara-space-2xs: 0.25rem;
+  --byiara-space-3xs: 0.125rem;
   --byiara-space-xs: 0.5rem;
   --byiara-space-sm: 0.75rem;
   --byiara-space-md: 1rem;
@@ -91,12 +139,21 @@
   --byiara-radius-lg: 0.75rem;
   --byiara-radius-pill: 999px;
 
-  --byiara-shadow-sm: 0 1px 2px rgb(36 17 28 / 8%);
-  --byiara-shadow-md: 0 18px 45px rgb(36 17 28 / 12%);
+  --byiara-shadow-sm: 0 1px 2px rgb(30 22 22 / 8%);
+  --byiara-shadow-md: 0 18px 45px rgb(30 22 22 / 12%);
 
   --byiara-container-sm: 40rem;
   --byiara-container-md: 64rem;
   --byiara-container-lg: 76rem;
+
+  --byiara-z-index-base: 0;
+  --byiara-z-index-raised: 1;
+  --byiara-z-index-dropdown: 200;
+  --byiara-z-index-sticky: 300;
+  --byiara-z-index-overlay: 700;
+  --byiara-z-index-modal: 800;
+  --byiara-z-index-toast: 900;
+  --byiara-z-index-tooltip: 1000;
 
   /* Motion — strong custom curves; CSS defaults feel sluggish.
      Durations stay under 300ms for in-task UI per our motion conventions. */
@@ -108,12 +165,10 @@
   --byiara-duration-slow: 320ms;
 }
 
+/* Admin shares the same rose-on-white foundation; kept as a hook for
+   surface-only tuning if dense tables ever need a calmer canvas. */
 .byiara-theme-admin {
-  /* --byiara-color-background: #fff5fa;
-  --byiara-color-surface-muted: var(--byiara-color-mist-100);
-  --byiara-color-primary: #8f1f52;
-  --byiara-color-primary-hover: #741842;
-  --byiara-color-accent: var(--byiara-color-copper-500); */
+  --byiara-color-surface-muted: #f6f0f1;
 }
 
 html {
@@ -156,8 +211,8 @@ button {
 }
 
 ::selection {
-  background: var(--byiara-color-rose-100);
-  color: var(--byiara-color-plum-950);
+  background: var(--byiara-color-primary-soft);
+  color: var(--byiara-color-text);
 }
 
 /* Honour users who ask for less motion: keep state changes, drop the movement. */
