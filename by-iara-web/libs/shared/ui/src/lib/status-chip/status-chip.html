@@ -1,5 +1,9 @@
-@if (active()) {
-  <span class="badge badge-on">Active</span>
-} @else {
-  <span class="badge badge-off">Inactive</span>
-}
+<span
+  class="badge"
+  [class.badge-success]="badgeClass() === 'badge-success'"
+  [class.badge-warning]="badgeClass() === 'badge-warning'"
+  [class.badge-danger]="badgeClass() === 'badge-danger'"
+  [class.badge-muted]="badgeClass() === 'badge-muted'"
+>
+  {{ displayLabel() }}
+</span>

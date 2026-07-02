@@ -5,7 +5,8 @@ body {
 /* Global Buttons System */
 .button-primary,
 .button-secondary,
-.button-ghost {
+.button-ghost,
+.button-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -16,7 +17,12 @@ body {
   font-size: var(--byiara-font-size-sm);
   text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .button-primary {
@@ -24,12 +30,6 @@ body {
   background: var(--byiara-color-primary);
   color: var(--byiara-color-white);
   box-shadow: 0 2px 8px rgba(225, 29, 116, 0.12);
-}
-
-.button-primary:hover:not(:disabled) {
-  background: var(--byiara-color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(225, 29, 116, 0.2);
 }
 
 .button-primary:disabled {
@@ -44,14 +44,6 @@ body {
   box-shadow: 0 1px 2px rgba(36, 17, 28, 0.02);
 }
 
-.button-secondary:hover:not(:disabled) {
-  background: var(--byiara-color-blush-50);
-  border-color: var(--byiara-color-primary);
-  color: var(--byiara-color-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(36, 17, 28, 0.04);
-}
-
 .button-secondary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -63,11 +55,6 @@ body {
   color: var(--byiara-color-danger);
 }
 
-.button-ghost:hover:not(:disabled) {
-  background: rgba(177, 47, 77, 0.06);
-  transform: translateY(-1px);
-}
-
 .button-ghost:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -77,34 +64,40 @@ body {
 .button-secondary:active:not(:disabled),
 .button-ghost:active:not(:disabled),
 .button-danger:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.97);
 }
 
 .button-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.375rem;
-  padding: 0 var(--byiara-space-md);
-  border-radius: var(--byiara-radius-md);
-  font-weight: var(--byiara-font-weight-semibold);
-  font-size: var(--byiara-font-size-sm);
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   border: 0;
   background: var(--byiara-color-danger);
   color: var(--byiara-color-white);
   box-shadow: 0 2px 8px rgba(177, 47, 77, 0.12);
 }
 
-.button-danger:hover:not(:disabled) {
-  background: #942037;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(177, 47, 77, 0.2);
-}
-
 .button-danger:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .button-primary:hover:not(:disabled) {
+    background: var(--byiara-color-primary-hover);
+    box-shadow: 0 4px 8px rgba(225, 29, 116, 0.16);
+  }
+
+  .button-secondary:hover:not(:disabled) {
+    background: var(--byiara-color-blush-50);
+    border-color: var(--byiara-color-primary);
+    color: var(--byiara-color-primary);
+    box-shadow: 0 2px 6px rgba(36, 17, 28, 0.04);
+  }
+
+  .button-ghost:hover:not(:disabled) {
+    background: rgba(177, 47, 77, 0.06);
+  }
+
+  .button-danger:hover:not(:disabled) {
+    background: #942037;
+    box-shadow: 0 4px 8px rgba(177, 47, 77, 0.16);
+  }
 }

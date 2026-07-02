@@ -1,0 +1,498 @@
+<div class="page-header">
+  <div>
+    <p class="eyebrow">Schedule</p>
+    <h1>Reservations</h1>
+  </div>
+</div>
+
+@if (error()) {
+<p class="alert" role="alert">{{ error() }}</p>
+}
+
+<byiara-tabs
+  ariaLabel="Reservation views"
+  [tabs]="reservationTabs"
+  [activeValue]="activeView()"
+  (activeValueChange)="setActiveView($event)"
+></byiara-tabs>
+
+@if (activeView() === 'overview') {
+<div class="overview-layout" role="tabpanel" aria-label="Overview reservations">
+  <section class="summary-grid" aria-label="Reservation summary">
+    <article class="summary-card priority">
+      <span class="summary-label">Needs action</span>
+      <strong>{{ pendingTotal() }}</strong>
+      <span class="summary-detail"
+        >pending request{{ pendingTotal() === 1 ? '' : 's' }}</span
+      >
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-label">Next reservation</span>
+      @if (nextReservation(); as next) {
+      <strong>{{ formatTime(next.startsAt) }}</strong>
+      <span class="summary-detail"
+        >{{ formatSummaryDate(next.startsAt) }} · {{ next.customer.name }}</span
+      >
+      } @else {
+      <strong>None</strong>
+      <span class="summary-detail">No upcoming bookings</span>
+      }
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-label">This week</span>
+      <strong>{{ thisWeekTotal() }}</strong>
+      <span class="summary-detail"
+        >confirmed appointment{{ thisWeekTotal() === 1 ? '' : 's' }}</span
+      >
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-label">History</span>
+      <strong>{{ closedTotal() }}</strong>
+      <span class="summary-detail"
+        >closed or past reservation{{ closedTotal() === 1 ? '' : 's' }}</span
+      >
+    </article>
+  </section>
+
+  <section class="overview-section" aria-labelledby="pending-reservations">
+    <div class="section-header">
+      <div>
+        <h2 id="pending-reservations">Needs action</h2>
+        <p>Accept or decline new booking requests.</p>
+      </div>
+    </div>
+
+    @if (loadingPending()) {
+    <div class="empty loading-state">
+      <p>Loading pending requests...</p>
+    </div>
+    } @else if (pending().length === 0) {
+    <div class="empty compact-empty">
+      <p>No pending requests</p>
+    </div>
+    } @else {
+    <div class="request-list">
+      @for (reservation of pending(); track reservation.id) {
+      <article class="request-card">
+        <div class="request-main">
+          <div>
+            <h3>{{ reservation.customer.name }}</h3>
+            <p>
+              {{ serviceLabel(reservation) }} · {{
+              formatMoney(reservation.price) }}
+            </p>
+          </div>
+          <byiara-status-chip
+            [label]="statusLabel(reservation.status)"
+            [tone]="statusTone(reservation.status)"
+          ></byiara-status-chip>
+        </div>
+
+        <div class="reservation-meta">
+          <span>{{ formatDateTime(reservation.startsAt) }}</span>
+          <span>{{ reservation.customer.email }}</span>
+          @if (reservation.customer.phone) {
+          <span>{{ reservation.customer.phone }}</span>
+          }
+        </div>
+
+        @if (reservation.notes) {
+        <p class="notes">{{ reservation.notes }}</p>
+        }
+
+        <div class="actions-wrapper">
+          <button
+            type="button"
+            class="button-primary"
+            [disabled]="isActionInProgress(reservation)"
+            [attr.aria-busy]="isActionInProgress(reservation)"
+            (click)="accept(reservation)"
+          >
+            {{ isActionInProgress(reservation) ? 'Accepting...' : 'Accept' }}
+          </button>
+          <button
+            type="button"
+            class="button-secondary"
+            [disabled]="isActionInProgress(reservation)"
+            (click)="decline(reservation)"
+          >
+            Decline
+          </button>
+        </div>
+      </article>
+      }
+    </div>
+    }
+  </section>
+
+  <section class="overview-section" aria-labelledby="upcoming-reservations">
+    <div class="section-header agenda-header">
+      <div>
+        <h2 id="upcoming-reservations">Calendar agenda</h2>
+        <p>Confirmed reservations by day, week, or month.</p>
+      </div>
+      <div class="calendar-toolbar" aria-label="Calendar navigation">
+        <div class="view-toggles" role="group" aria-label="Calendar view">
+          <button
+            type="button"
+            class="button-secondary toggle-btn"
+            [class.active]="calendarView() === 'day'"
+            (click)="setCalendarView('day')"
+          >
+            Day
+          </button>
+          <button
+            type="button"
+            class="button-secondary toggle-btn"
+            [class.active]="calendarView() === 'week'"
+            (click)="setCalendarView('week')"
+          >
+            Week
+          </button>
+          <button
+            type="button"
+            class="button-secondary toggle-btn"
+            [class.active]="calendarView() === 'month'"
+            (click)="setCalendarView('month')"
+          >
+            Month
+          </button>
+        </div>
+
+        <div class="nav-buttons">
+          <button
+            type="button"
+            class="button-secondary"
+            [attr.aria-label]="'Previous ' + calendarView()"
+            (click)="previousCalendarPeriod()"
+          >
+            &larr;
+          </button>
+          <button type="button" class="button-secondary" (click)="goToToday()">
+            Today
+          </button>
+          <button
+            type="button"
+            class="button-secondary"
+            [attr.aria-label]="'Next ' + calendarView()"
+            (click)="nextCalendarPeriod()"
+          >
+            &rarr;
+          </button>
+        </div>
+
+        <label class="date-picker">
+          <span>Date</span>
+          <input
+            type="date"
+            [value]="selectedDateKey()"
+            (change)="onDatePickerChange($event)"
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="calendar-shell" [class.full-width]="calendarView() === 'month'">
+      @if (calendarView() !== 'month') {
+      <aside class="calendar-panel" aria-label="Calendar navigation">
+        <div class="mini-calendar">
+          <div class="mini-calendar-header">
+            <h3>{{ currentMonthLabel() }}</h3>
+          </div>
+          
+          <div class="mini-calendar-grid">
+            <span class="mini-grid-header">M</span>
+            <span class="mini-grid-header">T</span>
+            <span class="mini-grid-header">W</span>
+            <span class="mini-grid-header">T</span>
+            <span class="mini-grid-header">F</span>
+            <span class="mini-grid-header">S</span>
+            <span class="mini-grid-header">S</span>
+
+            @for (day of monthGridDays(); track day.key) {
+            <button
+              type="button"
+              class="mini-day-button"
+              [class.is-selected]="day.isSelected"
+              [class.is-today]="day.isToday"
+              [class.outside-month]="!day.isCurrentMonth"
+              [attr.aria-pressed]="day.isSelected"
+              [attr.aria-label]="day.day + ' ' + (day.count > 0 ? day.count + ' confirmed bookings' : 'no bookings')"
+              (click)="selectCalendarDay(day.key)"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              @if (day.count > 0) {
+                <span class="booking-dot" aria-hidden="true"></span>
+              }
+            </button>
+            }
+          </div>
+        </div>
+
+        <div class="selected-day-card" aria-live="polite">
+          <span class="summary-label">Selected date</span>
+          <strong>{{ selectedDayReservations().length }}</strong>
+          <span class="muted"
+            >confirmed booking{{ selectedDayReservations().length === 1 ? '' :
+            's' }}</span
+          >
+        </div>
+      </aside>
+      }
+
+      <div class="agenda-list" aria-live="polite">
+        @if (loadingCalendar()) {
+        <div class="empty loading-state">
+          <p>Loading confirmed reservations...</p>
+        </div>
+        } @else {
+          @if (calendarView() === 'day') {
+            <section class="agenda-day is-selected" aria-label="Day view agenda">
+              <div class="agenda-day-header">
+                <div>
+                  <span class="summary-label">Selected Date</span>
+                  <h3>{{ formatLongDate(selectedDateKey()) }}</h3>
+                </div>
+                <span class="muted">{{ selectedDayReservations().length }} booked</span>
+              </div>
+
+              @if (selectedDayReservations().length === 0) {
+                <div class="empty compact-empty">
+                  <p>No confirmed reservations for this day</p>
+                </div>
+              } @else {
+                <div class="agenda-items">
+                  @for (reservation of selectedDayReservations(); track reservation.id) {
+                  <article class="agenda-item">
+                    <div class="agenda-time">
+                      <time [attr.datetime]="reservation.startsAt">
+                        {{ formatTime(reservation.startsAt) }}
+                      </time>
+                      <span class="muted">{{ formatTime(reservation.endsAt) }}</span>
+                    </div>
+
+                    <div class="agenda-details">
+                      <strong>{{ reservation.customer.name }}</strong>
+                      @if (reservation.customer.phone) {
+                      <span>{{ reservation.customer.phone }}</span>
+                      }
+                      <span
+                        >{{ serviceLabel(reservation) }} · {{
+                        formatMoney(reservation.price) }}</span
+                      >
+                    </div>
+
+                    <byiara-status-chip
+                      [label]="statusLabel(reservation.status)"
+                      [tone]="statusTone(reservation.status)"
+                    ></byiara-status-chip>
+                  </article>
+                  }
+                </div>
+              }
+            </section>
+          } @else if (calendarView() === 'week') {
+            <div class="week-view-grid" aria-label="Week view grid">
+              @for (group of agendaGroups(); track group.key) {
+              <section
+                class="week-column"
+                [class.is-today]="group.isToday"
+                [class.is-selected]="group.isSelected"
+                [attr.aria-labelledby]="'week-col-header-' + group.key"
+              >
+                <div
+                  class="week-column-header"
+                  role="button"
+                  tabindex="0"
+                  [attr.aria-label]="group.label + ' ' + formatDayNumber(group.key) + ', ' + group.reservations.length + ' booked'"
+                  (click)="selectCalendarDay(group.key)"
+                  (keydown.enter)="selectCalendarDay(group.key)"
+                  (keydown.space)="$event.preventDefault(); selectCalendarDay(group.key)"
+                >
+                  <span class="col-weekday">{{ group.label }}</span>
+                  <strong class="col-date">{{ formatDayNumber(group.key) }}</strong>
+                </div>
+
+                <div class="week-column-content">
+                  @if (group.reservations.length === 0) {
+                    <div class="column-empty">
+                      <span>No bookings</span>
+                    </div>
+                  } @else {
+                    <div class="week-res-list">
+                      @for (res of group.reservations; track res.id) {
+                      <article
+                        class="week-res-card"
+                        role="button"
+                        tabindex="0"
+                        [attr.aria-label]="formatTime(res.startsAt) + ' ' + res.customer.name + ' for ' + res.serviceName"
+                        (click)="selectMonthGridDay(group.key)"
+                        (keydown.enter)="selectMonthGridDay(group.key)"
+                        (keydown.space)="$event.preventDefault(); selectMonthGridDay(group.key)"
+                      >
+                        <time>{{ formatTime(res.startsAt) }} - {{ formatTime(res.endsAt) }}</time>
+                        <strong class="truncate">{{ res.customer.name }}</strong>
+                        <span class="truncate">{{ res.serviceName }}</span>
+                      </article>
+                      }
+                    </div>
+                  }
+                </div>
+              </section>
+              }
+            </div>
+          } @else if (calendarView() === 'month') {
+            <div class="month-view" aria-label="Month view grid">
+              <div class="month-grid-headers" role="row">
+                <span role="columnheader">Mon</span>
+                <span role="columnheader">Tue</span>
+                <span role="columnheader">Wed</span>
+                <span role="columnheader">Thu</span>
+                <span role="columnheader">Fri</span>
+                <span role="columnheader">Sat</span>
+                <span role="columnheader">Sun</span>
+              </div>
+              
+              <div class="month-grid">
+                @for (day of monthGridDays(); track day.key) {
+                <div
+                  class="month-cell"
+                  role="button"
+                  tabindex="0"
+                  [class.is-today]="day.isToday"
+                  [class.is-selected]="day.isSelected"
+                  [class.outside-month]="!day.isCurrentMonth"
+                  [attr.aria-label]="day.day + ' ' + (day.count > 0 ? day.count + ' confirmed bookings' : 'no bookings')"
+                  (click)="selectMonthGridDay(day.key)"
+                  (keydown.enter)="selectMonthGridDay(day.key)"
+                  (keydown.space)="$event.preventDefault(); selectMonthGridDay(day.key)"
+                >
+                  <div class="month-cell-header">
+                    <span class="month-cell-day">{{ day.day }}</span>
+                    @if (day.count > 0) {
+                      <span class="month-cell-count">{{ day.count }} booked</span>
+                    }
+                  </div>
+                  
+                  <div class="month-cell-bookings">
+                    @for (res of day.reservations?.slice(0, 3); track res.id) {
+                    <div class="month-booking-pill">
+                      <span class="pill-time">{{ formatTime(res.startsAt) }}</span>
+                      <span class="pill-name truncate">{{ res.customer.name }}</span>
+                    </div>
+                    }
+                    @if (day.count > 3) {
+                      <div class="month-more-indicator">+{{ day.count - 3 }} more</div>
+                    }
+                  </div>
+                </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  </section>
+</div>
+} @else {
+<section
+  class="history-section"
+  role="tabpanel"
+  aria-labelledby="history-reservations"
+>
+  <div class="section-header history-header">
+    <div>
+      <h2 id="history-reservations">History</h2>
+      <p>Closed reservations and past confirmed appointments.</p>
+    </div>
+    <byiara-select-field
+      label="Status"
+      [options]="historyFilters"
+      [value]="historyFilter()"
+      (valueChange)="onHistoryFilterChange($event)"
+    ></byiara-select-field>
+  </div>
+
+  @if (!loadingHistory() && history().length === 0) {
+  <div class="empty">
+    <p>No reservation history</p>
+  </div>
+  } @else {
+  <byiara-data-table
+    ariaLabel="Reservation history"
+    [columns]="reservationColumns"
+    [rows]="history()"
+    [loading]="loadingHistory()"
+    [skeletonRows]="4"
+  >
+    <ng-template #rowTemplate let-reservation>
+      <tr>
+        <td>
+          <div class="primary-cell">
+            <span class="strong">{{ reservation.customer.name }}</span>
+            <span class="muted">{{ reservation.customer.email }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="primary-cell">
+            <span>{{ serviceLabel(reservation) }}</span>
+            <span class="muted">{{ formatMoney(reservation.price) }}</span>
+          </div>
+        </td>
+        <td>{{ formatDateTime(reservation.startsAt) }}</td>
+        <td>
+          <byiara-status-chip
+            [label]="statusLabel(reservation.status)"
+            [tone]="statusTone(reservation.status)"
+          ></byiara-status-chip>
+        </td>
+        <td>
+          @if (reservation.notes) {
+          <span class="notes">{{ reservation.notes }}</span>
+          } @else {
+          <span class="muted">No notes</span>
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </byiara-data-table>
+
+  <div class="pagination" aria-label="Reservation history pagination">
+    <span> Page {{ historyPage() + 1 }} of {{ totalHistoryPages() }} </span>
+    <div class="pagination-actions">
+      <button
+        type="button"
+        class="button-secondary"
+        [disabled]="!canGoToPreviousHistoryPage()"
+        (click)="previousHistoryPage()"
+      >
+        Previous
+      </button>
+      <button
+        type="button"
+        class="button-secondary"
+        [disabled]="!canGoToNextHistoryPage()"
+        (click)="nextHistoryPage()"
+      >
+        Next
+      </button>
+    </div>
+  </div>
+  }
+</section>
+}
+
+<byiara-confirmation-modal
+  #confirmDeclineModal
+  title="Decline Reservation"
+  [message]="reservationToDecline() ? 'Decline the reservation request from ' + reservationToDecline()?.customer?.name + '?' : ''"
+  confirmText="Decline"
+  cancelText="Cancel"
+  variant="danger"
+  (confirmed)="onConfirmDecline()"
+  (cancelled)="onCancelDecline()"
+></byiara-confirmation-modal>
