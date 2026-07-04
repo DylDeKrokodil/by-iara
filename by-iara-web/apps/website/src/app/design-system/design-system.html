@@ -386,6 +386,40 @@
     </div>
   </section>
 
+  <section class="guide-section guide-section--tint">
+    <div class="section-heading">
+      <p class="guide-kicker">Feedback</p>
+      <h2>Alerts and empty states</h2>
+      <p>
+        <code>byiara-alert</code> is urgent — form or page-level problems that
+        need attention now, with <code>role="alert"</code>.
+        <code>byiara-empty-state</code> is neutral — "there's nothing here
+        yet," with an optional action.
+      </p>
+    </div>
+
+    <div class="feedback-demo-grid">
+      <byiara-alert tone="danger">Please choose a preferred therapist or select no preference.</byiara-alert>
+      <byiara-alert tone="info">Reservations close 2 hours before the session start.</byiara-alert>
+      <byiara-alert tone="success">Your changes were saved.</byiara-alert>
+      <byiara-alert tone="warning">This slot is nearly full.</byiara-alert>
+    </div>
+
+    <div class="feedback-demo-grid">
+      <byiara-empty-state
+        title="No services yet"
+        description="Create your first service to start taking bookings."
+      >
+        <byiara-button variant="primary" size="sm">Create service</byiara-button>
+      </byiara-empty-state>
+      <byiara-empty-state
+        title="Loading weekly hours..."
+        [dashed]="false"
+        compact
+      ></byiara-empty-state>
+    </div>
+  </section>
+
   <section class="guide-section guide-section--picker">
     <div class="section-heading">
       <p class="guide-kicker">Booking picker</p>

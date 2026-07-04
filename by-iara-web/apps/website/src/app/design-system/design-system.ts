@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
+  Alert,
   Button,
   ButtonVariant,
   Card,
   Checkbox,
   ChoiceChip,
+  EmptyState,
   Radio,
   StatusChip,
   Switch,
@@ -43,7 +45,18 @@ interface ButtonExample {
 
 @Component({
   selector: 'byiara-design-system',
-  imports: [Button, Card, Checkbox, ChoiceChip, FormsModule, Radio, StatusChip, Switch],
+  imports: [
+    Alert,
+    Button,
+    Card,
+    Checkbox,
+    ChoiceChip,
+    EmptyState,
+    FormsModule,
+    Radio,
+    StatusChip,
+    Switch,
+  ],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
 })

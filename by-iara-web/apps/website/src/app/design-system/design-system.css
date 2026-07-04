@@ -160,7 +160,8 @@
 .input-system,
 .contrast-grid,
 .button-matrix,
-.card-demo-grid {
+.card-demo-grid,
+.feedback-demo-grid {
   display: grid;
   gap: var(--byiara-space-lg);
 }
@@ -171,6 +172,15 @@
 
 .card-demo-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.feedback-demo-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  margin-bottom: var(--byiara-space-lg);
+}
+
+.feedback-demo-grid:last-of-type {
+  margin-bottom: 0;
 }
 
 .card-demo-grid h3 {

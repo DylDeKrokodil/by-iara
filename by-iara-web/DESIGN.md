@@ -152,6 +152,16 @@ Component rules:
 - **Booking picker:** public day and time pickers use large rounded radio tiles,
   soft rose borders, rose-tint selected states, and horizontal date scrolling
   on narrow screens.
+- **Alerts:** `byiara-alert` (`libs/shared/ui`) is for problems that need
+  attention now — `role="alert"`, tone-tinted background and border
+  (`danger`/`info`/`success`/`warning`), tone-colored text. Default tone is
+  `danger` since that's almost every real usage today.
+- **Empty states:** `byiara-empty-state` is neutral, not urgent — "there's
+  nothing here yet." Dashed border by default (`dashed` can turn it off for
+  transient loading text), `compact` for inline/list contexts. Project an
+  action (typically a `byiara-button`) for "create your first X" states.
+  Don't reach for Alert for this — Alert's `role="alert"` implies urgency an
+  empty list doesn't have.
 - **Selected state:** soft rose fill for high-emphasis choices; rose tint for
   lower emphasis.
 - **Cards:** `byiara-card` (`libs/shared/ui`) is a generic bordered box —
