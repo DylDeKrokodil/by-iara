@@ -1,0 +1,24 @@
+:host {
+  display: inline-flex;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--byiara-space-sm);
+  min-height: 2.75rem;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+  cursor: pointer;
+}
+
+.choice input {
+  width: 1.125rem;
+  aspect-ratio: 1;
+  accent-color: var(--byiara-color-primary);
+}
+
+.choice.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

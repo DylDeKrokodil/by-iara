@@ -343,38 +343,44 @@
       <article class="input-card">
         <h3>Choice chips</h3>
         <div class="chip-row">
-          <button class="guide-chip selected" type="button">60 min</button>
-          <button class="guide-chip" type="button">75 min</button>
-          <button class="guide-chip" type="button">90 min</button>
+          <button byiara-choice-chip [selected]="true" type="button">60 min</button>
+          <button byiara-choice-chip type="button">75 min</button>
+          <button byiara-choice-chip type="button">90 min</button>
         </div>
         <h3>Status</h3>
         <div class="status-list">
-          <span class="status-pill success">Confirmed</span>
-          <span class="status-pill warning">Needs reply</span>
-          <span class="status-pill danger">Cancelled</span>
+          <byiara-status-chip tone="success" label="Confirmed"></byiara-status-chip>
+          <byiara-status-chip tone="warning" label="Needs reply"></byiara-status-chip>
+          <byiara-status-chip tone="danger" label="Cancelled"></byiara-status-chip>
         </div>
-        <h3>Native choices</h3>
+        <h3>Checkbox, radio, switch</h3>
         <div class="choice-stack">
-          <label class="choice-control">
-            <input type="checkbox" checked />
-            <span>Send appointment reminder</span>
-          </label>
-          <label class="choice-control">
-            <input type="checkbox" />
-            <span>Add notes before the session</span>
-          </label>
-          <label class="choice-control">
-            <input type="radio" name="guide-payment" checked />
-            <span>Pay at studio</span>
-          </label>
-          <label class="choice-control">
-            <input type="radio" name="guide-payment" />
-            <span>Pay online</span>
-          </label>
-          <label class="switch-control">
-            <input type="checkbox" checked />
-            <span>Open calendar slots</span>
-          </label>
+          <byiara-checkbox
+            label="Send appointment reminder"
+            [(ngModel)]="demoReminderChecked"
+          ></byiara-checkbox>
+          <byiara-checkbox
+            label="Add notes before the session"
+            [(ngModel)]="demoNotesChecked"
+          ></byiara-checkbox>
+          <byiara-radio
+            label="Pay at studio"
+            name="guide-payment"
+            value="studio"
+            [checked]="demoPayment === 'studio'"
+            (checkedChange)="demoPayment = $event"
+          ></byiara-radio>
+          <byiara-radio
+            label="Pay online"
+            name="guide-payment"
+            value="online"
+            [checked]="demoPayment === 'online'"
+            (checkedChange)="demoPayment = $event"
+          ></byiara-radio>
+          <byiara-switch
+            label="Open calendar slots"
+            [(ngModel)]="demoSwitchChecked"
+          ></byiara-switch>
         </div>
       </article>
     </div>

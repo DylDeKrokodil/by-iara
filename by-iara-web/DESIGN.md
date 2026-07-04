@@ -136,8 +136,16 @@ Component rules:
 - **Inputs:** visible label, quiet white surface, mauve border, plum focus,
   helper/error text near the field, and disabled/readonly states.
 - **Native inputs:** document text, email, password, tel, URL, search, textarea,
-  number, range, color, date/time, month/week, select, file, checkbox, radio,
-  and switch examples on `/design-system`.
+  number, range, color, date/time, month/week, and file examples on
+  `/design-system` as native HTML reference — these stay native, there is no
+  wrapper component for them.
+- **Checkbox, radio, switch:** `byiara-checkbox`, `byiara-radio`, and
+  `byiara-switch` (`libs/shared/ui`) replace raw styled native inputs.
+  Checkbox and Switch are `ControlValueAccessor`s (bind with
+  `[(ngModel)]`/`formControlName`, like `byiara-text-field`); Radio is not —
+  a single radio doesn't own its group's value, so it exposes plain
+  `checked`/`checkedChange` and the consuming form wires several radios to
+  one control. Switch renders a real `role="switch"`.
 - **Select menus:** native `<select>` is the fallback. Branded option styling
   uses a custom trigger plus listbox/options pattern so option rows can use our
   typography, spacing, hover, and selected states consistently.

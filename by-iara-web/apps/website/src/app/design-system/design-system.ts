@@ -1,5 +1,15 @@
 import { Component } from '@angular/core';
-import { Button, ButtonVariant, Card } from '@by-iara/shared-ui';
+import { FormsModule } from '@angular/forms';
+import {
+  Button,
+  ButtonVariant,
+  Card,
+  Checkbox,
+  ChoiceChip,
+  Radio,
+  StatusChip,
+  Switch,
+} from '@by-iara/shared-ui';
 
 interface Swatch {
   readonly name: string;
@@ -33,7 +43,7 @@ interface ButtonExample {
 
 @Component({
   selector: 'byiara-design-system',
-  imports: [Button, Card],
+  imports: [Button, Card, Checkbox, ChoiceChip, FormsModule, Radio, StatusChip, Switch],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
 })
@@ -201,4 +211,9 @@ export class DesignSystem {
       disabled: true,
     },
   ];
+
+  protected demoReminderChecked = true;
+  protected demoNotesChecked = false;
+  protected demoSwitchChecked = true;
+  protected demoPayment = 'studio';
 }

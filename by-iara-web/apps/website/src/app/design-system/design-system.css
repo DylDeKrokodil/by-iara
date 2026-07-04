@@ -317,49 +317,6 @@
   padding: var(--byiara-space-lg);
 }
 
-.guide-chip {
-  min-height: 2.75rem;
-  padding-inline: var(--byiara-space-md);
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-surface);
-  color: var(--byiara-color-text);
-  font: inherit;
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-semibold);
-}
-
-.guide-chip.selected {
-  border-color: var(--byiara-color-primary-action);
-  background: var(--byiara-color-primary-action);
-  color: var(--byiara-color-on-primary);
-}
-
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2rem;
-  padding-inline: var(--byiara-space-sm);
-  border-radius: var(--byiara-radius-pill);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-semibold);
-}
-
-.status-pill.success {
-  background: color-mix(in srgb, var(--byiara-color-success) 14%, white);
-  color: var(--byiara-color-success);
-}
-
-.status-pill.warning {
-  background: color-mix(in srgb, var(--byiara-color-warning) 14%, white);
-  color: var(--byiara-color-warning);
-}
-
-.status-pill.danger {
-  background: color-mix(in srgb, var(--byiara-color-danger) 14%, white);
-  color: var(--byiara-color-danger);
-}
-
 .booking-picker-demo {
   display: grid;
   gap: var(--byiara-space-2xl);

@@ -484,52 +484,6 @@ a {
   gap: var(--byiara-space-sm);
 }
 
-.choice-control,
-.switch-control {
-  display: flex;
-  align-items: center;
-  gap: var(--byiara-space-sm);
-  min-height: 2.75rem;
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-sm);
-}
-
-.choice-control input {
-  width: 1.125rem;
-  aspect-ratio: 1;
-  accent-color: var(--byiara-color-primary);
-}
-
-.switch-control input {
-  position: relative;
-  width: 2.75rem;
-  height: 1.5rem;
-  flex: 0 0 auto;
-  appearance: none;
-  border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-border);
-}
-
-.switch-control input::before {
-  position: absolute;
-  top: 0.1875rem;
-  left: 0.1875rem;
-  width: 1.125rem;
-  aspect-ratio: 1;
-  content: '';
-  border-radius: 50%;
-  background: var(--byiara-color-white);
-  transition: transform var(--byiara-duration-fast) var(--byiara-ease-out);
-}
-
-.switch-control input:checked {
-  background: var(--byiara-color-primary);
-}
-
-.switch-control input:checked::before {
-  transform: translateX(1.25rem);
-}
-
 @media (max-width: 34rem) {
   .variant-row {
     align-items: stretch;
