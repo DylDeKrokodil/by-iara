@@ -5,18 +5,20 @@
       <h1 id="home-title">{{ copy().title }}</h1>
       <p class="home-lede">{{ copy().lede }}</p>
       <div class="home-actions" [attr.aria-label]="copy().actionsLabel">
-        <a
-          class="home-action home-action-primary"
+        <byiara-button
+          class="home-action"
+          variant="primary"
           [routerLink]="language.localizedLink('book')"
         >
           {{ copy().primaryAction }}
-        </a>
-        <a
-          class="home-action home-action-secondary"
+        </byiara-button>
+        <byiara-button
+          class="home-action"
+          variant="secondary"
           [routerLink]="language.localizedLink('services')"
         >
           {{ copy().secondaryAction }}
-        </a>
+        </byiara-button>
       </div>
     </div>
 

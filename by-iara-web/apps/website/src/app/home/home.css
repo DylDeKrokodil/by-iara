@@ -59,35 +59,6 @@ h1 {
   padding-top: var(--byiara-space-xs);
 }
 
-.home-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 3rem;
-  padding-inline: clamp(1.1rem, 3vw, 1.6rem);
-  border: 1px solid transparent;
-  border-radius: var(--byiara-radius-pill);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-semibold);
-  text-decoration: none;
-  transition:
-    background-color var(--byiara-duration-base) var(--byiara-ease-out),
-    border-color var(--byiara-duration-base) var(--byiara-ease-out),
-    color var(--byiara-duration-base) var(--byiara-ease-out),
-    transform var(--byiara-duration-base) var(--byiara-ease-out);
-}
-
-.home-action-primary {
-  background: var(--byiara-color-primary-action);
-  color: var(--byiara-color-on-primary);
-}
-
-.home-action-secondary {
-  border-color: var(--byiara-color-border-strong);
-  background: transparent;
-  color: var(--byiara-color-text);
-}
-
 .home-mark {
   position: relative;
   justify-self: end;
@@ -154,22 +125,6 @@ h1 {
   translate: -50% -50%;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .home-action:hover {
-    transform: translateY(-2px);
-  }
-
-  .home-action-primary:hover {
-    background: var(--byiara-color-primary-action-hover);
-    color: var(--byiara-color-white);
-  }
-
-  .home-action-secondary:hover {
-    border-color: var(--byiara-color-primary);
-    color: var(--byiara-color-primary-strong);
-  }
-}
-
 @media (max-width: 48rem) {
   .home-stage {
     grid-template-columns: 1fr;
@@ -184,8 +139,11 @@ h1 {
 }
 
 @media (max-width: 34rem) {
-  .home-actions,
-  .home-action {
+  .home-actions {
     width: 100%;
+  }
+
+  .home-action {
+    --byiara-button-width: 100%;
   }
 }

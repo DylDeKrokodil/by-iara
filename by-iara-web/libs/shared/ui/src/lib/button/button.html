@@ -1,3 +1,10 @@
+<ng-template #content>
+  @if (loading()) {
+    <byiara-spinner size="sm" />
+  }
+  <ng-content></ng-content>
+</ng-template>
+
 @if (routerLink() !== null) {
   <a
     [class]="classes()"
@@ -8,10 +15,7 @@
     [attr.aria-busy]="loading() ? 'true' : null"
     [tabIndex]="disabled() ? -1 : 0"
   >
-    @if (loading()) {
-      <byiara-spinner size="sm" />
-    }
-    <ng-content></ng-content>
+    <ng-container *ngTemplateOutlet="content"></ng-container>
   </a>
 } @else if (href() !== null) {
   <a
@@ -23,10 +27,7 @@
     [attr.aria-busy]="loading() ? 'true' : null"
     [tabIndex]="disabled() ? -1 : 0"
   >
-    @if (loading()) {
-      <byiara-spinner size="sm" />
-    }
-    <ng-content></ng-content>
+    <ng-container *ngTemplateOutlet="content"></ng-container>
   </a>
 } @else {
   <button
@@ -36,9 +37,6 @@
     [attr.aria-label]="ariaLabel()"
     [attr.aria-busy]="loading() ? 'true' : null"
   >
-    @if (loading()) {
-      <byiara-spinner size="sm" />
-    }
-    <ng-content></ng-content>
+    <ng-container *ngTemplateOutlet="content"></ng-container>
   </button>
 }

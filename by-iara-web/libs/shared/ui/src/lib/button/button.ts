@@ -1,4 +1,5 @@
 import { Component, booleanAttribute, computed, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Spinner } from '../spinner/spinner';
 
@@ -12,7 +13,7 @@ export type ButtonSize = 'md' | 'sm';
  */
 @Component({
   selector: 'byiara-button',
-  imports: [RouterLink, Spinner],
+  imports: [NgTemplateOutlet, RouterLink, Spinner],
   templateUrl: './button.html',
   styleUrl: './button.css',
 })
