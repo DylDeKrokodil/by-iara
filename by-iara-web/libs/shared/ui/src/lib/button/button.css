@@ -40,11 +40,15 @@
 
 .btn-icon {
   padding-inline: 0;
+  min-width: var(--byiara-size-icon-button-md);
+  min-height: var(--byiara-size-icon-button-md);
   width: var(--byiara-size-icon-button-md);
   height: var(--byiara-size-icon-button-md);
 }
 
 .btn-icon.btn-sm {
+  min-width: var(--byiara-size-icon-button-sm);
+  min-height: var(--byiara-size-icon-button-sm);
   width: var(--byiara-size-icon-button-sm);
   height: var(--byiara-size-icon-button-sm);
 }

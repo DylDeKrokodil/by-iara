@@ -127,6 +127,8 @@ Component rules:
     destructive actions.
   - **Sizes:** `md` (default, 44px+ target) and `sm` (compact rows); `iconOnly`
     switches to a square footprint sized from `--byiara-size-icon-button-*`.
+    Always pass `ariaLabel` with `iconOnly` — it sets both `aria-label` and a
+    mouse-hover `title`, since there's no visible text to source either from.
   - **Full-width:** the host is `display: contents` (so it never fights a
     surrounding flex/grid parent's default sizing) and the real element reads
     `width: var(--byiara-button-width, auto)`. To stretch a button (e.g.
@@ -139,8 +141,11 @@ Component rules:
   - **Loading state:** disabled during async work; composes `byiara-spinner`
     next to the label rather than replacing it (label text should already
     reflect the loading state, e.g. "Saving...").
-- **Inputs:** visible label, quiet white surface, mauve border, plum focus,
-  helper/error text near the field, and disabled/readonly states.
+- **Inputs:** `byiara-text-field` — visible label, quiet white surface, mauve
+  border, plum focus, helper/error text near the field, disabled/readonly
+  states, and a danger border + danger focus ring when `error` is set
+  (driven by `aria-invalid`, not a separate class — pass the resolved
+  message string, the component owns showing it).
 - **Native inputs:** document text, email, password, tel, URL, search, textarea,
   number, range, color, date/time, month/week, and file examples on
   `/design-system` as native HTML reference — these stay native, there is no
