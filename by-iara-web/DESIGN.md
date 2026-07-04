@@ -171,8 +171,12 @@ Component rules:
   chip and actions) compose it via the `[card-header]`/`[card-footer]` slots
   rather than becoming new Card variants. Use `--byiara-radius-lg` at most,
   with borders before shadows. Avoid nested cards.
-
-## Motion
+- **Page headers:** `byiara-page-header` (eyebrow + title + a projected
+  `[page-header-action]`) is currently scoped to admin's list/detail pages,
+  where the same markup was duplicated near-identically across five pages.
+  Website's booking/catalog headers use a bigger, fluid hero-style title and
+  aren't migrated onto this component — adopting them there would need a
+  `size` input this component doesn't have yet.
 
 - Motion should be gentle and purposeful.
 - Button hover and press states use `140-220ms`.

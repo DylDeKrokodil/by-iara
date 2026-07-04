@@ -172,6 +172,7 @@
 
 .card-demo-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  margin-bottom: var(--byiara-space-lg);
 }
 
 .feedback-demo-grid {
