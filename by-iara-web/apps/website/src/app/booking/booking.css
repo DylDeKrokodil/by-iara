@@ -1,41 +1,51 @@
 .booking-container {
-  max-width: var(--byiara-container-lg);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--byiara-space-lg);
+  max-width: var(--byiara-container-lg);
+  margin-inline: auto;
 }
 
 .booking-flow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 20rem);
   align-items: start;
   gap: var(--byiara-space-xl);
 }
 
-.step-panel {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-lg);
+.booking-header {
+  display: grid;
+  gap: var(--byiara-space-xs);
+  max-width: 44rem;
 }
 
 .booking-header h1 {
-  margin: var(--byiara-space-2xs) 0 0;
+  margin: 0;
   font-family: var(--byiara-font-family-display);
-  line-height: var(--byiara-line-height-title);
+  font-size: clamp(2.1rem, 1.6rem + 2.1vw, 3.6rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: var(--byiara-line-height-tight);
 }
 
-.booking-section {
-  display: flex;
-  flex-direction: column;
+.step-panel {
+  display: grid;
+  gap: var(--byiara-space-lg);
+  min-width: 0;
+}
+
+.booking-section,
+.booking-form {
+  display: grid;
   gap: var(--byiara-space-md);
 }
 
 .booking-section h2,
-.booking-section h3 {
+.booking-section h3,
+.booking-form h2 {
   margin: 0;
+  color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-lg);
+  line-height: var(--byiara-line-height-title);
 }
 
 .option-grid,
@@ -45,37 +55,23 @@
   gap: var(--byiara-space-xs);
 }
 
-.slot-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-xs);
-}
-
-.slot-group-label {
-  margin: 0;
-  font-size: var(--byiara-font-size-xs);
-  font-weight: var(--byiara-font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--byiara-color-text-muted);
-}
-
 .date-strip {
   display: flex;
   gap: var(--byiara-space-xs);
   overflow-x: auto;
-  padding-bottom: var(--byiara-space-2xs);
+  padding-bottom: var(--byiara-space-xs);
+  scroll-snap-type: x proximity;
 }
 
 .date-chip {
-  flex: 0 0 5.75rem;
-  min-height: 5.25rem;
+  flex: 0 0 5.8rem;
+  min-height: 5.4rem;
   padding: var(--byiara-space-sm);
   border-radius: var(--byiara-radius-md);
-  /* Override the chip's default centered row so the date stacks, left-aligned. */
-  flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  flex-direction: column;
+  scroll-snap-align: start;
   text-align: left;
 }
 
@@ -89,21 +85,22 @@
 
 .date-day {
   display: block;
-  margin: var(--byiara-space-2xs) 0;
+  margin-block: var(--byiara-space-2xs);
   font-size: var(--byiara-font-size-2xl);
   font-weight: var(--byiara-font-weight-bold);
   line-height: var(--byiara-line-height-tight);
 }
 
-.booking-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-md);
+.slot-group {
+  display: grid;
+  gap: var(--byiara-space-xs);
 }
 
-.booking-form h2 {
+.slot-group-label {
   margin: 0;
-  font-size: var(--byiara-font-size-lg);
+  color: var(--byiara-color-text-subtle);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
 .step-actions {
@@ -112,120 +109,48 @@
   gap: var(--byiara-space-sm);
 }
 
-.confirmation h1 {
-  margin: var(--byiara-space-2xs) 0 var(--byiara-space-md);
-  font-family: var(--byiara-font-family-display);
-}
-
 .booking-summary {
-  align-self: start;
   position: sticky;
-  top: var(--byiara-space-lg);
+  top: calc(4.25rem + var(--byiara-space-lg));
+  align-self: start;
+  background: var(--byiara-color-surface-tinted);
 }
 
 .booking-summary h2 {
   margin: 0 0 var(--byiara-space-md);
+  color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-base);
 }
 
-/* Spacing before the pending note; the boxed look comes from byiara-detail-list. */
+.confirmation {
+  display: grid;
+  justify-items: start;
+  gap: var(--byiara-space-md);
+  max-width: 44rem;
+}
+
+.confirmation h1 {
+  margin: 0;
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2rem, 1.55rem + 2vw, 3.4rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: var(--byiara-line-height-tight);
+}
+
 .confirmation-details {
-  margin: 0 0 var(--byiara-space-md);
+  width: 100%;
 }
 
 .pending-note {
+  margin: 0;
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
-}
-
-@media (max-width: 56rem) {
-  .booking-flow {
-    grid-template-columns: 1fr;
-    gap: var(--byiara-space-xl);
-  }
-
-  .booking-summary {
-    position: static;
-  }
-}
-
-/* ----- Motion ------------------------------------------------------------ */
-
-/* Step transitions: the panel's content enters from the direction of travel,
-   so moving forward and back feels spatially consistent. Fill is `backwards`
-   so the resting state matches the default styles and never locks transforms
-   (keeps :active press feedback working). */
-.step-panel > * {
-  animation: stepIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
-}
-
-.step-panel[data-direction='backward'] > * {
-  animation-name: stepInBack;
-}
-
-@keyframes stepIn {
-  from {
-    opacity: 0;
-    transform: translateX(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes stepInBack {
-  from {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Date/time options settle in with a short, capped stagger as they load or as
-   a new date is picked — list rhythm, not decoration. Capped at 10 so the
-   total reveal stays ~half a second even for a long day of slots. */
-.date-chip,
-.slot-chip {
-  animation: chipIn var(--byiara-duration-base) var(--byiara-ease-out) backwards;
-  animation-delay: calc(min(var(--stagger, 0), 10) * 28ms);
-}
-
-@keyframes chipIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Confirmation: a rare moment, so it earns a little delight — the card eases
-   up and the success mark draws itself in. */
-.confirmation {
-  animation: confirmIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
-}
-
-@keyframes confirmIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
 }
 
 .confirmation-badge {
   width: 4rem;
   height: 4rem;
-  margin-bottom: var(--byiara-space-md);
 }
 
 .confirmation-badge svg {
@@ -240,22 +165,86 @@
   stroke-width: 3;
 }
 
-.confirmation-badge-circle {
-  stroke-dasharray: 151;
-  stroke-dashoffset: 151;
-  animation: drawStroke 0.5s var(--byiara-ease-out) 120ms forwards;
-}
-
 .confirmation-badge-check {
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 40;
-  stroke-dashoffset: 40;
-  animation: drawStroke 0.3s var(--byiara-ease-out) 480ms forwards;
 }
 
-@keyframes drawStroke {
+@media (max-width: 56rem) {
+  .booking-flow {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-summary {
+    position: static;
+  }
+}
+
+@media (max-width: 34rem) {
+  .step-actions,
+  .step-actions .button {
+    width: 100%;
+  }
+}
+
+.step-panel > * {
+  animation: stepIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
+}
+
+.step-panel[data-direction='backward'] > * {
+  animation-name: stepInBack;
+}
+
+@keyframes stepIn {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
   to {
-    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes stepInBack {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.date-chip,
+.slot-chip {
+  animation: chipIn var(--byiara-duration-base) var(--byiara-ease-out) backwards;
+  animation-delay: calc(min(var(--stagger, 0), 10) * 24ms);
+}
+
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confirmation {
+  animation: confirmIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
+}
+
+@keyframes confirmIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

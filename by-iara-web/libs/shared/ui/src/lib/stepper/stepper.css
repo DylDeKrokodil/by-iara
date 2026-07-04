@@ -79,7 +79,8 @@
   stroke-linejoin: round;
   stroke-dasharray: 16;
   stroke-dashoffset: 16;
-  animation: drawCheck var(--byiara-duration-base) var(--byiara-ease-out) forwards;
+  animation: drawCheck var(--byiara-duration-base) var(--byiara-ease-out)
+    forwards;
 }
 
 @keyframes drawCheck {
@@ -89,6 +90,6 @@
 }
 
 .step-button.selected .step-number {
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
 }

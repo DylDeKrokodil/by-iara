@@ -6,11 +6,14 @@ body {
 .button-primary,
 .button-secondary,
 .button-ghost,
+.button-open,
 .button-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.375rem;
+  gap: var(--byiara-space-xs);
+  min-height: 2.75rem;
+  min-width: 2.75rem;
   padding: 0 var(--byiara-space-md);
   border-radius: var(--byiara-radius-md);
   font-weight: var(--byiara-font-weight-semibold);
@@ -27,9 +30,10 @@ body {
 
 .button-primary {
   border: 0;
-  background: var(--byiara-color-primary);
+  background: var(--byiara-color-primary-action);
   color: var(--byiara-color-on-primary);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-primary) 12%, transparent);
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--byiara-color-primary) 12%, transparent);
 }
 
 .button-primary:disabled {
@@ -60,9 +64,31 @@ body {
   cursor: not-allowed;
 }
 
+.button-open {
+  padding-inline: var(--byiara-space-xs);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--byiara-color-primary-strong);
+}
+
+.button-open::after {
+  content: '';
+  width: 0.42rem;
+  aspect-ratio: 1;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: translateY(-0.12rem) rotate(135deg);
+}
+
+.button-open:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .button-primary:active:not(:disabled),
 .button-secondary:active:not(:disabled),
 .button-ghost:active:not(:disabled),
+.button-open:active:not(:disabled),
 .button-danger:active:not(:disabled) {
   transform: scale(0.97);
 }
@@ -71,7 +97,8 @@ body {
   border: 0;
   background: var(--byiara-color-danger);
   color: var(--byiara-color-white);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-danger) 12%, transparent);
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--byiara-color-danger) 12%, transparent);
 }
 
 .button-danger:disabled {
@@ -81,8 +108,10 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
   .button-primary:hover:not(:disabled) {
-    background: var(--byiara-color-primary-hover);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
+    background: var(--byiara-color-primary-action-hover);
+    color: var(--byiara-color-white);
+    box-shadow: 0 4px 8px
+      color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
   }
 
   .button-secondary:hover:not(:disabled) {
@@ -96,8 +125,14 @@ body {
     background: color-mix(in srgb, var(--byiara-color-danger) 6%, transparent);
   }
 
+  .button-open:hover:not(:disabled) {
+    background: var(--byiara-color-primary-tint);
+    color: var(--byiara-color-primary-strong);
+  }
+
   .button-danger:hover:not(:disabled) {
     background: var(--byiara-color-danger-hover);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--byiara-color-danger) 16%, transparent);
+    box-shadow: 0 4px 8px
+      color-mix(in srgb, var(--byiara-color-danger) 16%, transparent);
   }
 }

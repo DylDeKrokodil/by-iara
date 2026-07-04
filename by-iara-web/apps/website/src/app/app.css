@@ -1,117 +1,129 @@
-/* Site Layout Frame */
 .site-frame {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--byiara-color-background);
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in oklch, var(--byiara-color-accent-soft) 70%, transparent), transparent 24rem),
+    var(--byiara-color-background);
+  color: var(--byiara-color-text);
 }
 
-/* Header Styling */
 .site-header {
-  background: var(--byiara-color-surface);
-  border-bottom: 1px solid var(--byiara-color-border);
   position: sticky;
   top: 0;
-  z-index: 100;
-  backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.85);
+  z-index: var(--byiara-z-index-sticky);
+  border-bottom: 1px solid color-mix(in oklch, var(--byiara-color-border) 76%, transparent);
+  background: color-mix(in oklch, var(--byiara-color-background) 88%, white);
 }
 
 .header-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: var(--byiara-container-lg, 76rem);
-  margin: 0 auto;
-  padding: var(--byiara-space-sm) var(--byiara-space-lg);
-  min-height: 4.5rem;
+  width: min(100%, var(--byiara-container-lg));
+  min-height: 4.25rem;
+  margin-inline: auto;
+  padding: var(--byiara-space-sm) clamp(1rem, 4vw, 2rem);
+  gap: var(--byiara-space-lg);
 }
 
 .logo-link {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
   text-decoration: none;
-  cursor: pointer;
 }
 
 .logo-img {
   display: block;
-  height: 2.25rem;
   width: auto;
-}
-
-.logo-text {
-  font-family: var(--byiara-font-family-display);
-  font-size: var(--byiara-font-size-2xl);
-  font-weight: var(--byiara-font-weight-bold);
-  color: var(--byiara-color-primary-strong);
-  letter-spacing: 0;
+  height: 2.2rem;
+  filter: saturate(0.65) hue-rotate(78deg) brightness(0.62);
 }
 
 .header-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--byiara-space-md);
+  min-width: 0;
 }
 
 .header-nav {
   display: flex;
-  gap: var(--byiara-space-md);
+  align-items: center;
+  gap: var(--byiara-space-2xs);
 }
 
 .header-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding-inline: var(--byiara-space-sm);
+  border-radius: var(--byiara-radius-pill);
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-semibold);
   text-decoration: none;
-  padding: var(--byiara-space-2xs) var(--byiara-space-xs);
-  border-radius: var(--byiara-radius-sm);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .header-nav a:hover {
-  color: var(--byiara-color-primary-strong);
   background: var(--byiara-color-surface-tinted);
+  color: var(--byiara-color-text);
 }
 
 .header-nav a.active {
-  color: var(--byiara-color-primary-strong);
-  background: var(--byiara-color-primary-soft);
+  background: var(--byiara-color-accent);
+  color: var(--byiara-color-on-accent);
 }
 
-/* Main Main Space */
 .site-main {
-  flex-grow: 1;
+  flex: 1 0 auto;
 }
 
-/* Footer Styling */
 .site-footer {
-  background: var(--byiara-color-surface);
   border-top: 1px solid var(--byiara-color-border);
-  padding: var(--byiara-space-md) var(--byiara-space-lg);
-  text-align: center;
+  padding: var(--byiara-space-lg) clamp(1rem, 4vw, 2rem);
 }
 
 .footer-container {
-  max-width: var(--byiara-container-lg, 76rem);
-  margin: 0 auto;
+  width: min(100%, var(--byiara-container-lg));
+  margin-inline: auto;
 }
 
 .footer-text {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-xs);
   margin: 0;
+  color: var(--byiara-color-text-subtle);
+  font-size: var(--byiara-font-size-xs);
 }
 
-@media (max-width: 40rem) {
+@media (max-width: 44rem) {
   .header-container {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
     gap: var(--byiara-space-sm);
   }
 
   .header-actions {
     justify-content: space-between;
-    width: 100%;
+  }
+
+  .header-nav {
+    flex: 1;
+  }
+
+  .header-nav a {
+    justify-content: center;
+    flex: 1;
+  }
+}
+
+@media (max-width: 25rem) {
+  .header-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

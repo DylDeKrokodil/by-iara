@@ -85,13 +85,14 @@ button {
   padding: 0 var(--byiara-space-lg);
   border: 0;
   border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
   font-weight: var(--byiara-font-weight-semibold);
 }
 
 button:hover:not(:disabled) {
-  background: var(--byiara-color-primary-hover);
+  background: var(--byiara-color-primary-action-hover);
+  color: var(--byiara-color-white);
 }
 
 button:disabled {

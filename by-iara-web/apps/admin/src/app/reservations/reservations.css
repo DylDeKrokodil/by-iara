@@ -439,7 +439,9 @@ h1 {
   font-size: var(--byiara-font-size-sm);
   box-shadow: none;
   cursor: pointer;
-  transition: background-color var(--byiara-duration-fast) var(--byiara-ease-out), color var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .view-toggles button.toggle-btn:hover:not(.active) {
@@ -448,8 +450,8 @@ h1 {
 }
 
 .view-toggles button.toggle-btn.active {
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
 }
 
 .nav-buttons {
@@ -533,7 +535,8 @@ h1 {
   padding: 0;
   cursor: pointer;
   outline: none;
-  transition: background-color var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition: background-color var(--byiara-duration-fast)
+    var(--byiara-ease-out);
 }
 
 .mini-day-button:hover {
@@ -550,8 +553,8 @@ h1 {
 }
 
 .mini-day-button.is-selected {
-  background: var(--byiara-color-primary) !important;
-  color: var(--byiara-color-white) !important;
+  background: var(--byiara-color-primary-action) !important;
+  color: var(--byiara-color-on-primary) !important;
   font-weight: var(--byiara-font-weight-bold);
 }
 
@@ -609,7 +612,8 @@ h1 {
   outline: none;
   background: rgba(255, 255, 255, 0.4);
   border-radius: var(--byiara-radius-md) var(--byiara-radius-md) 0 0;
-  transition: background-color var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition: background-color var(--byiara-duration-fast)
+    var(--byiara-ease-out);
 }
 
 .week-column-header:hover {
@@ -671,7 +675,10 @@ h1 {
   cursor: pointer;
   text-align: left;
   outline: none;
-  transition: transform var(--byiara-duration-fast) var(--byiara-ease-out), border-color var(--byiara-duration-fast) var(--byiara-ease-out), box-shadow var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition:
+    transform var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .week-res-card:hover {
@@ -737,7 +744,8 @@ h1 {
   gap: var(--byiara-space-2xs);
   cursor: pointer;
   outline: none;
-  transition: background-color var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition: background-color var(--byiara-duration-fast)
+    var(--byiara-ease-out);
   min-width: 0;
   overflow: hidden;
 }
@@ -759,8 +767,8 @@ h1 {
 }
 
 .month-cell.is-today .month-cell-day {
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
   font-weight: var(--byiara-font-weight-bold);
   display: inline-flex;
   align-items: center;
@@ -871,21 +879,21 @@ h1 {
     flex-direction: column;
     gap: 2px;
   }
-  
+
   .view-toggles {
     width: 100%;
   }
-  
+
   .view-toggles button.toggle-btn {
     flex: 1;
     text-align: center;
   }
-  
+
   .nav-buttons {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .nav-buttons button {
     flex: 1;
   }

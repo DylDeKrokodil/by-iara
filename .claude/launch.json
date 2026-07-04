@@ -4,8 +4,9 @@
     {
       "name": "website",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd by-iara-web && npx nx serve website --host=localhost --port=4300"],
-      "port": 4300
+      "runtimeArgs": ["-c", "cd by-iara-web && npx nx serve website --host=localhost --port=$PORT"],
+      "port": 4300,
+      "autoPort": true
     }
   ]
 }

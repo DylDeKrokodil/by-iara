@@ -23,17 +23,18 @@ h1 {
 }
 
 .page-header button {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0 var(--byiara-space-md);
   border: 0;
   border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
   font-weight: var(--byiara-font-weight-semibold);
 }
 
 .page-header button:hover {
-  background: var(--byiara-color-primary-hover);
+  background: var(--byiara-color-primary-action-hover);
+  color: var(--byiara-color-white);
 }
 
 .summary-grid {
