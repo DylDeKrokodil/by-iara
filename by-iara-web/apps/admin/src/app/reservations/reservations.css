@@ -1,4 +1,3 @@
-.page-header,
 .section-header,
 .request-main,
 .pagination,
@@ -11,20 +10,13 @@
   gap: var(--byiara-space-md);
 }
 
-.page-header,
 .section-header,
 .pagination {
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--byiara-space-xl);
-}
-
-.section-header,
-.pagination {
   margin-bottom: 0;
 }
 
-.eyebrow,
 .summary-label {
   margin: 0;
   color: var(--byiara-color-primary-strong);
@@ -32,26 +24,6 @@
   font-weight: var(--byiara-font-weight-bold);
   letter-spacing: 0;
   text-transform: uppercase;
-}
-
-h1 {
-  margin: var(--byiara-space-2xs) 0 0;
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-3xl);
-  line-height: var(--byiara-line-height-title);
-}
-
-.alert,
-.empty {
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-surface-muted);
-  color: var(--byiara-color-danger);
-  font-size: var(--byiara-font-size-sm);
-}
-
-.alert {
-  margin: 0 0 var(--byiara-space-lg);
-  padding: var(--byiara-space-sm) var(--byiara-space-md);
 }
 
 .overview-layout,
@@ -81,22 +53,13 @@ h1 {
   gap: var(--byiara-space-md);
 }
 
-.summary-card,
-.request-card,
-.calendar-panel,
-.selected-day-card,
-.agenda-item,
-.empty {
+.calendar-panel {
+  position: sticky;
+  top: var(--byiara-space-md);
   min-width: 0;
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface);
-}
-
-.summary-card,
-.request-card,
-.calendar-panel,
-.selected-day-card {
   padding: var(--byiara-space-lg);
 }
 
@@ -106,11 +69,13 @@ h1 {
 .reservation-meta,
 .agenda-details span,
 .date-picker span,
-.day-button span,
-.day-button small,
 .muted,
-.list-note,
 .pagination {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.summary-detail {
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
 }
@@ -119,6 +84,10 @@ h1 {
   color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-3xl);
   line-height: var(--byiara-line-height-title);
+}
+
+.summary-card.priority strong {
+  color: var(--byiara-color-primary-strong);
 }
 
 .section-header {
@@ -145,9 +114,7 @@ h1 {
 
 .section-header p,
 .request-main p,
-.empty p,
-.notes,
-.list-note {
+.notes {
   margin: 0;
 }
 
@@ -184,11 +151,6 @@ h1 {
   align-items: start;
 }
 
-.calendar-panel {
-  position: sticky;
-  top: var(--byiara-space-md);
-}
-
 .calendar-panel strong,
 .selected-day-card strong {
   color: var(--byiara-color-text);
@@ -200,62 +162,10 @@ h1 {
   font-size: var(--byiara-font-size-lg);
 }
 
-.day-selector {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--byiara-space-xs);
-}
-
-.day-button {
-  display: grid;
-  gap: var(--byiara-space-2xs);
-  min-height: 5.25rem;
-  min-width: 0;
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-white);
-  color: var(--byiara-color-text);
-  padding: var(--byiara-space-sm);
-  text-align: left;
-}
-
-.day-button strong {
-  font-size: var(--byiara-font-size-xl);
-  line-height: var(--byiara-line-height-title);
-}
-
-.day-button.is-today {
-  border-color: var(--byiara-color-primary);
-}
-
-.day-button.is-selected {
-  background: var(--byiara-color-surface-tinted);
-  border-color: var(--byiara-color-primary);
-  box-shadow: inset 0 0 0 1px var(--byiara-color-primary);
-}
-
-.selected-day-card {
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-lg);
-  background: var(--byiara-color-surface-muted);
-}
-
 .selected-day-card strong {
   display: block;
   font-size: var(--byiara-font-size-2xl);
   line-height: var(--byiara-line-height-title);
-}
-
-.empty {
-  display: grid;
-  justify-items: start;
-  padding: var(--byiara-space-xl);
-  border-style: dashed;
-  color: var(--byiara-color-text-muted);
-}
-
-.compact-empty {
-  padding: var(--byiara-space-lg);
 }
 
 .request-list {
@@ -299,7 +209,6 @@ h1 {
   grid-template-columns: 5.5rem minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--byiara-space-md);
-  padding: var(--byiara-space-md);
 }
 
 .agenda-time {
@@ -360,14 +269,9 @@ h1 {
   .calendar-panel {
     position: static;
   }
-
-  .day-selector {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 48rem) {
-  .page-header,
   .section-header,
   .history-header,
   .pagination {
@@ -392,10 +296,6 @@ h1 {
     width: 100%;
   }
 
-  .day-selector {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .request-main {
     display: grid;
   }
@@ -405,9 +305,9 @@ h1 {
     justify-content: flex-start;
   }
 
-  .actions-wrapper > button,
-  .pagination-actions > button {
-    flex: 1 1 8rem;
+  .actions-wrapper byiara-button,
+  .pagination-actions byiara-button {
+    --byiara-button-width: 100%;
   }
 }
 
