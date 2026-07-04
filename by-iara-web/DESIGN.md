@@ -127,6 +127,12 @@ Component rules:
     destructive actions.
   - **Sizes:** `md` (default, 44px+ target) and `sm` (compact rows); `iconOnly`
     switches to a square footprint sized from `--byiara-size-icon-button-*`.
+  - **Full-width:** the host is `display: contents` (so it never fights a
+    surrounding flex/grid parent's default sizing) and the real element reads
+    `width: var(--byiara-button-width, auto)`. To stretch a button (e.g.
+    stacked full-width on mobile), set `--byiara-button-width: 100%` on the
+    `<byiara-button>` host from page CSS — don't add a `width` class directly,
+    it can't reach the real element through `display: contents`.
   - **Disabled state:** true `disabled` attribute (or `aria-disabled` +
     `pointer-events: none` on the link form), `not-allowed` cursor, and reduced
     opacity.
