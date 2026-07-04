@@ -440,66 +440,31 @@
       <section class="picker-block" aria-labelledby="guide-pick-date">
         <h3 id="guide-pick-date">Pick a date</h3>
         <div class="day-picker-row" role="radiogroup" aria-label="Pick a date">
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Sat</span>
             <strong>4</strong>
           </button>
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Sun</span>
             <strong>5</strong>
           </button>
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Mon</span>
             <strong>6</strong>
           </button>
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Tue</span>
             <strong>7</strong>
           </button>
-          <button
-            class="day-tile is-selected"
-            type="button"
-            role="radio"
-            aria-checked="true"
-          >
+          <button byiara-selectable-tile class="day-tile" [selected]="true">
             <span>Wed</span>
             <strong>8</strong>
           </button>
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Thu</span>
             <strong>9</strong>
           </button>
-          <button
-            class="day-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
+          <button byiara-selectable-tile class="day-tile">
             <span>Fri</span>
             <strong>10</strong>
           </button>
@@ -513,62 +478,15 @@
           role="radiogroup"
           aria-label="Choose a time"
         >
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            9:00 AM
-          </button>
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            10:30 AM
-          </button>
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            12:00 PM
-          </button>
-          <button
-            class="time-tile is-selected"
-            type="button"
-            role="radio"
-            aria-checked="true"
-          >
+          <button byiara-selectable-tile shape="rect">9:00 AM</button>
+          <button byiara-selectable-tile shape="rect">10:30 AM</button>
+          <button byiara-selectable-tile shape="rect">12:00 PM</button>
+          <button byiara-selectable-tile shape="rect" [selected]="true">
             2:00 PM
           </button>
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            3:30 PM
-          </button>
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            5:00 PM
-          </button>
-          <button
-            class="time-tile"
-            type="button"
-            role="radio"
-            aria-checked="false"
-          >
-            6:30 PM
-          </button>
+          <button byiara-selectable-tile shape="rect">3:30 PM</button>
+          <button byiara-selectable-tile shape="rect">5:00 PM</button>
+          <button byiara-selectable-tile shape="rect">6:30 PM</button>
         </div>
       </section>
     </div>

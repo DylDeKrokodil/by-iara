@@ -16,6 +16,7 @@ import {
   DetailListItem,
   SelectField,
   SelectFieldOption,
+  SelectableTile,
   Stepper,
   TextField,
 } from '@by-iara/shared-ui';
@@ -66,6 +67,7 @@ interface DateSlots {
     RouterLink,
     SelectField,
     ChoiceChip,
+    SelectableTile,
     Stepper,
     TextField,
     DetailList,

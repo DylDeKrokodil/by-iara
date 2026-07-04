@@ -20,3 +20,4 @@ export * from './lib/radio/radio';
 export * from './lib/alert/alert';
 export * from './lib/empty-state/empty-state';
 export * from './lib/page-header/page-header';
+export * from './lib/selectable-tile/selectable-tile';

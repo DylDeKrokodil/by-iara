@@ -10,6 +10,7 @@ import {
   EmptyState,
   PageHeader,
   Radio,
+  SelectableTile,
   StatusChip,
   Switch,
 } from '@by-iara/shared-ui';
@@ -56,6 +57,7 @@ interface ButtonExample {
     FormsModule,
     PageHeader,
     Radio,
+    SelectableTile,
     StatusChip,
     Switch,
   ],

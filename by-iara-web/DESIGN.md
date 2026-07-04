@@ -149,9 +149,14 @@ Component rules:
 - **Select menus:** native `<select>` is the fallback. Branded option styling
   uses a custom trigger plus listbox/options pattern so option rows can use our
   typography, spacing, hover, and selected states consistently.
-- **Booking picker:** public day and time pickers use large rounded radio tiles,
-  soft rose borders, rose-tint selected states, and horizontal date scrolling
-  on narrow screens.
+- **Booking picker:** public day and time pickers use `byiara-selectable-tile`
+  (`libs/shared/ui`) — large rounded radio tiles, soft rose borders, rose-tint
+  selected states, and horizontal date scrolling on narrow screens. `shape`
+  picks the layout: `square` for a date (weekday + day number, both
+  caller-projected), `rect` for a flat time slot. This is the tile
+  counterpart to `byiara-choice-chip`'s pill — same selection states, used
+  for calendar/time-grid choices instead of pill/tag-style choices (which
+  stay on `byiara-choice-chip`, e.g. the service-variant picker).
 - **Alerts:** `byiara-alert` (`libs/shared/ui`) is for problems that need
   attention now — `role="alert"`, tone-tinted background and border
   (`danger`/`info`/`success`/`warning`), tone-colored text. Default tone is

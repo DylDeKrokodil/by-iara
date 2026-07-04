@@ -105,7 +105,7 @@
                   <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
                     @for (date of availableDates(); track date.key; let i = $index) {
                       <button
-                        byiara-choice-chip
+                        byiara-selectable-tile
                         class="date-chip"
                         [selected]="date.key === selectedDateKey()"
                         [style.--stagger]="i"
@@ -129,7 +129,8 @@
                           <div class="slot-grid" role="radiogroup" [attr.aria-label]="group.label">
                             @for (slot of group.slots; track slot.iso; let i = $index) {
                               <button
-                                byiara-choice-chip
+                                byiara-selectable-tile
+                                shape="rect"
                                 class="slot-chip"
                                 [selected]="slot.iso === selectedSlot()"
                                 [style.--stagger]="i"
