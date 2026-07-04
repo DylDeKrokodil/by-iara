@@ -13,3 +13,4 @@ export * from './lib/toast/toast.service';
 export * from './lib/toast/toast-container/toast-container.component';
 export * from './lib/spinner/spinner';
 export * from './lib/button/button';
+export * from './lib/card/card';

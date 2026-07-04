@@ -146,8 +146,13 @@ Component rules:
   on narrow screens.
 - **Selected state:** soft rose fill for high-emphasis choices; rose tint for
   lower emphasis.
-- **Cards:** use `--byiara-radius-lg` at most, with borders before shadows.
-  Avoid nested cards.
+- **Cards:** `byiara-card` (`libs/shared/ui`) is a generic bordered box —
+  padding (`none`/`sm`/`md`/`lg`), a background variant (`default`/`muted`/
+  `tinted`/`dashed`), and an optional `interactive` hover lift. It owns the
+  box only; domain-specific cards (a KPI card, a request card with a status
+  chip and actions) compose it via the `[card-header]`/`[card-footer]` slots
+  rather than becoming new Card variants. Use `--byiara-radius-lg` at most,
+  with borders before shadows. Avoid nested cards.
 
 ## Motion
 

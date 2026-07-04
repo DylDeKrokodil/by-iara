@@ -129,6 +129,42 @@
     </div>
   </section>
 
+  <section class="guide-section guide-section--tint">
+    <div class="section-heading">
+      <p class="guide-kicker">Layout</p>
+      <h2>Cards</h2>
+      <p>
+        <code>byiara-card</code> is a generic bordered box: padding, a
+        background tint, and an optional interactive hover. Domain-specific
+        cards (a KPI card, a request card with a status chip) compose it with
+        their own header/body/footer content rather than becoming new
+        variants.
+      </p>
+    </div>
+
+    <div class="card-demo-grid">
+      <byiara-card padding="lg">
+        <h3 card-header>Default</h3>
+        <p>White surface, the standard card for most content.</p>
+      </byiara-card>
+      <byiara-card variant="muted" padding="lg">
+        <h3 card-header>Muted</h3>
+        <p>Quiet surface for secondary or resting-state content.</p>
+      </byiara-card>
+      <byiara-card variant="tinted" padding="lg">
+        <h3 card-header>Tinted</h3>
+        <p>Rose-tinted surface for summaries and callouts.</p>
+      </byiara-card>
+      <byiara-card variant="dashed" padding="lg" interactive>
+        <h3 card-header>Interactive dashed</h3>
+        <p>
+          Dashed border for empty/upload affordances; hover lift when the
+          whole card is pressable.
+        </p>
+      </byiara-card>
+    </div>
+  </section>
+
   <section class="guide-section">
     <div class="section-heading">
       <p class="guide-kicker">Forms</p>

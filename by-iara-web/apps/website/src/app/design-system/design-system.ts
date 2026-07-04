@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Button, ButtonVariant } from '@by-iara/shared-ui';
+import { Button, ButtonVariant, Card } from '@by-iara/shared-ui';
 
 interface Swatch {
   readonly name: string;
@@ -33,7 +33,7 @@ interface ButtonExample {
 
 @Component({
   selector: 'byiara-design-system',
-  imports: [Button],
+  imports: [Button, Card],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
 })

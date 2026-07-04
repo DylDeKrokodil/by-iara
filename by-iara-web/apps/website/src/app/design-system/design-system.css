@@ -159,13 +159,31 @@
 .rule-grid,
 .input-system,
 .contrast-grid,
-.button-matrix {
+.button-matrix,
+.card-demo-grid {
   display: grid;
   gap: var(--byiara-space-lg);
 }
 
 .swatch-grid {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+
+.card-demo-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+}
+
+.card-demo-grid h3 {
+  margin: 0 0 var(--byiara-space-xs);
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-lg);
+  line-height: var(--byiara-line-height-title);
+}
+
+.card-demo-grid p {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
 }
 
 .swatch-card,
