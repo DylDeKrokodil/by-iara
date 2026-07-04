@@ -1,3 +1,4 @@
+<!-- eslint-disable-next-line @angular-eslint/template/label-has-associated-control -- input/textarea is nested inside via @if/@else; the rule's traversal doesn't see through Angular control flow -->
 <label class="field">
   <span>{{ label() }}@if (optionalLabel()) {&nbsp;<em>{{ optionalLabel() }}</em>}</span>
   @if (multiline()) {

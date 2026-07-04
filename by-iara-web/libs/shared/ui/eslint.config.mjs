@@ -19,10 +19,14 @@ export default [
       '@angular-eslint/component-selector': [
         'error',
         {
-          type: 'element',
+          type: ['element', 'attribute'],
           prefix: 'byiara',
           style: 'kebab-case',
         },
+      ],
+      '@typescript-eslint/no-empty-function': [
+        'error',
+        { allow: ['arrowFunctions'] },
       ],
     },
   },
