@@ -6,6 +6,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* :host is display:contents (no box of its own, so the real <button>/<a>
+     is the flex/grid item in whatever context it's placed) — a page that
+     needs a full-width button (e.g. stacked on mobile) sets
+     --byiara-button-width on the host; it cascades through contents. */
+  width: var(--byiara-button-width, auto);
   gap: var(--byiara-space-xs);
   min-height: 2.875rem;
   min-width: 2.875rem;
