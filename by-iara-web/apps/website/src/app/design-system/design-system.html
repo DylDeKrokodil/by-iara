@@ -9,13 +9,9 @@
         decisions that keep the brand scalable as the site and admin tools grow.
       </p>
       <div class="guide-actions" aria-label="Primary style guide actions">
-        <button class="button button-primary" type="button">
-          Book a session
-        </button>
-        <button class="button button-open" type="button">Open details</button>
-        <button class="button button-secondary" type="button">
-          View services
-        </button>
+        <byiara-button variant="primary">Book a session</byiara-button>
+        <byiara-button variant="open">Open details</byiara-button>
+        <byiara-button variant="secondary">View services</byiara-button>
       </div>
     </div>
 
@@ -108,24 +104,25 @@
   <section class="guide-section">
     <div class="section-heading">
       <p class="guide-kicker">Buttons</p>
-      <h2>Primary, secondary, open, loading, disabled</h2>
+      <h2>Primary, secondary, open, ghost, danger</h2>
       <p>
-        All buttons keep native semantics, visible focus, a stable 44px minimum
-        target, and states that change color without shifting layout.
+        <code>byiara-button</code> renders a native button, or an anchor when
+        <code>href</code>/<code>routerLink</code> is set. All variants keep
+        native semantics, visible focus, a stable 44px minimum target, and
+        states that change color without shifting layout.
       </p>
     </div>
 
     <div class="button-matrix">
       @for (button of buttonExamples; track button.label) {
       <article class="button-row">
-        <button
-          [class]="button.className"
-          type="button"
-          [disabled]="button.disabled"
-          [attr.aria-busy]="button.ariaBusy ? 'true' : null"
+        <byiara-button
+          [variant]="button.variant"
+          [disabled]="!!button.disabled"
+          [loading]="!!button.loading"
         >
           {{ button.label }}
-        </button>
+        </byiara-button>
         <span>{{ button.note }}</span>
       </article>
       }

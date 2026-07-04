@@ -1,0 +1,32 @@
+:host {
+  display: inline-flex;
+}
+
+.spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--byiara-color-border);
+  border-top-color: var(--byiara-color-primary);
+  border-radius: 50%;
+  animation: byiara-spin 0.8s linear infinite;
+}
+
+.spinner-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes byiara-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

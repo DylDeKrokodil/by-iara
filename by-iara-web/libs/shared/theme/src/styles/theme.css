@@ -176,6 +176,9 @@
   --byiara-radius-lg: 0.75rem;
   --byiara-radius-pill: 999px;
 
+  --byiara-size-icon-button-sm: 2rem;
+  --byiara-size-icon-button-md: 2.375rem;
+
   --byiara-shadow-sm: 0 1px 2px
     color-mix(in srgb, var(--byiara-color-plum-950) 10%, transparent);
   --byiara-shadow-md: 0 8px 8px

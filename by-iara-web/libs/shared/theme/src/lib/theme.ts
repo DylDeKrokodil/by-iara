@@ -73,6 +73,10 @@ export const themeTokens = {
     lg: 'var(--byiara-radius-lg)',
     pill: 'var(--byiara-radius-pill)',
   },
+  size: {
+    iconButtonSm: 'var(--byiara-size-icon-button-sm)',
+    iconButtonMd: 'var(--byiara-size-icon-button-md)',
+  },
   shadow: {
     sm: 'var(--byiara-shadow-sm)',
     md: 'var(--byiara-shadow-md)',

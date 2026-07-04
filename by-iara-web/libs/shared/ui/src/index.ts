@@ -11,3 +11,5 @@ export * from './lib/tabs/tabs';
 export * from './lib/confirmation-modal/confirmation-modal';
 export * from './lib/toast/toast.service';
 export * from './lib/toast/toast-container/toast-container.component';
+export * from './lib/spinner/spinner';
+export * from './lib/button/button';

@@ -112,14 +112,27 @@ Every reusable component should support:
 
 Component rules:
 
-- **Primary button:** accessible rose `#c04d68` fill with white label.
-- **Primary hover:** darker rose action fill with white label.
-- **Open button:** transparent disclosure control with rose text and a down
-  chevron; soft rose tint only on hover.
-- **Secondary button:** transparent or white surface with a visible boundary.
-- **Disabled state:** true disabled attribute, `not-allowed` cursor, and reduced
-  opacity.
-- **Loading state:** disabled during async work and shows a spinner/progress cue.
+- **Buttons:** `byiara-button` (`libs/shared/ui`) is the only button
+  implementation for both apps. Renders a native `<button>`, or an `<a>` when
+  `href`/`routerLink` is set — `(click)` on the host works either way, no
+  output needed.
+  - **Primary:** accessible rose `#c04d68` fill with white label; darker rose
+    fill on hover.
+  - **Secondary:** white surface with a visible boundary; rose tint on hover.
+  - **Open:** transparent disclosure control with rose text and a down
+    chevron; soft rose tint only on hover.
+  - **Ghost:** transparent, danger-colored text for low-emphasis destructive
+    actions; faint danger tint on hover.
+  - **Danger:** filled danger color with white label, for high-emphasis
+    destructive actions.
+  - **Sizes:** `md` (default, 44px+ target) and `sm` (compact rows); `iconOnly`
+    switches to a square footprint sized from `--byiara-size-icon-button-*`.
+  - **Disabled state:** true `disabled` attribute (or `aria-disabled` +
+    `pointer-events: none` on the link form), `not-allowed` cursor, and reduced
+    opacity.
+  - **Loading state:** disabled during async work; composes `byiara-spinner`
+    next to the label rather than replacing it (label text should already
+    reflect the loading state, e.g. "Saving...").
 - **Inputs:** visible label, quiet white surface, mauve border, plum focus,
   helper/error text near the field, and disabled/readonly states.
 - **Native inputs:** document text, email, password, tel, URL, search, textarea,

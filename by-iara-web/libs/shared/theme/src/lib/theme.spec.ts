@@ -37,4 +37,13 @@ describe('theme', () => {
     expect(themeTokens.zIndex.dropdown).toBe('var(--byiara-z-index-dropdown)');
     expect(themeTokens.zIndex.toast).toBe('var(--byiara-z-index-toast)');
   });
+
+  it('exposes icon button sizing tokens', () => {
+    expect(themeTokens.size.iconButtonSm).toBe(
+      'var(--byiara-size-icon-button-sm)',
+    );
+    expect(themeTokens.size.iconButtonMd).toBe(
+      'var(--byiara-size-icon-button-md)',
+    );
+  });
 });

@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Button, ButtonVariant } from '@by-iara/shared-ui';
 
 interface Swatch {
   readonly name: string;
@@ -24,14 +25,15 @@ interface Rule {
 
 interface ButtonExample {
   readonly label: string;
-  readonly className: string;
+  readonly variant: ButtonVariant;
   readonly note: string;
   readonly disabled?: boolean;
-  readonly ariaBusy?: boolean;
+  readonly loading?: boolean;
 }
 
 @Component({
   selector: 'byiara-design-system',
+  imports: [Button],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
 })
@@ -163,29 +165,38 @@ export class DesignSystem {
   protected readonly buttonExamples: readonly ButtonExample[] = [
     {
       label: 'Book a session',
-      className: 'button button-primary',
+      variant: 'primary',
       note: 'Primary action',
     },
     {
       label: 'View services',
-      className: 'button button-secondary',
+      variant: 'secondary',
       note: 'Secondary action',
     },
     {
       label: 'Open details',
-      className: 'button button-open',
+      variant: 'open',
       note: 'Open or expand',
     },
     {
+      label: 'Remove account',
+      variant: 'ghost',
+      note: 'Low-emphasis destructive',
+    },
+    {
+      label: 'Delete service',
+      variant: 'danger',
+      note: 'High-emphasis destructive',
+    },
+    {
       label: 'Saving...',
-      className: 'button button-primary is-loading',
+      variant: 'primary',
       note: 'Loading',
-      disabled: true,
-      ariaBusy: true,
+      loading: true,
     },
     {
       label: 'Unavailable',
-      className: 'button button-primary',
+      variant: 'primary',
       note: 'Disabled',
       disabled: true,
     },
