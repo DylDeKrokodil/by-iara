@@ -1,6 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+
+// The catalog/slots are computed in the business timezone, so display them there
+// too, regardless of the visitor's browser timezone.
+export const BUSINESS_TIMEZONE = 'Europe/Brussels';
 
 export interface CreateReservationPayload {
   serviceId: string;
@@ -46,5 +50,16 @@ export class BookingApi {
     payload: CreateReservationPayload,
   ): Observable<ReservationConfirmation> {
     return this.http.post<ReservationConfirmation>('/api/reservations', payload);
+  }
+
+  /**
+   * Earliest bookable slot from now on (ISO offset date-time), falling back to
+   * the next open day when today has nothing left. Null only if nothing is
+   * bookable in the search window at all.
+   */
+  nextAvailable(): Observable<string | null> {
+    return this.http
+      .get<{ startsAt: string | null }>('/api/reservations/next-available')
+      .pipe(map((response) => response.startsAt));
   }
 }

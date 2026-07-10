@@ -9,7 +9,7 @@ export default defineConfig(() => ({
   cacheDir: '../../../node_modules/.vite/libs/shared/ui',
   plugins: [
     angular({
-      tsconfig: 'tsconfig.lib.json',
+      tsconfig: 'tsconfig.spec.json',
     }),
     nxViteTsPaths(),
     nxCopyAssetsPlugin(['*.md']),

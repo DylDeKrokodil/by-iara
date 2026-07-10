@@ -1,0 +1,25 @@
+meta {
+  name: Next Available
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/reservations/next-available
+  body: none
+  auth: none
+}
+
+docs {
+  Earliest bookable slot from today onward, for the shortest active catalog
+  offering. Falls back to the next open day when today has nothing left.
+  Used by the marketing site's homepage teaser. `startsAt` is null only when
+  nothing is bookable in the search window at all.
+}
+
+tests {
+  test("returns 200 with a startsAt field", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body).to.have.property("startsAt");
+  });
+}

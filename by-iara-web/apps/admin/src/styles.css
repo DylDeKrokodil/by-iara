@@ -2,15 +2,15 @@ body {
   min-width: 20rem;
 }
 
-/* Global Buttons System */
-.button-primary,
-.button-secondary,
-.button-ghost,
-.button-danger {
+/* Bespoke calendar-toolbar buttons (apps/admin/src/app/reservations) --
+   the only other .button-* usage is byiara-button, which owns this look. */
+.button-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.375rem;
+  gap: var(--byiara-space-xs);
+  min-height: 2.75rem;
+  min-width: 2.75rem;
   padding: 0 var(--byiara-space-md);
   border-radius: var(--byiara-radius-md);
   font-weight: var(--byiara-font-weight-semibold);
@@ -23,21 +23,6 @@ body {
     box-shadow var(--byiara-duration-fast) var(--byiara-ease-out),
     color var(--byiara-duration-fast) var(--byiara-ease-out),
     transform var(--byiara-duration-fast) var(--byiara-ease-out);
-}
-
-.button-primary {
-  border: 0;
-  background: var(--byiara-color-primary);
-  color: var(--byiara-color-on-primary);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-primary) 12%, transparent);
-}
-
-.button-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.button-secondary {
   border: 1px solid var(--byiara-color-border);
   background: var(--byiara-color-white);
   color: var(--byiara-color-text);
@@ -49,55 +34,15 @@ body {
   cursor: not-allowed;
 }
 
-.button-ghost {
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--byiara-color-danger);
-}
-
-.button-ghost:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.button-primary:active:not(:disabled),
-.button-secondary:active:not(:disabled),
-.button-ghost:active:not(:disabled),
-.button-danger:active:not(:disabled) {
+.button-secondary:active:not(:disabled) {
   transform: scale(0.97);
 }
 
-.button-danger {
-  border: 0;
-  background: var(--byiara-color-danger);
-  color: var(--byiara-color-white);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-danger) 12%, transparent);
-}
-
-.button-danger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .button-primary:hover:not(:disabled) {
-    background: var(--byiara-color-primary-hover);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
-  }
-
   .button-secondary:hover:not(:disabled) {
     background: var(--byiara-color-surface-tinted);
     border-color: var(--byiara-color-primary);
     color: var(--byiara-color-primary-strong);
     box-shadow: var(--byiara-shadow-sm);
-  }
-
-  .button-ghost:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--byiara-color-danger) 6%, transparent);
-  }
-
-  .button-danger:hover:not(:disabled) {
-    background: var(--byiara-color-danger-hover);
-    box-shadow: 0 4px 8px color-mix(in srgb, var(--byiara-color-danger) 16%, transparent);
   }
 }

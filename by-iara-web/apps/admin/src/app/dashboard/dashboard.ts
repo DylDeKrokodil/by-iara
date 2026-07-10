@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { Button, Card, PageHeader } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-dashboard',
-  imports: [],
+  imports: [Button, Card, PageHeader],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

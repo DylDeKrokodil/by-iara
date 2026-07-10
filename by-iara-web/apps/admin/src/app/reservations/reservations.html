@@ -1,12 +1,7 @@
-<div class="page-header">
-  <div>
-    <p class="eyebrow">Schedule</p>
-    <h1>Reservations</h1>
-  </div>
-</div>
+<byiara-page-header eyebrow="Schedule" title="Reservations"></byiara-page-header>
 
 @if (error()) {
-<p class="alert" role="alert">{{ error() }}</p>
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
 }
 
 <byiara-tabs
@@ -19,42 +14,50 @@
 @if (activeView() === 'overview') {
 <div class="overview-layout" role="tabpanel" aria-label="Overview reservations">
   <section class="summary-grid" aria-label="Reservation summary">
-    <article class="summary-card priority">
-      <span class="summary-label">Needs action</span>
-      <strong>{{ pendingTotal() }}</strong>
-      <span class="summary-detail"
-        >pending request{{ pendingTotal() === 1 ? '' : 's' }}</span
-      >
-    </article>
+    <byiara-card padding="md">
+      <div class="summary-card priority">
+        <span class="summary-label">Needs action</span>
+        <strong>{{ pendingTotal() }}</strong>
+        <span class="summary-detail"
+          >pending request{{ pendingTotal() === 1 ? '' : 's' }}</span
+        >
+      </div>
+    </byiara-card>
 
-    <article class="summary-card">
-      <span class="summary-label">Next reservation</span>
-      @if (nextReservation(); as next) {
-      <strong>{{ formatTime(next.startsAt) }}</strong>
-      <span class="summary-detail"
-        >{{ formatSummaryDate(next.startsAt) }} · {{ next.customer.name }}</span
-      >
-      } @else {
-      <strong>None</strong>
-      <span class="summary-detail">No upcoming bookings</span>
-      }
-    </article>
+    <byiara-card padding="md">
+      <div class="summary-card">
+        <span class="summary-label">Next reservation</span>
+        @if (nextReservation(); as next) {
+        <strong>{{ formatTime(next.startsAt) }}</strong>
+        <span class="summary-detail"
+          >{{ formatSummaryDate(next.startsAt) }} · {{ next.customer.name }}</span
+        >
+        } @else {
+        <strong>None</strong>
+        <span class="summary-detail">No upcoming bookings</span>
+        }
+      </div>
+    </byiara-card>
 
-    <article class="summary-card">
-      <span class="summary-label">This week</span>
-      <strong>{{ thisWeekTotal() }}</strong>
-      <span class="summary-detail"
-        >confirmed appointment{{ thisWeekTotal() === 1 ? '' : 's' }}</span
-      >
-    </article>
+    <byiara-card padding="md">
+      <div class="summary-card">
+        <span class="summary-label">This week</span>
+        <strong>{{ thisWeekTotal() }}</strong>
+        <span class="summary-detail"
+          >confirmed appointment{{ thisWeekTotal() === 1 ? '' : 's' }}</span
+        >
+      </div>
+    </byiara-card>
 
-    <article class="summary-card">
-      <span class="summary-label">History</span>
-      <strong>{{ closedTotal() }}</strong>
-      <span class="summary-detail"
-        >closed or past reservation{{ closedTotal() === 1 ? '' : 's' }}</span
-      >
-    </article>
+    <byiara-card padding="md">
+      <div class="summary-card">
+        <span class="summary-label">History</span>
+        <strong>{{ closedTotal() }}</strong>
+        <span class="summary-detail"
+          >closed or past reservation{{ closedTotal() === 1 ? '' : 's' }}</span
+        >
+      </div>
+    </byiara-card>
   </section>
 
   <section class="overview-section" aria-labelledby="pending-reservations">
@@ -66,63 +69,58 @@
     </div>
 
     @if (loadingPending()) {
-    <div class="empty loading-state">
-      <p>Loading pending requests...</p>
-    </div>
+    <byiara-empty-state title="Loading pending requests..." [dashed]="false" compact></byiara-empty-state>
     } @else if (pending().length === 0) {
-    <div class="empty compact-empty">
-      <p>No pending requests</p>
-    </div>
+    <byiara-empty-state title="No pending requests" compact></byiara-empty-state>
     } @else {
     <div class="request-list">
       @for (reservation of pending(); track reservation.id) {
-      <article class="request-card">
-        <div class="request-main">
-          <div>
-            <h3>{{ reservation.customer.name }}</h3>
-            <p>
-              {{ serviceLabel(reservation) }} · {{
-              formatMoney(reservation.price) }}
-            </p>
+      <byiara-card padding="md">
+        <div class="request-card">
+          <div class="request-main">
+            <div>
+              <h3>{{ reservation.customer.name }}</h3>
+              <p>
+                {{ serviceLabel(reservation) }} · {{
+                formatMoney(reservation.price) }}
+              </p>
+            </div>
+            <byiara-status-chip
+              [label]="statusLabel(reservation.status)"
+              [tone]="statusTone(reservation.status)"
+            ></byiara-status-chip>
           </div>
-          <byiara-status-chip
-            [label]="statusLabel(reservation.status)"
-            [tone]="statusTone(reservation.status)"
-          ></byiara-status-chip>
-        </div>
 
-        <div class="reservation-meta">
-          <span>{{ formatDateTime(reservation.startsAt) }}</span>
-          <span>{{ reservation.customer.email }}</span>
-          @if (reservation.customer.phone) {
-          <span>{{ reservation.customer.phone }}</span>
+          <div class="reservation-meta">
+            <span>{{ formatDateTime(reservation.startsAt) }}</span>
+            <span>{{ reservation.customer.email }}</span>
+            @if (reservation.customer.phone) {
+            <span>{{ reservation.customer.phone }}</span>
+            }
+          </div>
+
+          @if (reservation.notes) {
+          <p class="notes">{{ reservation.notes }}</p>
           }
-        </div>
 
-        @if (reservation.notes) {
-        <p class="notes">{{ reservation.notes }}</p>
-        }
-
-        <div class="actions-wrapper">
-          <button
-            type="button"
-            class="button-primary"
-            [disabled]="isActionInProgress(reservation)"
-            [attr.aria-busy]="isActionInProgress(reservation)"
-            (click)="accept(reservation)"
-          >
-            {{ isActionInProgress(reservation) ? 'Accepting...' : 'Accept' }}
-          </button>
-          <button
-            type="button"
-            class="button-secondary"
-            [disabled]="isActionInProgress(reservation)"
-            (click)="decline(reservation)"
-          >
-            Decline
-          </button>
+          <div class="actions-wrapper">
+            <byiara-button
+              variant="primary"
+              [loading]="isActionInProgress(reservation)"
+              (click)="accept(reservation)"
+            >
+              {{ isActionInProgress(reservation) ? 'Accepting...' : 'Accept' }}
+            </byiara-button>
+            <byiara-button
+              variant="secondary"
+              [disabled]="isActionInProgress(reservation)"
+              (click)="decline(reservation)"
+            >
+              Decline
+            </byiara-button>
+          </div>
         </div>
-      </article>
+      </byiara-card>
       }
     </div>
     }
@@ -232,22 +230,22 @@
           </div>
         </div>
 
-        <div class="selected-day-card" aria-live="polite">
-          <span class="summary-label">Selected date</span>
-          <strong>{{ selectedDayReservations().length }}</strong>
-          <span class="muted"
-            >confirmed booking{{ selectedDayReservations().length === 1 ? '' :
-            's' }}</span
-          >
-        </div>
+        <byiara-card padding="md" variant="muted">
+          <div class="selected-day-card" aria-live="polite">
+            <span class="summary-label">Selected date</span>
+            <strong>{{ selectedDayReservations().length }}</strong>
+            <span class="muted"
+              >confirmed booking{{ selectedDayReservations().length === 1 ? '' :
+              's' }}</span
+            >
+          </div>
+        </byiara-card>
       </aside>
       }
 
       <div class="agenda-list" aria-live="polite">
         @if (loadingCalendar()) {
-        <div class="empty loading-state">
-          <p>Loading confirmed reservations...</p>
-        </div>
+        <byiara-empty-state title="Loading confirmed reservations..." [dashed]="false" compact></byiara-empty-state>
         } @else {
           @if (calendarView() === 'day') {
             <section class="agenda-day is-selected" aria-label="Day view agenda">
@@ -260,36 +258,36 @@
               </div>
 
               @if (selectedDayReservations().length === 0) {
-                <div class="empty compact-empty">
-                  <p>No confirmed reservations for this day</p>
-                </div>
+                <byiara-empty-state title="No confirmed reservations for this day" compact></byiara-empty-state>
               } @else {
                 <div class="agenda-items">
                   @for (reservation of selectedDayReservations(); track reservation.id) {
-                  <article class="agenda-item">
-                    <div class="agenda-time">
-                      <time [attr.datetime]="reservation.startsAt">
-                        {{ formatTime(reservation.startsAt) }}
-                      </time>
-                      <span class="muted">{{ formatTime(reservation.endsAt) }}</span>
-                    </div>
+                  <byiara-card padding="sm">
+                    <div class="agenda-item">
+                      <div class="agenda-time">
+                        <time [attr.datetime]="reservation.startsAt">
+                          {{ formatTime(reservation.startsAt) }}
+                        </time>
+                        <span class="muted">{{ formatTime(reservation.endsAt) }}</span>
+                      </div>
 
-                    <div class="agenda-details">
-                      <strong>{{ reservation.customer.name }}</strong>
-                      @if (reservation.customer.phone) {
-                      <span>{{ reservation.customer.phone }}</span>
-                      }
-                      <span
-                        >{{ serviceLabel(reservation) }} · {{
-                        formatMoney(reservation.price) }}</span
-                      >
-                    </div>
+                      <div class="agenda-details">
+                        <strong>{{ reservation.customer.name }}</strong>
+                        @if (reservation.customer.phone) {
+                        <span>{{ reservation.customer.phone }}</span>
+                        }
+                        <span
+                          >{{ serviceLabel(reservation) }} · {{
+                          formatMoney(reservation.price) }}</span
+                        >
+                      </div>
 
-                    <byiara-status-chip
-                      [label]="statusLabel(reservation.status)"
-                      [tone]="statusTone(reservation.status)"
-                    ></byiara-status-chip>
-                  </article>
+                      <byiara-status-chip
+                        [label]="statusLabel(reservation.status)"
+                        [tone]="statusTone(reservation.status)"
+                      ></byiara-status-chip>
+                    </div>
+                  </byiara-card>
                   }
                 </div>
               }
@@ -418,9 +416,7 @@
   </div>
 
   @if (!loadingHistory() && history().length === 0) {
-  <div class="empty">
-    <p>No reservation history</p>
-  </div>
+  <byiara-empty-state title="No reservation history"></byiara-empty-state>
   } @else {
   <byiara-data-table
     ariaLabel="Reservation history"
@@ -464,22 +460,20 @@
   <div class="pagination" aria-label="Reservation history pagination">
     <span> Page {{ historyPage() + 1 }} of {{ totalHistoryPages() }} </span>
     <div class="pagination-actions">
-      <button
-        type="button"
-        class="button-secondary"
+      <byiara-button
+        variant="secondary"
         [disabled]="!canGoToPreviousHistoryPage()"
         (click)="previousHistoryPage()"
       >
         Previous
-      </button>
-      <button
-        type="button"
-        class="button-secondary"
+      </byiara-button>
+      <byiara-button
+        variant="secondary"
         [disabled]="!canGoToNextHistoryPage()"
         (click)="nextHistoryPage()"
       >
         Next
-      </button>
+      </byiara-button>
     </div>
   </div>
   }

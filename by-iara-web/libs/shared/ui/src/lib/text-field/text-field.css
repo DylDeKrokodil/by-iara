@@ -35,6 +35,16 @@
   outline-offset: 1px;
 }
 
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
+  border-color: var(--byiara-color-danger);
+}
+
+.field input[aria-invalid='true']:focus,
+.field textarea[aria-invalid='true']:focus {
+  outline-color: var(--byiara-color-danger);
+}
+
 .field-error {
   margin: 0;
   color: var(--byiara-color-danger);

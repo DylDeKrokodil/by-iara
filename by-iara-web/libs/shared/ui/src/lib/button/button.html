@@ -1,0 +1,45 @@
+<ng-template #content>
+  @if (loading()) {
+    <byiara-spinner size="sm" />
+  }
+  <ng-content></ng-content>
+</ng-template>
+
+@if (routerLink() !== null) {
+  <a
+    [class]="classes()"
+    [class.is-disabled]="disabled()"
+    [routerLink]="routerLink()"
+    [attr.aria-label]="ariaLabel()"
+    [attr.title]="ariaLabel()"
+    [attr.aria-disabled]="disabled() ? 'true' : null"
+    [attr.aria-busy]="loading() ? 'true' : null"
+    [tabIndex]="disabled() ? -1 : 0"
+  >
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </a>
+} @else if (href() !== null) {
+  <a
+    [class]="classes()"
+    [class.is-disabled]="disabled()"
+    [href]="href()"
+    [attr.aria-label]="ariaLabel()"
+    [attr.title]="ariaLabel()"
+    [attr.aria-disabled]="disabled() ? 'true' : null"
+    [attr.aria-busy]="loading() ? 'true' : null"
+    [tabIndex]="disabled() ? -1 : 0"
+  >
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </a>
+} @else {
+  <button
+    [class]="classes()"
+    [type]="type()"
+    [disabled]="disabled() || loading()"
+    [attr.aria-label]="ariaLabel()"
+    [attr.title]="ariaLabel()"
+    [attr.aria-busy]="loading() ? 'true' : null"
+  >
+    <ng-container *ngTemplateOutlet="content"></ng-container>
+  </button>
+}

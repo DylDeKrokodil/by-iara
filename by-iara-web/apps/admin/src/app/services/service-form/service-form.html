@@ -1,18 +1,14 @@
-<div class="page-header">
-  <div>
-    <p class="eyebrow">Catalogue</p>
-    <h1>{{ editing ? 'Edit service' : 'New service' }}</h1>
-  </div>
-  <a class="button-secondary" routerLink="/services">
+<byiara-page-header eyebrow="Catalogue" [title]="editing ? 'Edit service' : 'New service'">
+  <byiara-button page-header-action variant="secondary" routerLink="/services">
     <svg class="btn-icon-left" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
       <path d="m15 18-6-6 6-6"/>
     </svg>
     Back to services
-  </a>
-</div>
+  </byiara-button>
+</byiara-page-header>
 
 @if (error()) {
-  <p class="alert" role="alert">{{ error() }}</p>
+  <byiara-alert tone="danger">{{ error() }}</byiara-alert>
 }
 
 <form class="service-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -32,85 +28,51 @@
         @if (activeLanguageTab() === 'ptPT') {
           <fieldset class="locale-panel" formGroupName="ptPT">
             <legend>Portuguese content</legend>
-            <div class="form-group">
-              <label class="field">
-                <span>Service name</span>
-                <input
-                  type="text"
-                  formControlName="name"
-                  placeholder="ex. Massagem de tecidos profundos"
-                  [class.is-invalid]="translationNameInvalid('ptPT')"
-                />
-              </label>
-              @if (translationNameInvalid('ptPT')) {
-                <span class="error-message">Portuguese service name is required</span>
-              }
-            </div>
-            <div class="form-group">
-              <label class="field">
-                <span>Description</span>
-                <textarea
-                  formControlName="description"
-                  rows="3"
-                  placeholder="Descreva o tratamento em português..."
-                ></textarea>
-              </label>
-            </div>
+            <byiara-text-field
+              label="Service name"
+              formControlName="name"
+              [error]="translationNameInvalid('ptPT') ? 'Portuguese service name is required' : null"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Description"
+              multiline
+              [rows]="3"
+              formControlName="description"
+            ></byiara-text-field>
           </fieldset>
         }
 
         @if (activeLanguageTab() === 'enUS') {
           <fieldset class="locale-panel" formGroupName="enUS">
             <legend>English content</legend>
-            <div class="form-group">
-              <label class="field">
-                <span>Service name</span>
-                <input
-                  type="text"
-                  formControlName="name"
-                  placeholder="e.g. Deep Tissue Massage"
-                  [class.is-invalid]="translationNameInvalid('enUS')"
-                />
-              </label>
-              @if (translationNameInvalid('enUS')) {
-                <span class="error-message">English service name is required</span>
-              }
-            </div>
-            <div class="form-group">
-              <label class="field">
-                <span>Description</span>
-                <textarea
-                  formControlName="description"
-                  rows="3"
-                  placeholder="Describe what makes this service unique..."
-                ></textarea>
-              </label>
-            </div>
+            <byiara-text-field
+              label="Service name"
+              formControlName="name"
+              [error]="translationNameInvalid('enUS') ? 'English service name is required' : null"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Description"
+              multiline
+              [rows]="3"
+              formControlName="description"
+            ></byiara-text-field>
           </fieldset>
         }
       </div>
 
-      <div class="form-group toggle-group">
-        <div class="toggle-container">
-          <span class="toggle-label">Active Visibility</span>
-          <span class="toggle-description">Visible in the public catalogue for booking</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" formControlName="active" />
-          <span class="slider"></span>
-        </label>
-      </div>
+      <byiara-switch
+        labelPosition="stacked"
+        label="Active Visibility"
+        description="Visible in the public catalogue for booking"
+        formControlName="active"
+      ></byiara-switch>
 
-      <div class="form-group toggle-group">
-        <div class="toggle-container">
-          <span class="toggle-label">Featured Service</span>
-          <span class="toggle-description">Highlight this service on the public homepage</span>
-        </div>
-        <label class="switch">
-          <input type="checkbox" formControlName="featured" />
-          <span class="slider"></span>
-        </label>
-      </div>
+      <byiara-switch
+        labelPosition="stacked"
+        label="Featured Service"
+        description="Highlight this service on the public homepage"
+        formControlName="featured"
+      ></byiara-switch>
     </div>
 
     <hr class="section-divider" />
@@ -124,7 +86,7 @@
         @for (variant of variants.controls; track variant) {
           <div class="variant-card" [formGroupName]="$index">
             <div class="variant-fields">
-              
+
               <!-- Duration -->
               <div class="form-group compact">
                 <label class="field">
@@ -157,49 +119,45 @@
 
               <!-- Inline Switch -->
               <div class="form-group compact toggle-only">
-                <label class="switch-inline">
-                  <input type="checkbox" formControlName="active" />
-                  <span class="slider"></span>
-                  <span class="switch-text">Active</span>
-                </label>
+                <byiara-switch labelPosition="inline" label="Active" formControlName="active"></byiara-switch>
               </div>
 
             </div>
 
             <!-- Trash bin action -->
-            <button
-              type="button"
-              class="button-icon-danger"
+            <byiara-button
+              variant="ghost"
+              iconOnly
               [disabled]="variants.length === 1"
               (click)="removeVariant($index)"
-              title="Remove duration option"
+              ariaLabel="Remove duration option"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 6h18"/>
                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
               </svg>
-            </button>
+            </byiara-button>
           </div>
         }
       </div>
 
       <!-- Add Duration Button -->
-      <button type="button" class="button-secondary add-duration-btn" (click)="addVariant()">
+      <byiara-button variant="secondary" (click)="addVariant()">
         <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
         Add duration option
-      </button>
+      </byiara-button>
     </fieldset>
 
     <!-- Form Footer Actions -->
     <div class="form-actions-bar">
-      <button type="submit" class="button-primary" [disabled]="submitting()">
+      <byiara-button type="submit" variant="primary" [loading]="submitting()">
         {{ submitting() ? 'Saving…' : 'Save service' }}
-      </button>
-      <a class="button-secondary" routerLink="/services">Cancel</a>
+      </byiara-button>
+      <byiara-button variant="secondary" routerLink="/services">Cancel</byiara-button>
     </div>
 
   </div>

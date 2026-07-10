@@ -8,9 +8,14 @@ import {
   signal,
 } from '@angular/core';
 import {
+  Alert,
+  Button,
+  Card,
   ConfirmationModal,
   DataTable,
   DataTableColumn,
+  EmptyState,
+  PageHeader,
   SelectField,
   SelectFieldOption,
   StatusChip,
@@ -98,7 +103,18 @@ function isHistoryFilter(value: string): value is HistoryFilter {
 
 @Component({
   selector: 'byiara-reservations',
-  imports: [ConfirmationModal, DataTable, SelectField, StatusChip, Tabs],
+  imports: [
+    Alert,
+    Button,
+    Card,
+    ConfirmationModal,
+    DataTable,
+    EmptyState,
+    PageHeader,
+    SelectField,
+    StatusChip,
+    Tabs,
+  ],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css',
 })

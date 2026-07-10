@@ -43,6 +43,10 @@ class ReservationController(
             ),
         )
 
+    @GetMapping("/next-available")
+    fun getNextAvailable(): NextAvailableSlotResponse =
+        NextAvailableSlotResponse(startsAt = reservationService.findNextAvailableSlot())
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: CreateReservationRequest): ReservationResponse =

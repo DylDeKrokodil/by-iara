@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-lg);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--byiara-color-primary-strong);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: var(--byiara-space-2xs) 0 0;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-3xl);
+  line-height: var(--byiara-line-height-title);
+}
+
+@media (max-width: 48rem) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,10 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Button } from '@by-iara/shared-ui';
 import { LanguageService } from '../i18n/language.service';
+import { NextAvailableBadge } from './next-available-badge/next-available-badge';
 
 @Component({
   selector: 'byiara-home',
-  imports: [RouterLink],
+  imports: [Button, NextAvailableBadge],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

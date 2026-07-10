@@ -4,6 +4,7 @@ import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -276,6 +277,55 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `next available returns the earliest open slot today when today is open`() {
+        seedWideOpenRuleForToday()
+
+        mockMvc.perform(get("/api/reservations/next-available"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startsAt").exists())
+    }
+
+    @Test
+    fun `next available excludes a slot once it is booked`() {
+        seedWideOpenRuleForToday()
+
+        val first = nextAvailable()
+        book(first, email = "today@example.com").andExpect(status().isCreated)
+        val second = nextAvailable()
+
+        assertTrue(second.isAfter(first), "expected $second to be after $first")
+    }
+
+    @Test
+    fun `next available falls back to a future day when today has no rule`() {
+        // resetSchema() seeds a rule for slotStart's weekday, which is 7 days out
+        // and therefore today's weekday too. Clear it so today is genuinely closed.
+        dsl.execute("delete from availability_rules")
+
+        val today = OffsetDateTime.now(zone)
+        val futureDay = today.plusDays(2)
+        dsl.execute(
+            "insert into availability_rules (day_of_week, start_time, end_time) values (${futureDay.dayOfWeek.value}, '09:00:00', '17:00:00')",
+        )
+
+        val next = nextAvailable()
+
+        assertTrue(
+            next.atZoneSameInstant(zone).toLocalDate().isAfter(today.atZoneSameInstant(zone).toLocalDate()),
+            "expected a future date, got $next",
+        )
+    }
+
+    @Test
+    fun `next available is null when there is no rule in the search window`() {
+        dsl.execute("delete from availability_rules")
+
+        mockMvc.perform(get("/api/reservations/next-available"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startsAt").doesNotExist())
+    }
+
+    @Test
     fun `unknown service is rejected`() {
         val body = bookingBody(slotStart).replace(serviceId, "99999999-9999-9999-9999-999999999999")
         mockMvc.perform(post("/api/reservations").contentType("application/json").content(body))
@@ -425,6 +475,24 @@ class ReservationApiTests {
     fun `admin reservation list requires authentication`() {
         mockMvc.perform(get("/api/admin/reservations"))
             .andExpect(status().isUnauthorized)
+    }
+
+    private fun seedWideOpenRuleForToday() {
+        val todayDayOfWeek = OffsetDateTime.now(zone).dayOfWeek.value
+        dsl.execute(
+            "insert into availability_rules (day_of_week, start_time, end_time) values ($todayDayOfWeek, '00:00:00', '23:45:00')",
+        )
+    }
+
+    private fun nextAvailable(): OffsetDateTime {
+        val json = mockMvc.perform(get("/api/reservations/next-available"))
+            .andExpect(status().isOk)
+            .andReturn()
+            .response
+            .contentAsString
+        val raw = Regex(""""startsAt":"([^"]+)"""").find(json)?.groupValues?.get(1)
+            ?: error("Expected a startsAt value but got: $json")
+        return OffsetDateTime.parse(raw)
     }
 
     private fun reservationIdFrom(result: MvcResult): String =
