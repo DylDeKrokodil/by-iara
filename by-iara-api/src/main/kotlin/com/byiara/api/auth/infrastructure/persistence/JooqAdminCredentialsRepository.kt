@@ -56,4 +56,11 @@ class JooqAdminCredentialsRepository(
                     role = AdminRole.valueOf(record.get(role)),
                 )
             }
+
+    override fun findActiveEmails(): List<String> =
+        dsl
+            .select(emailField)
+            .from(adminUsers)
+            .where(active.isTrue)
+            .fetch(emailField)
 }

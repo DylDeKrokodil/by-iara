@@ -4,10 +4,12 @@ import com.byiara.api.reservation.application.ReservationPage
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationLocale
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -28,6 +30,11 @@ data class CreateReservationRequest(
 
     @field:Size(max = 1000)
     val notes: String? = null,
+
+    // Which language (site was browsed in) the confirmation/rejection email should be sent in.
+    // Optional and defaults to English so older clients that don't send it still work.
+    @field:Pattern(regexp = "pt|en", message = "must be 'pt' or 'en'")
+    val locale: String? = null,
 ) {
     fun toCommand(): CreateReservationCommand =
         CreateReservationCommand(
@@ -36,6 +43,7 @@ data class CreateReservationRequest(
             startsAt = startsAt!!,
             customer = customer!!.toDetails(),
             notes = notes?.trim()?.ifBlank { null },
+            locale = locale?.let { ReservationLocale.fromCode(it) } ?: ReservationLocale.EN,
         )
 }
 

@@ -11,6 +11,7 @@ data class CreateReservationCommand(
     val startsAt: OffsetDateTime,
     val customer: CustomerDetails,
     val notes: String?,
+    val locale: ReservationLocale,
 )
 
 /** A customer-facing slot lookup for a selected catalog option. */

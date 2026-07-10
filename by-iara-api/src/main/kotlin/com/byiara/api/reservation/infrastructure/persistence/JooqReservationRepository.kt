@@ -6,6 +6,7 @@ import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.NewReservation
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationListQuery
+import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationRepository
 import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
@@ -40,6 +41,7 @@ class JooqReservationRepository(
     private val rEndsAt = field(name("ends_at"), OffsetDateTime::class.java)
     private val rStatus = field(name("status"), String::class.java)
     private val rNotes = field(name("notes"), String::class.java)
+    private val rLocale = field(name("locale"), String::class.java)
     private val rUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
 
     private val customers = table(name("customers"))
@@ -99,7 +101,7 @@ class JooqReservationRepository(
             .insertInto(reservations)
             .columns(
                 rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             )
             .values(
                 reservation.customerId,
@@ -113,6 +115,7 @@ class JooqReservationRepository(
                 reservation.endsAt,
                 ReservationStatus.PENDING.name,
                 reservation.notes,
+                reservation.locale.name.lowercase(),
             )
             .returning(rId)
             .fetchOne()!!
@@ -163,7 +166,7 @@ class JooqReservationRepository(
     private fun baseSelect() =
         dsl.select(
             rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             cName, cEmail, cPhone,
         )
             .from(reservations)
@@ -217,5 +220,6 @@ class JooqReservationRepository(
             endsAt = record.get(rEndsAt),
             status = ReservationStatus.valueOf(record.get(rStatus)),
             notes = record.get(rNotes),
+            locale = ReservationLocale.fromCode(record.get(rLocale)),
         )
 }
