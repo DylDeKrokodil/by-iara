@@ -3,6 +3,7 @@ package com.byiara.api.reservation.application
 import com.byiara.api.availability.application.AvailabilityService
 import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.notification.application.ReservationEmailService
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
@@ -26,6 +27,7 @@ class ReservationService(
     private val reservationRepository: ReservationRepository,
     private val serviceRepository: ServiceRepository,
     private val availabilityService: AvailabilityService,
+    private val reservationEmailService: ReservationEmailService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
@@ -43,7 +45,7 @@ class ReservationService(
 
         val customer = reservationRepository.findOrCreateCustomer(command.customer)
 
-        return reservationRepository.create(
+        val reservation = reservationRepository.create(
             NewReservation(
                 customerId = customer.id,
                 serviceId = service.id,
@@ -54,8 +56,11 @@ class ReservationService(
                 startsAt = command.startsAt,
                 endsAt = endsAt,
                 notes = command.notes,
+                locale = command.locale,
             ),
         )
+        reservationEmailService.notifyAdminsOfNewReservation(reservation)
+        return reservation
     }
 
     @Transactional(readOnly = true)
@@ -125,7 +130,9 @@ class ReservationService(
             throw IllegalReservationTransitionException(reservation.status, target)
         }
         reservationRepository.updateStatus(id, target)
-        return reservation.copy(status = target)
+        val updated = reservation.copy(status = target)
+        reservationEmailService.notifyCustomerOfDecision(updated)
+        return updated
     }
 
     private fun requireActiveService(serviceId: UUID) =
