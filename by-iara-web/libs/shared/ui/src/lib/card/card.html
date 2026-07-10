@@ -1,0 +1,8 @@
+<div
+  [class]="'card card-padding-' + padding() + ' card-' + variant()"
+  [class.is-interactive]="interactive()"
+>
+  <ng-content select="[card-header]"></ng-content>
+  <ng-content></ng-content>
+  <ng-content select="[card-footer]"></ng-content>
+</div>

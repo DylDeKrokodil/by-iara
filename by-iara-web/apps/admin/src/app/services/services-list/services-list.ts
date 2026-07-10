@@ -1,12 +1,15 @@
 import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { formatMoney, Service, ServiceVariant } from '../service.models';
 import {
+  Alert,
+  Button,
   ConfirmationModal,
   DataTable,
   DataTableColumn,
   DurationChip,
+  EmptyState,
+  PageHeader,
   SelectField,
   StatusChip,
   ToastService,
@@ -39,7 +42,10 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 @Component({
   selector: 'byiara-services-list',
   imports: [
-    RouterLink,
+    Alert,
+    Button,
+    EmptyState,
+    PageHeader,
     StatusChip,
     DurationChip,
     ConfirmationModal,

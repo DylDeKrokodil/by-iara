@@ -5,7 +5,9 @@ export interface WebsiteMessages {
     readonly nav: {
       readonly home: string;
       readonly services: string;
-      readonly book: string;
+      readonly bookCta: string;
+      readonly openMenu: string;
+      readonly closeMenu: string;
     };
     readonly footer: string;
   };
@@ -19,6 +21,9 @@ export interface WebsiteMessages {
     readonly primaryAction: string;
     readonly secondaryAction: string;
     readonly actionsLabel: string;
+    readonly today: string;
+    readonly nextAvailable: (day: string, time: string) => string;
+    readonly photoCredit: string;
   };
   readonly services: {
     readonly eyebrow: string;
@@ -86,7 +91,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Serviços',
-        book: 'Marcações',
+        bookCta: 'Marca agora',
+        openMenu: 'Abrir menu',
+        closeMenu: 'Fechar menu',
       },
       footer: '© 2026 By Iara. Todos os direitos reservados.',
     },
@@ -94,12 +101,15 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Escolher idioma',
     },
     home: {
-      location: 'Massagem terapêutica em Braga',
+      location: 'Massagem terapêutica em Almada',
       title: 'By Iara',
       lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar serviços',
       actionsLabel: 'Ações da página inicial',
+      today: 'hoje',
+      nextAvailable: (day, time) => `Vaga disponível ${day} às ${time}`,
+      photoCredit: 'Foto de Daniela, via Wikimedia Commons (CC BY 2.0)',
     },
     services: {
       eyebrow: 'O nosso menu',
@@ -168,7 +178,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Home',
         services: 'Services',
-        book: 'Booking',
+        bookCta: 'Book now',
+        openMenu: 'Open menu',
+        closeMenu: 'Close menu',
       },
       footer: '© 2026 By Iara. All rights reserved.',
     },
@@ -176,12 +188,15 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Choose language',
     },
     home: {
-      location: 'Therapeutic massage in Braga',
+      location: 'Therapeutic massage in Almada',
       title: 'By Iara',
       lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
       primaryAction: 'Book a session',
       secondaryAction: 'Explore services',
       actionsLabel: 'Home page actions',
+      today: 'today',
+      nextAvailable: (day, time) => `Open ${day} at ${time}`,
+      photoCredit: 'Photo by Daniela, via Wikimedia Commons (CC BY 2.0)',
     },
     services: {
       eyebrow: 'Our menu',

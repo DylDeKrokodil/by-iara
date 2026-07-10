@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { Alert, Button, Card, EmptyState, Spinner } from '@by-iara/shared-ui';
 import {
   ServicesApi,
   Service,
@@ -19,7 +20,7 @@ import { LanguageService } from '../i18n/language.service';
 
 @Component({
   selector: 'byiara-services-catalog',
-  imports: [],
+  imports: [Alert, Button, Card, EmptyState, Spinner],
   templateUrl: './services-catalog.html',
   styleUrl: './services-catalog.css',
 })

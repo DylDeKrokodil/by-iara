@@ -12,6 +12,7 @@ describe('DurationChip', () => {
 
     fixture = TestBed.createComponent(DurationChip);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('label', '30 min');
     await fixture.whenStable();
   });
 

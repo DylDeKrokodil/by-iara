@@ -7,10 +7,19 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import { Service, ServiceInput, ServiceLocale } from '../service.models';
-import { TabOption, Tabs, ToastService } from '@by-iara/shared-ui';
+import {
+  Alert,
+  Button,
+  PageHeader,
+  Switch,
+  TabOption,
+  Tabs,
+  TextField,
+  ToastService,
+} from '@by-iara/shared-ui';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 
@@ -25,7 +34,7 @@ function isTranslationFormKey(value: string): value is TranslationFormKey {
 
 @Component({
   selector: 'byiara-service-form',
-  imports: [ReactiveFormsModule, RouterLink, Tabs],
+  imports: [ReactiveFormsModule, Alert, Button, PageHeader, Switch, Tabs, TextField],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })

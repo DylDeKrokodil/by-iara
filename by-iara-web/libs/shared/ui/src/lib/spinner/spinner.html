@@ -1,0 +1,10 @@
+<span
+  class="spinner"
+  [class.spinner-sm]="size() === 'sm'"
+  role="status"
+  [attr.aria-hidden]="label() ? null : 'true'"
+>
+  @if (label()) {
+    <span class="sr-only">{{ label() }}</span>
+  }
+</span>

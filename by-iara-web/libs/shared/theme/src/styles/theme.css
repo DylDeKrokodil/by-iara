@@ -1,109 +1,142 @@
 @font-face {
-  font-family: 'Inter';
+  font-family: 'DM Sans';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 400;
   font-display: swap;
-  src: url('./fonts/inter-latin-wght-normal.woff2') format('woff2');
+  src: url('./fonts/dm-sans-latin-400.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: 'Fraunces';
+  font-family: 'DM Sans';
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 500;
   font-display: swap;
-  src: url('./fonts/fraunces-latin-wght-normal.woff2') format('woff2');
+  src: url('./fonts/dm-sans-latin-500.ttf') format('truetype');
 }
 
 @font-face {
-  font-family: 'Fraunces';
-  font-style: italic;
-  font-weight: 100 900;
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 600;
   font-display: swap;
-  src: url('./fonts/fraunces-latin-wght-italic.woff2') format('woff2');
+  src: url('./fonts/dm-sans-latin-600.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/dm-sans-latin-700.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/playfair-display-latin-400.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/playfair-display-latin-600.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/playfair-display-latin-700.ttf') format('truetype');
 }
 
 :root {
   color-scheme: light;
 
   /* ============================================================
-     PRIMITIVES — the raw ramp.
-     Compose semantics from these. Do NOT reach for a primitive
-     (rose-500, ink-600, …) in component CSS; use a semantic token.
-     Authored in OKLCH; the hex is the sRGB equivalent that ships.
+     BY IARA THEME RESET
+
+     Physical scene: a visitor opens the site on a phone in a calm treatment
+     room or at home after work, seeing true white space, soft rose accents,
+     and quiet plum ink. The brand should feel cared-for and easy to book,
+     not clinical, beige, or over-decorated.
+
+     Strategy: restrained rose on true white. The primary rose is tuned to pass
+     WCAG AA with white text on filled controls while staying close to the
+     original soft rose direction.
      ============================================================ */
 
-  /* Ink — warm near-neutral with a faint rose undertone. Text + structure. */
-  --byiara-color-ink-950: #1e1616; /* oklch(0.21 0.014 14) */
-  --byiara-color-ink-800: #352b2c; /* oklch(0.30 0.014 14) */
-  --byiara-color-ink-700: #4e4545; /* oklch(0.40 0.013 14) */
-  --byiara-color-ink-600: #6a6161; /* oklch(0.50 0.012 14) */
-  --byiara-color-ink-500: #7b7272; /* oklch(0.56 0.012 14) */
-  --byiara-color-ink-400: #a49c9d; /* oklch(0.70 0.009 14) */
+  /* Primitives. */
+  --byiara-color-rose-700: #8f2e47;
+  --byiara-color-rose-600: #a93c57;
+  --byiara-color-rose-500: #c04d68;
+  --byiara-color-rose-400: #d4607a;
+  --byiara-color-rose-300: #eda8b8;
+  --byiara-color-rose-100: #f9dce4;
+  --byiara-color-rose-50: #fff3f6;
 
-  /* Rose — the brand. Bright, confident camellia pink. */
-  --byiara-color-rose-50: #fdf4f5; /* oklch(0.975 0.010 10) */
-  --byiara-color-rose-100: #fce4e8; /* oklch(0.94 0.026 8) */
-  --byiara-color-rose-200: #feccd3; /* oklch(0.89 0.058 8) */
-  --byiara-color-rose-300: #f9a6b5; /* oklch(0.81 0.10 8) */
-  --byiara-color-rose-400: #f2718e; /* oklch(0.71 0.16 8) */
-  --byiara-color-rose-500: #e73d6d; /* oklch(0.625 0.206 9) — primary fill */
-  --byiara-color-rose-600: #d0115f; /* oklch(0.555 0.216 6) — hover / focus */
-  --byiara-color-rose-700: #a7074b; /* oklch(0.47 0.185 6) — pink text on light */
-  --byiara-color-rose-800: #7d0333; /* oklch(0.38 0.15 8) — deep pink on tint */
+  --byiara-color-plum-950: #281219;
+  --byiara-color-plum-800: #4b1524;
+  --byiara-color-plum-700: #5f1b2d;
+  --byiara-color-plum-600: #6e2235;
+  --byiara-color-plum-500: #8f2e47;
+  --byiara-color-plum-100: #f2d8df;
+  --byiara-color-plum-50: #fbf1f4;
 
-  /* Green — botanical accent (the camellia's stem). Deep eucalyptus. */
-  --byiara-color-green-50: #e4f7ed; /* oklch(0.96 0.025 162) */
-  --byiara-color-green-500: #126646; /* oklch(0.455 0.093 162) */
+  --byiara-color-mauve-700: #574149;
+  --byiara-color-mauve-600: #6c5960;
+  --byiara-color-mauve-500: #87757c;
+  --byiara-color-mauve-300: #cbbec3;
+  --byiara-color-mauve-200: #ded4d8;
+  --byiara-color-mauve-100: #eee7ea;
+  --byiara-color-mauve-50: #f8f4f6;
 
   --byiara-color-white: #ffffff;
 
-  /* ============================================================
-     SEMANTIC TOKENS — the public API. Use THESE in components.
-     ============================================================ */
-
-  /* Surfaces — a pure-white canvas; the rose carries the warmth. */
+  /* Semantic tokens: component API. */
   --byiara-color-background: var(--byiara-color-white);
   --byiara-color-surface: var(--byiara-color-white);
-  --byiara-color-surface-muted: #fbf5f5; /* oklch(0.975 0.006 14) */
+  --byiara-color-surface-muted: var(--byiara-color-mauve-50);
   --byiara-color-surface-tinted: var(--byiara-color-rose-50);
 
-  /* Text — body 17.8:1, muted 6.0:1, subtle 4.7:1 on white. */
-  --byiara-color-text: var(--byiara-color-ink-950);
-  --byiara-color-text-muted: var(--byiara-color-ink-600);
-  --byiara-color-text-subtle: var(--byiara-color-ink-500);
+  --byiara-color-text: var(--byiara-color-plum-950);
+  --byiara-color-text-muted: var(--byiara-color-mauve-700);
+  --byiara-color-text-subtle: var(--byiara-color-mauve-600);
 
-  /* Primary — bright rose leads. FILLS use --primary; pink TEXT uses --primary-strong. */
   --byiara-color-primary: var(--byiara-color-rose-500);
   --byiara-color-primary-hover: var(--byiara-color-rose-600);
   --byiara-color-primary-strong: var(--byiara-color-rose-700);
+  --byiara-color-primary-action: var(--byiara-color-rose-500);
+  --byiara-color-primary-action-hover: var(--byiara-color-rose-700);
   --byiara-color-on-primary: var(--byiara-color-white);
   --byiara-color-primary-soft: var(--byiara-color-rose-100);
   --byiara-color-primary-tint: var(--byiara-color-rose-50);
 
-  /* Accent — botanical green, used sparingly (never a primary CTA). */
-  --byiara-color-accent: var(--byiara-color-green-500);
-  --byiara-color-accent-soft: var(--byiara-color-green-50);
+  --byiara-color-accent: var(--byiara-color-plum-700);
+  --byiara-color-accent-soft: var(--byiara-color-plum-100);
   --byiara-color-on-accent: var(--byiara-color-white);
 
-  /* Borders — decorative (border/-subtle) vs. control boundaries (-strong, ≥3:1). */
-  --byiara-color-border: #e3dcdc; /* oklch(0.90 0.008 14) */
-  --byiara-color-border-subtle: #f1ebeb; /* oklch(0.945 0.006 14) */
-  --byiara-color-border-strong: #908282; /* oklch(0.62 0.016 18) — meets 3:1 on white */
+  --byiara-color-border: var(--byiara-color-mauve-200);
+  --byiara-color-border-subtle: var(--byiara-color-mauve-100);
+  --byiara-color-border-strong: var(--byiara-color-mauve-500);
+  --byiara-color-border-rose: var(--byiara-color-rose-100);
+  --byiara-color-focus: var(--byiara-color-plum-700);
 
-  /* Focus — a vivid rose ring; pair with outline-offset so it reads on any surface. */
-  --byiara-color-focus: var(--byiara-color-rose-600);
-
-  /* Feedback — each ≥4.5:1 on white; white text ≥4.5:1 on the fill. */
-  --byiara-color-danger: #c92f33; /* oklch(0.55 0.19 25) */
-  --byiara-color-danger-hover: #a9131f; /* oklch(0.47 0.18 25) */
-  --byiara-color-success: #2d7b44; /* oklch(0.52 0.115 150) */
-  --byiara-color-warning: #9a6922; /* oklch(0.56 0.105 72) */
-  --byiara-color-info: #1f6cb0; /* oklch(0.52 0.13 250) */
+  --byiara-color-danger: #a52828;
+  --byiara-color-danger-hover: #842020;
+  --byiara-color-success: #216a4a;
+  --byiara-color-warning: #75520f;
+  --byiara-color-info: #275a8d;
 
   --byiara-font-family-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'DM Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     'Segoe UI', sans-serif;
-  --byiara-font-family-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --byiara-font-family-display:
+    'Playfair Display', Georgia, 'Times New Roman', serif;
 
   --byiara-font-size-xs: 0.75rem;
   --byiara-font-size-sm: 0.875rem;
@@ -114,18 +147,21 @@
   --byiara-font-size-2xl: 1.5rem;
   --byiara-font-size-3xl: 2rem;
   --byiara-font-size-4xl: 2.75rem;
+  --byiara-font-size-5xl: 4rem;
 
-  --byiara-line-height-tight: 1.1;
+  --byiara-line-height-display: 1.04;
+  --byiara-line-height-tight: 1.12;
   --byiara-line-height-title: 1.2;
   --byiara-line-height-body: 1.6;
+  --byiara-line-height-loose: 1.72;
 
   --byiara-font-weight-regular: 400;
   --byiara-font-weight-medium: 500;
   --byiara-font-weight-semibold: 600;
   --byiara-font-weight-bold: 700;
 
-  --byiara-space-2xs: 0.25rem;
   --byiara-space-3xs: 0.125rem;
+  --byiara-space-2xs: 0.25rem;
   --byiara-space-xs: 0.5rem;
   --byiara-space-sm: 0.75rem;
   --byiara-space-md: 1rem;
@@ -133,18 +169,26 @@
   --byiara-space-xl: 2rem;
   --byiara-space-2xl: 3rem;
   --byiara-space-3xl: 4rem;
+  --byiara-space-4xl: 6rem;
 
-  --byiara-radius-sm: 0.375rem;
+  --byiara-radius-sm: 0.25rem;
   --byiara-radius-md: 0.5rem;
   --byiara-radius-lg: 0.75rem;
   --byiara-radius-pill: 999px;
 
-  --byiara-shadow-sm: 0 1px 2px rgb(30 22 22 / 8%);
-  --byiara-shadow-md: 0 18px 45px rgb(30 22 22 / 12%);
+  --byiara-size-icon-button-sm: 2rem;
+  --byiara-size-icon-button-md: 2.375rem;
+
+  --byiara-shadow-sm: 0 1px 2px
+    color-mix(in srgb, var(--byiara-color-plum-950) 10%, transparent);
+  --byiara-shadow-md: 0 8px 8px
+    color-mix(in srgb, var(--byiara-color-plum-950) 9%, transparent);
 
   --byiara-container-sm: 40rem;
   --byiara-container-md: 64rem;
   --byiara-container-lg: 76rem;
+  --byiara-measure-copy: 68ch;
+  --byiara-measure-narrow: 54ch;
 
   --byiara-z-index-base: 0;
   --byiara-z-index-raised: 1;
@@ -155,8 +199,6 @@
   --byiara-z-index-toast: 900;
   --byiara-z-index-tooltip: 1000;
 
-  /* Motion — strong custom curves; CSS defaults feel sluggish.
-     Durations stay under 300ms for in-task UI per our motion conventions. */
   --byiara-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --byiara-ease-out-soft: cubic-bezier(0.25, 1, 0.5, 1);
   --byiara-ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
@@ -165,10 +207,9 @@
   --byiara-duration-slow: 320ms;
 }
 
-/* Admin shares the same rose-on-white foundation; kept as a hook for
-   surface-only tuning if dense tables ever need a calmer canvas. */
 .byiara-theme-admin {
-  --byiara-color-surface-muted: #f6f0f1;
+  --byiara-color-background: #fff8fa;
+  --byiara-color-surface-muted: var(--byiara-color-mauve-50);
 }
 
 html {
@@ -203,6 +244,7 @@ textarea {
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 :focus-visible {
@@ -215,14 +257,13 @@ button {
   color: var(--byiara-color-text);
 }
 
-/* Honour users who ask for less motion: keep state changes, drop the movement. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }

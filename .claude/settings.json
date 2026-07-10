@@ -1,0 +1,31 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/block-applied-migration.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/nx-affected-check.sh",
+            "timeout": 120,
+            "async": true,
+            "asyncRewake": true,
+            "statusMessage": "Running nx affected lint/test…"
+          }
+        ]
+      }
+    ]
+  }
+}

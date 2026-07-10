@@ -1,0 +1,57 @@
+:host {
+  display: contents;
+}
+
+.card {
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+}
+
+.card-padding-none {
+  padding: 0;
+}
+
+.card-padding-sm {
+  padding: var(--byiara-space-md);
+}
+
+.card-padding-md {
+  padding: var(--byiara-space-lg);
+}
+
+.card-padding-lg {
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.card-default {
+  background: var(--byiara-color-surface);
+}
+
+.card-muted {
+  background: var(--byiara-color-surface-muted);
+}
+
+.card-tinted {
+  background: var(--byiara-color-surface-tinted);
+}
+
+.card-dashed {
+  border-style: dashed;
+  background: var(--byiara-color-surface);
+}
+
+.is-interactive {
+  cursor: pointer;
+  transition:
+    border-color var(--byiara-duration-base) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .is-interactive:hover {
+    border-color: var(--byiara-color-primary);
+    box-shadow: var(--byiara-shadow-md);
+    transform: translateY(-1px);
+  }
+}

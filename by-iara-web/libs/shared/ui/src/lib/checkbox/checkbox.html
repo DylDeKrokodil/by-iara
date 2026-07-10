@@ -1,0 +1,10 @@
+<label class="choice" [class.is-disabled]="disabled()">
+  <input
+    type="checkbox"
+    [checked]="value()"
+    [disabled]="disabled()"
+    (change)="onInput($event)"
+    (blur)="onTouched()"
+  />
+  <span>{{ label() }}</span>
+</label>

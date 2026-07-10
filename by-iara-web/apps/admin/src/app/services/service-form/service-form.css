@@ -1,37 +1,3 @@
-.page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--byiara-space-lg);
-  margin-bottom: var(--byiara-space-xl);
-}
-
-.eyebrow {
-  margin: 0;
-  color: var(--byiara-color-primary-strong);
-  font-size: var(--byiara-font-size-xs);
-  font-weight: var(--byiara-font-weight-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-h1 {
-  margin: var(--byiara-space-2xs) 0 0;
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-3xl);
-  line-height: var(--byiara-line-height-title);
-}
-
-.alert {
-  margin: 0 0 var(--byiara-space-lg);
-  padding: var(--byiara-space-sm) var(--byiara-space-md);
-  border-radius: var(--byiara-radius-md);
-  background: color-mix(in srgb, var(--byiara-color-danger) 5%, transparent);
-  color: var(--byiara-color-danger);
-  font-size: var(--byiara-font-size-sm);
-  border: 1px solid color-mix(in srgb, var(--byiara-color-danger) 15%, transparent);
-}
-
 .service-form {
   width: 100%;
 }
@@ -160,84 +126,8 @@ h1 {
   margin-top: 2px;
 }
 
-/* Custom Toggle Switch */
-.toggle-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--byiara-space-md);
-  background: var(--byiara-color-surface-muted);
-  border-radius: var(--byiara-radius-md);
-  margin-top: var(--byiara-space-xs);
-  border: 1px solid var(--byiara-color-border);
-}
-
-.toggle-container {
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-3xs);
-}
-
-.toggle-label {
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-semibold);
-}
-
-.toggle-description {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-xs);
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 2.75rem;
-  height: 1.5rem;
-  flex-shrink: 0;
-}
-
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--byiara-color-border);
-  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 34px;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 1.125rem;
-  width: 1.125rem;
-  left: 0.1875rem;
-  bottom: 0.1875rem;
-  background-color: white;
-  transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 1px 3px color-mix(in srgb, var(--byiara-color-text) 12%, transparent);
-}
-
-.switch input:checked + .slider {
-  background-color: var(--byiara-color-primary);
-}
-
-.switch input:checked + .slider:before {
-  transform: translateX(1.25rem);
-}
-
-/* Suffix & Prefix Inputs */
+/* Suffix & Prefix Inputs (duration/price stay native -- no prefix/suffix
+   slot on byiara-text-field, and this is the only place that needs one) */
 .input-with-suffix {
   position: relative;
   display: flex;
@@ -288,7 +178,7 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: var(--byiara-space-sm);
-  margin: var(--byiara-space-md) 0;
+  margin: var(--byiara-space-md) 0 var(--byiara-space-sm);
 }
 
 .variant-card {
@@ -324,96 +214,6 @@ h1 {
 .variant-fields .form-group.toggle-only {
   width: auto;
   margin-bottom: var(--byiara-space-3xs);
-}
-
-/* Inline Switch */
-.switch-inline {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--byiara-space-xs);
-  cursor: pointer;
-  font-size: var(--byiara-font-size-sm);
-  color: var(--byiara-color-text);
-  min-height: 2.375rem;
-}
-
-.switch-inline input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-
-.switch-inline .slider {
-  position: relative;
-  display: inline-block;
-  width: 2.25rem;
-  height: 1.25rem;
-  background-color: var(--byiara-color-border);
-  border-radius: 34px;
-  transition: 0.2s ease;
-}
-
-.switch-inline .slider:before {
-  position: absolute;
-  content: "";
-  height: 0.9375rem;
-  width: 0.9375rem;
-  left: 0.156rem;
-  bottom: 0.156rem;
-  background-color: white;
-  transition: 0.2s ease;
-  border-radius: 50%;
-}
-
-.switch-inline input:checked + .slider {
-  background-color: var(--byiara-color-primary);
-}
-
-.switch-inline input:checked + .slider:before {
-  transform: translateX(1rem);
-}
-
-.switch-text {
-  font-weight: var(--byiara-font-weight-semibold);
-  font-size: var(--byiara-font-size-sm);
-}
-
-/* Trash Bin Button */
-.button-icon-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.375rem;
-  height: 2.375rem;
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-surface);
-  color: var(--byiara-color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  margin-top: 1.25rem;
-  flex-shrink: 0;
-}
-
-.button-icon-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--byiara-color-danger) 5%, transparent);
-  border-color: var(--byiara-color-danger);
-  color: var(--byiara-color-danger);
-}
-
-.button-icon-danger:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
-/* Add Duration Button */
-.add-duration-btn {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--byiara-space-xs);
-  margin-top: var(--byiara-space-sm);
 }
 
 .btn-icon {

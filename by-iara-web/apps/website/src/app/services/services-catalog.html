@@ -7,53 +7,54 @@
     </header>
 
     @if (hasError()) {
-      <div class="error-catalog">
-        <p>{{ copy().loadError }}</p>
-      </div>
+      <byiara-alert tone="danger">{{ copy().loadError }}</byiara-alert>
     }
 
     @if (loading()) {
-      <div class="loading-catalog">
-        <div class="spinner" aria-hidden="true"></div>
-        <span>{{ copy().loading }}</span>
-      </div>
+      <byiara-empty-state [description]="copy().loading" [dashed]="false">
+        <byiara-spinner></byiara-spinner>
+      </byiara-empty-state>
     }
 
     @if (!loading() && !hasError() && services().length === 0) {
-      <div class="empty-catalog">
-        <p>{{ copy().empty }}</p>
-      </div>
+      <byiara-empty-state [title]="copy().empty"></byiara-empty-state>
     }
 
     @if (!loading() && !hasError() && services().length > 0) {
       <div class="services-grid">
         @for (service of services(); track service.id) {
-          <article class="service-card">
-            <div class="card-header">
-              <h3 class="service-name">{{ localized(service).name }}</h3>
-              @if (localized(service).description) {
-                <p class="service-description">{{ localized(service).description }}</p>
-              }
-            </div>
-
-            <div class="variants-container">
-              <span class="variants-title">{{ copy().variantsTitle }}</span>
-              @for (variant of service.variants; track variant.id) {
-                @if (variant.active) {
-                  <div class="variant-row">
-                    <div class="variant-info">
-                      <span class="duration">{{ variant.durationMinutes }} min</span>
-                      <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
-                    </div>
-                    <button type="button" class="book-btn" (click)="onBook(service, variant)">
-                      {{ copy().bookAction }}
-                    </button>
-                  </div>
+          <byiara-card padding="lg">
+            <div class="service-card-content">
+              <div class="card-header">
+                <h3 class="service-name">{{ localized(service).name }}</h3>
+                @if (localized(service).description) {
+                  <p class="service-description">{{ localized(service).description }}</p>
                 }
-              }
-            </div>
+              </div>
 
-          </article>
+              <div class="variants-container">
+                <span class="variants-title">{{ copy().variantsTitle }}</span>
+                @for (variant of service.variants; track variant.id) {
+                  @if (variant.active) {
+                    <div class="variant-row">
+                      <div class="variant-info">
+                        <span class="duration">{{ variant.durationMinutes }} min</span>
+                        <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
+                      </div>
+                      <byiara-button
+                        variant="secondary"
+                        size="sm"
+                        class="book-btn"
+                        (click)="onBook(service, variant)"
+                      >
+                        {{ copy().bookAction }}
+                      </byiara-button>
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          </byiara-card>
         }
       </div>
     }

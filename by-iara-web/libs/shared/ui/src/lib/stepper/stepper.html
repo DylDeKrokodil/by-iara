@@ -6,6 +6,7 @@
       [class.selected]="step.id === current()"
       [class.complete]="i < currentIndex()"
       [attr.aria-current]="step.id === current() ? 'step' : null"
+      [attr.aria-label]="step.label"
       [disabled]="step.disabled"
       (click)="onSelect(step)"
     >

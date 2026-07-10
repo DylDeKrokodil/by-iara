@@ -1,0 +1,26 @@
+<label
+  [class]="'switch switch-' + labelPosition()"
+  [class.is-disabled]="disabled()"
+>
+  @if (label() && labelPosition() === 'stacked') {
+    <span class="switch-text">
+      <strong>{{ label() }}</strong>
+      @if (description()) {
+        <small>{{ description() }}</small>
+      }
+    </span>
+  }
+  <input
+    type="checkbox"
+    role="switch"
+    [checked]="value()"
+    [disabled]="disabled()"
+    [attr.aria-checked]="value()"
+    (change)="onInput($event)"
+    (blur)="onTouched()"
+  />
+  <span class="slider" aria-hidden="true"></span>
+  @if (label() && labelPosition() === 'inline') {
+    <span class="switch-text">{{ label() }}</span>
+  }
+</label>

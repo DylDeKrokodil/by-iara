@@ -81,6 +81,10 @@ data class CustomerResponse(
     val phone: String?,
 )
 
+data class NextAvailableSlotResponse(
+    val startsAt: OffsetDateTime?,
+)
+
 data class ReservationPageResponse(
     val items: List<ReservationResponse>,
     val page: Int,
