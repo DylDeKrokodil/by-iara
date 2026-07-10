@@ -15,6 +15,9 @@ class AvailabilityService(
 ) {
     private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
 
+    /** Today's date in the business timezone. */
+    fun today(): LocalDate = LocalDate.now(zoneId)
+
     // --- Rules Management ---
 
     @Transactional(readOnly = true)
@@ -140,8 +143,15 @@ class AvailabilityService(
 
             for (rule in dayRules) {
                 var candidateTime = rule.startTime
-                // Generate slots in 15-minute increments
-                while (candidateTime.plusMinutes(durationMinutes.toLong()) <= rule.endTime) {
+                // Generate slots in 15-minute increments. LocalTime arithmetic wraps at
+                // midnight, so a candidate whose end wraps past 00:00 reads as "before"
+                // rule.endTime again — without this check that wraparound spins forever.
+                while (true) {
+                    val candidateEndTime = candidateTime.plusMinutes(durationMinutes.toLong())
+                    if (candidateEndTime.isBefore(candidateTime) || candidateEndTime > rule.endTime) {
+                        break
+                    }
+
                     val localStart = LocalDateTime.of(currentDate, candidateTime)
                     val localEnd = localStart.plusMinutes(durationMinutes.toLong())
 

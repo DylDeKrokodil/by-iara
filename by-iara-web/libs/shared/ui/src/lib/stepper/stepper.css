@@ -1,5 +1,6 @@
 :host {
   display: block;
+  min-width: 0;
 }
 
 .stepper {
@@ -30,6 +31,21 @@
     box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
     transform var(--byiara-duration-fast) var(--byiara-ease-out);
   white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .stepper {
+    overflow-x: visible;
+  }
+
+  .step-button {
+    flex: 1;
+    padding-inline: var(--byiara-space-xs);
+  }
+
+  .step-button:not(.selected) span:last-child {
+    display: none;
+  }
 }
 
 .step-button:not(:disabled):active {

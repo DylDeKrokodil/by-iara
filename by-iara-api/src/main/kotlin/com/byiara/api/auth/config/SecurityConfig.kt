@@ -30,6 +30,7 @@ class SecurityConfig {
                     "/api/availability",
                     "/api/availability/**",
                     "/api/reservations/availability",
+                    "/api/reservations/next-available",
                 ).permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
                 it.requestMatchers("/api/admin/**").authenticated()

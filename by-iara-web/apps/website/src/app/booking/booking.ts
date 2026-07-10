@@ -27,11 +27,8 @@ import {
   localizedService,
 } from '../services/services-api';
 import { LanguageService } from '../i18n/language.service';
-import { BookingApi, ReservationConfirmation } from './booking-api';
+import { BookingApi, BUSINESS_TIMEZONE, ReservationConfirmation } from './booking-api';
 
-// The catalog/slots are computed in the business timezone, so display them there
-// too, regardless of the visitor's browser timezone.
-const BUSINESS_TIMEZONE = 'Europe/Brussels';
 const BOOKING_WINDOW_DAYS = 28;
 
 type BookingStep = 'service' | 'time' | 'details' | 'review';

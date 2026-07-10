@@ -1,11 +1,49 @@
 <div class="site-frame">
   <header class="site-header">
     <div class="header-container">
+      <button
+        type="button"
+        class="menu-toggle"
+        [class.is-open]="menuOpen()"
+        (click)="toggleMenu()"
+        (keydown.escape)="closeMenu()"
+        aria-controls="mobile-menu"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? copy().nav.closeMenu : copy().nav.openMenu"
+      >
+        <span class="menu-toggle-bar"></span>
+        <span class="menu-toggle-bar"></span>
+        <span class="menu-toggle-bar"></span>
+      </button>
+
+      <nav class="header-nav">
+        <a
+          [routerLink]="language.localizedLink()"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ copy().nav.home }}
+        </a>
+        <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
+          {{ copy().nav.services }}
+        </a>
+      </nav>
+
       <a class="logo-link" [routerLink]="language.localizedLink()" aria-label="By Iara">
         <img class="logo-img" src="brand/by-iara-logo.svg" alt="By Iara" />
       </a>
+
       <div class="header-actions">
-        <nav class="header-nav">
+        <byiara-language-switcher class="header-language"></byiara-language-switcher>
+        <byiara-button size="sm" [routerLink]="language.localizedLink('book')">
+          {{ copy().nav.bookCta }}
+        </byiara-button>
+      </div>
+    </div>
+
+    <div class="mobile-menu" [class.is-open]="menuOpen()" [inert]="!menuOpen()" id="mobile-menu">
+      <div class="mobile-menu-content">
+        <nav class="mobile-menu-nav">
           <a
             [routerLink]="language.localizedLink()"
             routerLinkActive="active"
@@ -15,9 +53,6 @@
           </a>
           <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
             {{ copy().nav.services }}
-          </a>
-          <a [routerLink]="language.localizedLink('book')" routerLinkActive="active">
-            {{ copy().nav.book }}
           </a>
         </nav>
         <byiara-language-switcher></byiara-language-switcher>

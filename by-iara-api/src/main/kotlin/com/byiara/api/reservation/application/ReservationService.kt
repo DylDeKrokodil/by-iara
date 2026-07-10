@@ -62,15 +62,42 @@ class ReservationService(
     fun findBookableSlots(command: FindBookableSlotsCommand): List<OffsetDateTime> {
         val service = requireActiveService(command.serviceId)
         val variant = requireActiveVariant(service, command.serviceVariantId)
-        val durationMinutes = variant.durationMinutes
         val slots = availabilityService.findAvailableSlots(
             command.startDate,
             command.endDate,
-            durationMinutes,
+            variant.durationMinutes,
         )
+        return excludeOverlappingReservations(slots, variant.durationMinutes)
+    }
 
+    /**
+     * Earliest bookable slot from today onward (falling back to the next open day
+     * when today has nothing left), for the shortest active catalog offering (the
+     * option most likely to still fit). A marketing signal, not tied to any one
+     * service the visitor hasn't picked yet.
+     */
+    @Transactional(readOnly = true)
+    fun findNextAvailableSlot(): OffsetDateTime? {
+        val shortestDuration = serviceRepository.findCatalog()
+            .flatMap { it.variants }
+            .minOfOrNull { it.durationMinutes }
+            ?: return null
+
+        val today = availabilityService.today()
+        val slots = availabilityService.findAvailableSlots(
+            today,
+            today.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
+            shortestDuration,
+        )
+        return excludeOverlappingReservations(slots, shortestDuration).firstOrNull()
+    }
+
+    private fun excludeOverlappingReservations(
+        slots: List<OffsetDateTime>,
+        durationMinutes: Int,
+    ): List<OffsetDateTime> {
         if (slots.isEmpty()) {
-            return emptyList()
+            return slots
         }
 
         val queryStart = slots.first()
@@ -139,6 +166,7 @@ class ReservationService(
 
     companion object {
         private const val MAX_PAGE_SIZE = 100
+        private const val NEXT_AVAILABLE_WINDOW_DAYS = 30L
     }
 }
 

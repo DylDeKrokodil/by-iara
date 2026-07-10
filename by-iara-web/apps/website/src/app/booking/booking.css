@@ -3,6 +3,7 @@
   gap: var(--byiara-space-lg);
   max-width: var(--byiara-container-lg);
   margin-inline: auto;
+  overflow-x: hidden;
 }
 
 .booking-flow {
@@ -10,12 +11,14 @@
   grid-template-columns: minmax(0, 1fr) minmax(17rem, 20rem);
   align-items: start;
   gap: var(--byiara-space-xl);
+  min-width: 0;
 }
 
 .booking-header {
   display: grid;
   gap: var(--byiara-space-xs);
   max-width: 44rem;
+  min-width: 0;
 }
 
 .booking-header h1 {
@@ -37,6 +40,7 @@
 .booking-form {
   display: grid;
   gap: var(--byiara-space-md);
+  min-width: 0;
 }
 
 .booking-section h2,
@@ -48,11 +52,16 @@
   line-height: var(--byiara-line-height-title);
 }
 
-.option-grid,
-.slot-grid {
+.option-grid {
   display: flex;
   flex-wrap: wrap;
   gap: var(--byiara-space-xs);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--byiara-space-sm);
 }
 
 .date-strip {
@@ -113,6 +122,7 @@
   position: sticky;
   top: calc(4.25rem + var(--byiara-space-lg));
   align-self: start;
+  min-width: 0;
   background: var(--byiara-color-surface-tinted);
 }
 
@@ -177,6 +187,12 @@
 
   .booking-summary {
     position: static;
+  }
+}
+
+@media (max-width: 40rem) {
+  .slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

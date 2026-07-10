@@ -204,6 +204,38 @@ class AvailabilityApiTests {
     }
 
     @Test
+    fun `a rule ending near midnight does not hang when duration would cross into the next day`() {
+        val nextMonday = LocalDate.now().plusWeeks(1).with(java.time.DayOfWeek.MONDAY)
+
+        // A 60-minute appointment cannot fit between 23:00 and 23:45, so the last
+        // candidate must be 22:45-23:45. Regression test for a bug where LocalTime
+        // wraparound past midnight made the generator loop forever.
+        mockMvc.perform(
+            post("/api/admin/availability/rules").with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "dayOfWeek": "MONDAY",
+                      "startTime": "22:00:00",
+                      "endTime": "23:45:00"
+                    }
+                    """.trimIndent(),
+                ),
+        ).andExpect(status().isCreated)
+
+        mockMvc.perform(
+            get("/api/availability")
+                .param("startDate", nextMonday.toString())
+                .param("endDate", nextMonday.toString())
+                .param("durationMinutes", "60"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(4))
+            .andExpect(jsonPath("$[3]").value(org.hamcrest.Matchers.containsString("22:45")))
+    }
+
+    @Test
     fun `unauthenticated requests to admin are blocked`() {
         mockMvc.perform(get("/api/admin/availability/rules"))
             .andExpect(status().isUnauthorized)
