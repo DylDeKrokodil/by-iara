@@ -20,6 +20,8 @@ class ReservationEmailService(
     private val adminCredentialsRepository: AdminCredentialsRepository,
     @Value("\${by-iara.timezone:Europe/Brussels}")
     private val timezoneIdStr: String,
+    @Value("\${by-iara.admin-url}")
+    private val adminUrl: String,
 ) {
     private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
 
@@ -34,7 +36,7 @@ class ReservationEmailService(
             val recipients = adminCredentialsRepository.findActiveEmails()
             if (recipients.isEmpty()) return@runCatching
 
-            val content = EmailCopy.newReservationAlert(reservation, zoneId)
+            val content = EmailCopy.newReservationAlert(reservation, zoneId, adminUrl)
             recipients.forEach { sendAndLog(it, content, reservation.id, EmailType.NEW_RESERVATION) }
         }.onFailure { log.error("Failed to notify admins of new reservation {}", reservation.id, it) }
     }

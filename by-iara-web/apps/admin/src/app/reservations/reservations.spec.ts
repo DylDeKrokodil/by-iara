@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { ToastService } from '@by-iara/shared-ui';
 import { Reservations } from './reservations';
@@ -93,6 +94,7 @@ describe('Reservations', () => {
     await TestBed.configureTestingModule({
       imports: [Reservations],
       providers: [
+        provideRouter([]),
         { provide: ReservationsApi, useValue: api },
         { provide: ToastService, useValue: { show: vi.fn() } },
       ],
@@ -151,5 +153,51 @@ describe('Reservations', () => {
         size: 250,
       }),
     );
+  });
+});
+
+describe('Reservations - arriving via the new-reservation email link', () => {
+  it('highlights the matching pending request card', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-29T10:00:00.000Z'));
+
+    const api = {
+      list: vi.fn((params: ReservationListParams = {}) =>
+        params.statuses?.includes('PENDING')
+          ? of({
+              ...emptyPage,
+              items: [
+                reservation('pending-1', '2026-06-29T09:00:00.000Z', 'PENDING'),
+              ],
+              total: 1,
+            })
+          : of(emptyPage),
+      ),
+      confirm: vi.fn(),
+      reject: vi.fn(),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [Reservations],
+      providers: [
+        { provide: ReservationsApi, useValue: api },
+        { provide: ToastService, useValue: { show: vi.fn() } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap({ id: 'pending-1' }) } },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(Reservations);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('#reservation-pending-1');
+    expect(card).toBeTruthy();
+    expect(card.classList.contains('is-highlighted')).toBe(true);
+
+    vi.useRealTimers();
   });
 });

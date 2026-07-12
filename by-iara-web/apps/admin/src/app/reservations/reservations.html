@@ -76,7 +76,11 @@
     <div class="request-list">
       @for (reservation of pending(); track reservation.id) {
       <byiara-card padding="md">
-        <div class="request-card">
+        <div
+          class="request-card"
+          [id]="'reservation-' + reservation.id"
+          [class.is-highlighted]="reservation.id === highlightId()"
+        >
           <div class="request-main">
             <div>
               <h3>{{ reservation.customer.name }}</h3>

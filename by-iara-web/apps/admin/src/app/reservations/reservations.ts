@@ -4,9 +4,11 @@ import {
   OnInit,
   ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import {
   Alert,
   Button,
@@ -121,11 +123,15 @@ function isHistoryFilter(value: string): value is HistoryFilter {
 export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly activeView = signal<ReservationView>('overview');
   protected readonly selectedDateKey = signal(this.dateKey(new Date()));
   protected readonly calendarView = signal<'day' | 'week' | 'month'>('week');
   protected readonly pending = signal<ReservationResponse[]>([]);
+  /** Set from ?id= when arriving via the "new reservation" admin email link. */
+  protected readonly highlightId = signal<string | null>(null);
+  private hasScrolledToHighlight = false;
   protected readonly calendarReservations = signal<ReservationResponse[]>([]);
   protected readonly nextConfirmed = signal<ReservationResponse | null>(null);
   protected readonly history = signal<ReservationResponse[]>([]);
@@ -268,7 +274,33 @@ export class Reservations implements OnInit {
   @ViewChild('confirmDeclineModal')
   private confirmDeclineModal!: ConfirmationModal;
 
+  constructor() {
+    // Runs once the target reservation actually shows up in the loaded pending list
+    // (not on every pending() change) -- guards against re-scrolling on later reloads,
+    // e.g. after the admin accepts/declines something else in the list.
+    effect(() => {
+      const id = this.highlightId();
+      if (!id || this.hasScrolledToHighlight) {
+        return;
+      }
+      if (this.pending().some((reservation) => reservation.id === id)) {
+        this.hasScrolledToHighlight = true;
+        // Double rAF: a single frame isn't always enough for the browser to have
+        // finished layout after this DOM update, which left scrollIntoView measuring
+        // a stale (still-collapsing) position and barely scrolling at all.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const element = document.getElementById(`reservation-${id}`);
+            // scrollIntoView is unimplemented in jsdom (unit tests); real browsers always have it.
+            element?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          });
+        });
+      }
+    });
+  }
+
   ngOnInit(): void {
+    this.highlightId.set(this.route.snapshot.queryParamMap.get('id'));
     this.reload();
   }
 

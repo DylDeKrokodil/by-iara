@@ -172,6 +172,16 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+/* The request this admin arrived at via the "new reservation" email link. Targets
+   .request-card (projected content, keeps this component's own encapsulation attribute)
+   rather than the byiara-card host, which is `display: contents` and has no box of its
+   own to ring -- see shared-ui card.css. */
+.request-card.is-highlighted {
+  border-radius: var(--byiara-radius-md);
+  box-shadow: 0 0 0 2px var(--byiara-color-primary);
+  transition: box-shadow var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
 .request-main {
   align-items: flex-start;
   justify-content: space-between;

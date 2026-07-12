@@ -1,5 +1,7 @@
 package com.byiara.api.reservation
 
+import jakarta.mail.Session
+import jakarta.mail.internet.MimeMessage
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.jooq.DSLContext
@@ -7,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -26,6 +29,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Properties
 import java.util.UUID
 
 @SpringBootTest
@@ -197,6 +201,11 @@ class ReservationApiTests {
         )
         val dayOfWeek = slotStart.atZoneSameInstant(zone).dayOfWeek.value
         dsl.execute("insert into availability_rules (day_of_week, start_time, end_time) values ($dayOfWeek, '09:00:00', '17:00:00')")
+
+        // Confirm/reject emails carry an HTML alternative via MimeMessage; a raw mock's
+        // createMimeMessage() returns null by default, which would NPE inside MimeMessageHelper.
+        val session = Session.getInstance(Properties())
+        Mockito.`when`(mailSender.createMimeMessage()).thenAnswer { MimeMessage(session) }
     }
 
     private fun adminJwt(): RequestPostProcessor =

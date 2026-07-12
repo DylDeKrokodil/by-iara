@@ -27,6 +27,11 @@ class CatalogApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        // Other test classes (reservation/notification) share this H2 instance and may leave
+        // reservations/email_logs behind, referencing services/service_variants via FK -- drop
+        // them first (children before parents) or the drops below fail depending on run order.
+        dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")

@@ -27,6 +27,9 @@ services:
       ADMIN_JWT_SECRET: local-docker-development-secret-must-be-at-least-32-bytes
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
+      # A human clicks this link from their own browser, not container-to-container --
+      # must be the host-published admin port, unlike MAIL_HOST above.
+      ADMIN_URL: http://localhost:4201
     ports:
       - "8080:8080"
     depends_on:
