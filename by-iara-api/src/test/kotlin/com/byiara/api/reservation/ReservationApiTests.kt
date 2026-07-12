@@ -164,6 +164,8 @@ class ReservationApiTests {
                 rejection_reason_code varchar(40),
                 rejection_message varchar(1000),
                 decided_at timestamp with time zone,
+                cancellation_reason_code varchar(40),
+                cancellation_message varchar(1000),
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
@@ -220,6 +222,14 @@ class ReservationApiTests {
             .contentType("application/json")
             .content(
                 """{"reasonCode":"TIME_UNAVAILABLE","message":"The requested time is no longer available."}""",
+            )
+
+    private fun cancelRequest(id: String) =
+        patch("/api/admin/reservations/$id/cancel")
+            .with(adminJwt())
+            .contentType("application/json")
+            .content(
+                """{"reasonCode":"SCHEDULE_CHANGE","message":"We need to change our schedule."}""",
             )
 
     private fun iso(time: OffsetDateTime): String = time.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
@@ -385,6 +395,24 @@ class ReservationApiTests {
         val logs = dsl.fetch("select recipient, status from email_logs where email_type = 'RESERVATION_REJECTED'")
         assertEquals(1, logs.size)
         assertEquals("ana@example.com", logs[0].get("recipient", String::class.java))
+        assertEquals("SENT", logs[0].get("status", String::class.java))
+    }
+
+    @Test
+    fun `admin can cancel a confirmed reservation with a reason and notify the customer`() {
+        val id = reservationIdFrom(book(slotStart, "cancel@example.com").andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
+
+        mockMvc.perform(cancelRequest(id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("CANCELLED"))
+            .andExpect(jsonPath("$.cancellationReasonCode").value("SCHEDULE_CHANGE"))
+            .andExpect(jsonPath("$.cancellationMessage").value("We need to change our schedule."))
+            .andExpect(jsonPath("$.decidedAt").exists())
+
+        val logs = dsl.fetch("select recipient, status from email_logs where email_type = 'RESERVATION_CANCELLED'")
+        assertEquals(1, logs.size)
+        assertEquals("cancel@example.com", logs[0].get("recipient", String::class.java))
         assertEquals("SENT", logs[0].get("status", String::class.java))
     }
 

@@ -20,6 +20,8 @@ data class Reservation(
     val rejectionReasonCode: RejectionReasonCode? = null,
     val rejectionMessage: String? = null,
     val decidedAt: OffsetDateTime? = null,
+    val cancellationReasonCode: CancellationReasonCode? = null,
+    val cancellationMessage: String? = null,
 )
 
 /** Everything needed to persist a new reservation, with the catalog snapshot already resolved. */

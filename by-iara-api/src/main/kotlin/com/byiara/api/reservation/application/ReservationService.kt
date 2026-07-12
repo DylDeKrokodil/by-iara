@@ -5,6 +5,7 @@ import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.notification.application.ReservationEmailService
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
@@ -152,6 +153,18 @@ class ReservationService(
     @Transactional
     fun reject(id: UUID, reasonCode: RejectionReasonCode, message: String): Reservation =
         transition(id, ReservationStatus.REJECTED, reasonCode, message)
+
+    @Transactional
+    fun cancel(id: UUID, reasonCode: CancellationReasonCode, message: String): Reservation {
+        val reservation = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (!reservation.status.canTransitionTo(ReservationStatus.CANCELLED)) {
+            throw IllegalReservationTransitionException(reservation.status, ReservationStatus.CANCELLED)
+        }
+        reservationRepository.updateCancellation(id, reasonCode, message)
+        val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        reservationEmailService.notifyCustomerOfDecision(updated)
+        return updated
+    }
 
     private fun transition(
         id: UUID,

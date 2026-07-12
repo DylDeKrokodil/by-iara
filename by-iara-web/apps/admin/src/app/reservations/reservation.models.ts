@@ -21,6 +21,16 @@ export const rejectionReasonCodes = [
 
 export type RejectionReasonCode = (typeof rejectionReasonCodes)[number];
 
+export const cancellationReasonCodes = [
+  'SCHEDULE_CHANGE',
+  'PRACTITIONER_UNAVAILABLE',
+  'BUSINESS_CLOSURE',
+  'CUSTOMER_REQUEST',
+  'OTHER',
+] as const;
+
+export type CancellationReasonCode = (typeof cancellationReasonCodes)[number];
+
 export interface ReservationCustomer {
   name: string;
   email: string;
@@ -43,10 +53,17 @@ export interface ReservationResponse {
   rejectionReasonCode?: RejectionReasonCode | null;
   rejectionMessage?: string | null;
   decidedAt?: string | null;
+  cancellationReasonCode?: CancellationReasonCode | null;
+  cancellationMessage?: string | null;
 }
 
 export interface RejectReservationInput {
   reasonCode: RejectionReasonCode;
+  message: string;
+}
+
+export interface CancelReservationInput {
+  reasonCode: CancellationReasonCode;
   message: string;
 }
 

@@ -7,6 +7,7 @@ enum class EmailType {
     NEW_RESERVATION,
     RESERVATION_CONFIRMED,
     RESERVATION_REJECTED,
+    RESERVATION_CANCELLED,
 }
 
 enum class EmailStatus {

@@ -17,6 +17,7 @@ import {
 } from '@by-iara/shared-ui';
 import { formatMoney } from '../../services/service.models';
 import {
+  CancellationReasonCode,
   RejectionReasonCode,
   ReservationResponse,
   reservationStatusLabel,
@@ -29,6 +30,14 @@ const reasonOptions: ReadonlyArray<SelectFieldOption> = [
   { label: 'Service unavailable', value: 'SERVICE_UNAVAILABLE' },
   { label: 'Outside business hours', value: 'OUTSIDE_BUSINESS_HOURS' },
   { label: 'Unable to accommodate request', value: 'UNABLE_TO_ACCOMMODATE' },
+  { label: 'Other', value: 'OTHER' },
+];
+
+const cancellationOptions: ReadonlyArray<SelectFieldOption> = [
+  { label: 'Schedule change', value: 'SCHEDULE_CHANGE' },
+  { label: 'Practitioner unavailable', value: 'PRACTITIONER_UNAVAILABLE' },
+  { label: 'Business closure', value: 'BUSINESS_CLOSURE' },
+  { label: 'Customer requested cancellation', value: 'CUSTOMER_REQUEST' },
   { label: 'Other', value: 'OTHER' },
 ];
 
@@ -45,6 +54,23 @@ const defaultMessages: Record<'en' | 'pt', Record<RejectionReasonCode, string>> 
     SERVICE_UNAVAILABLE: 'Infelizmente, o serviço solicitado não está disponível neste momento. Contacte-nos se desejar ajuda a escolher uma alternativa.',
     OUTSIDE_BUSINESS_HOURS: 'Infelizmente, o horário solicitado está fora do nosso horário disponível. Por favor visite o nosso site para escolher outro horário.',
     UNABLE_TO_ACCOMMODATE: 'Infelizmente, não conseguimos aceitar este pedido de reserva. Contacte-nos se desejar ajuda a encontrar uma alternativa.',
+    OTHER: '',
+  },
+};
+
+const cancellationMessages: Record<'en' | 'pt', Record<CancellationReasonCode, string>> = {
+  en: {
+    SCHEDULE_CHANGE: 'Unfortunately, we need to cancel your appointment because of a change to our schedule. Please contact us if you would like help booking another time.',
+    PRACTITIONER_UNAVAILABLE: 'Unfortunately, your practitioner is no longer available for this appointment. Please contact us if you would like help booking another time.',
+    BUSINESS_CLOSURE: 'Unfortunately, we will be closed at the time of your appointment and need to cancel it. Please contact us if you would like help booking another time.',
+    CUSTOMER_REQUEST: 'Your appointment has been cancelled as requested.',
+    OTHER: '',
+  },
+  pt: {
+    SCHEDULE_CHANGE: 'Infelizmente, precisamos de cancelar a sua marcação devido a uma alteração no nosso horário. Contacte-nos se desejar ajuda a marcar outra data.',
+    PRACTITIONER_UNAVAILABLE: 'Infelizmente, a profissional já não está disponível para esta marcação. Contacte-nos se desejar ajuda a marcar outra data.',
+    BUSINESS_CLOSURE: 'Infelizmente, estaremos encerrados no horário da sua marcação e precisamos de a cancelar. Contacte-nos se desejar ajuda a marcar outra data.',
+    CUSTOMER_REQUEST: 'A sua marcação foi cancelada conforme solicitado.',
     OTHER: '',
   },
 };
@@ -77,11 +103,17 @@ export class ReservationDetail implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly declineOpen = signal(false);
+  protected readonly cancellationOpen = signal(false);
   protected readonly selectedReason = signal<RejectionReasonCode>('TIME_UNAVAILABLE');
   protected readonly reasonOptions = reasonOptions;
+  protected readonly cancellationOptions = cancellationOptions;
+  protected readonly selectedCancellationReason = signal<CancellationReasonCode>('SCHEDULE_CHANGE');
   protected readonly formatMoney = formatMoney;
 
   protected readonly declineForm = this.fb.nonNullable.group({
+    message: ['', [Validators.required, Validators.maxLength(1000)]],
+  });
+  protected readonly cancellationForm = this.fb.nonNullable.group({
     message: ['', [Validators.required, Validators.maxLength(1000)]],
   });
 
@@ -157,6 +189,47 @@ export class ReservationDetail implements OnInit {
     });
   }
 
+  protected openCancellationForm(): void {
+    this.cancellationOpen.set(true);
+    this.setCancellationReason('SCHEDULE_CHANGE');
+  }
+
+  protected closeCancellationForm(): void {
+    this.cancellationOpen.set(false);
+    this.cancellationForm.reset({ message: '' });
+  }
+
+  protected setCancellationReason(value: string): void {
+    if (!cancellationOptions.some((option) => option.value === value)) return;
+    const reason = value as CancellationReasonCode;
+    const locale = this.reservation()?.locale === 'pt' ? 'pt' : 'en';
+    this.selectedCancellationReason.set(reason);
+    this.cancellationForm.controls.message.setValue(cancellationMessages[locale][reason]);
+  }
+
+  protected submitCancellation(): void {
+    const reservation = this.reservation();
+    if (!reservation || this.submitting()) return;
+    if (this.cancellationForm.invalid) {
+      this.cancellationForm.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    this.api.cancel(reservation.id, {
+      reasonCode: this.selectedCancellationReason(),
+      message: this.cancellationForm.getRawValue().message.trim(),
+    }).subscribe({
+      next: (updated) => {
+        this.reservation.set(updated);
+        this.submitting.set(false);
+        this.cancellationOpen.set(false);
+        this.toast.show('Reservation cancelled and customer notified.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not cancel the reservation.'),
+    });
+  }
+
   protected statusLabel(): string {
     return reservationStatusLabel(this.reservation()?.status ?? 'PENDING');
   }
@@ -167,6 +240,10 @@ export class ReservationDetail implements OnInit {
 
   protected reasonLabel(code: RejectionReasonCode | null | undefined): string {
     return reasonOptions.find((option) => option.value === code)?.label ?? 'Other';
+  }
+
+  protected cancellationReasonLabel(code: CancellationReasonCode | null | undefined): string {
+    return cancellationOptions.find((option) => option.value === code)?.label ?? 'Other';
   }
 
   protected formatDateTime(value: string): string {
@@ -206,4 +283,3 @@ export class ReservationDetail implements OnInit {
     this.toast.show(message, 'error');
   }
 }
-

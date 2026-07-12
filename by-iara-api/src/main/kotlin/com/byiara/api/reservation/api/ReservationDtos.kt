@@ -2,6 +2,7 @@ package com.byiara.api.reservation.api
 
 import com.byiara.api.reservation.application.ReservationPage
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationLocale
@@ -81,11 +82,22 @@ data class ReservationResponse(
     val rejectionReasonCode: String?,
     val rejectionMessage: String?,
     val decidedAt: OffsetDateTime?,
+    val cancellationReasonCode: String?,
+    val cancellationMessage: String?,
 )
 
 data class RejectReservationRequest(
     @field:NotNull
     val reasonCode: RejectionReasonCode?,
+
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val message: String?,
+)
+
+data class CancelReservationRequest(
+    @field:NotNull
+    val reasonCode: CancellationReasonCode?,
 
     @field:NotBlank
     @field:Size(max = 1000)
@@ -131,6 +143,8 @@ fun Reservation.toResponse(): ReservationResponse =
         rejectionReasonCode = rejectionReasonCode?.name,
         rejectionMessage = rejectionMessage,
         decidedAt = decidedAt,
+        cancellationReasonCode = cancellationReasonCode?.name,
+        cancellationMessage = cancellationMessage,
     )
 
 fun ReservationPage.toResponse(): ReservationPageResponse =

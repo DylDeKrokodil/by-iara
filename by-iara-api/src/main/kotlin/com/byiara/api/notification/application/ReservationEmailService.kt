@@ -46,7 +46,9 @@ class ReservationEmailService(
             val content = EmailCopy.reservationDecision(reservation, zoneId) ?: return@runCatching
             val type = when (reservation.status) {
                 ReservationStatus.CONFIRMED -> EmailType.RESERVATION_CONFIRMED
-                else -> EmailType.RESERVATION_REJECTED
+                ReservationStatus.REJECTED -> EmailType.RESERVATION_REJECTED
+                ReservationStatus.CANCELLED -> EmailType.RESERVATION_CANCELLED
+                else -> return@runCatching
             }
             sendAndLog(reservation.customer.email, content, reservation.id, type)
         }.onFailure { log.error("Failed to notify customer of decision for reservation {}", reservation.id, it) }

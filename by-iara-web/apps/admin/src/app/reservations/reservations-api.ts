@@ -6,6 +6,7 @@ import {
   ReservationPage,
   ReservationResponse,
   RejectReservationInput,
+  CancelReservationInput,
 } from './reservation.models';
 
 @Injectable({ providedIn: 'root' })
@@ -61,6 +62,13 @@ export class ReservationsApi {
   reject(id: string, input: RejectReservationInput): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/reject`,
+      input,
+    );
+  }
+
+  cancel(id: string, input: CancelReservationInput): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(
+      `${this.baseUrl}/${id}/cancel`,
       input,
     );
   }

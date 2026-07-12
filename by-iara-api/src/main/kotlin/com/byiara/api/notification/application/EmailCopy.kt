@@ -70,7 +70,74 @@ object EmailCopy {
         return when (reservation.status) {
             ReservationStatus.CONFIRMED -> confirmed(reservation, whenText)
             ReservationStatus.REJECTED -> rejected(reservation, whenText)
+            ReservationStatus.CANCELLED -> cancelled(reservation, whenText)
             else -> null
+        }
+    }
+
+    private fun cancelled(reservation: Reservation, whenText: String): EmailContent {
+        val name = reservation.customer.name
+        val message = reservation.cancellationMessage ?: when (reservation.locale) {
+            ReservationLocale.PT -> "Infelizmente, foi necessário cancelar a sua reserva."
+            ReservationLocale.EN -> "Unfortunately, we had to cancel your booking."
+        }
+        val rows = listOf("Service" to escapeHtml(reservation.serviceName), "When" to whenText)
+
+        return when (reservation.locale) {
+            ReservationLocale.PT -> EmailContent(
+                subject = "A sua reserva foi cancelada",
+                body = """
+                    Olá $name,
+
+                    A sua reserva foi cancelada:
+
+                    Serviço: ${reservation.serviceName}
+                    Data: $whenText
+
+                    Motivo: $message
+
+                    Contacte-nos se desejar ajuda a marcar outro horário.
+                    By Iara
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "pt",
+                    title = "A sua reserva foi cancelada",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">A sua reserva foi cancelada</h1>
+                        <p style="$paragraphStyle">Olá ${escapeHtml(name)}, infelizmente foi necessário cancelar a sua reserva:</p>
+                        ${detailsCard(listOf("Serviço" to rows[0].second, "Data" to rows[1].second))}
+                        <p style="$paragraphStyle"><strong>Motivo:</strong><br />${escapeHtml(message)}</p>
+                        <p style="$paragraphStyle; margin:0;">Contacte-nos se desejar ajuda a marcar outro horário.</p>
+                    """.trimIndent(),
+                ),
+            )
+            ReservationLocale.EN -> EmailContent(
+                subject = "Your booking has been cancelled",
+                body = """
+                    Hi $name,
+
+                    Your booking has been cancelled:
+
+                    Service: ${reservation.serviceName}
+                    When: $whenText
+
+                    Reason: $message
+
+                    Please contact us if you would like help booking another time.
+                    By Iara
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "en",
+                    title = "Your booking has been cancelled",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Your booking has been cancelled</h1>
+                        <p style="$paragraphStyle">Hi ${escapeHtml(name)}, unfortunately we had to cancel your booking:</p>
+                        ${detailsCard(rows)}
+                        <p style="$paragraphStyle"><strong>Reason:</strong><br />${escapeHtml(message)}</p>
+                        <p style="$paragraphStyle; margin:0;">Please contact us if you would like help booking another time.</p>
+                    """.trimIndent(),
+                ),
+            )
         }
     }
 

@@ -53,4 +53,11 @@ class AdminReservationController(
         @Valid @RequestBody request: RejectReservationRequest,
     ): ReservationResponse =
         reservationService.reject(id, request.reasonCode!!, request.message!!.trim()).toResponse()
+
+    @PatchMapping("/{id}/cancel")
+    fun cancel(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: CancelReservationRequest,
+    ): ReservationResponse =
+        reservationService.cancel(id, request.reasonCode!!, request.message!!.trim()).toResponse()
 }

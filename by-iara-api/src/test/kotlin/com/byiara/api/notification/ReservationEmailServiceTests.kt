@@ -176,6 +176,20 @@ class ReservationEmailServiceTests {
     }
 
     @Test
+    fun `cancellation email includes the customer-facing reason`() {
+        val content = EmailCopy.reservationDecision(
+            reservation(ReservationStatus.CANCELLED, ReservationLocale.EN).copy(
+                cancellationMessage = "We need to change our schedule.",
+            ),
+            zone,
+        )!!
+
+        assertTrue(content.subject.contains("cancelled"))
+        assertTrue(content.body.contains("Reason: We need to change our schedule."))
+        assertTrue(content.htmlBody!!.contains("We need to change our schedule."))
+    }
+
+    @Test
     fun `admin alert links straight to the reservation in the admin app`() {
         val target = reservation(ReservationStatus.PENDING, ReservationLocale.EN)
         val adminAlert = EmailCopy.newReservationAlert(target, zone, "http://localhost:4201")

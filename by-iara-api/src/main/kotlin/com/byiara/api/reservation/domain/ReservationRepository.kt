@@ -25,6 +25,12 @@ interface ReservationRepository {
         rejectionMessage: String? = null,
     ): Boolean
 
+    fun updateCancellation(
+        id: UUID,
+        cancellationReasonCode: CancellationReasonCode,
+        cancellationMessage: String,
+    ): Boolean
+
     fun findOrCreateCustomer(details: CustomerDetails): Customer
 }
 

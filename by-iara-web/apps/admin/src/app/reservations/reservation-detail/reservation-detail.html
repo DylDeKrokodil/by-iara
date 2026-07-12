@@ -72,6 +72,17 @@
             </dl>
           </byiara-card>
         </section>
+      } @else if (item.status === 'CANCELLED') {
+        <section aria-labelledby="decision-heading">
+          <div class="section-heading"><div><h2 id="decision-heading">Cancellation</h2><p>The reason sent to the customer.</p></div></div>
+          <byiara-card padding="lg" variant="muted">
+            <dl class="decision-detail">
+              <div><dt>Reason</dt><dd>{{ cancellationReasonLabel(item.cancellationReasonCode) }}</dd></div>
+              <div><dt>Customer message</dt><dd>{{ item.cancellationMessage }}</dd></div>
+              @if (item.decidedAt) { <div><dt>Cancelled</dt><dd>{{ formatDateTime(item.decidedAt) }}</dd></div> }
+            </dl>
+          </byiara-card>
+        </section>
       }
     </main>
 
@@ -81,6 +92,8 @@
           <h2 id="action-heading">Make a decision</h2>
           @if (item.status === 'PENDING') {
             <p>Confirm this appointment or explain why the request cannot be accommodated. The customer will be emailed immediately.</p>
+          } @else if (item.status === 'CONFIRMED') {
+            <p>This appointment is confirmed. If it can no longer take place, cancel it with an explanation for the customer.</p>
           } @else {
             <p>This request has already been {{ statusLabel().toLowerCase() }}. Its decision is retained in reservation history.</p>
           }
@@ -95,7 +108,14 @@
               Decline with a reason
             </byiara-button>
           </div>
-        } @else if (item.status !== 'PENDING') {
+        } @else if (item.status === 'CONFIRMED' && !cancellationOpen()) {
+          <div class="decision-actions decision-actions-inline">
+            <byiara-button variant="danger" [disabled]="submitting()" (click)="openCancellationForm()">
+              Cancel reservation
+            </byiara-button>
+            <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
+          </div>
+        } @else if (item.status !== 'PENDING' && item.status !== 'CONFIRMED') {
           <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
         }
       </div>
@@ -123,6 +143,31 @@
               {{ submitting() ? 'Declining...' : 'Decline and notify customer' }}
             </byiara-button>
             <byiara-button variant="secondary" [disabled]="submitting()" (click)="closeDeclineForm()">Cancel</byiara-button>
+          </div>
+        </form>
+      } @else if (item.status === 'CONFIRMED' && cancellationOpen()) {
+        <form class="decline-form" [formGroup]="cancellationForm" (ngSubmit)="submitCancellation()" novalidate>
+          <div class="decline-fields">
+            <byiara-select-field
+              label="Cancellation reason"
+              [options]="cancellationOptions"
+              [value]="selectedCancellationReason()"
+              (valueChange)="setCancellationReason($event)"
+            ></byiara-select-field>
+            <byiara-text-field
+              label="Message to customer"
+              multiline
+              [rows]="7"
+              formControlName="message"
+              [error]="cancellationForm.controls.message.touched && cancellationForm.controls.message.invalid ? 'A customer-facing reason is required.' : null"
+            ></byiara-text-field>
+          </div>
+          <p class="form-note">Review this message carefully. Cancelling will email the customer immediately.</p>
+          <div class="decision-actions decision-actions-inline">
+            <byiara-button type="submit" variant="danger" [loading]="submitting()">
+              {{ submitting() ? 'Cancelling...' : 'Cancel and notify customer' }}
+            </byiara-button>
+            <byiara-button variant="secondary" [disabled]="submitting()" (click)="closeCancellationForm()">Keep reservation</byiara-button>
           </div>
         </form>
       }
