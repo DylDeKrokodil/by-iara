@@ -128,16 +128,11 @@ export class Reservations implements OnInit {
   protected readonly highlightId = signal<string | null>(null);
   private hasScrolledToHighlight = false;
   protected readonly calendarReservations = signal<ReservationResponse[]>([]);
-  protected readonly nextConfirmed = signal<ReservationResponse | null>(null);
   protected readonly history = signal<ReservationResponse[]>([]);
 
   private loadedFrom: string | null = null;
   private loadedTo: string | null = null;
 
-  protected readonly pendingTotal = signal(0);
-  protected readonly calendarTotal = signal(0);
-  protected readonly thisWeekTotal = signal(0);
-  protected readonly closedTotal = signal(0);
   protected readonly loadingPending = signal(false);
   protected readonly loadingCalendar = signal(false);
   protected readonly loadingHistory = signal(true);
@@ -153,7 +148,6 @@ export class Reservations implements OnInit {
   protected readonly formatMoney = formatMoney;
 
   protected readonly todayKey = computed(() => this.dateKey(new Date()));
-  protected readonly nextReservation = computed(() => this.nextConfirmed());
   protected readonly calendarStartKey = computed(() =>
     this.startOfWeekKey(this.selectedDateKey()),
   );
@@ -417,14 +411,6 @@ export class Reservations implements OnInit {
     }).format(new Date(value));
   }
 
-  protected formatSummaryDate(value: string): string {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: 'numeric',
-      month: 'short',
-      timeZone: 'Europe/Brussels',
-    }).format(new Date(value));
-  }
-
   protected statusLabel(status: ReservationStatus): string {
     return reservationStatusLabel(status);
   }
@@ -453,11 +439,6 @@ export class Reservations implements OnInit {
   }
 
   private reloadActiveSections(force = false): void {
-    const nowDate = new Date();
-    const now = nowDate.toISOString();
-    const nextWeek = new Date(nowDate);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-
     const { startKey, endKey } = this.getMonthGridRange(this.selectedDateKey());
     const calendarStart = this.zonedDateTimeIso(startKey);
     const calendarEnd = this.zonedDateTimeIso(this.addDays(endKey, 1));
@@ -477,9 +458,6 @@ export class Reservations implements OnInit {
 
     const apiCalls: {
       pending: Observable<ReservationPage>;
-      nextConfirmed: Observable<ReservationPage>;
-      thisWeek: Observable<ReservationPage>;
-      closed: Observable<ReservationPage>;
       calendar?: Observable<ReservationPage>;
     } = {
       pending: this.api.list({
@@ -487,27 +465,6 @@ export class Reservations implements OnInit {
         sort: 'STARTS_AT_ASC',
         page: 0,
         size: sectionPageSize,
-      }),
-      nextConfirmed: this.api.list({
-        statuses: ['CONFIRMED'],
-        from: now,
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: 1,
-      }),
-      thisWeek: this.api.list({
-        statuses: ['CONFIRMED'],
-        from: now,
-        to: nextWeek.toISOString(),
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: 1,
-      }),
-      closed: this.api.list({
-        historyBefore: now,
-        sort: 'STARTS_AT_DESC',
-        page: 0,
-        size: 1,
       }),
     };
 
@@ -525,14 +482,9 @@ export class Reservations implements OnInit {
     forkJoin(apiCalls).subscribe({
       next: (results) => {
         this.pending.set(results.pending.items);
-        this.pendingTotal.set(results.pending.total);
-        this.nextConfirmed.set(results.nextConfirmed.items[0] ?? null);
-        this.thisWeekTotal.set(results.thisWeek.total);
-        this.closedTotal.set(results.closed.total);
         
         if (results.calendar) {
           this.calendarReservations.set(results.calendar.items);
-          this.calendarTotal.set(results.calendar.total);
           this.loadedFrom = startKey;
           this.loadedTo = endKey;
           this.loadingCalendar.set(false);

@@ -44,7 +44,6 @@
 .calendar-panel,
 .agenda-day,
 .agenda-items,
-.summary-card,
 .agenda-details,
 .primary-cell {
   display: grid;
@@ -54,12 +53,6 @@
 .overview-layout,
 .history-section {
   gap: var(--byiara-space-xl);
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--byiara-space-md);
 }
 
 .calendar-panel {
@@ -82,21 +75,6 @@
 .pagination {
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
-}
-
-.summary-detail {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-sm);
-}
-
-.summary-card strong {
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-3xl);
-  line-height: var(--byiara-line-height-title);
-}
-
-.summary-card.priority strong {
-  color: var(--byiara-color-primary-strong);
 }
 
 .section-header {
@@ -163,13 +141,11 @@
 .calendar-shell.full-width {
   display: block;
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: var(--byiara-space-xs);
-  scrollbar-gutter: stable;
+  overflow-x: hidden;
 }
 
 .calendar-shell.full-width .agenda-list {
-  min-width: 70rem;
+  min-width: 0;
 }
 
 .calendar-panel strong,
@@ -288,10 +264,6 @@
 }
 
 @media (max-width: 64rem) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .request-list,
   .calendar-shell {
     grid-template-columns: 1fr;
@@ -310,7 +282,6 @@
     flex-direction: column;
   }
 
-  .summary-grid,
   .agenda-item {
     grid-template-columns: 1fr;
   }
@@ -799,6 +770,19 @@
 }
 
 @media (max-width: 48rem) {
+  .month-cell {
+    padding: var(--byiara-space-2xs);
+  }
+
+  .month-booking-pill {
+    justify-content: center;
+  }
+
+  .month-booking-pill .pill-name,
+  .month-cell-count {
+    display: none;
+  }
+
   .view-toggles {
     width: 100%;
   }

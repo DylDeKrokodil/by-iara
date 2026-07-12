@@ -13,53 +13,6 @@
 
 @if (activeView() === 'overview') {
 <div class="overview-layout" role="tabpanel" aria-label="Overview reservations">
-  <section class="summary-grid" aria-label="Reservation summary">
-    <byiara-card padding="md">
-      <div class="summary-card priority">
-        <span class="summary-label">Needs action</span>
-        <strong>{{ pendingTotal() }}</strong>
-        <span class="summary-detail"
-          >pending request{{ pendingTotal() === 1 ? '' : 's' }}</span
-        >
-      </div>
-    </byiara-card>
-
-    <byiara-card padding="md">
-      <div class="summary-card">
-        <span class="summary-label">Next reservation</span>
-        @if (nextReservation(); as next) {
-        <strong>{{ formatTime(next.startsAt) }}</strong>
-        <span class="summary-detail"
-          >{{ formatSummaryDate(next.startsAt) }} · {{ next.customer.name }}</span
-        >
-        } @else {
-        <strong>None</strong>
-        <span class="summary-detail">No upcoming bookings</span>
-        }
-      </div>
-    </byiara-card>
-
-    <byiara-card padding="md">
-      <div class="summary-card">
-        <span class="summary-label">This week</span>
-        <strong>{{ thisWeekTotal() }}</strong>
-        <span class="summary-detail"
-          >confirmed appointment{{ thisWeekTotal() === 1 ? '' : 's' }}</span
-        >
-      </div>
-    </byiara-card>
-
-    <byiara-card padding="md">
-      <div class="summary-card">
-        <span class="summary-label">History</span>
-        <strong>{{ closedTotal() }}</strong>
-        <span class="summary-detail"
-          >closed or past reservation{{ closedTotal() === 1 ? '' : 's' }}</span
-        >
-      </div>
-    </byiara-card>
-  </section>
-
   <section class="overview-section" aria-labelledby="pending-reservations">
     <div class="section-header">
       <div>
