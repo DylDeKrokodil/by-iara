@@ -68,7 +68,7 @@ describe('Dashboard', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(reservationsApi.list).toHaveBeenCalledTimes(3);
+    expect(reservationsApi.list).toHaveBeenCalledTimes(4);
     expect(availabilityApi.listRules).toHaveBeenCalledOnce();
     expect(availabilityApi.listBlocks).toHaveBeenCalledOnce();
     expect(text).toContain('Needs attention');
@@ -82,9 +82,9 @@ describe('Dashboard', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('You’re all caught up');
-    expect(text).toContain('No confirmed appointments today');
-    expect(text).toContain('No confirmed bookings in the next seven days');
+    expect(text).toContain('Ready for your first reservation');
+    expect(text).toContain('Check availability');
+    expect(text).toContain('Manage services');
   });
 
   it('shows a recoverable error when dashboard data cannot load', () => {

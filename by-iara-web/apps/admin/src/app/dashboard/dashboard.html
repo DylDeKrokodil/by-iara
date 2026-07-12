@@ -1,6 +1,6 @@
 <byiara-page-header admin label="Overview" title="Today">
   <byiara-button page-header-action variant="secondary" routerLink="/availability">
-    Block availability
+    Block time
   </byiara-button>
 </byiara-page-header>
 
@@ -17,6 +17,19 @@
   <div class="dashboard-loading" aria-label="Loading dashboard">
     <byiara-empty-state title="Loading today’s operations..." [dashed]="false"></byiara-empty-state>
   </div>
+} @else if (!error() && !hasAnyReservations()) {
+  <section class="first-run" aria-label="Dashboard setup">
+    <byiara-empty-state
+      title="Ready for your first reservation"
+      description="Reservations will appear here when customers submit booking requests. Check that your services and weekly availability are ready for them."
+      [dashed]="false"
+    >
+      <div class="first-run-actions">
+        <byiara-button variant="primary" routerLink="/availability">Check availability</byiara-button>
+        <byiara-button variant="secondary" routerLink="/services">Manage services</byiara-button>
+      </div>
+    </byiara-empty-state>
+  </section>
 } @else if (!error()) {
   <section class="summary-strip" aria-label="Today’s operational summary">
     <div>

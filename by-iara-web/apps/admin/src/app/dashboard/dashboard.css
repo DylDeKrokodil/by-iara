@@ -235,6 +235,19 @@
   margin-top: var(--byiara-space-xl);
 }
 
+.first-run {
+  max-width: 48rem;
+  margin: var(--byiara-space-2xl) auto 0;
+}
+
+.first-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-md);
+}
+
 @media (max-width: 70rem) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -298,5 +311,11 @@
 
   .dashboard-aside {
     grid-template-columns: 1fr;
+  }
+
+  .first-run-actions {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
   }
 }

@@ -46,6 +46,7 @@ export class Dashboard implements OnInit {
   protected readonly pendingTotal = signal(0);
   protected readonly todayReservations = signal<ReservationResponse[]>([]);
   protected readonly weekReservations = signal<ReservationResponse[]>([]);
+  protected readonly hasAnyReservations = signal(false);
   protected readonly rules = signal<AvailabilityRule[]>([]);
   protected readonly blocks = signal<AvailabilityBlock[]>([]);
   protected readonly formatMoney = formatMoney;
@@ -164,14 +165,20 @@ export class Dashboard implements OnInit {
         page: 0,
         size: dashboardPageSize,
       }),
+      allReservations: this.reservationsApi.list({
+        sort: 'STARTS_AT_DESC',
+        page: 0,
+        size: 1,
+      }),
       rules: this.availabilityApi.listRules(),
       blocks: this.availabilityApi.listBlocks(new Date().toISOString()),
     }).subscribe({
-      next: ({ pending, today, week, rules, blocks }) => {
+      next: ({ pending, today, week, allReservations, rules, blocks }) => {
         this.pending.set(pending.items);
         this.pendingTotal.set(pending.total);
         this.todayReservations.set(today.items);
         this.weekReservations.set(week.items);
+        this.hasAnyReservations.set(allReservations.total > 0);
         this.rules.set(rules);
         this.blocks.set(
           [...blocks].sort((left, right) => left.startTime.localeCompare(right.startTime)),
