@@ -23,6 +23,7 @@ import {
 } from '@by-iara/shared-ui';
 import { forkJoin, Observable } from 'rxjs';
 import { formatMoney } from '../services/service.models';
+import { CalendarSync } from './calendar-sync/calendar-sync';
 import {
   ReservationPage,
   ReservationResponse,
@@ -104,6 +105,7 @@ function isHistoryFilter(value: string): value is HistoryFilter {
   imports: [
     Alert,
     Button,
+    CalendarSync,
     Card,
     DataTable,
     EmptyState,
@@ -120,6 +122,7 @@ export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
   private readonly route = inject(ActivatedRoute);
 
+  protected readonly calendarSyncOpen = signal(false);
   protected readonly activeView = signal<ReservationView>('overview');
   protected readonly selectedDateKey = signal(this.dateKey(new Date()));
   protected readonly calendarView = signal<'day' | 'week' | 'month'>('week');
@@ -290,6 +293,10 @@ export class Reservations implements OnInit {
   ngOnInit(): void {
     this.highlightId.set(this.route.snapshot.queryParamMap.get('id'));
     this.reload();
+  }
+
+  protected toggleCalendarSync(): void {
+    this.calendarSyncOpen.update((open) => !open);
   }
 
   protected setActiveView(view: string): void {
@@ -470,7 +477,7 @@ export class Reservations implements OnInit {
 
     if (needsCalendarReload) {
       apiCalls.calendar = this.api.list({
-        statuses: ['CONFIRMED'],
+        statuses: ['PENDING', 'CONFIRMED'],
         from: calendarStart,
         to: calendarEnd,
         sort: 'STARTS_AT_ASC',

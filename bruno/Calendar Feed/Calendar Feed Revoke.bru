@@ -1,0 +1,21 @@
+meta {
+  name: Calendar Feed Revoke
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/admin/calendar-feed
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+tests {
+  test("revokes the feed", function () {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -44,6 +44,7 @@ class ReservationEmailServiceTests {
     @BeforeEach
     fun resetSchema() {
         dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists admin_users")
         dsl.execute(
             """

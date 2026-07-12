@@ -1,0 +1,18 @@
+meta {
+  name: Calendar Feed Fetch
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/calendar-feed/{{calendarFeedToken}}.ics
+  body: none
+  auth: none
+}
+
+tests {
+  test("serves the ics feed", function () {
+    expect(res.status).to.equal(200);
+    expect(res.headers["content-type"]).to.include("text/calendar");
+  });
+}

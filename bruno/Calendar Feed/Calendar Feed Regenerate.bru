@@ -1,0 +1,32 @@
+meta {
+  name: Calendar Feed Regenerate
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/admin/calendar-feed
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body?.httpsUrl) {
+    const match = res.body.httpsUrl.match(/\/api\/calendar-feed\/([^./]+)\.ics/);
+    if (match) {
+      bru.setEnvVar("calendarFeedToken", match[1]);
+    }
+  }
+}
+
+tests {
+  test("returns subscribe links", function () {
+    expect(res.status).to.equal(200);
+    expect(res.body.httpsUrl).to.be.a("string");
+    expect(res.body.webcalUrl).to.be.a("string");
+  });
+}

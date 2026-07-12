@@ -57,6 +57,7 @@ class ReservationApiTests {
     @BeforeEach
     fun resetSchema() {
         dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")

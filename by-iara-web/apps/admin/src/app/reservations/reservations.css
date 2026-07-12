@@ -594,6 +594,18 @@
   box-shadow: var(--byiara-shadow-sm);
 }
 
+.week-res-card.is-pending,
+.month-booking-pill.is-pending {
+  border-color: color-mix(in srgb, var(--byiara-color-warning) 35%, transparent);
+  background: color-mix(in srgb, var(--byiara-color-warning) 8%, var(--byiara-color-surface));
+}
+
+.week-res-card .calendar-status {
+  margin-top: var(--byiara-space-2xs);
+  color: var(--byiara-color-warning);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
 .week-res-card time {
   font-size: 9px;
   font-weight: var(--byiara-font-weight-bold);

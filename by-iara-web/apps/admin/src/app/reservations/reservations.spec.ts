@@ -4,6 +4,7 @@ import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/route
 import { of } from 'rxjs';
 import { ToastService } from '@by-iara/shared-ui';
 import { Reservations } from './reservations';
+import { CalendarFeedApi } from './calendar-sync/calendar-feed-api';
 import {
   ReservationListParams,
   ReservationPage,
@@ -110,10 +111,10 @@ describe('Reservations', () => {
     vi.useRealTimers();
   });
 
-  it('requests confirmed reservations for the selected week', () => {
+  it('requests pending and confirmed reservations for the selected calendar range', () => {
     expect(api.list).toHaveBeenCalledWith(
       expect.objectContaining({
-        statuses: ['CONFIRMED'],
+        statuses: ['PENDING', 'CONFIRMED'],
         from: '2026-05-31T22:00:00.000Z',
         to: '2026-07-12T22:00:00.000Z',
         sort: 'STARTS_AT_ASC',
@@ -129,13 +130,13 @@ describe('Reservations', () => {
     expect(compiled.textContent).toContain('Needs action');
     expect(compiled.textContent).toContain('Calendar agenda');
     expect(compiled.textContent).toContain('Selected date');
-    expect(compiled.textContent).toContain('confirmed booking');
-    expect(compiled.textContent).toContain('No bookings');
+    expect(compiled.textContent).toContain('reservation');
+    expect(compiled.textContent).toContain('No reservations');
     expect(compiled.textContent).toContain('Customer today-1');
     expect(compiled.textContent).toContain('Customer tomorrow-1');
   });
 
-  it('reloads the confirmed reservation range when moving to the next week', () => {
+  it('reloads the reservation range when moving to the next week', () => {
     const nextButton = fixture.debugElement.query(
       By.css('button[aria-label="Next week"]'),
     );
@@ -145,7 +146,7 @@ describe('Reservations', () => {
 
     expect(api.list).toHaveBeenCalledWith(
       expect.objectContaining({
-        statuses: ['CONFIRMED'],
+        statuses: ['PENDING', 'CONFIRMED'],
         from: '2026-06-28T22:00:00.000Z',
         to: '2026-08-09T22:00:00.000Z',
         sort: 'STARTS_AT_ASC',
@@ -199,5 +200,53 @@ describe('Reservations - arriving via the new-reservation email link', () => {
     expect(card.classList.contains('is-highlighted')).toBe(true);
 
     vi.useRealTimers();
+  });
+});
+
+describe('Reservations - calendar sync panel', () => {
+  it('toggles the calendar sync panel open and closed', async () => {
+    const api = { list: vi.fn(() => of(emptyPage)), confirm: vi.fn(), reject: vi.fn() };
+    const calendarFeedApi = {
+      status: vi.fn(() => of({ active: false, createdAt: null })),
+      regenerate: vi.fn(),
+      revoke: vi.fn(),
+    };
+
+    await TestBed.configureTestingModule({
+      imports: [Reservations],
+      providers: [
+        provideRouter([]),
+        { provide: ReservationsApi, useValue: api },
+        { provide: CalendarFeedApi, useValue: calendarFeedApi },
+        { provide: ToastService, useValue: { show: vi.fn() } },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(Reservations);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeNull();
+
+    const toggleButton = fixture.debugElement
+      .queryAll(By.css('byiara-button button'))
+      .find((button) => (button.nativeElement as HTMLElement).textContent?.includes('Sync to Apple Calendar'));
+    if (!toggleButton) {
+      throw new Error('Could not find the "Sync to Apple Calendar" button');
+    }
+
+    toggleButton.nativeElement.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeTruthy();
+    expect(calendarFeedApi.status).toHaveBeenCalled();
+
+    toggleButton.nativeElement.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeNull();
   });
 });
