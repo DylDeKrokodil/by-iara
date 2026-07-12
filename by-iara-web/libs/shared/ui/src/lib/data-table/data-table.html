@@ -1,4 +1,5 @@
 <div class="byiara-data-table-container">
+  <div class="byiara-data-table-scroll">
   <table
     class="byiara-data-table"
     [attr.aria-label]="ariaLabel()"
@@ -37,4 +38,8 @@
       } }
     </tbody>
   </table>
+  </div>
+  <div class="byiara-data-table-footer">
+    <ng-content select="[data-table-footer]"></ng-content>
+  </div>
 </div>

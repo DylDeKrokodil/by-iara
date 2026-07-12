@@ -17,6 +17,15 @@
   margin-bottom: 0;
 }
 
+.pagination {
+  width: 100%;
+}
+
+.pagination-page {
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-medium);
+}
+
 .summary-label {
   margin: 0;
   color: var(--byiara-color-primary-strong);
@@ -35,7 +44,6 @@
 .calendar-panel,
 .agenda-day,
 .agenda-items,
-.summary-card,
 .agenda-details,
 .primary-cell {
   display: grid;
@@ -45,12 +53,6 @@
 .overview-layout,
 .history-section {
   gap: var(--byiara-space-xl);
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--byiara-space-md);
 }
 
 .calendar-panel {
@@ -73,21 +75,6 @@
 .pagination {
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
-}
-
-.summary-detail {
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-sm);
-}
-
-.summary-card strong {
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-3xl);
-  line-height: var(--byiara-line-height-title);
-}
-
-.summary-card.priority strong {
-  color: var(--byiara-color-primary-strong);
 }
 
 .section-header {
@@ -151,6 +138,16 @@
   align-items: start;
 }
 
+.calendar-shell.full-width {
+  display: block;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.calendar-shell.full-width .agenda-list {
+  min-width: 0;
+}
+
 .calendar-panel strong,
 .selected-day-card strong {
   color: var(--byiara-color-text);
@@ -170,6 +167,16 @@
 
 .request-list {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* The request this admin arrived at via the "new reservation" email link. Targets
+   .request-card (projected content, keeps this component's own encapsulation attribute)
+   rather than the byiara-card host, which is `display: contents` and has no box of its
+   own to ring -- see shared-ui card.css. */
+.request-card.is-highlighted {
+  border-radius: var(--byiara-radius-md);
+  box-shadow: 0 0 0 2px var(--byiara-color-primary);
+  transition: box-shadow var(--byiara-duration-base) var(--byiara-ease-out);
 }
 
 .request-main {
@@ -206,7 +213,7 @@
 
 .agenda-item {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto auto;
   align-items: center;
   gap: var(--byiara-space-md);
 }
@@ -257,10 +264,6 @@
 }
 
 @media (max-width: 64rem) {
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .request-list,
   .calendar-shell {
     grid-template-columns: 1fr;
@@ -279,7 +282,6 @@
     flex-direction: column;
   }
 
-  .summary-grid,
   .agenda-item {
     grid-template-columns: 1fr;
   }
@@ -308,6 +310,10 @@
   .actions-wrapper byiara-button,
   .pagination-actions byiara-button {
     --byiara-button-width: 100%;
+  }
+
+  .pagination-page {
+    order: -1;
   }
 }
 
@@ -574,6 +580,7 @@
   background: var(--byiara-color-white);
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
   outline: none;
   transition:
     transform var(--byiara-duration-fast) var(--byiara-ease-out),
@@ -585,6 +592,18 @@
   transform: translateY(-1px);
   border-color: var(--byiara-color-primary);
   box-shadow: var(--byiara-shadow-sm);
+}
+
+.week-res-card.is-pending,
+.month-booking-pill.is-pending {
+  border-color: color-mix(in srgb, var(--byiara-color-warning) 35%, transparent);
+  background: color-mix(in srgb, var(--byiara-color-warning) 8%, var(--byiara-color-surface));
+}
+
+.week-res-card .calendar-status {
+  margin-top: var(--byiara-space-2xs);
+  color: var(--byiara-color-warning);
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
 .week-res-card time {
@@ -631,7 +650,7 @@
 .month-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: repeat(6, minmax(6.5rem, 1fr));
+  grid-template-rows: repeat(6, minmax(8rem, 1fr));
   background: var(--byiara-color-border);
   gap: 1px;
 }
@@ -722,6 +741,7 @@
   font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .pill-time {
@@ -762,22 +782,17 @@
 }
 
 @media (max-width: 48rem) {
-  .month-grid {
-    grid-template-rows: repeat(6, minmax(4.5rem, 1fr));
-  }
-
-  .month-cell-bookings {
-    display: none;
-  }
-
   .month-cell {
-    align-items: center;
+    padding: var(--byiara-space-2xs);
+  }
+
+  .month-booking-pill {
     justify-content: center;
   }
 
-  .month-cell-header {
-    flex-direction: column;
-    gap: 2px;
+  .month-booking-pill .pill-name,
+  .month-cell-count {
+    display: none;
   }
 
   .view-toggles {

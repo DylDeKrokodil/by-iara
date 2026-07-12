@@ -12,6 +12,8 @@ export interface CreateReservationPayload {
   startsAt: string;
   customer: { name: string; email: string; phone: string | null };
   notes: string | null;
+  /** Language the confirmation/rejection email should be sent in. */
+  locale: 'pt' | 'en';
 }
 
 export interface ReservationConfirmation {

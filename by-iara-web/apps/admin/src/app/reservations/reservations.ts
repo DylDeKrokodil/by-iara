@@ -1,17 +1,16 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   OnInit,
-  ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   Alert,
   Button,
   Card,
-  ConfirmationModal,
   DataTable,
   DataTableColumn,
   EmptyState,
@@ -21,10 +20,10 @@ import {
   StatusChip,
   TabOption,
   Tabs,
-  ToastService,
 } from '@by-iara/shared-ui';
 import { forkJoin, Observable } from 'rxjs';
 import { formatMoney } from '../services/service.models';
+import { CalendarSync } from './calendar-sync/calendar-sync';
 import {
   ReservationPage,
   ReservationResponse,
@@ -106,37 +105,37 @@ function isHistoryFilter(value: string): value is HistoryFilter {
   imports: [
     Alert,
     Button,
+    CalendarSync,
     Card,
-    ConfirmationModal,
     DataTable,
     EmptyState,
     PageHeader,
     SelectField,
     StatusChip,
     Tabs,
+    RouterLink,
   ],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css',
 })
 export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
-  private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
 
+  protected readonly calendarSyncOpen = signal(false);
   protected readonly activeView = signal<ReservationView>('overview');
   protected readonly selectedDateKey = signal(this.dateKey(new Date()));
   protected readonly calendarView = signal<'day' | 'week' | 'month'>('week');
   protected readonly pending = signal<ReservationResponse[]>([]);
+  /** Set from ?id= when arriving via the "new reservation" admin email link. */
+  protected readonly highlightId = signal<string | null>(null);
+  private hasScrolledToHighlight = false;
   protected readonly calendarReservations = signal<ReservationResponse[]>([]);
-  protected readonly nextConfirmed = signal<ReservationResponse | null>(null);
   protected readonly history = signal<ReservationResponse[]>([]);
 
   private loadedFrom: string | null = null;
   private loadedTo: string | null = null;
 
-  protected readonly pendingTotal = signal(0);
-  protected readonly calendarTotal = signal(0);
-  protected readonly thisWeekTotal = signal(0);
-  protected readonly closedTotal = signal(0);
   protected readonly loadingPending = signal(false);
   protected readonly loadingCalendar = signal(false);
   protected readonly loadingHistory = signal(true);
@@ -145,10 +144,6 @@ export class Reservations implements OnInit {
   protected readonly historyFilter = signal<HistoryFilter>('all');
   protected readonly historyPage = signal(0);
   protected readonly historyTotal = signal(0);
-  protected readonly actionReservationId = signal<string | null>(null);
-  protected readonly reservationToDecline = signal<ReservationResponse | null>(
-    null,
-  );
 
   protected readonly reservationTabs = reservationTabs;
   protected readonly reservationColumns = reservationColumns;
@@ -156,7 +151,6 @@ export class Reservations implements OnInit {
   protected readonly formatMoney = formatMoney;
 
   protected readonly todayKey = computed(() => this.dateKey(new Date()));
-  protected readonly nextReservation = computed(() => this.nextConfirmed());
   protected readonly calendarStartKey = computed(() =>
     this.startOfWeekKey(this.selectedDateKey()),
   );
@@ -258,6 +252,12 @@ export class Reservations implements OnInit {
   protected readonly totalHistoryPages = computed(() =>
     Math.max(Math.ceil(this.historyTotal() / historyPageSize), 1),
   );
+  protected readonly historyRangeStart = computed(() =>
+    this.historyTotal() === 0 ? 0 : this.historyPage() * historyPageSize + 1,
+  );
+  protected readonly historyRangeEnd = computed(() =>
+    Math.min((this.historyPage() + 1) * historyPageSize, this.historyTotal()),
+  );
   protected readonly canGoToPreviousHistoryPage = computed(
     () => this.historyPage() > 0,
   );
@@ -265,11 +265,38 @@ export class Reservations implements OnInit {
     () => this.historyPage() + 1 < this.totalHistoryPages(),
   );
 
-  @ViewChild('confirmDeclineModal')
-  private confirmDeclineModal!: ConfirmationModal;
+  constructor() {
+    // Runs once the target reservation actually shows up in the loaded pending list
+    // (not on every pending() change) -- guards against re-scrolling on later reloads,
+    // e.g. after the admin accepts/declines something else in the list.
+    effect(() => {
+      const id = this.highlightId();
+      if (!id || this.hasScrolledToHighlight) {
+        return;
+      }
+      if (this.pending().some((reservation) => reservation.id === id)) {
+        this.hasScrolledToHighlight = true;
+        // Double rAF: a single frame isn't always enough for the browser to have
+        // finished layout after this DOM update, which left scrollIntoView measuring
+        // a stale (still-collapsing) position and barely scrolling at all.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const element = document.getElementById(`reservation-${id}`);
+            // scrollIntoView is unimplemented in jsdom (unit tests); real browsers always have it.
+            element?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+          });
+        });
+      }
+    });
+  }
 
   ngOnInit(): void {
+    this.highlightId.set(this.route.snapshot.queryParamMap.get('id'));
     this.reload();
+  }
+
+  protected toggleCalendarSync(): void {
+    this.calendarSyncOpen.update((open) => !open);
   }
 
   protected setActiveView(view: string): void {
@@ -371,59 +398,6 @@ export class Reservations implements OnInit {
     this.reloadHistory();
   }
 
-  protected accept(reservation: ReservationResponse): void {
-    if (this.actionReservationId()) {
-      return;
-    }
-
-    this.actionReservationId.set(reservation.id);
-    this.api.confirm(reservation.id).subscribe({
-      next: () => {
-        this.toast.show('Reservation accepted.', 'success');
-        this.actionReservationId.set(null);
-        this.reload();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.handleActionError(error, 'Could not accept the reservation.');
-      },
-    });
-  }
-
-  protected decline(reservation: ReservationResponse): void {
-    this.reservationToDecline.set(reservation);
-    this.confirmDeclineModal.open();
-  }
-
-  protected onConfirmDecline(): void {
-    const reservation = this.reservationToDecline();
-
-    if (!reservation || this.actionReservationId()) {
-      return;
-    }
-
-    this.actionReservationId.set(reservation.id);
-    this.api.reject(reservation.id).subscribe({
-      next: () => {
-        this.toast.show('Reservation declined.', 'success');
-        this.reservationToDecline.set(null);
-        this.actionReservationId.set(null);
-        this.reload();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.reservationToDecline.set(null);
-        this.handleActionError(error, 'Could not decline the reservation.');
-      },
-    });
-  }
-
-  protected onCancelDecline(): void {
-    this.reservationToDecline.set(null);
-  }
-
-  protected isActionInProgress(reservation: ReservationResponse): boolean {
-    return this.actionReservationId() === reservation.id;
-  }
-
   protected serviceLabel(reservation: ReservationResponse): string {
     return `${reservation.serviceName} · ${reservation.durationMinutes} min`;
   }
@@ -440,14 +414,6 @@ export class Reservations implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'Europe/Brussels',
-    }).format(new Date(value));
-  }
-
-  protected formatSummaryDate(value: string): string {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: 'numeric',
-      month: 'short',
       timeZone: 'Europe/Brussels',
     }).format(new Date(value));
   }
@@ -480,11 +446,6 @@ export class Reservations implements OnInit {
   }
 
   private reloadActiveSections(force = false): void {
-    const nowDate = new Date();
-    const now = nowDate.toISOString();
-    const nextWeek = new Date(nowDate);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-
     const { startKey, endKey } = this.getMonthGridRange(this.selectedDateKey());
     const calendarStart = this.zonedDateTimeIso(startKey);
     const calendarEnd = this.zonedDateTimeIso(this.addDays(endKey, 1));
@@ -504,9 +465,6 @@ export class Reservations implements OnInit {
 
     const apiCalls: {
       pending: Observable<ReservationPage>;
-      nextConfirmed: Observable<ReservationPage>;
-      thisWeek: Observable<ReservationPage>;
-      closed: Observable<ReservationPage>;
       calendar?: Observable<ReservationPage>;
     } = {
       pending: this.api.list({
@@ -515,32 +473,11 @@ export class Reservations implements OnInit {
         page: 0,
         size: sectionPageSize,
       }),
-      nextConfirmed: this.api.list({
-        statuses: ['CONFIRMED'],
-        from: now,
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: 1,
-      }),
-      thisWeek: this.api.list({
-        statuses: ['CONFIRMED'],
-        from: now,
-        to: nextWeek.toISOString(),
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: 1,
-      }),
-      closed: this.api.list({
-        historyBefore: now,
-        sort: 'STARTS_AT_DESC',
-        page: 0,
-        size: 1,
-      }),
     };
 
     if (needsCalendarReload) {
       apiCalls.calendar = this.api.list({
-        statuses: ['CONFIRMED'],
+        statuses: ['PENDING', 'CONFIRMED'],
         from: calendarStart,
         to: calendarEnd,
         sort: 'STARTS_AT_ASC',
@@ -552,14 +489,9 @@ export class Reservations implements OnInit {
     forkJoin(apiCalls).subscribe({
       next: (results) => {
         this.pending.set(results.pending.items);
-        this.pendingTotal.set(results.pending.total);
-        this.nextConfirmed.set(results.nextConfirmed.items[0] ?? null);
-        this.thisWeekTotal.set(results.thisWeek.total);
-        this.closedTotal.set(results.closed.total);
         
         if (results.calendar) {
           this.calendarReservations.set(results.calendar.items);
-          this.calendarTotal.set(results.calendar.total);
           this.loadedFrom = startKey;
           this.loadedTo = endKey;
           this.loadingCalendar.set(false);
@@ -614,25 +546,6 @@ export class Reservations implements OnInit {
       default:
         return { historyBefore: now };
     }
-  }
-
-  private handleActionError(
-    error: HttpErrorResponse,
-    fallbackMessage: string,
-  ): void {
-    if (error.status === 409 || error.status === 422) {
-      this.toast.show(
-        'Reservation status changed. Refreshed the list.',
-        'info',
-      );
-      this.actionReservationId.set(null);
-      this.reload();
-      return;
-    }
-
-    this.toast.show(fallbackMessage, 'error');
-    this.actionReservationId.set(null);
-    this.reload();
   }
 
   private dateKey(value: string | Date): string {

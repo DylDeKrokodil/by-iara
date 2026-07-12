@@ -1,16 +1,22 @@
 package com.byiara.api.reservation
 
+import jakarta.mail.Session
+import jakarta.mail.internet.MimeMessage
 import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.jooq.DSLContext
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
+import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -23,6 +29,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Properties
 import java.util.UUID
 
 @SpringBootTest
@@ -35,6 +42,10 @@ class ReservationApiTests {
     @Autowired
     private lateinit var dsl: DSLContext
 
+    // Never hit real SMTP in tests; a void-returning mock no-ops successfully by default.
+    @MockitoBean
+    private lateinit var mailSender: JavaMailSender
+
     private val zone = ZoneId.of("Europe/Brussels")
     private val serviceId = "11111111-1111-1111-1111-111111111111"
     private val variantId = "22222222-2222-2222-2222-222222222222"
@@ -45,6 +56,8 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")
@@ -52,6 +65,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
+        dsl.execute("drop table if exists admin_users")
 
         dsl.execute(
             """
@@ -147,12 +161,45 @@ class ReservationApiTests {
                 ends_at timestamp with time zone not null,
                 status varchar(20) not null default 'PENDING',
                 notes text,
+                locale varchar(5) not null default 'en',
+                rejection_reason_code varchar(40),
+                rejection_message varchar(1000),
+                decided_at timestamp with time zone,
+                cancellation_reason_code varchar(40),
+                cancellation_message varchar(1000),
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
             """.trimIndent(),
         )
+        dsl.execute(
+            """
+            create table admin_users (
+                id uuid default random_uuid() primary key,
+                email varchar(255) not null unique,
+                password_hash varchar(255) not null,
+                role varchar(40) not null,
+                active boolean not null default true,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table email_logs (
+                id uuid default random_uuid() primary key,
+                reservation_id uuid,
+                recipient varchar(255) not null,
+                email_type varchar(40) not null,
+                status varchar(20) not null,
+                error_message text,
+                created_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
 
+        dsl.execute("insert into admin_users (email, password_hash, role, active) values ('admin@by-iara.local', 'x', 'ADMIN', true)")
         dsl.execute("insert into services (id, slug, name, active) values ('$serviceId', 'relax', 'Relaxing massage', true)")
         dsl.execute(
             "insert into service_variants (id, service_id, duration_minutes, price_cents, currency, active) " +
@@ -160,10 +207,31 @@ class ReservationApiTests {
         )
         val dayOfWeek = slotStart.atZoneSameInstant(zone).dayOfWeek.value
         dsl.execute("insert into availability_rules (day_of_week, start_time, end_time) values ($dayOfWeek, '09:00:00', '17:00:00')")
+
+        // Confirm/reject emails carry an HTML alternative via MimeMessage; a raw mock's
+        // createMimeMessage() returns null by default, which would NPE inside MimeMessageHelper.
+        val session = Session.getInstance(Properties())
+        Mockito.`when`(mailSender.createMimeMessage()).thenAnswer { MimeMessage(session) }
     }
 
     private fun adminJwt(): RequestPostProcessor =
         jwt().jwt { it.claim("email", "admin@by-iara.local").claim("role", "ADMIN") }
+
+    private fun rejectRequest(id: String) =
+        patch("/api/admin/reservations/$id/reject")
+            .with(adminJwt())
+            .contentType("application/json")
+            .content(
+                """{"reasonCode":"TIME_UNAVAILABLE","message":"The requested time is no longer available."}""",
+            )
+
+    private fun cancelRequest(id: String) =
+        patch("/api/admin/reservations/$id/cancel")
+            .with(adminJwt())
+            .contentType("application/json")
+            .content(
+                """{"reasonCode":"SCHEDULE_CHANGE","message":"We need to change our schedule."}""",
+            )
 
     private fun iso(time: OffsetDateTime): String = time.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
@@ -192,6 +260,16 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.durationMinutes").value(60))
             .andExpect(jsonPath("$.price.amountCents").value(7500))
             .andExpect(jsonPath("$.customer.email").value("ana@example.com"))
+    }
+
+    @Test
+    fun `booking notifies active admins and logs the attempt`() {
+        book(slotStart).andExpect(status().isCreated)
+
+        val logs = dsl.fetch("select recipient, email_type, status from email_logs where email_type = 'NEW_RESERVATION'")
+        assertEquals(1, logs.size)
+        assertEquals("admin@by-iara.local", logs[0].get("recipient", String::class.java))
+        assertEquals("SENT", logs[0].get("status", String::class.java))
     }
 
     @Test
@@ -295,6 +373,51 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `confirming a reservation notifies the customer and logs the attempt`() {
+        val id = reservationIdFrom(book(slotStart, "ana@example.com").andExpect(status().isCreated).andReturn())
+
+        mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
+
+        val logs = dsl.fetch("select recipient, status from email_logs where email_type = 'RESERVATION_CONFIRMED'")
+        assertEquals(1, logs.size)
+        assertEquals("ana@example.com", logs[0].get("recipient", String::class.java))
+        assertEquals("SENT", logs[0].get("status", String::class.java))
+    }
+
+    @Test
+    fun `rejecting a reservation notifies the customer and logs the attempt`() {
+        val id = reservationIdFrom(book(slotStart, "ana@example.com").andExpect(status().isCreated).andReturn())
+
+        mockMvc.perform(rejectRequest(id)).andExpect(status().isOk)
+            .andExpect(jsonPath("$.rejectionReasonCode").value("TIME_UNAVAILABLE"))
+            .andExpect(jsonPath("$.rejectionMessage").value("The requested time is no longer available."))
+            .andExpect(jsonPath("$.decidedAt").exists())
+
+        val logs = dsl.fetch("select recipient, status from email_logs where email_type = 'RESERVATION_REJECTED'")
+        assertEquals(1, logs.size)
+        assertEquals("ana@example.com", logs[0].get("recipient", String::class.java))
+        assertEquals("SENT", logs[0].get("status", String::class.java))
+    }
+
+    @Test
+    fun `admin can cancel a confirmed reservation with a reason and notify the customer`() {
+        val id = reservationIdFrom(book(slotStart, "cancel@example.com").andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
+
+        mockMvc.perform(cancelRequest(id))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("CANCELLED"))
+            .andExpect(jsonPath("$.cancellationReasonCode").value("SCHEDULE_CHANGE"))
+            .andExpect(jsonPath("$.cancellationMessage").value("We need to change our schedule."))
+            .andExpect(jsonPath("$.decidedAt").exists())
+
+        val logs = dsl.fetch("select recipient, status from email_logs where email_type = 'RESERVATION_CANCELLED'")
+        assertEquals(1, logs.size)
+        assertEquals("cancel@example.com", logs[0].get("recipient", String::class.java))
+        assertEquals("SENT", logs[0].get("status", String::class.java))
+    }
+
+    @Test
     fun `confirming an already confirmed reservation is rejected`() {
         val id = reservationIdFrom(book(slotStart).andExpect(status().isCreated).andReturn())
 
@@ -372,7 +495,7 @@ class ReservationApiTests {
     @Test
     fun `admin history list includes closed reservations and past confirmed reservations`() {
         val closedId = reservationIdFrom(book(slotStart, "closed@example.com").andExpect(status().isCreated).andReturn())
-        mockMvc.perform(patch("/api/admin/reservations/$closedId/reject").with(adminJwt())).andExpect(status().isOk)
+        mockMvc.perform(rejectRequest(closedId)).andExpect(status().isOk)
 
         val pastConfirmedId = insertReservation(
             start = OffsetDateTime.now(zone).minusDays(2),

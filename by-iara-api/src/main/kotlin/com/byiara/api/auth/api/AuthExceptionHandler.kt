@@ -1,5 +1,6 @@
 package com.byiara.api.auth.api
 
+import com.byiara.api.auth.domain.AdminAccountInactiveException
 import com.byiara.api.auth.domain.InvalidCredentialsException
 import com.byiara.api.auth.domain.InvalidRefreshTokenException
 import com.byiara.api.common.api.ApiErrorResponse
@@ -20,5 +21,11 @@ class AuthExceptionHandler {
     fun handleInvalidRefreshToken(exception: InvalidRefreshTokenException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
             ApiErrorResponse(message = exception.message ?: "Invalid or expired refresh token"),
+        )
+
+    @ExceptionHandler(AdminAccountInactiveException::class)
+    fun handleAdminAccountInactive(exception: AdminAccountInactiveException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            ApiErrorResponse(message = exception.message ?: "Admin account is no longer active"),
         )
 }

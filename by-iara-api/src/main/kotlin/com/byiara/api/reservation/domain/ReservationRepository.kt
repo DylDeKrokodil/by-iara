@@ -18,7 +18,18 @@ interface ReservationRepository {
 
     fun create(reservation: NewReservation): Reservation
 
-    fun updateStatus(id: UUID, status: ReservationStatus): Boolean
+    fun updateDecision(
+        id: UUID,
+        status: ReservationStatus,
+        rejectionReasonCode: RejectionReasonCode? = null,
+        rejectionMessage: String? = null,
+    ): Boolean
+
+    fun updateCancellation(
+        id: UUID,
+        cancellationReasonCode: CancellationReasonCode,
+        cancellationMessage: String,
+    ): Boolean
 
     fun findOrCreateCustomer(details: CustomerDetails): Customer
 }

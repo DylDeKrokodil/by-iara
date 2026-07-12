@@ -2,12 +2,16 @@ package com.byiara.api.reservation.api
 
 import com.byiara.api.reservation.application.ReservationPage
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationLocale
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -28,6 +32,11 @@ data class CreateReservationRequest(
 
     @field:Size(max = 1000)
     val notes: String? = null,
+
+    // Which language (site was browsed in) the confirmation/rejection email should be sent in.
+    // Optional and defaults to English so older clients that don't send it still work.
+    @field:Pattern(regexp = "pt|en", message = "must be 'pt' or 'en'")
+    val locale: String? = null,
 ) {
     fun toCommand(): CreateReservationCommand =
         CreateReservationCommand(
@@ -36,6 +45,7 @@ data class CreateReservationRequest(
             startsAt = startsAt!!,
             customer = customer!!.toDetails(),
             notes = notes?.trim()?.ifBlank { null },
+            locale = locale?.let { ReservationLocale.fromCode(it) } ?: ReservationLocale.EN,
         )
 }
 
@@ -68,6 +78,30 @@ data class ReservationResponse(
     val endsAt: OffsetDateTime,
     val customer: CustomerResponse,
     val notes: String?,
+    val locale: String,
+    val rejectionReasonCode: String?,
+    val rejectionMessage: String?,
+    val decidedAt: OffsetDateTime?,
+    val cancellationReasonCode: String?,
+    val cancellationMessage: String?,
+)
+
+data class RejectReservationRequest(
+    @field:NotNull
+    val reasonCode: RejectionReasonCode?,
+
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val message: String?,
+)
+
+data class CancelReservationRequest(
+    @field:NotNull
+    val reasonCode: CancellationReasonCode?,
+
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val message: String?,
 )
 
 data class ReservationMoneyResponse(
@@ -105,6 +139,12 @@ fun Reservation.toResponse(): ReservationResponse =
         endsAt = endsAt,
         customer = CustomerResponse(customer.name, customer.email, customer.phone),
         notes = notes,
+        locale = locale.name.lowercase(),
+        rejectionReasonCode = rejectionReasonCode?.name,
+        rejectionMessage = rejectionMessage,
+        decidedAt = decidedAt,
+        cancellationReasonCode = cancellationReasonCode?.name,
+        cancellationMessage = cancellationMessage,
     )
 
 fun ReservationPage.toResponse(): ReservationPageResponse =

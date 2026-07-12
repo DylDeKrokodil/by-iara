@@ -4,11 +4,26 @@ byiara-data-table {
 
 .byiara-data-table-container {
   width: 100%;
-  overflow-x: auto;
+  overflow: hidden;
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface);
   box-shadow: var(--byiara-shadow-sm);
+}
+
+.byiara-data-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.byiara-data-table-footer {
+  padding: var(--byiara-space-sm) var(--byiara-space-lg);
+  border-top: 1px solid var(--byiara-color-border);
+  background: var(--byiara-color-surface);
+}
+
+.byiara-data-table-footer:empty {
+  display: none;
 }
 
 .byiara-data-table {

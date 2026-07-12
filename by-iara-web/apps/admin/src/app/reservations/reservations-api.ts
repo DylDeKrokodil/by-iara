@@ -5,6 +5,8 @@ import {
   ReservationListParams,
   ReservationPage,
   ReservationResponse,
+  RejectReservationInput,
+  CancelReservationInput,
 } from './reservation.models';
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +48,10 @@ export class ReservationsApi {
     return this.http.get<ReservationPage>(this.baseUrl, { params });
   }
 
+  get(id: string): Observable<ReservationResponse> {
+    return this.http.get<ReservationResponse>(`${this.baseUrl}/${id}`);
+  }
+
   confirm(id: string): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/confirm`,
@@ -53,10 +59,17 @@ export class ReservationsApi {
     );
   }
 
-  reject(id: string): Observable<ReservationResponse> {
+  reject(id: string, input: RejectReservationInput): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/reject`,
-      {},
+      input,
+    );
+  }
+
+  cancel(id: string, input: CancelReservationInput): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(
+      `${this.baseUrl}/${id}/cancel`,
+      input,
     );
   }
 }

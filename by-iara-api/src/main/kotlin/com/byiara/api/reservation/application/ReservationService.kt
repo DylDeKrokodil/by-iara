@@ -3,7 +3,9 @@ package com.byiara.api.reservation.application
 import com.byiara.api.availability.application.AvailabilityService
 import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.notification.application.ReservationEmailService
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
@@ -14,6 +16,7 @@ import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.ReservationRepository
 import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
 import org.springframework.stereotype.Service
@@ -26,6 +29,7 @@ class ReservationService(
     private val reservationRepository: ReservationRepository,
     private val serviceRepository: ServiceRepository,
     private val availabilityService: AvailabilityService,
+    private val reservationEmailService: ReservationEmailService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
@@ -43,7 +47,7 @@ class ReservationService(
 
         val customer = reservationRepository.findOrCreateCustomer(command.customer)
 
-        return reservationRepository.create(
+        val reservation = reservationRepository.create(
             NewReservation(
                 customerId = customer.id,
                 serviceId = service.id,
@@ -54,8 +58,11 @@ class ReservationService(
                 startsAt = command.startsAt,
                 endsAt = endsAt,
                 notes = command.notes,
+                locale = command.locale,
             ),
         )
+        reservationEmailService.notifyAdminsOfNewReservation(reservation)
+        return reservation
     }
 
     @Transactional(readOnly = true)
@@ -144,15 +151,35 @@ class ReservationService(
     fun confirm(id: UUID): Reservation = transition(id, ReservationStatus.CONFIRMED)
 
     @Transactional
-    fun reject(id: UUID): Reservation = transition(id, ReservationStatus.REJECTED)
+    fun reject(id: UUID, reasonCode: RejectionReasonCode, message: String): Reservation =
+        transition(id, ReservationStatus.REJECTED, reasonCode, message)
 
-    private fun transition(id: UUID, target: ReservationStatus): Reservation {
+    @Transactional
+    fun cancel(id: UUID, reasonCode: CancellationReasonCode, message: String): Reservation {
+        val reservation = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (!reservation.status.canTransitionTo(ReservationStatus.CANCELLED)) {
+            throw IllegalReservationTransitionException(reservation.status, ReservationStatus.CANCELLED)
+        }
+        reservationRepository.updateCancellation(id, reasonCode, message)
+        val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        reservationEmailService.notifyCustomerOfDecision(updated)
+        return updated
+    }
+
+    private fun transition(
+        id: UUID,
+        target: ReservationStatus,
+        rejectionReasonCode: RejectionReasonCode? = null,
+        rejectionMessage: String? = null,
+    ): Reservation {
         val reservation = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         if (!reservation.status.canTransitionTo(target)) {
             throw IllegalReservationTransitionException(reservation.status, target)
         }
-        reservationRepository.updateStatus(id, target)
-        return reservation.copy(status = target)
+        reservationRepository.updateDecision(id, target, rejectionReasonCode, rejectionMessage)
+        val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        reservationEmailService.notifyCustomerOfDecision(updated)
+        return updated
     }
 
     private fun requireActiveService(serviceId: UUID) =

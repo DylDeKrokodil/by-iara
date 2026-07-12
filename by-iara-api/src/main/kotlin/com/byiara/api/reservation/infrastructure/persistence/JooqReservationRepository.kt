@@ -3,10 +3,13 @@ package com.byiara.api.reservation.infrastructure.persistence
 import com.byiara.api.catalog.domain.Money
 import com.byiara.api.reservation.domain.Customer
 import com.byiara.api.reservation.domain.CustomerDetails
+import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.NewReservation
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationListQuery
+import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationRepository
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.ReservationWindow
@@ -40,6 +43,12 @@ class JooqReservationRepository(
     private val rEndsAt = field(name("ends_at"), OffsetDateTime::class.java)
     private val rStatus = field(name("status"), String::class.java)
     private val rNotes = field(name("notes"), String::class.java)
+    private val rLocale = field(name("locale"), String::class.java)
+    private val rRejectionReasonCode = field(name("rejection_reason_code"), String::class.java)
+    private val rRejectionMessage = field(name("rejection_message"), String::class.java)
+    private val rDecidedAt = field(name("decided_at"), OffsetDateTime::class.java)
+    private val rCancellationReasonCode = field(name("cancellation_reason_code"), String::class.java)
+    private val rCancellationMessage = field(name("cancellation_message"), String::class.java)
     private val rUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
 
     private val customers = table(name("customers"))
@@ -99,7 +108,7 @@ class JooqReservationRepository(
             .insertInto(reservations)
             .columns(
                 rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             )
             .values(
                 reservation.customerId,
@@ -113,6 +122,7 @@ class JooqReservationRepository(
                 reservation.endsAt,
                 ReservationStatus.PENDING.name,
                 reservation.notes,
+                reservation.locale.name.lowercase(),
             )
             .returning(rId)
             .fetchOne()!!
@@ -121,9 +131,31 @@ class JooqReservationRepository(
         return findById(newId)!!
     }
 
-    override fun updateStatus(id: UUID, status: ReservationStatus): Boolean =
+    override fun updateDecision(
+        id: UUID,
+        status: ReservationStatus,
+        rejectionReasonCode: RejectionReasonCode?,
+        rejectionMessage: String?,
+    ): Boolean =
         dsl.update(reservations)
             .set(rStatus, status.name)
+            .set(rRejectionReasonCode, rejectionReasonCode?.name)
+            .set(rRejectionMessage, rejectionMessage)
+            .set(rDecidedAt, currentOffsetDateTime())
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .execute() > 0
+
+    override fun updateCancellation(
+        id: UUID,
+        cancellationReasonCode: CancellationReasonCode,
+        cancellationMessage: String,
+    ): Boolean =
+        dsl.update(reservations)
+            .set(rStatus, ReservationStatus.CANCELLED.name)
+            .set(rCancellationReasonCode, cancellationReasonCode.name)
+            .set(rCancellationMessage, cancellationMessage)
+            .set(rDecidedAt, currentOffsetDateTime())
             .set(rUpdatedAt, currentOffsetDateTime())
             .where(rId.eq(id))
             .execute() > 0
@@ -163,7 +195,9 @@ class JooqReservationRepository(
     private fun baseSelect() =
         dsl.select(
             rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rRejectionReasonCode, rRejectionMessage, rDecidedAt,
+            rCancellationReasonCode, rCancellationMessage,
             cName, cEmail, cPhone,
         )
             .from(reservations)
@@ -217,5 +251,11 @@ class JooqReservationRepository(
             endsAt = record.get(rEndsAt),
             status = ReservationStatus.valueOf(record.get(rStatus)),
             notes = record.get(rNotes),
+            locale = ReservationLocale.fromCode(record.get(rLocale)),
+            rejectionReasonCode = record.get(rRejectionReasonCode)?.let(RejectionReasonCode::valueOf),
+            rejectionMessage = record.get(rRejectionMessage),
+            decidedAt = record.get(rDecidedAt),
+            cancellationReasonCode = record.get(rCancellationReasonCode)?.let(CancellationReasonCode::valueOf),
+            cancellationMessage = record.get(rCancellationMessage),
         )
 }

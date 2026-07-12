@@ -346,6 +346,7 @@ export class Booking implements OnInit {
         startsAt: slot,
         customer: { name, email, phone: phone.trim() || null },
         notes: notes.trim() || null,
+        locale: this.language.current().path,
       })
       .subscribe({
         next: (confirmation) => {
