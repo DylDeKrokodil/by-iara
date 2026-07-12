@@ -254,6 +254,12 @@ export class Reservations implements OnInit {
   protected readonly totalHistoryPages = computed(() =>
     Math.max(Math.ceil(this.historyTotal() / historyPageSize), 1),
   );
+  protected readonly historyRangeStart = computed(() =>
+    this.historyTotal() === 0 ? 0 : this.historyPage() * historyPageSize + 1,
+  );
+  protected readonly historyRangeEnd = computed(() =>
+    Math.min((this.historyPage() + 1) * historyPageSize, this.historyTotal()),
+  );
   protected readonly canGoToPreviousHistoryPage = computed(
     () => this.historyPage() > 0,
   );

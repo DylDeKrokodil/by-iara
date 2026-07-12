@@ -17,6 +17,15 @@
   margin-bottom: 0;
 }
 
+.pagination {
+  width: 100%;
+}
+
+.pagination-page {
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-medium);
+}
+
 .summary-label {
   margin: 0;
   color: var(--byiara-color-primary-strong);
@@ -318,6 +327,10 @@
   .actions-wrapper byiara-button,
   .pagination-actions byiara-button {
     --byiara-button-width: 100%;
+  }
+
+  .pagination-page {
+    order: -1;
   }
 }
 

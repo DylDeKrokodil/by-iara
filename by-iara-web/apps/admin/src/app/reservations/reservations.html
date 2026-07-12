@@ -451,27 +451,37 @@
         </td>
       </tr>
     </ng-template>
-  </byiara-data-table>
 
-  <div class="pagination" aria-label="Reservation history pagination">
-    <span> Page {{ historyPage() + 1 }} of {{ totalHistoryPages() }} </span>
-    <div class="pagination-actions">
-      <byiara-button
-        variant="secondary"
-        [disabled]="!canGoToPreviousHistoryPage()"
-        (click)="previousHistoryPage()"
-      >
-        Previous
-      </byiara-button>
-      <byiara-button
-        variant="secondary"
-        [disabled]="!canGoToNextHistoryPage()"
-        (click)="nextHistoryPage()"
-      >
-        Next
-      </byiara-button>
+    <div data-table-footer class="pagination" aria-label="Reservation history pagination">
+      <span>
+        Showing {{ historyRangeStart() }}–{{ historyRangeEnd() }} of
+        {{ historyTotal() }} reservations
+      </span>
+      <span class="pagination-page">
+        Page {{ historyPage() + 1 }} of {{ totalHistoryPages() }}
+      </span>
+      <div class="pagination-actions">
+        <byiara-button
+          variant="secondary"
+          size="sm"
+          [disabled]="!canGoToPreviousHistoryPage()"
+          (click)="previousHistoryPage()"
+        >
+          <span aria-hidden="true">&larr;</span>
+          Previous
+        </byiara-button>
+        <byiara-button
+          variant="secondary"
+          size="sm"
+          [disabled]="!canGoToNextHistoryPage()"
+          (click)="nextHistoryPage()"
+        >
+          Next
+          <span aria-hidden="true">&rarr;</span>
+        </byiara-button>
+      </div>
     </div>
-  </div>
+  </byiara-data-table>
   }
 </section>
 }
