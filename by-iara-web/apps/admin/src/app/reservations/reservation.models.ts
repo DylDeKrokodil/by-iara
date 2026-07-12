@@ -11,6 +11,16 @@ export const reservationStatuses = [
 
 export type ReservationStatus = (typeof reservationStatuses)[number];
 
+export const rejectionReasonCodes = [
+  'TIME_UNAVAILABLE',
+  'SERVICE_UNAVAILABLE',
+  'OUTSIDE_BUSINESS_HOURS',
+  'UNABLE_TO_ACCOMMODATE',
+  'OTHER',
+] as const;
+
+export type RejectionReasonCode = (typeof rejectionReasonCodes)[number];
+
 export interface ReservationCustomer {
   name: string;
   email: string;
@@ -29,6 +39,15 @@ export interface ReservationResponse {
   endsAt: string;
   customer: ReservationCustomer;
   notes: string | null;
+  locale?: 'pt' | 'en';
+  rejectionReasonCode?: RejectionReasonCode | null;
+  rejectionMessage?: string | null;
+  decidedAt?: string | null;
+}
+
+export interface RejectReservationInput {
+  reasonCode: RejectionReasonCode;
+  message: string;
 }
 
 export interface ReservationPage {

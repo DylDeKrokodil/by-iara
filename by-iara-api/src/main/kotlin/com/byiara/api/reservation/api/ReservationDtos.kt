@@ -5,6 +5,7 @@ import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationLocale
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -76,6 +77,19 @@ data class ReservationResponse(
     val endsAt: OffsetDateTime,
     val customer: CustomerResponse,
     val notes: String?,
+    val locale: String,
+    val rejectionReasonCode: String?,
+    val rejectionMessage: String?,
+    val decidedAt: OffsetDateTime?,
+)
+
+data class RejectReservationRequest(
+    @field:NotNull
+    val reasonCode: RejectionReasonCode?,
+
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val message: String?,
 )
 
 data class ReservationMoneyResponse(
@@ -113,6 +127,10 @@ fun Reservation.toResponse(): ReservationResponse =
         endsAt = endsAt,
         customer = CustomerResponse(customer.name, customer.email, customer.phone),
         notes = notes,
+        locale = locale.name.lowercase(),
+        rejectionReasonCode = rejectionReasonCode?.name,
+        rejectionMessage = rejectionMessage,
+        decidedAt = decidedAt,
     )
 
 fun ReservationPage.toResponse(): ReservationPageResponse =

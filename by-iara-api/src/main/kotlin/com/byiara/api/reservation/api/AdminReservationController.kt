@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestBody
+import jakarta.validation.Valid
 import java.util.UUID
 import java.time.OffsetDateTime
 
@@ -46,6 +48,9 @@ class AdminReservationController(
         reservationService.confirm(id).toResponse()
 
     @PatchMapping("/{id}/reject")
-    fun reject(@PathVariable id: UUID): ReservationResponse =
-        reservationService.reject(id).toResponse()
+    fun reject(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: RejectReservationRequest,
+    ): ReservationResponse =
+        reservationService.reject(id, request.reasonCode!!, request.message!!.trim()).toResponse()
 }

@@ -1,8 +1,6 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   OnInit,
-  ViewChild,
   computed,
   effect,
   inject,
@@ -13,7 +11,6 @@ import {
   Alert,
   Button,
   Card,
-  ConfirmationModal,
   DataTable,
   DataTableColumn,
   EmptyState,
@@ -23,7 +20,6 @@ import {
   StatusChip,
   TabOption,
   Tabs,
-  ToastService,
 } from '@by-iara/shared-ui';
 import { forkJoin, Observable } from 'rxjs';
 import { formatMoney } from '../services/service.models';
@@ -109,7 +105,6 @@ function isHistoryFilter(value: string): value is HistoryFilter {
     Alert,
     Button,
     Card,
-    ConfirmationModal,
     DataTable,
     EmptyState,
     PageHeader,
@@ -122,7 +117,6 @@ function isHistoryFilter(value: string): value is HistoryFilter {
 })
 export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
-  private readonly toast = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly activeView = signal<ReservationView>('overview');
@@ -151,10 +145,6 @@ export class Reservations implements OnInit {
   protected readonly historyFilter = signal<HistoryFilter>('all');
   protected readonly historyPage = signal(0);
   protected readonly historyTotal = signal(0);
-  protected readonly actionReservationId = signal<string | null>(null);
-  protected readonly reservationToDecline = signal<ReservationResponse | null>(
-    null,
-  );
 
   protected readonly reservationTabs = reservationTabs;
   protected readonly reservationColumns = reservationColumns;
@@ -270,9 +260,6 @@ export class Reservations implements OnInit {
   protected readonly canGoToNextHistoryPage = computed(
     () => this.historyPage() + 1 < this.totalHistoryPages(),
   );
-
-  @ViewChild('confirmDeclineModal')
-  private confirmDeclineModal!: ConfirmationModal;
 
   constructor() {
     // Runs once the target reservation actually shows up in the loaded pending list
@@ -401,59 +388,6 @@ export class Reservations implements OnInit {
 
     this.historyPage.update((page) => page + 1);
     this.reloadHistory();
-  }
-
-  protected accept(reservation: ReservationResponse): void {
-    if (this.actionReservationId()) {
-      return;
-    }
-
-    this.actionReservationId.set(reservation.id);
-    this.api.confirm(reservation.id).subscribe({
-      next: () => {
-        this.toast.show('Reservation accepted.', 'success');
-        this.actionReservationId.set(null);
-        this.reload();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.handleActionError(error, 'Could not accept the reservation.');
-      },
-    });
-  }
-
-  protected decline(reservation: ReservationResponse): void {
-    this.reservationToDecline.set(reservation);
-    this.confirmDeclineModal.open();
-  }
-
-  protected onConfirmDecline(): void {
-    const reservation = this.reservationToDecline();
-
-    if (!reservation || this.actionReservationId()) {
-      return;
-    }
-
-    this.actionReservationId.set(reservation.id);
-    this.api.reject(reservation.id).subscribe({
-      next: () => {
-        this.toast.show('Reservation declined.', 'success');
-        this.reservationToDecline.set(null);
-        this.actionReservationId.set(null);
-        this.reload();
-      },
-      error: (error: HttpErrorResponse) => {
-        this.reservationToDecline.set(null);
-        this.handleActionError(error, 'Could not decline the reservation.');
-      },
-    });
-  }
-
-  protected onCancelDecline(): void {
-    this.reservationToDecline.set(null);
-  }
-
-  protected isActionInProgress(reservation: ReservationResponse): boolean {
-    return this.actionReservationId() === reservation.id;
   }
 
   protected serviceLabel(reservation: ReservationResponse): string {
@@ -646,25 +580,6 @@ export class Reservations implements OnInit {
       default:
         return { historyBefore: now };
     }
-  }
-
-  private handleActionError(
-    error: HttpErrorResponse,
-    fallbackMessage: string,
-  ): void {
-    if (error.status === 409 || error.status === 422) {
-      this.toast.show(
-        'Reservation status changed. Refreshed the list.',
-        'info',
-      );
-      this.actionReservationId.set(null);
-      this.reload();
-      return;
-    }
-
-    this.toast.show(fallbackMessage, 'error');
-    this.actionReservationId.set(null);
-    this.reload();
   }
 
   private dateKey(value: string | Date): string {

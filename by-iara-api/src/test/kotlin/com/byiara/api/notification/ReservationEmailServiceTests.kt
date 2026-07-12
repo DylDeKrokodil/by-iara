@@ -163,10 +163,23 @@ class ReservationEmailServiceTests {
     }
 
     @Test
+    fun `rejection email includes the customer-facing reason`() {
+        val content = EmailCopy.reservationDecision(
+            reservation(ReservationStatus.REJECTED, ReservationLocale.EN).copy(
+                rejectionMessage = "The requested time is no longer available.",
+            ),
+            zone,
+        )!!
+
+        assertTrue(content.body.contains("Reason: The requested time is no longer available."))
+        assertTrue(content.htmlBody!!.contains("The requested time is no longer available."))
+    }
+
+    @Test
     fun `admin alert links straight to the reservation in the admin app`() {
         val target = reservation(ReservationStatus.PENDING, ReservationLocale.EN)
         val adminAlert = EmailCopy.newReservationAlert(target, zone, "http://localhost:4201")
-        val expectedUrl = "http://localhost:4201/reservations?id=${target.id}"
+        val expectedUrl = "http://localhost:4201/reservations/${target.id}"
 
         assertTrue(adminAlert.htmlBody!!.contains("cid:logo"))
         assertTrue(adminAlert.htmlBody.contains(expectedUrl))

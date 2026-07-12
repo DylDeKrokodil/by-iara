@@ -1,0 +1,141 @@
+<byiara-page-header eyebrow="Reservations" title="Review request">
+  <byiara-button page-header-action variant="secondary" routerLink="/reservations">
+    Back to reservations
+  </byiara-button>
+</byiara-page-header>
+
+@if (error()) {
+  <byiara-alert tone="danger">{{ error() }}</byiara-alert>
+}
+
+@if (loading()) {
+  <byiara-empty-state title="Loading reservation..." [dashed]="false"></byiara-empty-state>
+} @else if (reservation(); as item) {
+  <div class="detail-layout">
+    <main class="detail-main">
+      <section aria-labelledby="booking-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="booking-heading">Booking details</h2>
+            <p>The request exactly as the customer submitted it.</p>
+          </div>
+          <byiara-status-chip [label]="statusLabel()" [tone]="statusTone()"></byiara-status-chip>
+        </div>
+
+        <byiara-card padding="lg">
+          <dl class="detail-list">
+            <div class="detail-primary">
+              <dt>Date and time</dt>
+              <dd>{{ formatDateTime(item.startsAt) }}</dd>
+            </div>
+            <div>
+              <dt>Service</dt>
+              <dd>{{ item.serviceName }}</dd>
+            </div>
+            <div>
+              <dt>Duration</dt>
+              <dd>{{ item.durationMinutes }} minutes</dd>
+            </div>
+            <div>
+              <dt>Price</dt>
+              <dd>{{ formatMoney(item.price) }}</dd>
+            </div>
+          </dl>
+        </byiara-card>
+      </section>
+
+      <section aria-labelledby="customer-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="customer-heading">Customer</h2>
+            <p>Contact details and booking notes.</p>
+          </div>
+        </div>
+        <byiara-card padding="lg">
+          <dl class="detail-list customer-list">
+            <div><dt>Name</dt><dd>{{ item.customer.name }}</dd></div>
+            <div><dt>Email</dt><dd><a [href]="'mailto:' + item.customer.email">{{ item.customer.email }}</a></dd></div>
+            <div><dt>Phone</dt><dd>{{ item.customer.phone || 'Not provided' }}</dd></div>
+            <div class="full-row"><dt>Notes</dt><dd>{{ item.notes || 'No notes provided.' }}</dd></div>
+          </dl>
+        </byiara-card>
+      </section>
+
+      @if (item.status === 'REJECTED') {
+        <section aria-labelledby="decision-heading">
+          <div class="section-heading"><div><h2 id="decision-heading">Decision</h2><p>The reason sent to the customer.</p></div></div>
+          <byiara-card padding="lg" variant="muted">
+            <dl class="decision-detail">
+              <div><dt>Reason</dt><dd>{{ reasonLabel(item.rejectionReasonCode) }}</dd></div>
+              <div><dt>Customer message</dt><dd>{{ item.rejectionMessage }}</dd></div>
+              @if (item.decidedAt) { <div><dt>Decided</dt><dd>{{ formatDateTime(item.decidedAt) }}</dd></div> }
+            </dl>
+          </byiara-card>
+        </section>
+      }
+    </main>
+
+    <section class="decision-panel" aria-labelledby="action-heading">
+      <div class="decision-intro">
+        <div>
+          <h2 id="action-heading">Make a decision</h2>
+          @if (item.status === 'PENDING') {
+            <p>Confirm this appointment or explain why the request cannot be accommodated. The customer will be emailed immediately.</p>
+          } @else {
+            <p>This request has already been {{ statusLabel().toLowerCase() }}. Its decision is retained in reservation history.</p>
+          }
+        </div>
+
+        @if (item.status === 'PENDING' && !declineOpen()) {
+          <div class="decision-actions decision-actions-inline">
+            <byiara-button variant="primary" [disabled]="submitting()" (click)="openAcceptConfirmation()">
+              Accept and notify customer
+            </byiara-button>
+            <byiara-button variant="secondary" [disabled]="submitting()" (click)="openDeclineForm()">
+              Decline with a reason
+            </byiara-button>
+          </div>
+        } @else if (item.status !== 'PENDING') {
+          <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
+        }
+      </div>
+
+      @if (item.status === 'PENDING' && declineOpen()) {
+        <form class="decline-form" [formGroup]="declineForm" (ngSubmit)="submitDecline()" novalidate>
+          <div class="decline-fields">
+            <byiara-select-field
+              label="Reason"
+              [options]="reasonOptions"
+              [value]="selectedReason()"
+              (valueChange)="setReason($event)"
+            ></byiara-select-field>
+            <byiara-text-field
+              label="Message to customer"
+              multiline
+              [rows]="7"
+              formControlName="message"
+              [error]="declineForm.controls.message.touched && declineForm.controls.message.invalid ? 'A customer-facing reason is required.' : null"
+            ></byiara-text-field>
+          </div>
+          <p class="form-note">Review this message carefully. It will be included in the customer’s email.</p>
+          <div class="decision-actions decision-actions-inline">
+            <byiara-button type="submit" variant="danger" [loading]="submitting()">
+              {{ submitting() ? 'Declining...' : 'Decline and notify customer' }}
+            </byiara-button>
+            <byiara-button variant="secondary" [disabled]="submitting()" (click)="closeDeclineForm()">Cancel</byiara-button>
+          </div>
+        </form>
+      }
+    </section>
+  </div>
+}
+
+<byiara-confirmation-modal
+  #confirmAcceptModal
+  title="Accept reservation"
+  [message]="reservation() ? 'Accept the request from ' + reservation()?.customer?.name + ' and send a confirmation email?' : ''"
+  confirmText="Accept and notify"
+  cancelText="Cancel"
+  variant="primary"
+  (confirmed)="confirmAccept()"
+></byiara-confirmation-modal>

@@ -23,7 +23,7 @@ object EmailCopy {
     /** Always English: single internal recipient list, not tied to any customer's locale. */
     fun newReservationAlert(reservation: Reservation, zoneId: ZoneId, adminUrl: String): EmailContent {
         val whenText = formatDateTime(reservation, zoneId, Locale.forLanguageTag("en-US"))
-        val reviewUrl = "$adminUrl/reservations?id=${urlEncode(reservation.id.toString())}"
+        val reviewUrl = "$adminUrl/reservations/${urlEncode(reservation.id.toString())}"
 
         val rows = buildList {
             add("Service" to "${escapeHtml(reservation.serviceName)} (${reservation.durationMinutes} min)")
@@ -132,6 +132,10 @@ object EmailCopy {
     private fun rejected(reservation: Reservation, whenText: String): EmailContent {
         val name = reservation.customer.name
         val rows = listOf("Service" to escapeHtml(reservation.serviceName), "When" to whenText)
+        val rejectionMessage = reservation.rejectionMessage ?: return when (reservation.locale) {
+            ReservationLocale.PT -> rejectedWithoutCustomMessage(reservation, whenText)
+            ReservationLocale.EN -> rejectedWithoutCustomMessage(reservation, whenText)
+        }
         return when (reservation.locale) {
             ReservationLocale.PT -> EmailContent(
                 subject = "Não foi possível confirmar a sua reserva",
@@ -143,6 +147,8 @@ object EmailCopy {
                     Serviço: ${reservation.serviceName}
                     Data: $whenText
 
+                    Motivo: $rejectionMessage
+
                     Por favor visite o site para escolher outro horário.
                     By Iara
                 """.trimIndent(),
@@ -153,6 +159,7 @@ object EmailCopy {
                         <h1 style="$headingStyle">Não foi possível confirmar a sua reserva</h1>
                         <p style="$paragraphStyle">Olá ${escapeHtml(name)}, infelizmente não foi possível confirmar o seu pedido:</p>
                         ${detailsCard(listOf("Serviço" to rows[0].second, "Data" to rows[1].second))}
+                        <p style="$paragraphStyle"><strong>Motivo:</strong><br />${escapeHtml(rejectionMessage)}</p>
                         <p style="$paragraphStyle; margin:0;">Por favor visite o site para escolher outro horário.</p>
                     """.trimIndent(),
                 ),
@@ -167,6 +174,8 @@ object EmailCopy {
                     Service: ${reservation.serviceName}
                     When: $whenText
 
+                    Reason: $rejectionMessage
+
                     Please visit the site to pick another time.
                     By Iara
                 """.trimIndent(),
@@ -177,11 +186,21 @@ object EmailCopy {
                         <h1 style="$headingStyle">We couldn't confirm your booking</h1>
                         <p style="$paragraphStyle">Hi ${escapeHtml(name)}, unfortunately we couldn't confirm your booking request:</p>
                         ${detailsCard(rows)}
+                        <p style="$paragraphStyle"><strong>Reason:</strong><br />${escapeHtml(rejectionMessage)}</p>
                         <p style="$paragraphStyle; margin:0;">Please visit the site to pick another time.</p>
                     """.trimIndent(),
                 ),
             )
         }
+    }
+
+    /** Compatibility for historic/test reservations that predate persisted rejection messages. */
+    private fun rejectedWithoutCustomMessage(reservation: Reservation, whenText: String): EmailContent {
+        val fallback = when (reservation.locale) {
+            ReservationLocale.PT -> "Não foi possível acomodar este pedido."
+            ReservationLocale.EN -> "We were unable to accommodate this request."
+        }
+        return rejected(reservation.copy(rejectionMessage = fallback), whenText)
     }
 
     private fun formatDateTime(reservation: Reservation, zoneId: ZoneId, locale: Locale): String {

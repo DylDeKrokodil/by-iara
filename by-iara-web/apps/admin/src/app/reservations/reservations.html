@@ -64,7 +64,7 @@
     <div class="section-header">
       <div>
         <h2 id="pending-reservations">Needs action</h2>
-        <p>Accept or decline new booking requests.</p>
+        <p>Review new booking requests and notify customers of the decision.</p>
       </div>
     </div>
 
@@ -110,17 +110,9 @@
           <div class="actions-wrapper">
             <byiara-button
               variant="primary"
-              [loading]="isActionInProgress(reservation)"
-              (click)="accept(reservation)"
+              [routerLink]="['/reservations', reservation.id]"
             >
-              {{ isActionInProgress(reservation) ? 'Accepting...' : 'Accept' }}
-            </byiara-button>
-            <byiara-button
-              variant="secondary"
-              [disabled]="isActionInProgress(reservation)"
-              (click)="decline(reservation)"
-            >
-              Decline
+              Review request
             </byiara-button>
           </div>
         </div>
@@ -483,14 +475,3 @@
   }
 </section>
 }
-
-<byiara-confirmation-modal
-  #confirmDeclineModal
-  title="Decline Reservation"
-  [message]="reservationToDecline() ? 'Decline the reservation request from ' + reservationToDecline()?.customer?.name + '?' : ''"
-  confirmText="Decline"
-  cancelText="Cancel"
-  variant="danger"
-  (confirmed)="onConfirmDecline()"
-  (cancelled)="onCancelDecline()"
-></byiara-confirmation-modal>

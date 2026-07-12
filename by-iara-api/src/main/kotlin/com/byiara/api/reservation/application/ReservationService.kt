@@ -15,6 +15,7 @@ import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.ReservationRepository
 import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
 import org.springframework.stereotype.Service
@@ -149,15 +150,21 @@ class ReservationService(
     fun confirm(id: UUID): Reservation = transition(id, ReservationStatus.CONFIRMED)
 
     @Transactional
-    fun reject(id: UUID): Reservation = transition(id, ReservationStatus.REJECTED)
+    fun reject(id: UUID, reasonCode: RejectionReasonCode, message: String): Reservation =
+        transition(id, ReservationStatus.REJECTED, reasonCode, message)
 
-    private fun transition(id: UUID, target: ReservationStatus): Reservation {
+    private fun transition(
+        id: UUID,
+        target: ReservationStatus,
+        rejectionReasonCode: RejectionReasonCode? = null,
+        rejectionMessage: String? = null,
+    ): Reservation {
         val reservation = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         if (!reservation.status.canTransitionTo(target)) {
             throw IllegalReservationTransitionException(reservation.status, target)
         }
-        reservationRepository.updateStatus(id, target)
-        val updated = reservation.copy(status = target)
+        reservationRepository.updateDecision(id, target, rejectionReasonCode, rejectionMessage)
+        val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         reservationEmailService.notifyCustomerOfDecision(updated)
         return updated
     }

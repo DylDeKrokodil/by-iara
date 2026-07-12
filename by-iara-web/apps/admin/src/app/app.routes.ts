@@ -25,6 +25,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'reservations/:id',
+        loadComponent: () =>
+          import('./reservations/reservation-detail/reservation-detail').then(
+            (m) => m.ReservationDetail,
+          ),
+      },
+      {
         path: 'reservations',
         loadComponent: () =>
           import('./reservations/reservations').then((m) => m.Reservations),
