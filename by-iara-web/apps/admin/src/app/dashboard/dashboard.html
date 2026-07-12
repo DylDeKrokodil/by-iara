@@ -1,20 +1,161 @@
-<byiara-page-header admin label="Admin" title="Reservation operations">
-  <byiara-button page-header-action variant="primary" size="sm">
-    New block
+<byiara-page-header admin label="Overview" title="Today">
+  <byiara-button page-header-action variant="secondary" routerLink="/availability">
+    Block availability
   </byiara-button>
 </byiara-page-header>
 
-<div class="summary-grid" aria-label="Reservation summary">
-  <byiara-card padding="md">
-    <span>Pending</span>
-    <strong>0</strong>
-  </byiara-card>
-  <byiara-card padding="md">
-    <span>Confirmed today</span>
-    <strong>0</strong>
-  </byiara-card>
-  <byiara-card padding="md">
-    <span>Open regions</span>
-    <strong>0</strong>
-  </byiara-card>
-</div>
+<p class="today-date">{{ todayLabel }}</p>
+
+@if (error()) {
+  <byiara-alert tone="danger">
+    {{ error() }}
+    <byiara-button variant="secondary" size="sm" (click)="reload()">Try again</byiara-button>
+  </byiara-alert>
+}
+
+@if (loading()) {
+  <div class="dashboard-loading" aria-label="Loading dashboard">
+    <byiara-empty-state title="Loading today’s operations..." [dashed]="false"></byiara-empty-state>
+  </div>
+} @else if (!error()) {
+  <section class="summary-strip" aria-label="Today’s operational summary">
+    <div>
+      <span>Needs action</span>
+      <strong>{{ pendingTotal() }}</strong>
+    </div>
+    <div>
+      <span>Confirmed today</span>
+      <strong>{{ todayReservations().length }}</strong>
+    </div>
+    <div>
+      <span>Next appointment</span>
+      @if (nextReservation(); as next) {
+        <strong>{{ formatTime(next.startsAt) }}</strong>
+        <small>{{ next.customer.name }}</small>
+      } @else {
+        <strong>None</strong>
+        <small>No more appointments today</small>
+      }
+    </div>
+    <div>
+      <span>Next 7 days</span>
+      <strong>{{ weekReservations().length }}</strong>
+    </div>
+  </section>
+
+  <div class="dashboard-grid">
+    <main class="dashboard-main">
+      <section class="dashboard-section" aria-labelledby="attention-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="attention-heading">Needs attention</h2>
+            <p>Reservation requests waiting for a decision.</p>
+          </div>
+          @if (pendingTotal() > pending().length) {
+            <byiara-button variant="open" size="sm" routerLink="/reservations">View all {{ pendingTotal() }}</byiara-button>
+          }
+        </div>
+
+        @if (pending().length === 0) {
+          <byiara-empty-state title="You’re all caught up" compact></byiara-empty-state>
+        } @else {
+          <div class="request-list">
+            @for (reservation of pending(); track reservation.id) {
+              <div class="request-row">
+                <div class="request-time">
+                  <strong>{{ formatTime(reservation.startsAt) }}</strong>
+                  <span>{{ reservation.customer.name }}</span>
+                </div>
+                <div class="request-details">
+                  <strong>{{ serviceLabel(reservation) }}</strong>
+                  <span>{{ formatMoney(reservation.price) }}</span>
+                </div>
+                <byiara-status-chip [label]="statusLabel(reservation)" [tone]="statusTone(reservation)"></byiara-status-chip>
+                <byiara-button variant="secondary" size="sm" [routerLink]="['/reservations', reservation.id]">Review request</byiara-button>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="dashboard-section" aria-labelledby="schedule-heading">
+        <div class="section-heading">
+          <div>
+            <h2 id="schedule-heading">Today’s schedule</h2>
+            <p>Confirmed appointments in chronological order.</p>
+          </div>
+          <byiara-button variant="open" size="sm" routerLink="/reservations">Open calendar</byiara-button>
+        </div>
+
+        @if (todayReservations().length === 0) {
+          <byiara-empty-state title="No confirmed appointments today" compact></byiara-empty-state>
+        } @else {
+          <byiara-card padding="none">
+            <ol class="agenda-list">
+              @for (reservation of todayReservations(); track reservation.id) {
+                <li [class.is-next]="reservation.id === nextReservation()?.id">
+                  <div class="agenda-time">
+                    <time [attr.datetime]="reservation.startsAt">{{ formatTime(reservation.startsAt) }}</time>
+                    <span>{{ formatTime(reservation.endsAt) }}</span>
+                  </div>
+                  <div class="agenda-customer">
+                    <strong>{{ reservation.customer.name }}</strong>
+                    <span>{{ serviceLabel(reservation) }}</span>
+                  </div>
+                  @if (reservation.id === nextReservation()?.id) {
+                    <span class="next-label">Next</span>
+                  }
+                  <byiara-button variant="secondary" size="sm" [routerLink]="['/reservations', reservation.id]">View</byiara-button>
+                </li>
+              }
+            </ol>
+          </byiara-card>
+        }
+      </section>
+    </main>
+
+    <aside class="dashboard-aside" aria-label="Upcoming operations">
+      <section aria-labelledby="coming-up-heading">
+        <div class="aside-heading">
+          <h2 id="coming-up-heading">Coming up</h2>
+          <p>Confirmed bookings after today.</p>
+        </div>
+        @if (upcomingDays().length === 0) {
+          <p class="quiet-state">No confirmed bookings in the next seven days.</p>
+        } @else {
+          <ul class="upcoming-list">
+            @for (day of upcomingDays(); track day.key) {
+              <li><span>{{ day.label }}</span><strong>{{ day.count }}</strong></li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section aria-labelledby="availability-heading">
+        <div class="aside-heading">
+          <h2 id="availability-heading">Availability</h2>
+          <p>Exceptions that may need attention.</p>
+        </div>
+        <div class="availability-items">
+          @if (!todayHasAvailability()) {
+            <div class="attention-item">
+              <strong>No weekly hours today</strong>
+              <span>Customers cannot book a new time today.</span>
+            </div>
+          }
+          @if (nextBlock(); as block) {
+            <div class="attention-item">
+              <strong>Upcoming blocked period</strong>
+              <span>{{ formatBlock(block) }}</span>
+              @if (block.reason) { <span>{{ block.reason }}</span> }
+            </div>
+          }
+          @if (todayHasAvailability() && !nextBlock()) {
+            <p class="quiet-state">No availability issues are coming up.</p>
+          }
+        </div>
+        <byiara-button variant="open" size="sm" routerLink="/availability">Manage availability</byiara-button>
+      </section>
+    </aside>
+  </div>
+}
