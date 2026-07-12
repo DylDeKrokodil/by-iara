@@ -10,8 +10,10 @@
 .summary-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.summary-shell {
   margin-bottom: var(--byiara-space-2xl);
-  border-block: 1px solid var(--byiara-color-border);
 }
 
 .summary-strip > div {
@@ -24,7 +26,7 @@
 }
 
 .summary-strip > div:first-child {
-  padding-left: 0;
+  padding-left: var(--byiara-space-lg);
 }
 
 .summary-strip > div:last-child {
@@ -180,8 +182,6 @@
 
 .dashboard-aside section {
   gap: var(--byiara-space-md);
-  padding-bottom: var(--byiara-space-xl);
-  border-bottom: 1px solid var(--byiara-color-border);
 }
 
 .aside-heading {
@@ -274,7 +274,7 @@
   }
 
   .summary-strip > div:nth-child(3) {
-    padding-left: 0;
+    padding-left: var(--byiara-space-lg);
   }
 
   .request-row {
