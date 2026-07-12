@@ -6,7 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   Alert,
   Button,
@@ -111,6 +111,7 @@ function isHistoryFilter(value: string): value is HistoryFilter {
     SelectField,
     StatusChip,
     Tabs,
+    RouterLink,
   ],
   templateUrl: './reservations.html',
   styleUrl: './reservations.css',

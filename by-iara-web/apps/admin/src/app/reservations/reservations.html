@@ -282,6 +282,13 @@
                         [label]="statusLabel(reservation.status)"
                         [tone]="statusTone(reservation.status)"
                       ></byiara-status-chip>
+                      <byiara-button
+                        variant="secondary"
+                        size="sm"
+                        [routerLink]="['/reservations', reservation.id]"
+                      >
+                        View details
+                      </byiara-button>
                     </div>
                   </byiara-card>
                   }
@@ -318,19 +325,15 @@
                   } @else {
                     <div class="week-res-list">
                       @for (res of group.reservations; track res.id) {
-                      <article
+                      <a
                         class="week-res-card"
-                        role="button"
-                        tabindex="0"
+                        [routerLink]="['/reservations', res.id]"
                         [attr.aria-label]="formatTime(res.startsAt) + ' ' + res.customer.name + ' for ' + res.serviceName"
-                        (click)="selectMonthGridDay(group.key)"
-                        (keydown.enter)="selectMonthGridDay(group.key)"
-                        (keydown.space)="$event.preventDefault(); selectMonthGridDay(group.key)"
                       >
                         <time>{{ formatTime(res.startsAt) }} - {{ formatTime(res.endsAt) }}</time>
                         <strong class="truncate">{{ res.customer.name }}</strong>
                         <span class="truncate">{{ res.serviceName }}</span>
-                      </article>
+                      </a>
                       }
                     </div>
                   }
@@ -373,10 +376,14 @@
                   
                   <div class="month-cell-bookings">
                     @for (res of day.reservations?.slice(0, 3); track res.id) {
-                    <div class="month-booking-pill">
+                    <a
+                      class="month-booking-pill"
+                      [routerLink]="['/reservations', res.id]"
+                      (click)="$event.stopPropagation()"
+                    >
                       <span class="pill-time">{{ formatTime(res.startsAt) }}</span>
                       <span class="pill-name truncate">{{ res.customer.name }}</span>
-                    </div>
+                    </a>
                     }
                     @if (day.count > 3) {
                       <div class="month-more-indicator">+{{ day.count - 3 }} more</div>
