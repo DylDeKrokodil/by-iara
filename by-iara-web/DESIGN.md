@@ -187,8 +187,10 @@ Component rules:
   chip and actions) compose it via the `[card-header]`/`[card-footer]` slots
   rather than becoming new Card variants. Use `--byiara-radius-lg` at most,
   with borders before shadows. Avoid nested cards.
-- **Page headers:** `byiara-page-header` (eyebrow + title + a projected
-  `[page-header-action]`) is currently scoped to admin's list/detail pages,
+- **Page headers:** `byiara-page-header` (optional label + title + a projected
+  `[page-header-action]`) is the standard for admin list, detail, and form pages.
+  It owns responsive action alignment and spacing below the header so pages do
+  not add one-off header margins.
   where the same markup was duplicated near-identically across five pages.
   Website's booking/catalog headers use a bigger, fluid hero-style title and
   aren't migrated onto this component — adopting them there would need a
