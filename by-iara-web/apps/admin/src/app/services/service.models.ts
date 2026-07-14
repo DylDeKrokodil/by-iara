@@ -19,6 +19,13 @@ export interface ServiceTranslation {
   description: string | null;
 }
 
+export type ServiceTranslationInput = Pick<
+  ServiceTranslation,
+  'name' | 'description'
+> & {
+  slug?: string;
+};
+
 export interface Service {
   id: string;
   slug: string;
@@ -45,8 +52,8 @@ export interface ServiceInput {
   sortOrder?: number;
   featured?: boolean;
   translations: {
-    'pt-PT': Pick<ServiceTranslation, 'name' | 'description'>;
-    'en-US'?: Pick<ServiceTranslation, 'name' | 'description'>;
+    'pt-PT': ServiceTranslationInput;
+    'en-US'?: ServiceTranslationInput;
   };
   variants: VariantInput[];
 }

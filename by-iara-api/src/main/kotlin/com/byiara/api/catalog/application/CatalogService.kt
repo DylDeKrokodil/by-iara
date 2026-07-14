@@ -53,7 +53,10 @@ class CatalogService(
     private fun withLocalizedSlugs(command: ServiceCommand, existing: Service? = null): ServiceCommand =
         command.copy(
             translations = command.translations.mapValues { (locale, translation) ->
-                val slug = existing?.translations?.get(locale)?.slug ?: slugify(translation.name)
+                val slug = translation.slug
+                    ?.let(::slugify)
+                    ?: existing?.translations?.get(locale)?.slug
+                    ?: slugify(translation.name)
                 if (serviceRepository.existsByLocalizedSlug(locale, slug, existing?.id)) {
                     throw DuplicateServiceSlugException(slug)
                 }

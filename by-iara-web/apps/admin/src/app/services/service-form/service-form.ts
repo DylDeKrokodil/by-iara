@@ -23,6 +23,8 @@ import {
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const languageTabs: ReadonlyArray<TabOption> = [
   { label: 'Portuguese (pt-PT)', value: 'ptPT' },
   { label: 'English (en-US)', value: 'enUS' },
@@ -91,10 +93,12 @@ export class ServiceForm implements OnInit {
         this.form.patchValue({
           translations: {
             ptPT: {
+              slug: ptTranslation.slug,
               name: ptTranslation.name,
               description: ptTranslation.description ?? '',
             },
             enUS: {
+              slug: enTranslation.slug,
               name: enTranslation.name,
               description: enTranslation.description ?? '',
             },
@@ -146,12 +150,14 @@ export class ServiceForm implements OnInit {
     const raw = this.form.getRawValue();
     const translations: ServiceInput['translations'] = {
       'pt-PT': {
+        slug: raw.translations.ptPT['slug'].trim() || undefined,
         name: raw.translations.ptPT['name'],
         description: raw.translations.ptPT['description'] || null,
       },
     };
     if (raw.translations.enUS['name'].trim()) {
       translations['en-US'] = {
+        slug: raw.translations.enUS['slug'].trim() || undefined,
         name: raw.translations.enUS['name'],
         description: raw.translations.enUS['description'] || null,
       };
@@ -185,7 +191,7 @@ export class ServiceForm implements OnInit {
         this.submitting.set(false);
         const errMsg =
           err.status === 409
-            ? 'A service with this name already exists.'
+            ? 'A service with this URL slug already exists.'
             : 'Could not save the service.';
         this.toast.show(errMsg, 'error');
         this.error.set(errMsg);
@@ -196,6 +202,17 @@ export class ServiceForm implements OnInit {
   protected translationNameInvalid(key: TranslationFormKey): boolean {
     const control = this.form.get(['translations', key, 'name']);
     return !!control?.invalid && !!control?.touched;
+  }
+
+  protected translationSlugError(key: TranslationFormKey): string | null {
+    const control = this.form.get(['translations', key, 'slug']);
+    if (!control?.touched || !control.errors) {
+      return null;
+    }
+
+    return control.hasError('maxlength')
+      ? 'URL slug must be 140 characters or fewer'
+      : 'Use lowercase letters, numbers, and single hyphens only';
   }
 
   protected setActiveLanguageTab(value: string): void {
@@ -221,23 +238,28 @@ export class ServiceForm implements OnInit {
     service: Service,
     locale: ServiceLocale,
     fallbackToBase: boolean,
-  ): { name: string; description: string | null } {
+  ): { slug: string; name: string; description: string | null } {
     return (
       service.translations?.[locale] ??
       (fallbackToBase
         ? {
+            slug: service.slug,
             name: service.name,
             description: service.description,
           }
-        : { name: '', description: null })
+        : { slug: '', name: '', description: null })
     );
   }
 
   private translationGroup(
     required: boolean,
-    value?: { name: string; description: string | null },
+    value?: { slug: string; name: string; description: string | null },
   ): FormGroup {
     return this.fb.nonNullable.group({
+      slug: [
+        value?.slug ?? '',
+        [Validators.maxLength(140), Validators.pattern(slugPattern)],
+      ],
       name: [value?.name ?? '', required ? Validators.required : []],
       description: [value?.description ?? ''],
     });

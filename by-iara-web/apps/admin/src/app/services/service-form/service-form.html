@@ -51,6 +51,12 @@
             [error]="translationNameInvalid('ptPT') ? 'Portuguese service name is required' : null"
           ></byiara-text-field>
           <byiara-text-field
+            label="URL slug"
+            optionalLabel="(auto-generated if empty)"
+            formControlName="slug"
+            [error]="translationSlugError('ptPT')"
+          ></byiara-text-field>
+          <byiara-text-field
             label="Description"
             multiline
             [rows]="3"
@@ -64,6 +70,12 @@
             label="Service name"
             formControlName="name"
             [error]="translationNameInvalid('enUS') ? 'English service name is required' : null"
+          ></byiara-text-field>
+          <byiara-text-field
+            label="URL slug"
+            optionalLabel="(auto-generated if empty)"
+            formControlName="slug"
+            [error]="translationSlugError('enUS')"
           ></byiara-text-field>
           <byiara-text-field
             label="Description"

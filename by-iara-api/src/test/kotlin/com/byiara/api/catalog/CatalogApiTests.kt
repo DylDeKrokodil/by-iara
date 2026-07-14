@@ -1,5 +1,6 @@
 package com.byiara.api.catalog
 
+import com.jayway.jsonpath.JsonPath
 import org.jooq.DSLContext
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -11,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -166,6 +168,67 @@ class CatalogApiTests {
             .andExpect(jsonPath("$.translations['en-US'].name").value("Relaxing massage"))
 
         mockMvc.perform(get("/api/services/en-US/massagem-relaxante"))
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `updating a service can change both localized slugs`() {
+        val created = mockMvc.perform(
+            post("/api/admin/services").with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name": "Massagem relaxante",
+                      "translations": {
+                        "pt-PT": { "name": "Massagem relaxante" },
+                        "en-US": { "name": "Relaxing massage" }
+                      },
+                      "variants": [
+                        { "durationMinutes": 60, "priceCents": 7500 }
+                      ]
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andReturn()
+
+        val serviceId: String = JsonPath.read(created.response.contentAsString, "$.id")
+
+        mockMvc.perform(
+            put("/api/admin/services/$serviceId").with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name": "Massagem relaxante",
+                      "translations": {
+                        "pt-PT": {
+                          "slug": "massagem-personalizada",
+                          "name": "Massagem relaxante"
+                        },
+                        "en-US": {
+                          "slug": "custom-relaxing-massage",
+                          "name": "Relaxing massage"
+                        }
+                      },
+                      "variants": [
+                        { "durationMinutes": 60, "priceCents": 7500 }
+                      ]
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.translations['pt-PT'].slug").value("massagem-personalizada"))
+            .andExpect(jsonPath("$.translations['en-US'].slug").value("custom-relaxing-massage"))
+
+        mockMvc.perform(get("/api/services/pt-PT/massagem-personalizada"))
+            .andExpect(status().isOk)
+        mockMvc.perform(get("/api/services/en-US/custom-relaxing-massage"))
+            .andExpect(status().isOk)
+        mockMvc.perform(get("/api/services/pt-PT/massagem-relaxante"))
             .andExpect(status().isNotFound)
     }
 

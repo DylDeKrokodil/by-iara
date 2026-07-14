@@ -9,6 +9,7 @@ import com.byiara.api.catalog.domain.VariantCommand
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
@@ -58,6 +59,13 @@ data class ServiceRequest(
 }
 
 data class ServiceTranslationRequest(
+    @field:Size(max = 140)
+    @field:Pattern(
+        regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        message = "must contain lowercase letters, numbers, and single hyphens only",
+    )
+    val slug: String? = null,
+
     @field:NotBlank
     val name: String,
 
@@ -65,6 +73,7 @@ data class ServiceTranslationRequest(
 ) {
     fun toCommand(): ServiceTranslationCommand =
         ServiceTranslationCommand(
+            slug = slug?.trim()?.ifBlank { null },
             name = name.trim(),
             description = description?.trim()?.ifBlank { null },
         )
