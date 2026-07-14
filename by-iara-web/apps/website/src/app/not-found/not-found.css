@@ -1,0 +1,27 @@
+.empty-page {
+  display: grid;
+  gap: var(--byiara-space-md);
+  width: min(100%, 42rem);
+  margin-inline: auto;
+  padding-block: clamp(4rem, 12vw, 8rem);
+  text-align: center;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2.4rem, 1.8rem + 2.5vw, 4rem);
+}
+
+p {
+  color: var(--byiara-color-text-muted);
+  line-height: var(--byiara-line-height-body);
+}
+
+.text-link {
+  justify-self: center;
+}

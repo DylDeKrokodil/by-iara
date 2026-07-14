@@ -1,0 +1,42 @@
+<main class="public-shell service-detail-shell">
+  <div class="service-detail-container">
+    <a class="text-link" [routerLink]="language.localizedLink('services')">
+      {{ copy().back }}
+    </a>
+
+    @if (service && translation(); as localized) {
+    <article class="service-detail">
+      <header class="service-detail-header">
+        <p class="eyebrow">{{ copy().eyebrow }}</p>
+        <h1>{{ localized.name }}</h1>
+        @if (localized.description) {
+        <p class="service-detail-description">{{ localized.description }}</p>
+        }
+      </header>
+
+      <section class="service-options" [attr.aria-label]="copy().optionsTitle">
+        <h2>{{ copy().optionsTitle }}</h2>
+        <ul>
+          @for (variant of service.variants; track variant.id) { @if
+          (variant.active) {
+          <li>
+            <div>
+              <strong>{{ variant.durationMinutes }} min</strong>
+              <span>{{ formatPrice(variant.price.amountCents) }}</span>
+            </div>
+            <byiara-button variant="secondary" (click)="onBook(variant.id)">
+              {{ copy().book }}
+            </byiara-button>
+          </li>
+          } }
+        </ul>
+      </section>
+    </article>
+    } @else {
+    <section class="service-not-found">
+      <h1>{{ copy().notFoundTitle }}</h1>
+      <p>{{ copy().notFoundText }}</p>
+    </section>
+    }
+  </div>
+</main>

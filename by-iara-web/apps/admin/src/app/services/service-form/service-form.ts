@@ -34,7 +34,15 @@ function isTranslationFormKey(value: string): value is TranslationFormKey {
 
 @Component({
   selector: 'byiara-service-form',
-  imports: [ReactiveFormsModule, Alert, Button, PageHeader, Switch, Tabs, TextField],
+  imports: [
+    ReactiveFormsModule,
+    Alert,
+    Button,
+    PageHeader,
+    Switch,
+    Tabs,
+    TextField,
+  ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })
@@ -53,8 +61,8 @@ export class ServiceForm implements OnInit {
 
   protected readonly form = this.fb.nonNullable.group({
     translations: this.fb.nonNullable.group({
-      ptPT: this.translationGroup(),
-      enUS: this.translationGroup(),
+      ptPT: this.translationGroup(true),
+      enUS: this.translationGroup(false),
     }),
     active: [true],
     featured: [false],
@@ -78,8 +86,8 @@ export class ServiceForm implements OnInit {
     this.serviceId = id;
     this.api.get(id).subscribe({
       next: (service) => {
-        const ptTranslation = this.translationFor(service, 'pt-PT');
-        const enTranslation = this.translationFor(service, 'en-US');
+        const ptTranslation = this.translationFor(service, 'pt-PT', true);
+        const enTranslation = this.translationFor(service, 'en-US', false);
         this.form.patchValue({
           translations: {
             ptPT: {
@@ -136,16 +144,18 @@ export class ServiceForm implements OnInit {
     this.error.set(null);
 
     const raw = this.form.getRawValue();
-    const translations = {
+    const translations: ServiceInput['translations'] = {
       'pt-PT': {
         name: raw.translations.ptPT['name'],
         description: raw.translations.ptPT['description'] || null,
       },
-      'en-US': {
+    };
+    if (raw.translations.enUS['name'].trim()) {
+      translations['en-US'] = {
         name: raw.translations.enUS['name'],
         description: raw.translations.enUS['description'] || null,
-      },
-    } satisfies ServiceInput['translations'];
+      };
+    }
     const input: ServiceInput = {
       name: translations['pt-PT'].name,
       description: translations['pt-PT'].description,
@@ -165,14 +175,18 @@ export class ServiceForm implements OnInit {
     request.subscribe({
       next: () => {
         const actionMsg = id ? 'updated' : 'created';
-        this.toast.show(`Service "${input.name}" ${actionMsg} successfully.`, 'success');
+        this.toast.show(
+          `Service "${input.name}" ${actionMsg} successfully.`,
+          'success',
+        );
         this.router.navigateByUrl('/services');
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        const errMsg = err.status === 409
-          ? 'A service with this name already exists.'
-          : 'Could not save the service.';
+        const errMsg =
+          err.status === 409
+            ? 'A service with this name already exists.'
+            : 'Could not save the service.';
         this.toast.show(errMsg, 'error');
         this.error.set(errMsg);
       },
@@ -206,21 +220,25 @@ export class ServiceForm implements OnInit {
   private translationFor(
     service: Service,
     locale: ServiceLocale,
+    fallbackToBase: boolean,
   ): { name: string; description: string | null } {
     return (
-      service.translations?.[locale] ?? {
-        name: service.name,
-        description: service.description,
-      }
+      service.translations?.[locale] ??
+      (fallbackToBase
+        ? {
+            name: service.name,
+            description: service.description,
+          }
+        : { name: '', description: null })
     );
   }
 
-  private translationGroup(value?: {
-    name: string;
-    description: string | null;
-  }): FormGroup {
+  private translationGroup(
+    required: boolean,
+    value?: { name: string; description: string | null },
+  ): FormGroup {
     return this.fb.nonNullable.group({
-      name: [value?.name ?? '', Validators.required],
+      name: [value?.name ?? '', required ? Validators.required : []],
       description: [value?.description ?? ''],
     });
   }
@@ -235,7 +253,10 @@ export class ServiceForm implements OnInit {
         value?.durationMinutes ?? 60,
         [Validators.required, Validators.min(1)],
       ],
-      priceEuros: [value?.priceEuros ?? 0, [Validators.required, Validators.min(0)]],
+      priceEuros: [
+        value?.priceEuros ?? 0,
+        [Validators.required, Validators.min(0)],
+      ],
       active: [value?.active ?? true],
     });
   }

@@ -71,6 +71,7 @@ class CatalogApiTests {
             create table service_translations (
                 service_id uuid not null references services(id) on delete cascade,
                 locale varchar(10) not null,
+                slug varchar(140),
                 name varchar(160) not null,
                 description text,
                 created_at timestamp with time zone not null default now(),
@@ -146,13 +147,26 @@ class CatalogApiTests {
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.name").value("Massagem relaxante"))
+            .andExpect(jsonPath("$.translations['pt-PT'].slug").value("massagem-relaxante"))
             .andExpect(jsonPath("$.translations['pt-PT'].name").value("Massagem relaxante"))
+            .andExpect(jsonPath("$.translations['en-US'].slug").value("relaxing-massage"))
             .andExpect(jsonPath("$.translations['en-US'].name").value("Relaxing massage"))
 
         mockMvc.perform(get("/api/admin/services").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].translations['pt-PT'].description").value("Pressao suave para relaxamento"))
             .andExpect(jsonPath("$[0].translations['en-US'].description").value("Gentle pressure for relaxation"))
+
+        mockMvc.perform(get("/api/services/pt-PT/massagem-relaxante"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.translations['pt-PT'].name").value("Massagem relaxante"))
+
+        mockMvc.perform(get("/api/services/en-US/relaxing-massage"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.translations['en-US'].name").value("Relaxing massage"))
+
+        mockMvc.perform(get("/api/services/en-US/massagem-relaxante"))
+            .andExpect(status().isNotFound)
     }
 
     @Test

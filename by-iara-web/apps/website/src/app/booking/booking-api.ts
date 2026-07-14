@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { API_ORIGIN, apiUrl } from '../api-origin';
 
 // The catalog/slots are computed in the business timezone, so display them there
 // too, regardless of the visitor's browser timezone.
@@ -30,6 +31,7 @@ export interface ReservationConfirmation {
 @Injectable({ providedIn: 'root' })
 export class BookingApi {
   private readonly http = inject(HttpClient);
+  private readonly apiOrigin = inject(API_ORIGIN);
 
   /** Bookable slot start times (ISO offset date-times) for a selected catalog option. */
   availableSlots(
@@ -43,13 +45,19 @@ export class BookingApi {
       .set('endDate', endDate)
       .set('serviceId', serviceId)
       .set('serviceVariantId', serviceVariantId);
-    return this.http.get<string[]>('/api/reservations/availability', { params });
+    return this.http.get<string[]>(
+      apiUrl(this.apiOrigin, '/api/reservations/availability'),
+      { params },
+    );
   }
 
   createReservation(
     payload: CreateReservationPayload,
   ): Observable<ReservationConfirmation> {
-    return this.http.post<ReservationConfirmation>('/api/reservations', payload);
+    return this.http.post<ReservationConfirmation>(
+      apiUrl(this.apiOrigin, '/api/reservations'),
+      payload,
+    );
   }
 
   /**
@@ -59,7 +67,9 @@ export class BookingApi {
    */
   nextAvailable(): Observable<string | null> {
     return this.http
-      .get<{ startsAt: string | null }>('/api/reservations/next-available')
+      .get<{
+        startsAt: string | null;
+      }>(apiUrl(this.apiOrigin, '/api/reservations/next-available'))
       .pipe(map((response) => response.startsAt));
   }
 }

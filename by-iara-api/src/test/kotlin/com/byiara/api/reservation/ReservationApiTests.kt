@@ -102,6 +102,7 @@ class ReservationApiTests {
             create table service_translations (
                 service_id uuid not null references services(id) on delete cascade,
                 locale varchar(10) not null,
+                slug varchar(140),
                 name varchar(160) not null,
                 description text,
                 created_at timestamp with time zone not null default now(),

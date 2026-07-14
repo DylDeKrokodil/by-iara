@@ -2,14 +2,12 @@ import {
   Component,
   ElementRef,
   OnInit,
-  PLATFORM_ID,
   afterNextRender,
   computed,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Button } from '@by-iara/shared-ui';
 import { LanguageService } from '../i18n/language.service';
@@ -33,7 +31,6 @@ export class Home implements OnInit {
   protected readonly language = inject(LanguageService);
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly copy = computed(() => this.language.messages().home);
 
@@ -41,7 +38,11 @@ export class Home implements OnInit {
   /** Featured-first taster; the section renders only when this is non-empty. */
   protected readonly taster = computed(() =>
     [...this.services()]
-      .filter((service) => service.variants.some((variant) => variant.active))
+      .filter(
+        (service) =>
+          service.translations[this.language.current().locale] &&
+          service.variants.some((variant) => variant.active),
+      )
       .sort(
         (a, b) =>
           Number(b.featured) - Number(a.featured) || a.sortOrder - b.sortOrder,
@@ -100,19 +101,21 @@ export class Home implements OnInit {
   }
 
   ngOnInit(): void {
-    // Like the catalog: no relative API fetches during SSR/prerender. The
-    // taster section simply stays hidden (also on error) — the home page
-    // never shows a loading or error state for it.
-    if (isPlatformBrowser(this.platformId)) {
-      this.api.list().subscribe({
-        next: (data) => this.services.set(data),
-        error: () => this.services.set([]),
-      });
-    }
+    this.api.list().subscribe({
+      next: (data) => this.services.set(data),
+      error: () => this.services.set([]),
+    });
   }
 
   protected localized(service: Service): ServiceTranslation {
     return localizedService(service, this.language.current().locale);
+  }
+
+  protected detailLink(service: Service): string[] {
+    return this.language.localizedLink(
+      'services',
+      this.localized(service).slug,
+    );
   }
 
   protected priceFrom(service: Service): string {
@@ -139,7 +142,7 @@ export class Home implements OnInit {
   }
 
   protected onBook(service: Service): void {
-    this.router.navigate(['/', this.language.current().path, 'book'], {
+    this.router.navigate(this.language.localizedLink('book'), {
       queryParams: { service: service.slug },
     });
   }

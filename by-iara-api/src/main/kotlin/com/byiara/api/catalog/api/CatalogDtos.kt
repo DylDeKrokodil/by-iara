@@ -107,6 +107,7 @@ data class ServiceResponse(
 )
 
 data class ServiceTranslationResponse(
+    val slug: String,
     val name: String,
     val description: String?,
 )
@@ -139,6 +140,7 @@ fun Service.toResponse(): ServiceResponse =
 
 fun ServiceTranslation.toResponse(): ServiceTranslationResponse =
     ServiceTranslationResponse(
+        slug = slug,
         name = name,
         description = description,
     )

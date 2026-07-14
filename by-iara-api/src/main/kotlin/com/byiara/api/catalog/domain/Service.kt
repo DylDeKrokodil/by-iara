@@ -15,6 +15,7 @@ data class Service(
 )
 
 data class ServiceTranslation(
+    val slug: String,
     val name: String,
     val description: String?,
 )

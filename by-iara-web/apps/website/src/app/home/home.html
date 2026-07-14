@@ -61,47 +61,49 @@
   </section>
 
   @if (taster().length > 0) {
-    <section class="home-services" aria-labelledby="home-services-title">
-      <div class="home-section-inner">
-        <header class="home-section-header">
-          <h2 id="home-services-title">{{ copy().servicesTitle }}</h2>
-          <p class="home-section-lede">{{ copy().servicesLede }}</p>
-        </header>
+  <section class="home-services" aria-labelledby="home-services-title">
+    <div class="home-section-inner">
+      <header class="home-section-header">
+        <h2 id="home-services-title">{{ copy().servicesTitle }}</h2>
+        <p class="home-section-lede">{{ copy().servicesLede }}</p>
+      </header>
 
-        <ul class="home-service-list">
-          @for (service of taster(); track service.id) {
-            <li class="home-service-row">
-              <div class="home-service-text">
-                <h3 class="home-service-name">
-                  {{ localized(service).name }}
-                </h3>
-                @if (localized(service).description) {
-                  <p class="home-service-description">
-                    {{ localized(service).description }}
-                  </p>
-                }
-              </div>
-              <p class="home-service-meta">
-                <strong>{{ copy().servicesFrom(priceFrom(service)) }}</strong>
-                <span>{{ durationLabel(service) }}</span>
-              </p>
-              <byiara-button
-                variant="secondary"
-                size="sm"
-                class="home-service-book"
-                (click)="onBook(service)"
-              >
-                {{ copy().servicesAction }}
-              </byiara-button>
-            </li>
-          }
-        </ul>
+      <ul class="home-service-list">
+        @for (service of taster(); track service.id) {
+        <li class="home-service-row">
+          <div class="home-service-text">
+            <h3 class="home-service-name">
+                  <a class="text-link" [routerLink]="detailLink(service)">
+                {{ localized(service).name }}
+              </a>
+            </h3>
+            @if (localized(service).description) {
+            <p class="home-service-description">
+              {{ localized(service).description }}
+            </p>
+            }
+          </div>
+          <p class="home-service-meta">
+            <strong>{{ copy().servicesFrom(priceFrom(service)) }}</strong>
+            <span>{{ durationLabel(service) }}</span>
+          </p>
+          <byiara-button
+            variant="secondary"
+            size="sm"
+            class="home-service-book"
+            (click)="onBook(service)"
+          >
+            {{ copy().servicesAction }}
+          </byiara-button>
+        </li>
+        }
+      </ul>
 
-        <a class="text-link" [routerLink]="language.localizedLink('services')">
-          {{ copy().servicesViewAll }}
-        </a>
-      </div>
-    </section>
+      <a class="text-link" [routerLink]="language.localizedLink('services')">
+        {{ copy().servicesViewAll }}
+      </a>
+    </div>
+  </section>
   }
 
   <section class="home-expect" aria-labelledby="home-expect-title">
@@ -109,10 +111,10 @@
       <h2 id="home-expect-title">{{ copy().expectTitle }}</h2>
       <ol class="home-expect-steps">
         @for (step of copy().expectSteps; track step.title) {
-          <li class="home-expect-step">
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.text }}</p>
-          </li>
+        <li class="home-expect-step">
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.text }}</p>
+        </li>
         }
       </ol>
     </div>
@@ -129,7 +131,7 @@
       <div class="home-about-text">
         <h2 id="home-about-title">{{ copy().aboutTitle }}</h2>
         @for (paragraph of copy().aboutParagraphs; track paragraph) {
-          <p>{{ paragraph }}</p>
+        <p>{{ paragraph }}</p>
         }
       </div>
     </div>

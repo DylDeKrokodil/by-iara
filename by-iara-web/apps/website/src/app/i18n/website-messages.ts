@@ -56,6 +56,14 @@ export interface WebsiteMessages {
     readonly variantsTitle: string;
     readonly bookAction: string;
   };
+  readonly serviceDetail: {
+    readonly back: string;
+    readonly eyebrow: string;
+    readonly optionsTitle: string;
+    readonly book: string;
+    readonly notFoundTitle: string;
+    readonly notFoundText: string;
+  };
   readonly booking: {
     readonly eyebrow: string;
     readonly back: string;
@@ -186,6 +194,15 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       variantsTitle: 'Opções e preços',
       bookAction: 'Reservar',
     },
+    serviceDetail: {
+      back: 'Voltar aos serviços',
+      eyebrow: 'Tratamento',
+      optionsTitle: 'Duração e preço',
+      book: 'Marcar',
+      notFoundTitle: 'Serviço não encontrado',
+      notFoundText:
+        'Este serviço não está disponível neste idioma ou deixou de estar publicado.',
+    },
     booking: {
       eyebrow: 'Reserva',
       back: 'Voltar ao início',
@@ -314,6 +331,15 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       empty: 'No services are currently available for booking.',
       variantsTitle: 'Options and prices',
       bookAction: 'Book',
+    },
+    serviceDetail: {
+      back: 'Back to services',
+      eyebrow: 'Treatment',
+      optionsTitle: 'Duration and price',
+      book: 'Book',
+      notFoundTitle: 'Service not found',
+      notFoundText:
+        'This service is unavailable in this language or is no longer published.',
     },
     booking: {
       eyebrow: 'Booking',
