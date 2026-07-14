@@ -218,7 +218,7 @@ export class SeoService {
     });
     this.meta.updateTag({
       property: 'og:image',
-      content: `${this.siteOrigin}/hero/hero-massage.jpg`,
+      content: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
     });
     this.meta.updateTag({
       name: 'twitter:card',
@@ -231,7 +231,7 @@ export class SeoService {
     });
     this.meta.updateTag({
       name: 'twitter:image',
-      content: `${this.siteOrigin}/hero/hero-massage.jpg`,
+      content: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
     });
 
     this.document.head

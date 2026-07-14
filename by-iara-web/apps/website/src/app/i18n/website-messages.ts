@@ -23,7 +23,7 @@ export interface WebsiteMessages {
     readonly actionsLabel: string;
     readonly today: string;
     readonly nextAvailable: (day: string, time: string) => string;
-    readonly photoCredit: string;
+    readonly mediaCredit: string;
     readonly servicesTitle: string;
     readonly servicesLede: string;
     readonly servicesFrom: (price: string) => string;
@@ -138,7 +138,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       actionsLabel: 'Ações da página inicial',
       today: 'hoje',
       nextAvailable: (day, time) => `Vaga disponível ${day} às ${time}`,
-      photoCredit: 'Foto de Daniela, via Wikimedia Commons (CC BY 2.0)',
+      mediaCredit: 'Vídeo via Mixkit',
       servicesTitle: 'Tratamentos',
       servicesLede:
         'Do alívio profundo ao puro relaxamento — escolha o ritmo do seu corpo.',
@@ -277,7 +277,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       actionsLabel: 'Home page actions',
       today: 'today',
       nextAvailable: (day, time) => `Open ${day} at ${time}`,
-      photoCredit: 'Photo by Daniela, via Wikimedia Commons (CC BY 2.0)',
+      mediaCredit: 'Video via Mixkit',
       servicesTitle: 'Treatments',
       servicesLede:
         "From deep relief to pure relaxation — choose your body's pace.",
