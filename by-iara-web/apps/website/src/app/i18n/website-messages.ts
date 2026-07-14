@@ -24,6 +24,27 @@ export interface WebsiteMessages {
     readonly today: string;
     readonly nextAvailable: (day: string, time: string) => string;
     readonly photoCredit: string;
+    readonly servicesTitle: string;
+    readonly servicesLede: string;
+    readonly servicesFrom: (price: string) => string;
+    readonly servicesDuration: (min: number, max: number) => string;
+    readonly servicesAction: string;
+    readonly servicesViewAll: string;
+    readonly expectTitle: string;
+    readonly expectSteps: ReadonlyArray<{
+      readonly title: string;
+      readonly text: string;
+    }>;
+    readonly aboutTitle: string;
+    readonly aboutParagraphs: readonly string[];
+    readonly visitTitle: string;
+    readonly visitAddressTitle: string;
+    readonly visitAddressText: string;
+    readonly visitHoursTitle: string;
+    readonly visitHoursText: string;
+    readonly closingTitle: string;
+    readonly closingText: string;
+    readonly closingAction: string;
   };
   readonly services: {
     readonly eyebrow: string;
@@ -110,6 +131,49 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       today: 'hoje',
       nextAvailable: (day, time) => `Vaga disponível ${day} às ${time}`,
       photoCredit: 'Foto de Daniela, via Wikimedia Commons (CC BY 2.0)',
+      servicesTitle: 'Tratamentos',
+      servicesLede:
+        'Do alívio profundo ao puro relaxamento — escolha o ritmo do seu corpo.',
+      servicesFrom: (price) => `desde ${price}`,
+      servicesDuration: (min, max) =>
+        min === max ? `${min} min` : `${min}–${max} min`,
+      servicesAction: 'Reservar',
+      servicesViewAll: 'Ver todos os serviços',
+      expectTitle: 'O que esperar',
+      expectSteps: [
+        {
+          title: 'Reserve online',
+          text: 'Escolha o tratamento e o horário que lhe convém, em poucos toques.',
+        },
+        {
+          title: 'Chegue com calma',
+          text: 'Sem salas de espera — o espaço é seu. Chegue uns minutos antes e respire.',
+        },
+        {
+          title: 'A sessão',
+          text: 'Conversamos primeiro sobre o que o seu corpo precisa. Depois, é só entregar-se.',
+        },
+        {
+          title: 'Depois',
+          text: 'Tempo para voltar a si, sem pressa, e sugestões para prolongar o efeito em casa.',
+        },
+      ],
+      aboutTitle: 'Olá, sou a Iara.',
+      aboutParagraphs: [
+        'Trabalho com massagem terapêutica porque acredito que o corpo guarda aquilo que a cabeça não consegue largar. Cada sessão começa por ouvir — o que dói, o que pesa, o que precisa de espaço.',
+        'O estúdio é pequeno de propósito: uma pessoa de cada vez, sem pressa, com atenção inteira. É esse o luxo que quero oferecer.',
+      ],
+      visitTitle: 'Em Almada, à sua espera',
+      visitAddressTitle: 'Onde',
+      visitAddressText:
+        'O estúdio fica em Almada. A morada exata é partilhada na confirmação da sua marcação.',
+      visitHoursTitle: 'Quando',
+      visitHoursText:
+        'As sessões são sempre com marcação prévia — veja os horários livres ao reservar.',
+      closingTitle: 'Reserve o seu momento de pausa',
+      closingText:
+        'O primeiro passo para um corpo mais leve demora menos de um minuto.',
+      closingAction: 'Marcar sessão',
     },
     services: {
       eyebrow: 'O nosso menu',
@@ -197,6 +261,49 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       today: 'today',
       nextAvailable: (day, time) => `Open ${day} at ${time}`,
       photoCredit: 'Photo by Daniela, via Wikimedia Commons (CC BY 2.0)',
+      servicesTitle: 'Treatments',
+      servicesLede:
+        "From deep relief to pure relaxation — choose your body's pace.",
+      servicesFrom: (price) => `from ${price}`,
+      servicesDuration: (min, max) =>
+        min === max ? `${min} min` : `${min}–${max} min`,
+      servicesAction: 'Book',
+      servicesViewAll: 'See all services',
+      expectTitle: 'What to expect',
+      expectSteps: [
+        {
+          title: 'Book online',
+          text: 'Pick a treatment and a time that suits you, in a few taps.',
+        },
+        {
+          title: 'Arrive slowly',
+          text: 'No waiting rooms — the space is yours. Come a few minutes early and breathe.',
+        },
+        {
+          title: 'The session',
+          text: 'We start by talking about what your body needs. Then simply let go.',
+        },
+        {
+          title: 'Afterwards',
+          text: 'Time to come back to yourself, unhurried, with tips to carry the calm home.',
+        },
+      ],
+      aboutTitle: "Hello, I'm Iara.",
+      aboutParagraphs: [
+        'I work with therapeutic massage because I believe the body holds what the mind cannot let go of. Every session starts with listening — what hurts, what weighs, what needs room.',
+        'The studio is small on purpose: one person at a time, unhurried, with full attention. That is the luxury I want to offer.',
+      ],
+      visitTitle: 'In Almada, waiting for you',
+      visitAddressTitle: 'Where',
+      visitAddressText:
+        'The studio is in Almada. The exact address is shared when your booking is confirmed.',
+      visitHoursTitle: 'When',
+      visitHoursText:
+        'Sessions are by appointment only — see open times as you book.',
+      closingTitle: 'Reserve your moment of pause',
+      closingText:
+        'The first step towards a lighter body takes less than a minute.',
+      closingAction: 'Book a session',
     },
     services: {
       eyebrow: 'Our menu',
