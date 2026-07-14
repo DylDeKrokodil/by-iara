@@ -1,0 +1,39 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: var(--byiara-z-index-tooltip);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--byiara-color-background);
+  color: var(--byiara-color-primary);
+  pointer-events: none;
+  contain: paint;
+  animation: site-intro-finish 1.18s step-end forwards;
+}
+
+svg {
+  display: block;
+  width: min(72vw, 15rem);
+  height: auto;
+  animation: site-intro-lockup-out 140ms var(--byiara-ease-out) 1.04s forwards;
+}
+
+@keyframes site-intro-lockup-out {
+  to {
+    opacity: 0;
+    transform: translateY(-0.3rem);
+  }
+}
+
+@keyframes site-intro-finish {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    display: none;
+  }
+}

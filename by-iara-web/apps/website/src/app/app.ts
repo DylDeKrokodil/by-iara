@@ -5,9 +5,16 @@ import { Button, ToastContainerComponent } from '@by-iara/shared-ui';
 import { LanguageService } from './i18n/language.service';
 import { LanguageSwitcher } from './i18n/language-switcher/language-switcher';
 import { SeoService } from './seo/seo.service';
+import { SiteIntroComponent } from './site-intro/site-intro.component';
 
 @Component({
-  imports: [RouterModule, ToastContainerComponent, LanguageSwitcher, Button],
+  imports: [
+    RouterModule,
+    ToastContainerComponent,
+    LanguageSwitcher,
+    Button,
+    SiteIntroComponent,
+  ],
   selector: 'byiara-root',
   templateUrl: './app.html',
   styleUrl: './app.css',
