@@ -45,9 +45,8 @@
           {{ copy().secondaryAction }}
         </byiara-button>
       </div>
+      <byiara-next-available-link></byiara-next-available-link>
     </div>
-
-    <byiara-next-available-badge></byiara-next-available-badge>
 
     <p class="home-media-credit">
       <a
@@ -73,7 +72,7 @@
         <li class="home-service-row">
           <div class="home-service-text">
             <h3 class="home-service-name">
-                  <a class="text-link" [routerLink]="detailLink(service)">
+              <a class="text-link" [routerLink]="detailLink(service)">
                 {{ localized(service).name }}
               </a>
             </h3>

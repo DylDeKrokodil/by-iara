@@ -17,13 +17,13 @@ import {
   ServiceTranslation,
   localizedService,
 } from '../services/services-api';
-import { NextAvailableBadge } from './next-available-badge/next-available-badge';
+import { NextAvailableLink } from './next-available-link/next-available-link';
 
 const TASTER_SIZE = 3;
 
 @Component({
   selector: 'byiara-home',
-  imports: [Button, NextAvailableBadge, RouterLink],
+  imports: [Button, NextAvailableLink, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

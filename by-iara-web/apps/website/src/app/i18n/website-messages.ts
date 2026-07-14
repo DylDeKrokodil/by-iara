@@ -137,7 +137,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       secondaryAction: 'Explorar serviços',
       actionsLabel: 'Ações da página inicial',
       today: 'hoje',
-      nextAvailable: (day, time) => `Vaga disponível ${day} às ${time}`,
+      nextAvailable: (day, time) => `Próxima vaga: ${day}, ${time}`,
       mediaCredit: 'Vídeo via Mixkit',
       servicesTitle: 'Tratamentos',
       servicesLede:
@@ -276,7 +276,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       secondaryAction: 'Explore services',
       actionsLabel: 'Home page actions',
       today: 'today',
-      nextAvailable: (day, time) => `Open ${day} at ${time}`,
+      nextAvailable: (day, time) => `Next opening: ${day}, ${time}`,
       mediaCredit: 'Video via Mixkit',
       servicesTitle: 'Treatments',
       servicesLede:
