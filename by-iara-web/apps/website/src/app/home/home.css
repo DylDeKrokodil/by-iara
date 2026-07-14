@@ -6,27 +6,89 @@
   color: var(--byiara-color-text);
 }
 
-.home-stage {
+/* Pulled up under the frosted sticky header so the footage shows through
+   the glass; the copy padding compensates below. */
+.home-hero {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.72fr);
   align-items: center;
-  gap: clamp(2rem, 6vw, 5.5rem);
-  width: min(100%, var(--byiara-container-lg));
-  min-height: calc(100svh - 4.25rem);
-  margin-inline: auto;
-  padding: clamp(3rem, 7vw, 6rem) clamp(1rem, 4vw, 2rem);
+  min-height: calc(100svh + var(--byiara-site-header-height) + 1px);
+  margin-top: calc(-1 * var(--byiara-site-header-height) - 1px);
+  overflow: hidden;
+  background: var(--byiara-color-plum-950);
+}
+
+.home-media,
+.home-scrim {
+  position: absolute;
+  inset: 0;
+}
+
+.home-media-still,
+.home-media-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Plum wash so the copy column stays readable while the right side of the
+   footage keeps breathing. The bottom band anchors the badge and credit. */
+.home-scrim {
+  background:
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--byiara-color-plum-950) 82%, transparent),
+      color-mix(in srgb, var(--byiara-color-plum-950) 58%, transparent) 46%,
+      color-mix(in srgb, var(--byiara-color-plum-950) 18%, transparent) 78%,
+      transparent
+    ),
+    linear-gradient(
+      to top,
+      color-mix(in srgb, var(--byiara-color-plum-950) 62%, transparent),
+      transparent 32%
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--byiara-color-plum-950) 55%, transparent),
+      transparent 22%
+    );
 }
 
 .home-copy {
+  position: relative;
+  z-index: var(--byiara-z-index-raised);
   display: grid;
   justify-items: start;
   gap: clamp(1rem, 2vw, 1.5rem);
-  max-width: 44rem;
+  width: min(100%, var(--byiara-container-lg));
+  margin-inline: auto;
+  padding: calc(var(--byiara-site-header-height) + clamp(3rem, 7vw, 6rem))
+    clamp(1rem, 4vw, 2rem) clamp(5.5rem, 12vw, 7rem);
+
+  /* On-media palette: remap the semantic tokens the buttons and focus ring
+     read, so byiara-button needs no dark variant of its own. */
+  --byiara-color-text: var(--byiara-color-white);
+  --byiara-color-border-strong: color-mix(
+    in srgb,
+    var(--byiara-color-white) 62%,
+    transparent
+  );
+  --byiara-color-surface: transparent;
+  --byiara-color-primary: var(--byiara-color-white);
+  --byiara-color-primary-strong: var(--byiara-color-white);
+  --byiara-color-primary-tint: color-mix(
+    in srgb,
+    var(--byiara-color-white) 16%,
+    transparent
+  );
+  --byiara-color-focus: var(--byiara-color-white);
 }
 
 .home-location {
   margin: 0;
-  color: var(--byiara-color-accent);
+  color: var(--byiara-color-rose-300);
   font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-semibold);
 }
@@ -34,7 +96,7 @@
 h1 {
   max-width: 9ch;
   margin: 0;
-  color: var(--byiara-color-text);
+  color: var(--byiara-color-white);
   font-family: var(--byiara-font-family-display);
   font-size: clamp(3.35rem, 2.1rem + 5.4vw, 5.7rem);
   font-weight: 650;
@@ -44,11 +106,11 @@ h1 {
 }
 
 .home-lede {
-  max-width: 50ch;
+  max-width: 44ch;
   margin: 0;
-  color: var(--byiara-color-text-muted);
+  color: color-mix(in srgb, var(--byiara-color-white) 88%, transparent);
   font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.2rem);
-  line-height: 1.75;
+  line-height: 1.8;
   text-wrap: pretty;
 }
 
@@ -59,50 +121,298 @@ h1 {
   padding-top: var(--byiara-space-xs);
 }
 
-.home-visual-column {
-  display: grid;
-  gap: var(--byiara-space-xs);
-  justify-self: end;
-  width: min(100%, 28rem);
-}
-
-.home-visual {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 5;
-}
-
-.home-photo {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-lg);
-  object-fit: cover;
-  box-shadow: var(--byiara-shadow-md);
-}
-
-.home-photo-credit {
+.home-media-credit {
+  position: absolute;
+  right: clamp(1rem, 4vw, 2rem);
+  bottom: var(--byiara-space-md);
+  z-index: var(--byiara-z-index-raised);
   margin: 0;
-  text-align: right;
   font-size: var(--byiara-font-size-xs);
 }
 
-.home-photo-credit a {
+.home-media-credit a {
+  color: color-mix(in srgb, var(--byiara-color-white) 72%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
+}
+
+.home-media-credit a:hover {
+  color: var(--byiara-color-white);
+}
+
+/* ---- Sections below the hero ---- */
+
+.home-section-inner {
+  width: min(100%, var(--byiara-container-lg));
+  margin-inline: auto;
+  padding-inline: clamp(1rem, 4vw, 2rem);
+}
+
+.home h2 {
+  margin: 0;
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.9rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  line-height: var(--byiara-line-height-display);
+  text-wrap: balance;
+}
+
+/* Shared prose defaults for the sections below the hero. */
+.home-section-lede,
+.home-service-description,
+.home-expect-step p,
+.home-about-text p,
+.home-visit-fact p {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+.home-section-lede {
+  max-width: 52ch;
+  margin-top: var(--byiara-space-sm);
+}
+
+.home-services {
+  padding-block: clamp(4rem, 9vw, 7rem) clamp(3rem, 7vw, 5rem);
+}
+
+.home-section-header {
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.home-service-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home-service-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--byiara-space-sm) clamp(1.5rem, 4vw, 3rem);
+  padding-block: clamp(1.25rem, 3vw, 1.75rem);
+  border-top: 1px solid var(--byiara-color-border-subtle);
+}
+
+.home-service-row:last-child {
+  border-bottom: 1px solid var(--byiara-color-border-subtle);
+}
+
+.home-service-name {
+  margin: 0;
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(1.3rem, 1.14rem + 0.6vw, 1.7rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  line-height: var(--byiara-line-height-title);
+}
+
+.home-service-description {
+  max-width: 52ch;
+  margin-top: var(--byiara-space-2xs);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.home-service-meta {
+  display: grid;
+  justify-items: end;
+  gap: var(--byiara-space-2xs);
+  margin: 0;
+  text-align: right;
+}
+
+.home-service-meta strong {
+  color: var(--byiara-color-primary-strong);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.home-service-meta span {
   color: var(--byiara-color-text-subtle);
-  text-decoration-color: color-mix(in oklch, currentColor 38%, transparent);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.home-services .text-link {
+  margin-top: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.home-expect {
+  padding-block: clamp(3.5rem, 8vw, 6rem);
+  background: var(--byiara-color-surface-tinted);
+}
+
+.home-expect-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin: clamp(2rem, 5vw, 3rem) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: expect-step;
+}
+
+.home-expect-step {
+  counter-increment: expect-step;
+}
+
+.home-expect-step::before {
+  content: counter(expect-step);
+  display: block;
+  margin-bottom: var(--byiara-space-sm);
+  color: var(--byiara-color-primary);
+  font-family: var(--byiara-font-family-display);
+  font-size: 1.8rem;
+  font-weight: var(--byiara-font-weight-semibold);
+  line-height: 1;
+}
+
+.home-expect-step h3 {
+  margin: 0 0 var(--byiara-space-xs);
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-md);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.home-expect-step p {
+  font-size: var(--byiara-font-size-sm);
+}
+
+.home-about {
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.home-about-inner {
+  display: grid;
+  grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.home-about-mark {
+  width: 100%;
+  max-width: 11rem;
+  opacity: 0.16;
+}
+
+.home-about-text {
+  display: grid;
+  gap: var(--byiara-space-md);
+  max-width: 58ch;
+}
+
+.home-about-text p {
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
+  line-height: var(--byiara-line-height-loose);
+}
+
+.home-visit {
+  padding-block: clamp(3rem, 7vw, 5rem);
+  border-top: 1px solid var(--byiara-color-border-subtle);
+}
+
+.home-visit-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.home-visit-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.home-visit-fact h3 {
+  margin: 0 0 var(--byiara-space-xs);
+  color: var(--byiara-color-primary-strong);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.home-visit-fact p {
+  max-width: 44ch;
+}
+
+/* The single fully-saturated rose moment on the page. */
+.home-closing {
+  padding-block: clamp(4rem, 9vw, 6.5rem);
+  background: var(--byiara-color-primary-action);
+}
+
+.home-closing-inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--byiara-space-md);
+  text-align: center;
+}
+
+.home-closing h2 {
+  color: var(--byiara-color-white);
+}
+
+.home-closing-text {
+  max-width: 44ch;
+  margin: 0;
+  color: color-mix(in srgb, var(--byiara-color-white) 88%, transparent);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+/* Inverted secondary button: white fill, rose label. */
+.home-closing-action {
+  --byiara-color-surface: var(--byiara-color-white);
+  --byiara-color-text: var(--byiara-color-rose-700);
+  --byiara-color-border-strong: transparent;
+  --byiara-color-primary: var(--byiara-color-white);
+  --byiara-color-primary-tint: color-mix(
+    in srgb,
+    var(--byiara-color-white) 88%,
+    transparent
+  );
+  --byiara-color-primary-strong: var(--byiara-color-rose-700);
+  --byiara-color-focus: var(--byiara-color-white);
+  margin-top: var(--byiara-space-xs);
 }
 
 @media (max-width: 48rem) {
-  .home-stage {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    padding-block: clamp(2.5rem, 10vw, 4rem);
+  .home-hero {
+    min-height: max(
+      34rem,
+      calc(100svh + var(--byiara-site-header-height) + 1px)
+    );
   }
 
-  .home-visual-column {
-    justify-self: start;
-    width: min(100%, 21rem);
+  .home-media-credit {
+    display: none;
+  }
+
+  .home-service-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .home-service-text {
+    grid-column: 1 / -1;
+  }
+
+  .home-service-meta {
+    justify-items: start;
+    text-align: left;
+  }
+
+  .home-about-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .home-about-mark {
+    max-width: 5.5rem;
+  }
+
+  .home-visit-inner {
+    grid-template-columns: 1fr;
+    gap: clamp(1.5rem, 5vw, 2.5rem);
   }
 }
 
@@ -113,5 +423,11 @@ h1 {
 
   .home-action {
     --byiara-button-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-media-video {
+    display: none;
   }
 }

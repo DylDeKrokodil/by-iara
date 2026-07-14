@@ -15,6 +15,117 @@ const browserDistFolder = resolve(serverDistFolder, '../browser');
 const app = express();
 const angularApp = new AngularNodeAppEngine();
 
+function publicSiteOrigin(req: express.Request): string {
+  return (
+    process.env['PUBLIC_SITE_URL'] || `${req.protocol}://${req.get('host')}`
+  ).replace(/\/$/, '');
+}
+
+function querySuffix(req: express.Request): string {
+  const queryStart = req.originalUrl.indexOf('?');
+  return queryStart >= 0 ? req.originalUrl.slice(queryStart) : '';
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+interface SitemapService {
+  readonly translations: Record<string, { readonly slug: string }>;
+}
+
+app.get('/', (req, res) => res.redirect(308, `/pt${querySuffix(req)}`));
+app.get('/pt/services', (req, res) =>
+  res.redirect(308, `/pt/servicos${querySuffix(req)}`),
+);
+app.get('/pt/book', (req, res) =>
+  res.redirect(308, `/pt/marcar${querySuffix(req)}`),
+);
+
+app.get('/robots.txt', (req, res) => {
+  res
+    .type('text/plain')
+    .send(
+      [
+        'User-agent: *',
+        'Allow: /',
+        'Disallow: /pt/design-system',
+        'Disallow: /en/design-system',
+        `Sitemap: ${publicSiteOrigin(req)}/sitemap.xml`,
+        '',
+      ].join('\n'),
+    );
+});
+
+app.get('/sitemap.xml', async (req, res) => {
+  const origin = publicSiteOrigin(req);
+  const apiOrigin = process.env['API_PROXY_TARGET'] || 'http://localhost:8080';
+  let services: SitemapService[] = [];
+  try {
+    const response = await fetch(
+      `${apiOrigin.replace(/\/$/, '')}/api/services`,
+    );
+    if (response.ok) {
+      services = (await response.json()) as SitemapService[];
+    }
+  } catch (error) {
+    console.error('Sitemap catalog fetch failed:', error);
+  }
+
+  const staticGroups = [
+    { pt: '/pt', en: '/en' },
+    { pt: '/pt/servicos', en: '/en/services' },
+  ];
+  const serviceGroups = services.map((service) => ({
+    pt: service.translations['pt-PT']?.slug
+      ? `/pt/servicos/${encodeURIComponent(service.translations['pt-PT'].slug)}`
+      : undefined,
+    en: service.translations['en-US']?.slug
+      ? `/en/services/${encodeURIComponent(service.translations['en-US'].slug)}`
+      : undefined,
+  }));
+  const groups = [...staticGroups, ...serviceGroups];
+  const urls = groups.flatMap((group) =>
+    (['pt', 'en'] as const).flatMap((locale) => {
+      const path = group[locale];
+      if (!path) {
+        return [];
+      }
+      const alternates = (['pt', 'en'] as const)
+        .flatMap((alternateLocale) => {
+          const alternatePath = group[alternateLocale];
+          return alternatePath
+            ? [
+                `<xhtml:link rel="alternate" hreflang="${alternateLocale === 'pt' ? 'pt-PT' : 'en'}" href="${escapeXml(origin + alternatePath)}" />`,
+              ]
+            : [];
+        })
+        .join('');
+      const xDefault = group.pt
+        ? `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(origin + group.pt)}" />`
+        : '';
+      return [
+        `<url><loc>${escapeXml(origin + path)}</loc>${alternates}${xDefault}</url>`,
+      ];
+    }),
+  );
+
+  res
+    .set('Cache-Control', 'public, max-age=300')
+    .type('application/xml')
+    .send(
+      `<?xml version="1.0" encoding="UTF-8"?>` +
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">` +
+        urls.join('') +
+        `</urlset>`,
+    );
+});
+
 /**
  * Security headers for the public site. script-src keeps 'unsafe-inline' because
  * Angular SSR hydration emits inline scripts (ng-event-dispatch-contract + the
@@ -54,7 +165,7 @@ app.use('/api/**', (req, res) => {
         res.writeHead(proxyRes.statusCode, proxyRes.headers);
       }
       proxyRes.pipe(res, { end: true });
-    }
+    },
   );
 
   proxyReq.on('error', (err) => {

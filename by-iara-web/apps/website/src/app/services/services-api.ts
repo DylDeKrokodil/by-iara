@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { API_ORIGIN, apiUrl } from '../api-origin';
+import type { LocaleCode } from '../i18n/supported-locales';
 
 export interface Money {
   amountCents: number;
@@ -16,6 +18,7 @@ export interface ServiceVariant {
 }
 
 export interface ServiceTranslation {
+  slug: string;
   name: string;
   description: string | null;
 }
@@ -51,9 +54,15 @@ export function localizedService(
 @Injectable({ providedIn: 'root' })
 export class ServicesApi {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = '/api/services';
+  private readonly baseUrl = apiUrl(inject(API_ORIGIN), '/api/services');
 
   list(): Observable<Service[]> {
     return this.http.get<Service[]>(this.baseUrl);
+  }
+
+  get(locale: LocaleCode, slug: string): Observable<Service> {
+    return this.http.get<Service>(
+      `${this.baseUrl}/${encodeURIComponent(locale)}/${encodeURIComponent(slug)}`,
+    );
   }
 }

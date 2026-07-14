@@ -1,0 +1,6 @@
+@if (label(); as text) {
+<a class="next-available-link" [routerLink]="language.localizedLink('book')">
+  <span>{{ text }}</span>
+  <span class="next-available-arrow" aria-hidden="true">→</span>
+</a>
+}

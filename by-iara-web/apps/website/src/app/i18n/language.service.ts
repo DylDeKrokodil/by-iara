@@ -4,16 +4,23 @@ import { NavigationEnd, PRIMARY_OUTLET, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import {
   DEFAULT_LOCALE,
+  getLocalizedPagePath,
   getLocaleByPath,
   isLocalePath,
+  localizePublicPageSegments,
   SUPPORTED_LOCALES,
 } from './supported-locales';
 import type {
+  LocaleCode,
   LocalePath,
-  PublicPagePath,
+  PublicPageKey,
   SupportedLocale,
 } from './supported-locales';
 import { WEBSITE_MESSAGES } from './website-messages';
+
+interface ResolvedLocalizedService {
+  readonly translations: Partial<Record<LocaleCode, { readonly slug: string }>>;
+}
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
@@ -40,12 +47,42 @@ export class LanguageService {
       .subscribe((event) => this.syncFromUrl(event.urlAfterRedirects));
   }
 
-  localizedLink(page: PublicPagePath = ''): string[] {
-    return page ? ['/', this.current().path, page] : ['/', this.current().path];
+  localizedLink(page: PublicPageKey = 'home', ...segments: string[]): string[] {
+    const pagePath = getLocalizedPagePath(this.current().path, page);
+    return pagePath
+      ? ['/', this.current().path, pagePath, ...segments]
+      : ['/', this.current().path, ...segments];
   }
 
   switchLocaleLink(path: LocalePath): string[] {
-    return ['/', path, ...this.currentPathWithoutLocale()];
+    const currentSegments = this.currentPathWithoutLocale();
+    const localizedSegments = localizePublicPageSegments(
+      this.current().path,
+      path,
+      currentSegments,
+    );
+
+    if (currentSegments.length > 1) {
+      const targetLocale = getLocaleByPath(path);
+      const targetSlug = targetLocale
+        ? this.currentResolvedService()?.translations[targetLocale.locale]?.slug
+        : undefined;
+      return targetSlug
+        ? ['/', path, localizedSegments[0], targetSlug]
+        : ['/', path, localizedSegments[0]];
+    }
+
+    return ['/', path, ...localizedSegments];
+  }
+
+  private currentResolvedService(): ResolvedLocalizedService | null {
+    let snapshot = this.router.routerState.snapshot.root;
+    while (snapshot.firstChild) {
+      snapshot = snapshot.firstChild;
+    }
+    return (
+      (snapshot.data['service'] as ResolvedLocalizedService | null) ?? null
+    );
   }
 
   private currentPathWithoutLocale(): readonly string[] {

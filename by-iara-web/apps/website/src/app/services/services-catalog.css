@@ -11,7 +11,7 @@
   max-width: 44rem;
 }
 
-.catalog-header h2 {
+.catalog-header h1 {
   margin: 0;
   color: var(--byiara-color-text);
   font-family: var(--byiara-font-family-display);
@@ -36,4 +36,10 @@
   align-content: start;
   gap: var(--byiara-space-lg);
   min-width: 0;
+}
+
+.service-name a {
+  color: inherit;
+  text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+  text-underline-offset: 0.18em;
 }

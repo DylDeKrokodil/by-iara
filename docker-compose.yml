@@ -65,6 +65,7 @@ services:
       PORT: 4000
       NG_ALLOWED_HOSTS: ${WEB_ALLOWED_HOSTS:-localhost,127.0.0.1}
       API_PROXY_TARGET: http://api:8080
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:-http://localhost:4200}
     ports:
       - "4200:4000"
     depends_on:

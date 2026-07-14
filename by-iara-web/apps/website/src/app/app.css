@@ -12,8 +12,25 @@
   position: sticky;
   top: 0;
   z-index: var(--byiara-z-index-sticky);
-  border-bottom: 1px solid color-mix(in oklch, var(--byiara-color-border) 76%, transparent);
-  background: color-mix(in oklch, var(--byiara-color-background) 88%, white);
+  border-bottom: 1px solid color-mix(in oklch, var(--byiara-color-border) 52%, transparent);
+  background: color-mix(in srgb, var(--byiara-color-background) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.45);
+  backdrop-filter: blur(18px) saturate(1.45);
+}
+
+/* Frosted glass needs backdrop-filter; otherwise stay opaque for legibility. */
+@supports not (backdrop-filter: blur(1px)) {
+  .site-header {
+    background: color-mix(in oklch, var(--byiara-color-background) 88%, white);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .site-header {
+    background: color-mix(in oklch, var(--byiara-color-background) 88%, white);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
 }
 
 .header-container {
@@ -21,7 +38,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   width: min(100%, var(--byiara-container-lg));
-  min-height: 4.25rem;
+  min-height: var(--byiara-site-header-height);
   margin-inline: auto;
   padding: var(--byiara-space-sm) clamp(1rem, 4vw, 2rem);
   gap: var(--byiara-space-lg);
@@ -60,24 +77,23 @@
   align-items: center;
   min-height: 2.25rem;
   padding-inline: var(--byiara-space-sm);
-  border-radius: var(--byiara-radius-pill);
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-semibold);
   text-decoration: none;
-  transition:
-    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
-    color var(--byiara-duration-fast) var(--byiara-ease-out);
+  transition: color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .header-nav a:hover {
-  background: var(--byiara-color-surface-tinted);
   color: var(--byiara-color-text);
 }
 
 .header-nav a.active {
-  background: var(--byiara-color-accent);
-  color: var(--byiara-color-on-accent);
+  color: var(--byiara-color-text);
+  text-decoration-line: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--byiara-color-primary);
+  text-underline-offset: 0.42em;
 }
 
 .menu-toggle {
@@ -197,6 +213,7 @@
   .mobile-menu {
     display: grid;
     grid-template-rows: 0fr;
+    overflow: hidden;
     transition: grid-template-rows var(--byiara-duration-base) var(--byiara-ease-out);
   }
 
@@ -210,5 +227,13 @@
     width: min(100%, var(--byiara-container-lg));
     margin-inline: auto;
     padding: var(--byiara-space-xs) clamp(1rem, 4vw, 2rem) var(--byiara-space-md);
+    transition: padding-block var(--byiara-duration-base) var(--byiara-ease-out);
+  }
+
+  /* Collapse the block padding with the menu: a 0fr track can't shrink below
+     the content's padding, which otherwise leaves a sliver of the menu
+     visible under the header. */
+  .mobile-menu:not(.is-open) .mobile-menu-content {
+    padding-block: 0;
   }
 }

@@ -2,6 +2,10 @@ html {
   scroll-behavior: smooth;
 }
 
+:root {
+  --byiara-site-header-height: 4.25rem;
+}
+
 body {
   min-width: 20rem;
   margin: 0;

@@ -16,6 +16,7 @@ import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.table
 import org.springframework.stereotype.Repository
+import java.text.Normalizer
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -45,10 +46,36 @@ class JooqServiceRepository(
     private val serviceTranslations = table(name("service_translations"))
     private val stServiceId = field(name("service_id"), UUID::class.java)
     private val stLocale = field(name("locale"), String::class.java)
+    private val stSlug = field(name("slug"), String::class.java)
     private val stName = field(name("name"), String::class.java)
     private val stDescription = field(name("description"), String::class.java)
 
     override fun findCatalog(): List<Service> = loadServices(activeFilter = true, variantsActiveOnly = true)
+
+    override fun findPublicByLocalizedSlug(locale: String, slug: String): Service? {
+        val record = dsl
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
+            .from(services)
+            .where(
+                sActive.isTrue
+                    .and(
+                        sId.`in`(
+                            dsl.select(stServiceId)
+                                .from(serviceTranslations)
+                                .where(stLocale.eq(locale).and(stSlug.equalIgnoreCase(slug))),
+                        ),
+                    ),
+            )
+            .fetchOne()
+            ?: return null
+
+        val id = record.get(sId)
+        return mapService(
+            record,
+            loadVariants(listOf(id), activeOnly = true).map { it.variant },
+            loadTranslations(listOf(id))[id].orEmpty(),
+        )
+    }
 
     override fun findAll(active: Boolean?): List<Service> = loadServices(activeFilter = active, variantsActiveOnly = false)
 
@@ -69,6 +96,17 @@ class JooqServiceRepository(
 
     override fun existsBySlug(slug: String): Boolean =
         dsl.fetchExists(dsl.selectOne().from(services).where(sSlug.equalIgnoreCase(slug)))
+
+    override fun existsByLocalizedSlug(locale: String, slug: String, excludingServiceId: UUID?): Boolean =
+        dsl.fetchExists(
+            dsl.selectOne()
+                .from(serviceTranslations)
+                .where(
+                    stLocale.eq(locale)
+                        .and(stSlug.equalIgnoreCase(slug))
+                        .and(excludingServiceId?.let { stServiceId.ne(it) } ?: noCondition()),
+                ),
+        )
 
     override fun create(slug: String, command: ServiceCommand): Service {
         val newId = dsl
@@ -132,10 +170,11 @@ class JooqServiceRepository(
     private fun insertTranslations(serviceId: UUID, commands: Map<String, ServiceTranslationCommand>) {
         commands.forEach { (locale, translation) ->
             dsl.insertInto(serviceTranslations)
-                .columns(stServiceId, stLocale, stName, stDescription)
+                .columns(stServiceId, stLocale, stSlug, stName, stDescription)
                 .values(
                     serviceId,
                     locale,
+                    requireNotNull(translation.slug),
                     translation.name,
                     translation.description,
                 )
@@ -180,7 +219,7 @@ class JooqServiceRepository(
         }
 
         return dsl
-            .select(stServiceId, stLocale, stName, stDescription)
+            .select(stServiceId, stLocale, stSlug, stName, stDescription)
             .from(serviceTranslations)
             .where(stServiceId.`in`(serviceIds))
             .fetch()
@@ -188,12 +227,20 @@ class JooqServiceRepository(
             .mapValues { (_, records) ->
                 records.associate { record ->
                     record.get(stLocale) to ServiceTranslation(
+                        slug = record.get(stSlug) ?: fallbackSlug(record.get(stName)),
                         name = record.get(stName),
                         description = record.get(stDescription),
                     )
                 }
             }
     }
+
+    private fun fallbackSlug(value: String): String =
+        Normalizer.normalize(value, Normalizer.Form.NFD)
+            .replace(Regex("\\p{M}+"), "")
+            .lowercase()
+            .replace(Regex("[^a-z0-9]+"), "-")
+            .trim('-')
 
     private fun loadVariants(serviceIds: List<UUID>, activeOnly: Boolean): List<OwnedVariant> {
         if (serviceIds.isEmpty()) {

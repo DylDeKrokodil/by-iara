@@ -27,12 +27,21 @@ import {
   localizedService,
 } from '../services/services-api';
 import { LanguageService } from '../i18n/language.service';
-import { BookingApi, BUSINESS_TIMEZONE, ReservationConfirmation } from './booking-api';
+import {
+  BookingApi,
+  BUSINESS_TIMEZONE,
+  ReservationConfirmation,
+} from './booking-api';
 
 const BOOKING_WINDOW_DAYS = 28;
 
 type BookingStep = 'service' | 'time' | 'details' | 'review';
-const BOOKING_STEPS: readonly BookingStep[] = ['service', 'time', 'details', 'review'];
+const BOOKING_STEPS: readonly BookingStep[] = [
+  'service',
+  'time',
+  'details',
+  'review',
+];
 
 interface SlotView {
   readonly iso: string;
@@ -98,7 +107,9 @@ export class Booking implements OnInit {
 
   protected readonly submitting = signal(false);
   protected readonly submitError = signal<string | null>(null);
-  protected readonly confirmation = signal<ReservationConfirmation | null>(null);
+  protected readonly confirmation = signal<ReservationConfirmation | null>(
+    null,
+  );
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
@@ -115,7 +126,8 @@ export class Booking implements OnInit {
   );
 
   protected readonly selectedService = computed(
-    () => this.services().find((s) => s.id === this.selectedServiceId()) ?? null,
+    () =>
+      this.services().find((s) => s.id === this.selectedServiceId()) ?? null,
   );
 
   protected readonly serviceTitle = computed(() => {
@@ -130,10 +142,14 @@ export class Booking implements OnInit {
   );
 
   protected readonly selectedVariant = computed(
-    () => this.activeVariants().find((v) => v.id === this.selectedVariantId()) ?? null,
+    () =>
+      this.activeVariants().find((v) => v.id === this.selectedVariantId()) ??
+      null,
   );
 
-  protected readonly availableDates = computed(() => this.groupByDate(this.slots()));
+  protected readonly availableDates = computed(() =>
+    this.groupByDate(this.slots()),
+  );
 
   protected readonly selectedDateSlots = computed(() => {
     const selectedDateKey = this.selectedDateKey();
@@ -141,7 +157,10 @@ export class Booking implements OnInit {
       return [];
     }
 
-    return this.availableDates().find((date) => date.key === selectedDateKey)?.slots ?? [];
+    return (
+      this.availableDates().find((date) => date.key === selectedDateKey)
+        ?.slots ?? []
+    );
   });
 
   // Group the day's slots into morning / afternoon / evening, dropping any
@@ -165,11 +184,17 @@ export class Booking implements OnInit {
     };
     return (['morning', 'afternoon', 'evening'] as const)
       .filter((period) => buckets[period].length > 0)
-      .map((period) => ({ period, label: labels[period], slots: buckets[period] }));
+      .map((period) => ({
+        period,
+        label: labels[period],
+        slots: buckets[period],
+      }));
   });
 
   protected readonly selectedDateLabel = computed(
-    () => this.availableDates().find((date) => date.key === this.selectedDateKey())?.label ?? '',
+    () =>
+      this.availableDates().find((date) => date.key === this.selectedDateKey())
+        ?.label ?? '',
   );
 
   protected readonly selectedSlotLabel = computed(() => {
@@ -180,10 +205,26 @@ export class Booking implements OnInit {
   protected readonly steps = computed(() => {
     const copy = this.copy();
     return [
-      { id: 'service' as const, label: copy.serviceStep, disabled: !this.canOpenStep('service') },
-      { id: 'time' as const, label: copy.timeStep, disabled: !this.canOpenStep('time') },
-      { id: 'details' as const, label: copy.detailsStep, disabled: !this.canOpenStep('details') },
-      { id: 'review' as const, label: copy.reviewStep, disabled: !this.canOpenStep('review') },
+      {
+        id: 'service' as const,
+        label: copy.serviceStep,
+        disabled: !this.canOpenStep('service'),
+      },
+      {
+        id: 'time' as const,
+        label: copy.timeStep,
+        disabled: !this.canOpenStep('time'),
+      },
+      {
+        id: 'details' as const,
+        label: copy.detailsStep,
+        disabled: !this.canOpenStep('details'),
+      },
+      {
+        id: 'review' as const,
+        label: copy.reviewStep,
+        disabled: !this.canOpenStep('review'),
+      },
     ];
   });
 
@@ -205,8 +246,14 @@ export class Booking implements OnInit {
 
     this.api.list().subscribe({
       next: (services) => {
+        const locale = this.language.current().locale;
         const active = [...services]
-          .filter((s) => s.active && s.variants.some((v) => v.active))
+          .filter(
+            (s) =>
+              s.active &&
+              s.translations[locale] &&
+              s.variants.some((v) => v.active),
+          )
           .sort((a, b) => a.sortOrder - b.sortOrder);
         this.services.set(active);
         this.loading.set(false);
@@ -264,7 +311,9 @@ export class Booking implements OnInit {
 
   private goToStep(step: BookingStep): void {
     this.stepDirection.set(
-      BOOKING_STEPS.indexOf(step) >= this.currentStepIndex() ? 'forward' : 'backward',
+      BOOKING_STEPS.indexOf(step) >= this.currentStepIndex()
+        ? 'forward'
+        : 'backward',
     );
     this.currentStep.set(step);
   }
@@ -405,10 +454,22 @@ export class Booking implements OnInit {
     const copy = this.copy();
     const variant = this.selectedVariant();
     return [
-      { term: copy.confirmedService, detail: this.serviceTitle() || copy.notSelected },
-      { term: copy.chooseOption, detail: variant ? this.variantLabel(variant) : copy.notSelected },
-      { term: copy.chooseDate, detail: this.selectedDateLabel() || copy.notSelected },
-      { term: copy.chooseSlot, detail: this.selectedSlotLabel() || copy.notSelected },
+      {
+        term: copy.confirmedService,
+        detail: this.serviceTitle() || copy.notSelected,
+      },
+      {
+        term: copy.chooseOption,
+        detail: variant ? this.variantLabel(variant) : copy.notSelected,
+      },
+      {
+        term: copy.chooseDate,
+        detail: this.selectedDateLabel() || copy.notSelected,
+      },
+      {
+        term: copy.chooseSlot,
+        detail: this.selectedSlotLabel() || copy.notSelected,
+      },
     ];
   }
 
@@ -422,7 +483,10 @@ export class Booking implements OnInit {
       { term: copy.confirmedService, detail: this.serviceTitle() },
     ];
     if (variant) {
-      items.push({ term: copy.chooseOption, detail: this.variantLabel(variant) });
+      items.push({
+        term: copy.chooseOption,
+        detail: this.variantLabel(variant),
+      });
     }
     items.push({ term: copy.confirmedWhen, detail: this.selectedSlotLabel() });
     items.push({ term: copy.name, detail: name });
@@ -436,18 +500,26 @@ export class Booking implements OnInit {
     return items;
   }
 
-  protected confirmationItems(confirmed: ReservationConfirmation): DetailListItem[] {
+  protected confirmationItems(
+    confirmed: ReservationConfirmation,
+  ): DetailListItem[] {
     const copy = this.copy();
     return [
       {
         term: copy.confirmedService,
         detail: `${this.serviceTitle()} · ${confirmed.durationMinutes} min`,
       },
-      { term: copy.confirmedWhen, detail: this.formatDateTime(confirmed.startsAt) },
+      {
+        term: copy.confirmedWhen,
+        detail: this.formatDateTime(confirmed.startsAt),
+      },
     ];
   }
 
-  private selectService(serviceId: string, preselectedVariant: string | null): void {
+  private selectService(
+    serviceId: string,
+    preselectedVariant: string | null,
+  ): void {
     this.selectedServiceId.set(serviceId);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);

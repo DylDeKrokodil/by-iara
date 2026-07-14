@@ -14,9 +14,17 @@ export interface ServiceVariant {
 export type ServiceLocale = 'pt-PT' | 'en-US';
 
 export interface ServiceTranslation {
+  slug: string;
   name: string;
   description: string | null;
 }
+
+export type ServiceTranslationInput = Pick<
+  ServiceTranslation,
+  'name' | 'description'
+> & {
+  slug?: string;
+};
 
 export interface Service {
   id: string;
@@ -43,7 +51,10 @@ export interface ServiceInput {
   active?: boolean;
   sortOrder?: number;
   featured?: boolean;
-  translations: Record<ServiceLocale, ServiceTranslation>;
+  translations: {
+    'pt-PT': ServiceTranslationInput;
+    'en-US'?: ServiceTranslationInput;
+  };
   variants: VariantInput[];
 }
 

@@ -23,6 +23,8 @@ import {
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 
+const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 const languageTabs: ReadonlyArray<TabOption> = [
   { label: 'Portuguese (pt-PT)', value: 'ptPT' },
   { label: 'English (en-US)', value: 'enUS' },
@@ -34,7 +36,15 @@ function isTranslationFormKey(value: string): value is TranslationFormKey {
 
 @Component({
   selector: 'byiara-service-form',
-  imports: [ReactiveFormsModule, Alert, Button, PageHeader, Switch, Tabs, TextField],
+  imports: [
+    ReactiveFormsModule,
+    Alert,
+    Button,
+    PageHeader,
+    Switch,
+    Tabs,
+    TextField,
+  ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })
@@ -53,8 +63,8 @@ export class ServiceForm implements OnInit {
 
   protected readonly form = this.fb.nonNullable.group({
     translations: this.fb.nonNullable.group({
-      ptPT: this.translationGroup(),
-      enUS: this.translationGroup(),
+      ptPT: this.translationGroup(true),
+      enUS: this.translationGroup(false),
     }),
     active: [true],
     featured: [false],
@@ -78,15 +88,17 @@ export class ServiceForm implements OnInit {
     this.serviceId = id;
     this.api.get(id).subscribe({
       next: (service) => {
-        const ptTranslation = this.translationFor(service, 'pt-PT');
-        const enTranslation = this.translationFor(service, 'en-US');
+        const ptTranslation = this.translationFor(service, 'pt-PT', true);
+        const enTranslation = this.translationFor(service, 'en-US', false);
         this.form.patchValue({
           translations: {
             ptPT: {
+              slug: ptTranslation.slug,
               name: ptTranslation.name,
               description: ptTranslation.description ?? '',
             },
             enUS: {
+              slug: enTranslation.slug,
               name: enTranslation.name,
               description: enTranslation.description ?? '',
             },
@@ -136,16 +148,20 @@ export class ServiceForm implements OnInit {
     this.error.set(null);
 
     const raw = this.form.getRawValue();
-    const translations = {
+    const translations: ServiceInput['translations'] = {
       'pt-PT': {
+        slug: raw.translations.ptPT['slug'].trim() || undefined,
         name: raw.translations.ptPT['name'],
         description: raw.translations.ptPT['description'] || null,
       },
-      'en-US': {
+    };
+    if (raw.translations.enUS['name'].trim()) {
+      translations['en-US'] = {
+        slug: raw.translations.enUS['slug'].trim() || undefined,
         name: raw.translations.enUS['name'],
         description: raw.translations.enUS['description'] || null,
-      },
-    } satisfies ServiceInput['translations'];
+      };
+    }
     const input: ServiceInput = {
       name: translations['pt-PT'].name,
       description: translations['pt-PT'].description,
@@ -165,14 +181,18 @@ export class ServiceForm implements OnInit {
     request.subscribe({
       next: () => {
         const actionMsg = id ? 'updated' : 'created';
-        this.toast.show(`Service "${input.name}" ${actionMsg} successfully.`, 'success');
+        this.toast.show(
+          `Service "${input.name}" ${actionMsg} successfully.`,
+          'success',
+        );
         this.router.navigateByUrl('/services');
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        const errMsg = err.status === 409
-          ? 'A service with this name already exists.'
-          : 'Could not save the service.';
+        const errMsg =
+          err.status === 409
+            ? 'A service with this URL slug already exists.'
+            : 'Could not save the service.';
         this.toast.show(errMsg, 'error');
         this.error.set(errMsg);
       },
@@ -182,6 +202,17 @@ export class ServiceForm implements OnInit {
   protected translationNameInvalid(key: TranslationFormKey): boolean {
     const control = this.form.get(['translations', key, 'name']);
     return !!control?.invalid && !!control?.touched;
+  }
+
+  protected translationSlugError(key: TranslationFormKey): string | null {
+    const control = this.form.get(['translations', key, 'slug']);
+    if (!control?.touched || !control.errors) {
+      return null;
+    }
+
+    return control.hasError('maxlength')
+      ? 'URL slug must be 140 characters or fewer'
+      : 'Use lowercase letters, numbers, and single hyphens only';
   }
 
   protected setActiveLanguageTab(value: string): void {
@@ -206,21 +237,30 @@ export class ServiceForm implements OnInit {
   private translationFor(
     service: Service,
     locale: ServiceLocale,
-  ): { name: string; description: string | null } {
+    fallbackToBase: boolean,
+  ): { slug: string; name: string; description: string | null } {
     return (
-      service.translations?.[locale] ?? {
-        name: service.name,
-        description: service.description,
-      }
+      service.translations?.[locale] ??
+      (fallbackToBase
+        ? {
+            slug: service.slug,
+            name: service.name,
+            description: service.description,
+          }
+        : { slug: '', name: '', description: null })
     );
   }
 
-  private translationGroup(value?: {
-    name: string;
-    description: string | null;
-  }): FormGroup {
+  private translationGroup(
+    required: boolean,
+    value?: { slug: string; name: string; description: string | null },
+  ): FormGroup {
     return this.fb.nonNullable.group({
-      name: [value?.name ?? '', Validators.required],
+      slug: [
+        value?.slug ?? '',
+        [Validators.maxLength(140), Validators.pattern(slugPattern)],
+      ],
+      name: [value?.name ?? '', required ? Validators.required : []],
       description: [value?.description ?? ''],
     });
   }
@@ -235,7 +275,10 @@ export class ServiceForm implements OnInit {
         value?.durationMinutes ?? 60,
         [Validators.required, Validators.min(1)],
       ],
-      priceEuros: [value?.priceEuros ?? 0, [Validators.required, Validators.min(0)]],
+      priceEuros: [
+        value?.priceEuros ?? 0,
+        [Validators.required, Validators.min(0)],
+      ],
       active: [value?.active ?? true],
     });
   }

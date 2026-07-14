@@ -1,0 +1,9 @@
+<main class="public-shell">
+  <section class="empty-page" aria-labelledby="not-found-title">
+    <h1 id="not-found-title">{{ copy().notFoundTitle }}</h1>
+    <p>{{ copy().notFoundText }}</p>
+    <a class="text-link" [routerLink]="language.localizedLink()">
+      {{ language.messages().booking.back }}
+    </a>
+  </section>
+</main>

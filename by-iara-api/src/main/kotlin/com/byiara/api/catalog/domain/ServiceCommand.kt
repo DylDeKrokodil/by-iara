@@ -13,6 +13,7 @@ data class ServiceCommand(
 data class ServiceTranslationCommand(
     val name: String,
     val description: String?,
+    val slug: String? = null,
 )
 
 data class VariantCommand(

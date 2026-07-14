@@ -4,12 +4,12 @@ import { BookingApi, BUSINESS_TIMEZONE } from '../../booking/booking-api';
 import { LanguageService } from '../../i18n/language.service';
 
 @Component({
-  selector: 'byiara-next-available-badge',
+  selector: 'byiara-next-available-link',
   imports: [RouterLink],
-  templateUrl: './next-available-badge.html',
-  styleUrl: './next-available-badge.css',
+  templateUrl: './next-available-link.html',
+  styleUrl: './next-available-link.css',
 })
-export class NextAvailableBadge {
+export class NextAvailableLink {
   private readonly bookingApi = inject(BookingApi);
   protected readonly language = inject(LanguageService);
   protected readonly copy = computed(() => this.language.messages().home);
