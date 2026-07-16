@@ -56,6 +56,7 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists reservation_payments")
         dsl.execute("drop table if exists email_logs")
         dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservations")
@@ -181,6 +182,22 @@ class ReservationApiTests {
                 password_hash varchar(255) not null,
                 role varchar(40) not null,
                 active boolean not null default true,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table reservation_payments (
+                id uuid default random_uuid() primary key,
+                reservation_id uuid not null references reservations(id),
+                amount_cents bigint not null,
+                currency varchar(3) not null,
+                method varchar(30) not null,
+                status varchar(20) not null default 'PAID',
+                paid_at timestamp with time zone not null,
+                reference varchar(255),
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
@@ -425,6 +442,121 @@ class ReservationApiTests {
         mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
         mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt()))
             .andExpect(status().isConflict)
+    }
+
+    @Test
+    fun `admin can complete a past confirmed reservation and record its payment atomically`() {
+        val id = insertReservation(
+            start = OffsetDateTime.now(zone).minusHours(2),
+            status = "CONFIRMED",
+            email = "complete@example.com",
+        )
+
+        mockMvc.perform(
+            patch("/api/admin/reservations/$id/complete")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{"payment":{"amountCents":7500,"currency":"EUR","method":"CARD","reference":"terminal-42"}}""",
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("COMPLETED"))
+
+        mockMvc.perform(get("/api/admin/reservations/$id/payments").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.items[0].method").value("CARD"))
+            .andExpect(jsonPath("$.items[0].reference").value("terminal-42"))
+            .andExpect(jsonPath("$.summary.totalPaidCents").value(7500))
+            .andExpect(jsonPath("$.summary.balanceDueCents").value(0))
+            .andExpect(jsonPath("$.summary.state").value("PAID"))
+    }
+
+    @Test
+    fun `future confirmed reservation cannot be completed or marked no-show`() {
+        val id = insertReservation(slotStart, "CONFIRMED", "future-closeout@example.com")
+
+        mockMvc.perform(
+            patch("/api/admin/reservations/$id/complete")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("{}"),
+        ).andExpect(status().isBadRequest)
+
+        mockMvc.perform(patch("/api/admin/reservations/$id/no-show").with(adminJwt()))
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `admin can mark a started confirmed reservation as no-show`() {
+        val id = insertReservation(
+            start = OffsetDateTime.now(zone).minusMinutes(30),
+            status = "CONFIRMED",
+            email = "no-show@example.com",
+        )
+
+        mockMvc.perform(patch("/api/admin/reservations/$id/no-show").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("NO_SHOW"))
+    }
+
+    @Test
+    fun `admin can record partial payments without overpaying`() {
+        val id = insertReservation(slotStart, "CONFIRMED", "partial@example.com")
+
+        mockMvc.perform(
+            post("/api/admin/reservations/$id/payments")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"amountCents":2500,"currency":"EUR","method":"CASH"}"""),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.amountCents").value(2500))
+
+        mockMvc.perform(get("/api/admin/reservations/$id/payments").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.summary.state").value("PARTIALLY_PAID"))
+            .andExpect(jsonPath("$.summary.balanceDueCents").value(5000))
+
+        mockMvc.perform(
+            post("/api/admin/reservations/$id/payments")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"amountCents":5001,"currency":"EUR","method":"CASH"}"""),
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `attention queue includes approvals overdue outcomes and completed balances only`() {
+        val pendingId = insertReservation(slotStart, "PENDING", "attention-pending@example.com")
+        val outcomeId = insertReservation(
+            OffsetDateTime.now(zone).minusHours(2),
+            "CONFIRMED",
+            "attention-outcome@example.com",
+        )
+        val paymentId = insertReservation(
+            OffsetDateTime.now(zone).minusDays(1),
+            "COMPLETED",
+            "attention-payment@example.com",
+        )
+        val paidId = insertReservation(
+            OffsetDateTime.now(zone).minusDays(2),
+            "COMPLETED",
+            "attention-paid@example.com",
+        )
+        dsl.query(
+            "insert into reservation_payments (reservation_id, amount_cents, currency, method, status, paid_at) values (?, ?, ?, ?, ?, ?)",
+            UUID.fromString(paidId), 7500, "EUR", "CARD", "PAID", OffsetDateTime.now(zone),
+        ).execute()
+
+        mockMvc.perform(get("/api/admin/reservations/attention").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(3))
+            .andExpect(jsonPath("$.items[*].reservation.id", hasItem(pendingId)))
+            .andExpect(jsonPath("$.items[*].reservation.id", hasItem(outcomeId)))
+            .andExpect(jsonPath("$.items[*].reservation.id", hasItem(paymentId)))
+            .andExpect(jsonPath("$.items[*].reservation.id", not(hasItem(paidId))))
+            .andExpect(jsonPath("$.items[0].reason").value("OUTCOME_REQUIRED"))
     }
 
     @Test

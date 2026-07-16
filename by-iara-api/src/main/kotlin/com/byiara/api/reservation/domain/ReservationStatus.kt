@@ -6,6 +6,7 @@ enum class ReservationStatus {
     REJECTED,
     CANCELLED,
     COMPLETED,
+    NO_SHOW,
     ;
 
     fun canTransitionTo(target: ReservationStatus): Boolean =
@@ -14,7 +15,7 @@ enum class ReservationStatus {
     private val allowedTransitions: Set<ReservationStatus>
         get() = when (this) {
             PENDING -> setOf(CONFIRMED, REJECTED, CANCELLED)
-            CONFIRMED -> setOf(CANCELLED, COMPLETED)
-            REJECTED, CANCELLED, COMPLETED -> emptySet()
+            CONFIRMED -> setOf(CANCELLED, COMPLETED, NO_SHOW)
+            REJECTED, CANCELLED, COMPLETED, NO_SHOW -> emptySet()
         }
 }
