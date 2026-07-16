@@ -95,6 +95,41 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.payment-summary dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-summary .balance-value {
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-bold);
+}
+
+.payment-history {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-lg);
+  padding-top: var(--byiara-space-md);
+  border-top: 1px solid var(--byiara-color-border);
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+}
+
+.payment-row > div {
+  display: grid;
+  gap: var(--byiara-space-2xs);
+}
+
+.payment-row span,
+.payment-reference {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
 .detail-list a {
   color: var(--byiara-color-primary-strong);
 }
@@ -193,6 +228,11 @@
   .decision-actions-inline {
     flex-direction: column;
     width: 100%;
+  }
+
+  .payment-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 

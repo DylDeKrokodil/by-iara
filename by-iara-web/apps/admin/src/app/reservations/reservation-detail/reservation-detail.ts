@@ -2,10 +2,12 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import {
   Alert,
   Button,
   Card,
+  Checkbox,
   ConfirmationModal,
   EmptyState,
   PageHeader,
@@ -18,6 +20,9 @@ import {
 import { formatMoney } from '../../services/service.models';
 import {
   CancellationReasonCode,
+  PaymentMethod,
+  PaymentSummary,
+  ReservationPayment,
   RejectionReasonCode,
   ReservationResponse,
   reservationStatusLabel,
@@ -38,6 +43,13 @@ const cancellationOptions: ReadonlyArray<SelectFieldOption> = [
   { label: 'Practitioner unavailable', value: 'PRACTITIONER_UNAVAILABLE' },
   { label: 'Business closure', value: 'BUSINESS_CLOSURE' },
   { label: 'Customer requested cancellation', value: 'CUSTOMER_REQUEST' },
+  { label: 'Other', value: 'OTHER' },
+];
+
+const paymentMethodOptions: ReadonlyArray<SelectFieldOption> = [
+  { label: 'Card', value: 'CARD' },
+  { label: 'Cash', value: 'CASH' },
+  { label: 'Bank transfer', value: 'BANK_TRANSFER' },
   { label: 'Other', value: 'OTHER' },
 ];
 
@@ -82,6 +94,7 @@ const cancellationMessages: Record<'en' | 'pt', Record<CancellationReasonCode, s
     Alert,
     Button,
     Card,
+    Checkbox,
     ConfirmationModal,
     EmptyState,
     PageHeader,
@@ -104,9 +117,15 @@ export class ReservationDetail implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly declineOpen = signal(false);
   protected readonly cancellationOpen = signal(false);
+  protected readonly completionOpen = signal(false);
+  protected readonly paymentOpen = signal(false);
+  protected readonly paymentSummary = signal<PaymentSummary | null>(null);
+  protected readonly payments = signal<ReservationPayment[]>([]);
+  protected readonly selectedPaymentMethod = signal<PaymentMethod>('CARD');
   protected readonly selectedReason = signal<RejectionReasonCode>('TIME_UNAVAILABLE');
   protected readonly reasonOptions = reasonOptions;
   protected readonly cancellationOptions = cancellationOptions;
+  protected readonly paymentMethodOptions = paymentMethodOptions;
   protected readonly selectedCancellationReason = signal<CancellationReasonCode>('SCHEDULE_CHANGE');
   protected readonly formatMoney = formatMoney;
 
@@ -116,9 +135,17 @@ export class ReservationDetail implements OnInit {
   protected readonly cancellationForm = this.fb.nonNullable.group({
     message: ['', [Validators.required, Validators.maxLength(1000)]],
   });
+  protected readonly paymentForm = this.fb.nonNullable.group({
+    recordPayment: [true],
+    amount: ['', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
+    reference: ['', [Validators.maxLength(255)]],
+  });
 
   @ViewChild('confirmAcceptModal')
   private confirmAcceptModal!: ConfirmationModal;
+
+  @ViewChild('confirmNoShowModal')
+  private confirmNoShowModal!: ConfirmationModal;
 
   ngOnInit(): void {
     this.load();
@@ -230,6 +257,127 @@ export class ReservationDetail implements OnInit {
     });
   }
 
+  protected canCloseOut(): boolean {
+    const reservation = this.reservation();
+    return reservation?.status === 'CONFIRMED' && new Date(reservation.endsAt).getTime() <= Date.now();
+  }
+
+  protected canMarkNoShow(): boolean {
+    const reservation = this.reservation();
+    return reservation?.status === 'CONFIRMED' && new Date(reservation.startsAt).getTime() <= Date.now();
+  }
+
+  protected openCompletionForm(): void {
+    this.completionOpen.set(true);
+    this.paymentOpen.set(false);
+    this.resetPaymentForm();
+    this.paymentForm.controls.recordPayment.setValue((this.paymentSummary()?.balanceDueCents ?? 0) > 0);
+  }
+
+  protected closeCompletionForm(): void {
+    this.completionOpen.set(false);
+    this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
+  }
+
+  protected completionRecordsPayment(): boolean {
+    return this.paymentForm.controls.recordPayment.value;
+  }
+
+  protected openPaymentForm(): void {
+    this.paymentOpen.set(true);
+    this.completionOpen.set(false);
+    this.resetPaymentForm();
+  }
+
+  protected closePaymentForm(): void {
+    this.paymentOpen.set(false);
+    this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
+  }
+
+  protected setPaymentMethod(value: string): void {
+    if (paymentMethodOptions.some((option) => option.value === value)) {
+      this.selectedPaymentMethod.set(value as PaymentMethod);
+    }
+  }
+
+  protected submitCompletion(): void {
+    const reservation = this.reservation();
+    if (!reservation || this.submitting()) return;
+    if (this.completionRecordsPayment() && this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    const input = this.completionRecordsPayment()
+      ? { payment: this.paymentInput(reservation) }
+      : {};
+    this.api.complete(reservation.id, input).subscribe({
+      next: (updated) => {
+        this.reservation.set(updated);
+        this.completionOpen.set(false);
+        this.submitting.set(false);
+        this.reloadPayments();
+        this.toast.show('Reservation marked as completed.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not complete the reservation.'),
+    });
+  }
+
+  protected openNoShowConfirmation(): void {
+    this.confirmNoShowModal.open();
+  }
+
+  protected confirmNoShow(): void {
+    const reservation = this.reservation();
+    if (!reservation || this.submitting()) return;
+    this.submitting.set(true);
+    this.api.markNoShow(reservation.id).subscribe({
+      next: (updated) => {
+        this.reservation.set(updated);
+        this.submitting.set(false);
+        this.toast.show('Reservation marked as no-show.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not mark the reservation as no-show.'),
+    });
+  }
+
+  protected submitPayment(): void {
+    const reservation = this.reservation();
+    if (!reservation || this.submitting()) return;
+    if (this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    this.api.recordPayment(reservation.id, this.paymentInput(reservation)).subscribe({
+      next: () => {
+        this.paymentOpen.set(false);
+        this.submitting.set(false);
+        this.reloadPayments();
+        this.toast.show('Payment recorded.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not record the payment.'),
+    });
+  }
+
+  protected formatPaymentAmount(amountCents: number, currency: string): string {
+    return formatMoney({ amountCents, currency });
+  }
+
+  protected paymentStateLabel(): string {
+    switch (this.paymentSummary()?.state) {
+      case 'PAID': return 'Paid';
+      case 'PARTIALLY_PAID': return 'Partially paid';
+      default: return 'Unpaid';
+    }
+  }
+
+  protected paymentMethodLabel(method: PaymentMethod): string {
+    return paymentMethodOptions.find((option) => option.value === method)?.label ?? 'Other';
+  }
+
   protected statusLabel(): string {
     return reservationStatusLabel(this.reservation()?.status ?? 'PENDING');
   }
@@ -262,9 +410,11 @@ export class ReservationDetail implements OnInit {
       return;
     }
 
-    this.api.get(id).subscribe({
-      next: (reservation) => {
+    forkJoin({ reservation: this.api.get(id), payments: this.api.payments(id) }).subscribe({
+      next: ({ reservation, payments }) => {
         this.reservation.set(reservation);
+        this.paymentSummary.set(payments.summary);
+        this.payments.set(payments.items);
         this.loading.set(false);
       },
       error: () => {
@@ -274,11 +424,40 @@ export class ReservationDetail implements OnInit {
     });
   }
 
+  private resetPaymentForm(): void {
+    const balance = this.paymentSummary()?.balanceDueCents ?? this.reservation()?.price.amountCents ?? 0;
+    this.selectedPaymentMethod.set('CARD');
+    this.paymentForm.reset({ recordPayment: true, amount: (balance / 100).toFixed(2), reference: '' });
+  }
+
+  private paymentInput(reservation: ReservationResponse) {
+    const form = this.paymentForm.getRawValue();
+    return {
+      amountCents: Math.round(Number(form.amount.replace(',', '.')) * 100),
+      currency: reservation.price.currency,
+      method: this.selectedPaymentMethod(),
+      reference: form.reference.trim() || undefined,
+    };
+  }
+
+  private reloadPayments(): void {
+    const id = this.reservation()?.id;
+    if (!id) return;
+    this.api.payments(id).subscribe({
+      next: (payments) => {
+        this.paymentSummary.set(payments.summary);
+        this.payments.set(payments.items);
+      },
+      error: () => this.error.set('Reservation updated, but payment details could not be refreshed.'),
+    });
+  }
+
   private handleActionError(error: HttpErrorResponse, fallback: string): void {
     this.submitting.set(false);
-    const message = error.status === 409 || error.status === 422
+    const serverMessage = typeof error.error?.message === 'string' ? error.error.message : null;
+    const message = error.status === 409
       ? 'This reservation was already updated. Refresh the page to see its latest status.'
-      : fallback;
+      : serverMessage ?? fallback;
     this.error.set(message);
     this.toast.show(message, 'error');
   }

@@ -7,6 +7,7 @@ export const reservationStatuses = [
   'REJECTED',
   'CANCELLED',
   'COMPLETED',
+  'NO_SHOW',
 ] as const;
 
 export type ReservationStatus = (typeof reservationStatuses)[number];
@@ -67,6 +68,59 @@ export interface CancelReservationInput {
   message: string;
 }
 
+export const paymentMethods = ['CASH', 'CARD', 'BANK_TRANSFER', 'OTHER'] as const;
+export type PaymentMethod = (typeof paymentMethods)[number];
+export type PaymentState = 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';
+export type AttentionReason = 'APPROVAL_REQUIRED' | 'OUTCOME_REQUIRED' | 'PAYMENT_DUE';
+
+export interface PaymentSummary {
+  totalPaidCents: number;
+  balanceDueCents: number;
+  currency: string;
+  state: PaymentState;
+}
+
+export interface ReservationPayment {
+  id: string;
+  reservationId: string;
+  amountCents: number;
+  currency: string;
+  method: PaymentMethod;
+  status: 'PAID' | 'REFUNDED' | 'VOIDED';
+  paidAt: string;
+  reference: string | null;
+}
+
+export interface ReservationPayments {
+  items: ReservationPayment[];
+  summary: PaymentSummary;
+}
+
+export interface RecordPaymentInput {
+  amountCents: number;
+  currency: string;
+  method: PaymentMethod;
+  paidAt?: string;
+  reference?: string;
+}
+
+export interface CompleteReservationInput {
+  payment?: RecordPaymentInput;
+}
+
+export interface ReservationAttention {
+  reservation: ReservationResponse;
+  reason: AttentionReason;
+  paymentSummary: PaymentSummary;
+}
+
+export interface ReservationAttentionPage {
+  items: ReservationAttention[];
+  page: number;
+  size: number;
+  total: number;
+}
+
 export interface ReservationPage {
   items: ReservationResponse[];
   page: number;
@@ -98,6 +152,8 @@ export function reservationStatusLabel(status: ReservationStatus): string {
       return 'Cancelled';
     case 'COMPLETED':
       return 'Completed';
+    case 'NO_SHOW':
+      return 'No-show';
   }
 }
 
@@ -113,6 +169,7 @@ export function reservationStatusTone(
     case 'REJECTED':
       return 'danger';
     case 'CANCELLED':
+    case 'NO_SHOW':
       return 'muted';
   }
 }
