@@ -66,3 +66,20 @@
     opacity: 1;
   }
 }
+
+@media (max-width: 30rem) {
+  .dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions byiara-button {
+    --byiara-button-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirmation-dialog[open],
+  .confirmation-dialog::backdrop {
+    animation: none;
+  }
+}

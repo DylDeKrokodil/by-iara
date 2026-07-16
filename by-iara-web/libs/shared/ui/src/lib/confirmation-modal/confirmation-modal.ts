@@ -1,8 +1,10 @@
 import { Component, ElementRef, ViewChild, input, output } from '@angular/core';
+import { Button } from '../button/button';
 
 @Component({
   selector: 'byiara-confirmation-modal',
   standalone: true,
+  imports: [Button],
   templateUrl: './confirmation-modal.html',
   styleUrl: './confirmation-modal.css',
 })
