@@ -209,6 +209,8 @@ Suggested table responsibilities:
 | `massage_prices` | Price by massage type, duration, and optional date range |
 | `discounts` | Promotional or manual discounts |
 | `reservations` | Customer booking requests and lifecycle status |
+| `reservation_payments` | Append-only reservation payment records, including method, amount, status, and payment time |
+| `expenses` | Auditable operating-expense ledger with category, amount, vendor, incurred date, and void status |
 | `availability_rules` | Recurring working schedule rules |
 | `availability_blocks` | One-off unavailable periods or overrides |
 | `email_logs` | Outbound email audit trail and delivery status |
@@ -221,7 +223,8 @@ enum class ReservationStatus {
     CONFIRMED,
     REJECTED,
     CANCELLED,
-    COMPLETED
+    COMPLETED,
+    NO_SHOW
 }
 ```
 
@@ -233,9 +236,11 @@ PENDING -> REJECTED
 PENDING -> CANCELLED
 CONFIRMED -> CANCELLED
 CONFIRMED -> COMPLETED
+CONFIRMED -> NO_SHOW
 ```
 
-Keep status transitions in `ReservationService`, not in the controller.
+`REJECTED`, `CANCELLED`, `COMPLETED`, and `NO_SHOW` are terminal reservation states.
+Keep status transitions in the application service layer, not in the controller. Completion and any payment recorded at completion must share one transaction so a partially applied closeout cannot occur.
 
 ## 9. Public API
 
@@ -571,4 +576,3 @@ These should be decided before implementation starts:
 6. Build availability before accepting reservations.
 7. Add reservation request flow.
 8. Add admin login and reservation management.
-
