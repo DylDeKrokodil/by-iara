@@ -25,6 +25,9 @@ services:
       ADMIN_TOKEN_TTL_SECONDS: 3600
       ADMIN_JWT_ISSUER: by-iara-api
       ADMIN_JWT_SECRET: local-docker-development-secret-must-be-at-least-32-bytes
+      INITIAL_ADMIN_ENABLED: "true"
+      INITIAL_ADMIN_EMAIL: admin@by-iara.local
+      INITIAL_ADMIN_PASSWORD: ChangeMe123!
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
       # TODO(legal-launch): Set this before launch; confirmation emails use it for
