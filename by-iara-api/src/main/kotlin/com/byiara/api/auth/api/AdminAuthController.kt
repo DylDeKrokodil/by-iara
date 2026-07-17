@@ -3,6 +3,7 @@ package com.byiara.api.auth.api
 import com.byiara.api.auth.application.AdminAuthService
 import com.byiara.api.auth.domain.AdminLoginCommand
 import com.byiara.api.auth.domain.AdminLoginResult
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.HttpStatus
@@ -21,8 +22,11 @@ class AdminAuthController(
     private val adminAuthService: AdminAuthService,
 ) {
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: AdminLoginRequest): AdminLoginResponse =
-        adminAuthService.login(request.toCommand()).toResponse()
+    fun login(
+        @Valid @RequestBody request: AdminLoginRequest,
+        servletRequest: HttpServletRequest,
+    ): AdminLoginResponse =
+        adminAuthService.login(request.toCommand(), servletRequest.remoteAddr).toResponse()
 
     @PostMapping("/refresh")
     fun refresh(@Valid @RequestBody request: RefreshTokenRequest): AdminLoginResponse =

@@ -17,15 +17,23 @@ class AdminAuthService(
     private val adminCredentialsRepository: AdminCredentialsRepository,
     private val refreshTokenService: RefreshTokenService,
     private val passwordVerifier: PasswordVerifier,
+    private val loginThrottler: AdminLoginThrottler,
 ) {
-    fun login(command: AdminLoginCommand): AdminLoginResult {
-        val credentials = adminCredentialsRepository.findActiveCredentialsByEmail(command.email)
-            ?: throw InvalidCredentialsException()
+    fun login(command: AdminLoginCommand, clientAddress: String): AdminLoginResult {
+        loginThrottler.checkAllowed(clientAddress, command.email)
 
-        if (!passwordVerifier.matches(command.password, credentials.passwordHash)) {
+        val credentials = adminCredentialsRepository.findActiveCredentialsByEmail(command.email)
+        if (credentials == null) {
+            loginThrottler.recordFailure(clientAddress, command.email)
             throw InvalidCredentialsException()
         }
 
+        if (!passwordVerifier.matches(command.password, credentials.passwordHash)) {
+            loginThrottler.recordFailure(clientAddress, command.email)
+            throw InvalidCredentialsException()
+        }
+
+        loginThrottler.recordSuccess(clientAddress, command.email)
         return issueSession(credentials.id, credentials.identity)
     }
 
