@@ -1,8 +1,27 @@
 <main class="public-shell service-detail-shell">
   <div class="service-detail-container">
-    <a class="text-link" [routerLink]="language.localizedLink('services')">
-      {{ copy().back }}
-    </a>
+    <nav
+      class="service-breadcrumbs"
+      [attr.aria-label]="copy().breadcrumbsLabel"
+    >
+      <ol>
+        <li>
+          <a [routerLink]="language.localizedLink('home')">
+            {{ copy().homeBreadcrumb }}
+          </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a [routerLink]="language.localizedLink('services')">
+            {{ copy().servicesBreadcrumb }}
+          </a>
+        </li>
+        @if (translation(); as localized) {
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{{ localized.name }}</li>
+        }
+      </ol>
+    </nav>
 
     @if (service && translation(); as localized) {
     <article class="service-detail">

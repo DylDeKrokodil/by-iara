@@ -105,7 +105,34 @@ export class SeoService {
           url: `${this.absolute(this.staticPath(locale.path, 'book'))}?service=${encodeURIComponent(service.slug)}&variant=${encodeURIComponent(variant.id)}`,
         })),
     };
-    const graph: unknown[] = [serviceSchema];
+    const breadcrumbCopy = this.language.messages().serviceDetail;
+    const graph: unknown[] = [
+      serviceSchema,
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${this.absolute(canonicalPath)}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: breadcrumbCopy.homeBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'home')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: breadcrumbCopy.servicesBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'services')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: translation.name,
+            item: this.absolute(canonicalPath),
+          },
+        ],
+      },
+    ];
     if (translation.faqs.length) {
       graph.push({
         '@type': 'FAQPage',

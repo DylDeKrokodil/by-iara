@@ -77,6 +77,9 @@ export interface WebsiteMessages {
     readonly bookAction: string;
   };
   readonly serviceDetail: {
+    readonly breadcrumbsLabel: string;
+    readonly homeBreadcrumb: string;
+    readonly servicesBreadcrumb: string;
     readonly back: string;
     readonly eyebrow: string;
     readonly treatmentTitle: string;
@@ -247,6 +250,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       bookAction: 'Reservar',
     },
     serviceDetail: {
+      breadcrumbsLabel: 'Navegação estrutural',
+      homeBreadcrumb: 'Início',
+      servicesBreadcrumb: 'Serviços',
       back: 'Voltar aos serviços',
       eyebrow: 'Tratamento',
       treatmentTitle: 'Sobre este tratamento',
@@ -420,6 +426,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       bookAction: 'Book',
     },
     serviceDetail: {
+      breadcrumbsLabel: 'Breadcrumbs',
+      homeBreadcrumb: 'Home',
+      servicesBreadcrumb: 'Services',
       back: 'Back to services',
       eyebrow: 'Treatment',
       treatmentTitle: 'About this treatment',
