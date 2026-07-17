@@ -34,7 +34,7 @@ export const LEGAL_CONTENT: Record<
 > = {
   'pt-PT': {
     legalNotice: {
-      eyebrow: 'Informação da empresa',
+      eyebrow: 'Informação do prestador',
       title: 'Informação legal',
       intro:
         'Identificação do prestador responsável por este website e pelos serviços disponibilizados.',
@@ -48,7 +48,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Prestador do serviço',
           paragraphs: [
-            'Os dados oficiais do prestador, incluindo a denominação, sede, contactos e registos aplicáveis, constam abaixo.',
+            'Os dados oficiais do prestador, incluindo o nome, a forma jurídica, o NIF, a morada e os contactos, constam abaixo.',
           ],
         },
         {
@@ -73,7 +73,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Resolução alternativa de litígios',
           paragraphs: [
-            'Quando o prestador esteja vinculado, por adesão ou imposição legal, a uma entidade de resolução alternativa de litígios de consumo, a respetiva identificação e ligação devem ser indicadas nos dados abaixo.',
+            'Em caso de litígio de consumo, o consumidor pode recorrer à entidade de resolução alternativa de litígios indicada nos dados abaixo, competente para contratos celebrados e executados na Área Metropolitana de Lisboa.',
           ],
         },
         {
@@ -92,9 +92,9 @@ export const LEGAL_CONTENT: Record<
         'Esta política explica como são tratados os dados pessoais quando visita o website ou pede uma marcação.',
       updatedLabel: 'Última atualização',
       updatedDate: '17 de julho de 2026',
-      incompleteTitle: 'Dados do responsável a completar',
+      incompleteTitle: 'Informação de privacidade a completar',
       incompleteText:
-        'A identidade, morada e contactos definitivos do responsável pelo tratamento ainda devem ser preenchidos antes da publicação.',
+        'O período operacional de conservação dos dados ainda deve ser definido antes da publicação.',
       missingValue: 'A preencher antes da publicação',
       sections: [
         {
@@ -153,7 +153,8 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Conservação',
           paragraphs: [
-            'Os dados são conservados apenas durante o período necessário para gerir a marcação, cumprir obrigações legais e contabilísticas e exercer ou defender direitos. O período operacional definitivo deve ser preenchido nos dados abaixo e aplicado através de um processo regular de eliminação ou anonimização.',
+            'Os dados pessoais associados a pedidos e marcações são conservados durante 2 anos após a realização, cancelamento ou última interação relevante e são depois eliminados ou anonimizados, salvo quando devam ser conservados por mais tempo para cumprir uma obrigação legal ou exercer ou defender direitos.',
+            'Os registos e documentos contabilísticos legalmente exigidos são conservados durante 10 anos. Este prazo não implica a conservação de todos os dados operacionais da marcação durante o mesmo período.',
           ],
         },
         {
@@ -286,7 +287,7 @@ export const LEGAL_CONTENT: Record<
   },
   'en-US': {
     legalNotice: {
-      eyebrow: 'Company information',
+      eyebrow: 'Provider information',
       title: 'Legal information',
       intro:
         'Identification of the provider responsible for this website and the services offered through it.',
@@ -300,7 +301,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Service provider',
           paragraphs: [
-            'The provider’s official name, registered office, contact information, and applicable registration details appear below.',
+            'The provider’s official name, legal form, tax number, registered address, and contact information appear below.',
           ],
         },
         {
@@ -325,7 +326,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Alternative dispute resolution',
           paragraphs: [
-            'If the provider is bound to a consumer alternative dispute resolution body by membership or law, its name and website must be entered in the details below.',
+            'In the event of a consumer dispute, the customer may contact the alternative dispute resolution body identified below, which covers contracts concluded and performed in the Lisbon Metropolitan Area.',
           ],
         },
         {
@@ -344,9 +345,9 @@ export const LEGAL_CONTENT: Record<
         'This policy explains how personal data is handled when you visit the website or request an appointment.',
       updatedLabel: 'Last updated',
       updatedDate: UPDATED_DATE,
-      incompleteTitle: 'Controller details to complete',
+      incompleteTitle: 'Privacy information to complete',
       incompleteText:
-        'The controller’s final identity, address, and contact information must still be completed before publication.',
+        'The operational data-retention period must still be defined before publication.',
       missingValue: 'Complete before publication',
       sections: [
         {
@@ -405,7 +406,8 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Retention',
           paragraphs: [
-            'Data is retained only as long as necessary to manage the booking, meet legal and accounting duties, and establish or defend legal claims. The final operational period must be entered below and enforced through a regular deletion or anonymisation process.',
+            'Personal data associated with booking requests and appointments is retained for 2 years after completion, cancellation, or the last relevant interaction and is then deleted or anonymised, unless longer retention is necessary to meet a legal obligation or establish, exercise, or defend legal claims.',
+            'Legally required accounting records and supporting documents are retained for 10 years. This does not mean that all operational booking data is kept for the same period.',
           ],
         },
         {

@@ -4,6 +4,8 @@ import { LanguageService } from '../i18n/language.service';
 import {
   BOOKING_POLICY,
   BUSINESS_DETAILS,
+  getBookingRetentionLabel,
+  getLegalFormLabel,
   isBusinessDetailMissing,
   REQUIRED_LEGAL_DETAIL_KEYS,
 } from './business-details';
@@ -37,8 +39,13 @@ export class LegalPage {
       ? 'abre numa nova janela'
       : 'opens in a new window',
   );
-  protected readonly hasMissingDetails = REQUIRED_LEGAL_DETAIL_KEYS.some(
-    isBusinessDetailMissing,
+  protected readonly hasMissingDetails = computed(() =>
+    [
+      ...REQUIRED_LEGAL_DETAIL_KEYS,
+      ...(this.documentKey === 'privacy'
+        ? (['bookingRetention'] as const)
+        : []),
+    ].some(isBusinessDetailMissing),
   );
 
   protected readonly detailRows = computed<readonly DetailRow[]>(() => {
@@ -64,7 +71,10 @@ export class LegalPage {
       ),
       this.row(
         portuguese ? 'Forma jurídica' : 'Legal form',
-        BUSINESS_DETAILS.legalForm,
+        getLegalFormLabel(
+          this.language.current().locale,
+          BUSINESS_DETAILS.legalForm,
+        ),
         missingValue,
       ),
       this.row('NIF/NIPC', BUSINESS_DETAILS.taxId, missingValue),
@@ -90,23 +100,6 @@ export class LegalPage {
         BUSINESS_DETAILS.phone,
         missingValue,
         this.tel(BUSINESS_DETAILS.phone),
-      ),
-      this.row(
-        portuguese
-          ? 'Conservatória do Registo Comercial'
-          : 'Commercial registry',
-        BUSINESS_DETAILS.commercialRegistry,
-        missingValue,
-      ),
-      this.row(
-        portuguese ? 'Número de registo' : 'Registration number',
-        BUSINESS_DETAILS.registrationNumber,
-        missingValue,
-      ),
-      this.row(
-        portuguese ? 'Capital social' : 'Share capital',
-        BUSINESS_DETAILS.shareCapital,
-        missingValue,
       ),
     ];
 
@@ -144,7 +137,10 @@ export class LegalPage {
           portuguese
             ? 'Período operacional de conservação'
             : 'Operational retention period',
-          BUSINESS_DETAILS.bookingRetention,
+          getBookingRetentionLabel(
+            this.language.current().locale,
+            BUSINESS_DETAILS.bookingRetention,
+          ),
           missingValue,
         ),
       );
@@ -153,7 +149,7 @@ export class LegalPage {
     if (this.documentKey === 'legalNotice') {
       rows.push(
         this.row(
-          portuguese ? 'Entidade RAL, se aplicável' : 'ADR body, if applicable',
+          portuguese ? 'Entidade RAL' : 'ADR body',
           BUSINESS_DETAILS.adrEntityName,
           missingValue,
           BUSINESS_DETAILS.adrEntityUrl || undefined,

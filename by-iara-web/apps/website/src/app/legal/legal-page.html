@@ -10,7 +10,7 @@
       </p>
     </header>
 
-    @if (hasMissingDetails) {
+    @if (hasMissingDetails()) {
     <aside class="legal-incomplete" aria-labelledby="legal-incomplete-title">
       <h2 id="legal-incomplete-title">{{ content().incompleteTitle }}</h2>
       <p>{{ content().incompleteText }}</p>
