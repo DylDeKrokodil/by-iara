@@ -43,6 +43,7 @@ services:
     environment:
       PORT: 4000
       NG_ALLOWED_HOSTS: ${DOMAIN},www.${DOMAIN}
+      NG_TRUST_PROXY_HEADERS: x-forwarded-for,x-forwarded-host,x-forwarded-proto
       API_PROXY_TARGET: http://api:8080
       PUBLIC_SITE_URL: https://${DOMAIN}
       NODE_OPTIONS: --max-old-space-size=512
