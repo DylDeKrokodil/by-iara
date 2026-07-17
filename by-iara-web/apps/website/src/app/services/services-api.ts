@@ -21,6 +21,15 @@ export interface ServiceTranslation {
   slug: string;
   name: string;
   description: string | null;
+  treatmentDescription: string | null;
+  suitableFor: string | null;
+  sessionDescription: string | null;
+  faqs: ServiceFaq[];
+}
+
+export interface ServiceFaq {
+  question: string;
+  answer: string;
 }
 
 export interface Service {
@@ -45,8 +54,13 @@ export function localizedService(
 ): ServiceTranslation {
   return (
     service.translations?.[locale] ?? {
+      slug: service.slug,
       name: service.name,
       description: service.description,
+      treatmentDescription: null,
+      suitableFor: null,
+      sessionDescription: null,
+      faqs: [],
     }
   );
 }

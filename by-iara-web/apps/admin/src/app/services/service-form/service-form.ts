@@ -9,7 +9,13 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ServicesApi } from '../services-api';
-import { Service, ServiceInput, ServiceLocale } from '../service.models';
+import {
+  Service,
+  ServiceFaq,
+  ServiceInput,
+  ServiceLocale,
+  ServiceTranslation,
+} from '../service.models';
 import {
   Alert,
   Button,
@@ -22,6 +28,7 @@ import {
 } from '@by-iara/shared-ui';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
+type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -30,8 +37,18 @@ const languageTabs: ReadonlyArray<TabOption> = [
   { label: 'English (en-US)', value: 'enUS' },
 ];
 
+const contentTabs: ReadonlyArray<TabOption> = [
+  { label: 'Basics', value: 'basics' },
+  { label: 'Page content', value: 'pageContent' },
+  { label: 'FAQs', value: 'faqs' },
+];
+
 function isTranslationFormKey(value: string): value is TranslationFormKey {
   return value === 'ptPT' || value === 'enUS';
+}
+
+function isContentFormTab(value: string): value is ContentFormTab {
+  return value === 'basics' || value === 'pageContent' || value === 'faqs';
 }
 
 @Component({
@@ -58,7 +75,9 @@ export class ServiceForm implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly activeLanguageTab = signal<TranslationFormKey>('ptPT');
+  protected readonly activeContentTab = signal<ContentFormTab>('basics');
   protected readonly languageTabs = languageTabs;
+  protected readonly contentTabs = contentTabs;
   protected serviceId: string | null = null;
 
   protected readonly form = this.fb.nonNullable.group({
@@ -96,16 +115,24 @@ export class ServiceForm implements OnInit {
               slug: ptTranslation.slug,
               name: ptTranslation.name,
               description: ptTranslation.description ?? '',
+              treatmentDescription: ptTranslation.treatmentDescription ?? '',
+              suitableFor: ptTranslation.suitableFor ?? '',
+              sessionDescription: ptTranslation.sessionDescription ?? '',
             },
             enUS: {
               slug: enTranslation.slug,
               name: enTranslation.name,
               description: enTranslation.description ?? '',
+              treatmentDescription: enTranslation.treatmentDescription ?? '',
+              suitableFor: enTranslation.suitableFor ?? '',
+              sessionDescription: enTranslation.sessionDescription ?? '',
             },
           },
           active: service.active,
           featured: service.featured,
         });
+        this.setFaqs('ptPT', ptTranslation.faqs);
+        this.setFaqs('enUS', enTranslation.faqs);
         this.variants.clear();
         service.variants.forEach((variant) =>
           this.variants.push(
@@ -134,6 +161,18 @@ export class ServiceForm implements OnInit {
     }
   }
 
+  protected faqsFor(key: TranslationFormKey): FormArray {
+    return this.form.get(['translations', key, 'faqs']) as FormArray;
+  }
+
+  protected addFaq(key: TranslationFormKey): void {
+    this.faqsFor(key).push(this.faqGroup());
+  }
+
+  protected removeFaq(key: TranslationFormKey, index: number): void {
+    this.faqsFor(key).removeAt(index);
+  }
+
   protected submit(): void {
     if (this.submitting()) {
       return;
@@ -153,6 +192,15 @@ export class ServiceForm implements OnInit {
         slug: raw.translations.ptPT['slug'].trim() || undefined,
         name: raw.translations.ptPT['name'],
         description: raw.translations.ptPT['description'] || null,
+        treatmentDescription:
+          raw.translations.ptPT['treatmentDescription'] || null,
+        suitableFor: raw.translations.ptPT['suitableFor'] || null,
+        sessionDescription:
+          raw.translations.ptPT['sessionDescription'] || null,
+        faqs: raw.translations.ptPT['faqs'].map((faq: ServiceFaq) => ({
+          question: faq['question'],
+          answer: faq['answer'],
+        })),
       },
     };
     if (raw.translations.enUS['name'].trim()) {
@@ -160,6 +208,15 @@ export class ServiceForm implements OnInit {
         slug: raw.translations.enUS['slug'].trim() || undefined,
         name: raw.translations.enUS['name'],
         description: raw.translations.enUS['description'] || null,
+        treatmentDescription:
+          raw.translations.enUS['treatmentDescription'] || null,
+        suitableFor: raw.translations.enUS['suitableFor'] || null,
+        sessionDescription:
+          raw.translations.enUS['sessionDescription'] || null,
+        faqs: raw.translations.enUS['faqs'].map((faq: ServiceFaq) => ({
+          question: faq['question'],
+          answer: faq['answer'],
+        })),
       };
     }
     const input: ServiceInput = {
@@ -223,22 +280,35 @@ export class ServiceForm implements OnInit {
     this.activeLanguageTab.set(value);
   }
 
+  protected setActiveContentTab(value: string): void {
+    if (isContentFormTab(value)) {
+      this.activeContentTab.set(value);
+    }
+  }
+
   private activateFirstInvalidLanguageTab(): void {
     if (this.form.get(['translations', 'ptPT'])?.invalid) {
       this.activeLanguageTab.set('ptPT');
+      this.activateInvalidContentTab('ptPT');
       return;
     }
 
     if (this.form.get(['translations', 'enUS'])?.invalid) {
       this.activeLanguageTab.set('enUS');
+      this.activateInvalidContentTab('enUS');
     }
+  }
+
+  private activateInvalidContentTab(key: TranslationFormKey): void {
+    const faqs = this.form.get(['translations', key, 'faqs']);
+    this.activeContentTab.set(faqs?.invalid ? 'faqs' : 'basics');
   }
 
   private translationFor(
     service: Service,
     locale: ServiceLocale,
     fallbackToBase: boolean,
-  ): { slug: string; name: string; description: string | null } {
+  ): ServiceTranslation {
     return (
       service.translations?.[locale] ??
       (fallbackToBase
@@ -246,14 +316,26 @@ export class ServiceForm implements OnInit {
             slug: service.slug,
             name: service.name,
             description: service.description,
+            treatmentDescription: null,
+            suitableFor: null,
+            sessionDescription: null,
+            faqs: [],
           }
-        : { slug: '', name: '', description: null })
+        : {
+            slug: '',
+            name: '',
+            description: null,
+            treatmentDescription: null,
+            suitableFor: null,
+            sessionDescription: null,
+            faqs: [],
+          })
     );
   }
 
   private translationGroup(
     required: boolean,
-    value?: { slug: string; name: string; description: string | null },
+    value?: ServiceTranslation,
   ): FormGroup {
     return this.fb.nonNullable.group({
       slug: [
@@ -262,7 +344,24 @@ export class ServiceForm implements OnInit {
       ],
       name: [value?.name ?? '', required ? Validators.required : []],
       description: [value?.description ?? ''],
+      treatmentDescription: [value?.treatmentDescription ?? ''],
+      suitableFor: [value?.suitableFor ?? ''],
+      sessionDescription: [value?.sessionDescription ?? ''],
+      faqs: this.fb.array((value?.faqs ?? []).map((faq) => this.faqGroup(faq))),
     });
+  }
+
+  private faqGroup(value?: ServiceFaq): FormGroup {
+    return this.fb.nonNullable.group({
+      question: [value?.question ?? '', Validators.required],
+      answer: [value?.answer ?? '', Validators.required],
+    });
+  }
+
+  private setFaqs(key: TranslationFormKey, faqs: ServiceFaq[]): void {
+    const controls = this.faqsFor(key);
+    controls.clear();
+    faqs.forEach((faq) => controls.push(this.faqGroup(faq)));
   }
 
   private variantGroup(value?: {

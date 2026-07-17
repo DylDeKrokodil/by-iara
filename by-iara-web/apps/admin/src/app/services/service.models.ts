@@ -13,15 +13,29 @@ export interface ServiceVariant {
 
 export type ServiceLocale = 'pt-PT' | 'en-US';
 
+export interface ServiceFaq {
+  question: string;
+  answer: string;
+}
+
 export interface ServiceTranslation {
   slug: string;
   name: string;
   description: string | null;
+  treatmentDescription: string | null;
+  suitableFor: string | null;
+  sessionDescription: string | null;
+  faqs: ServiceFaq[];
 }
 
 export type ServiceTranslationInput = Pick<
   ServiceTranslation,
-  'name' | 'description'
+  | 'name'
+  | 'description'
+  | 'treatmentDescription'
+  | 'suitableFor'
+  | 'sessionDescription'
+  | 'faqs'
 > & {
   slug?: string;
 };

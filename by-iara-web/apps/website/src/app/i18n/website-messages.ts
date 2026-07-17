@@ -79,7 +79,13 @@ export interface WebsiteMessages {
   readonly serviceDetail: {
     readonly back: string;
     readonly eyebrow: string;
+    readonly treatmentTitle: string;
+    readonly suitableForTitle: string;
+    readonly sessionTitle: string;
     readonly optionsTitle: string;
+    readonly locationTitle: string;
+    readonly locationText: string;
+    readonly faqTitle: string;
     readonly book: string;
     readonly notFoundTitle: string;
     readonly notFoundText: string;
@@ -243,7 +249,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     serviceDetail: {
       back: 'Voltar aos serviços',
       eyebrow: 'Tratamento',
+      treatmentTitle: 'Sobre este tratamento',
+      suitableForTitle: 'Para quem é indicado?',
+      sessionTitle: 'O que acontece durante a sessão?',
       optionsTitle: 'Duração e preço',
+      locationTitle: 'Onde decorre',
+      locationText:
+        'A sessão decorre num estúdio privado em Almada. A morada exata é partilhada na confirmação da marcação.',
+      faqTitle: 'Perguntas frequentes',
       book: 'Marcar',
       notFoundTitle: 'Serviço não encontrado',
       notFoundText:
@@ -409,7 +422,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     serviceDetail: {
       back: 'Back to services',
       eyebrow: 'Treatment',
+      treatmentTitle: 'About this treatment',
+      suitableForTitle: 'Who is it suitable for?',
+      sessionTitle: 'What happens during the session?',
       optionsTitle: 'Duration and price',
+      locationTitle: 'Where it takes place',
+      locationText:
+        'Your session takes place in a private studio in Almada. The exact address is shared with your booking confirmation.',
+      faqTitle: 'Frequently asked questions',
       book: 'Book',
       notFoundTitle: 'Service not found',
       notFoundText:

@@ -82,9 +82,9 @@ export class SeoService {
       indexable: true,
       type: 'product',
     });
-    this.setStructuredData({
-      '@context': 'https://schema.org',
+    const serviceSchema = {
       '@type': 'Service',
+      '@id': `${this.absolute(canonicalPath)}#service`,
       name: translation.name,
       description,
       url: this.absolute(canonicalPath),
@@ -104,6 +104,25 @@ export class SeoService {
           priceCurrency: variant.price.currency,
           url: `${this.absolute(this.staticPath(locale.path, 'book'))}?service=${encodeURIComponent(service.slug)}&variant=${encodeURIComponent(variant.id)}`,
         })),
+    };
+    const graph: unknown[] = [serviceSchema];
+    if (translation.faqs.length) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${this.absolute(canonicalPath)}#faq`,
+        mainEntity: translation.faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      });
+    }
+    this.setStructuredData({
+      '@context': 'https://schema.org',
+      '@graph': graph,
     });
   }
 

@@ -63,6 +63,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")
         dsl.execute("drop table if exists availability_rules")
+        dsl.execute("drop table if exists service_faqs")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
@@ -106,9 +107,27 @@ class ReservationApiTests {
                 slug varchar(140),
                 name varchar(160) not null,
                 description text,
+                treatment_description text,
+                suitable_for text,
+                session_description text,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now(),
                 primary key (service_id, locale)
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_faqs (
+                id uuid default random_uuid() primary key,
+                service_id uuid not null,
+                locale varchar(10) not null,
+                question text not null,
+                answer text not null,
+                sort_order integer not null default 0,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now(),
+                foreign key (service_id, locale) references service_translations(service_id, locale) on delete cascade
             )
             """.trimIndent(),
         )

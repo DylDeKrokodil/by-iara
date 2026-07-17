@@ -44,6 +44,38 @@
   text-wrap: pretty;
 }
 
+.service-editorial {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.service-editorial section,
+.service-location {
+  display: grid;
+  align-content: start;
+  gap: var(--byiara-space-sm);
+}
+
+.service-editorial h2,
+.service-location h2,
+.service-faq h2 {
+  margin: 0;
+  font-family: var(--byiara-font-family-display);
+  font-size: var(--byiara-font-size-xl);
+  line-height: var(--byiara-line-height-tight);
+  text-wrap: balance;
+}
+
+.service-editorial p,
+.service-location > p:last-child,
+.service-faq details p {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  line-height: var(--byiara-line-height-loose);
+  text-wrap: pretty;
+}
+
 .service-options h2 {
   margin: 0 0 var(--byiara-space-lg);
   font-family: var(--byiara-font-family-display);
@@ -73,6 +105,41 @@
 
 .service-options li span {
   color: var(--byiara-color-text-muted);
+}
+
+.service-location {
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface-muted);
+}
+
+.service-location .eyebrow {
+  margin: 0;
+}
+
+.service-faq {
+  display: grid;
+  gap: var(--byiara-space-lg);
+}
+
+.service-faq-list {
+  border-bottom: 1px solid var(--byiara-color-border-subtle);
+}
+
+.service-faq details {
+  border-top: 1px solid var(--byiara-color-border-subtle);
+}
+
+.service-faq summary {
+  cursor: pointer;
+  padding-block: var(--byiara-space-md);
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.service-faq details p {
+  max-width: 65ch;
+  padding: 0 2rem var(--byiara-space-md) 0;
 }
 
 .service-not-found {

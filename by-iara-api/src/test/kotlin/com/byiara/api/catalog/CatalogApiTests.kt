@@ -34,6 +34,7 @@ class CatalogApiTests {
         // them first (children before parents) or the drops below fail depending on run order.
         dsl.execute("drop table if exists email_logs")
         dsl.execute("drop table if exists reservations")
+        dsl.execute("drop table if exists service_faqs")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
@@ -76,9 +77,27 @@ class CatalogApiTests {
                 slug varchar(140),
                 name varchar(160) not null,
                 description text,
+                treatment_description text,
+                suitable_for text,
+                session_description text,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now(),
                 primary key (service_id, locale)
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_faqs (
+                id uuid default random_uuid() primary key,
+                service_id uuid not null,
+                locale varchar(10) not null,
+                question text not null,
+                answer text not null,
+                sort_order integer not null default 0,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now(),
+                foreign key (service_id, locale) references service_translations(service_id, locale) on delete cascade
             )
             """.trimIndent(),
         )
@@ -133,11 +152,29 @@ class CatalogApiTests {
                       "translations": {
                         "pt-PT": {
                           "name": "Massagem relaxante",
-                          "description": "Pressao suave para relaxamento"
+                          "description": "Pressao suave para relaxamento",
+                          "treatmentDescription": "Movimentos lentos e continuos.",
+                          "suitableFor": "Pessoas com stress e cansaco.",
+                          "sessionDescription": "A sessao comeca com uma conversa.",
+                          "faqs": [
+                            {
+                              "question": "Preciso de levar alguma coisa?",
+                              "answer": "Nao, o material e fornecido."
+                            }
+                          ]
                         },
                         "en-US": {
                           "name": "Relaxing massage",
-                          "description": "Gentle pressure for relaxation"
+                          "description": "Gentle pressure for relaxation",
+                          "treatmentDescription": "Slow and flowing movements.",
+                          "suitableFor": "People experiencing stress or tiredness.",
+                          "sessionDescription": "The session starts with a conversation.",
+                          "faqs": [
+                            {
+                              "question": "Do I need to bring anything?",
+                              "answer": "No, everything is provided."
+                            }
+                          ]
                         }
                       },
                       "variants": [
@@ -157,7 +194,11 @@ class CatalogApiTests {
         mockMvc.perform(get("/api/admin/services").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$[0].translations['pt-PT'].description").value("Pressao suave para relaxamento"))
+            .andExpect(jsonPath("$[0].translations['pt-PT'].treatmentDescription").value("Movimentos lentos e continuos."))
+            .andExpect(jsonPath("$[0].translations['pt-PT'].faqs[0].question").value("Preciso de levar alguma coisa?"))
             .andExpect(jsonPath("$[0].translations['en-US'].description").value("Gentle pressure for relaxation"))
+            .andExpect(jsonPath("$[0].translations['en-US'].sessionDescription").value("The session starts with a conversation."))
+            .andExpect(jsonPath("$[0].translations['en-US'].faqs[0].answer").value("No, everything is provided."))
 
         mockMvc.perform(get("/api/services/pt-PT/massagem-relaxante"))
             .andExpect(status().isOk)
