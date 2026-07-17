@@ -9,7 +9,7 @@
         <line x1="4" x2="20" y1="18" y2="18"></line>
       </svg>
     </button>
-    <img class="mobile-brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
+    <img class="mobile-brand-logo" src="brand/iara-gouveia-lockup-v3.svg" alt="Iara Gouveia" />
   </header>
 
   <!-- Backdrop overlay for mobile menu -->
@@ -22,9 +22,9 @@
     <div class="brand-container">
       <p class="brand" routerLink="/dashboard">
         @if (isCollapsed()) {
-          <img class="brand-logo-mark" src="brand/by-iara-monogram.svg" alt="By Iara" />
+          <img class="brand-logo-mark" src="brand/iara-gouveia-mark.svg" alt="Iara Gouveia" />
         } @else {
-          <img class="brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
+          <img class="brand-logo" src="brand/iara-gouveia-lockup-v3.svg" alt="Iara Gouveia" />
         }
       </p>
       
@@ -83,6 +83,15 @@
           <line x1="3" x2="21" y1="10" y2="10"/>
         </svg>
         <span class="nav-label">Availability</span>
+      </a>
+
+      <!-- Reports -->
+      <a routerLink="/reports" routerLinkActive="active" [title]="isCollapsed() ? 'Reports' : ''" (click)="closeMobileMenu()">
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"/>
+          <path d="m7 16 4-5 4 3 5-7"/>
+        </svg>
+        <span class="nav-label">Reports</span>
       </a>
     </nav>
 

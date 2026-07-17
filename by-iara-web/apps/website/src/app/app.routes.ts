@@ -33,6 +33,24 @@ function localizedRoutes(locale: LocalePath): Route[] {
       loadComponent: () => import('./booking/booking').then((m) => m.Booking),
     },
     {
+      path: getLocalizedPagePath(locale, 'privacy'),
+      data: { legalDocument: 'privacy' },
+      loadComponent: () =>
+        import('./legal/legal-page').then((m) => m.LegalPage),
+    },
+    {
+      path: getLocalizedPagePath(locale, 'bookingTerms'),
+      data: { legalDocument: 'bookingTerms' },
+      loadComponent: () =>
+        import('./legal/legal-page').then((m) => m.LegalPage),
+    },
+    {
+      path: getLocalizedPagePath(locale, 'legalNotice'),
+      data: { legalDocument: 'legalNotice' },
+      loadComponent: () =>
+        import('./legal/legal-page').then((m) => m.LegalPage),
+    },
+    {
       path: 'design-system',
       loadComponent: () =>
         import('./design-system/design-system').then((m) => m.DesignSystem),
@@ -43,6 +61,17 @@ function localizedRoutes(locale: LocalePath): Route[] {
     routes.push(
       { path: 'services', pathMatch: 'full', redirectTo: 'servicos' },
       { path: 'book', pathMatch: 'full', redirectTo: 'marcar' },
+      { path: 'privacy', pathMatch: 'full', redirectTo: 'privacidade' },
+      {
+        path: 'booking-terms',
+        pathMatch: 'full',
+        redirectTo: 'termos-de-marcacao',
+      },
+      {
+        path: 'legal-information',
+        pathMatch: 'full',
+        redirectTo: 'informacao-legal',
+      },
     );
   }
 

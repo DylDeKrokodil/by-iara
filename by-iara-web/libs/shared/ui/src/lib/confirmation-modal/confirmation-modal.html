@@ -2,17 +2,14 @@
   <div class="dialog-content">
     <h3 class="dialog-title">{{ title() }}</h3>
     <p class="dialog-message">{{ message() }}</p>
-    
+
     <div class="dialog-actions">
-      <button type="button" class="button-secondary" (click)="close()">
+      <byiara-button type="button" variant="secondary" (click)="close()">
         {{ cancelText() }}
-      </button>
-      <button type="button" 
-              [class.button-primary]="variant() === 'primary'" 
-              [class.button-danger]="variant() === 'danger'" 
-              (click)="onConfirm()">
+      </byiara-button>
+      <byiara-button type="button" [variant]="variant()" (click)="onConfirm()">
         {{ confirmText() }}
-      </button>
+      </byiara-button>
     </div>
   </div>
 </dialog>

@@ -48,6 +48,11 @@
   background: var(--byiara-color-surface-muted);
 }
 
+.content-tab-panel {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
 /* The active language tab already labels this panel, so hide the legend
    visually while keeping it as a group label for assistive tech. */
 .locale-panel legend {
@@ -60,6 +65,48 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+.faq-editor {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  padding-top: var(--byiara-space-sm);
+  border-top: 1px solid var(--byiara-color-border);
+}
+
+.faq-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+}
+
+.faq-editor-heading h4,
+.faq-editor-heading p {
+  margin: 0;
+}
+
+.faq-editor-heading h4 {
+  font-size: var(--byiara-font-size-sm);
+}
+
+.faq-editor-heading p {
+  margin-top: var(--byiara-space-3xs);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.faq-editor-item {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface);
+}
+
+.faq-editor-item byiara-button {
+  justify-self: start;
 }
 
 .section-divider {

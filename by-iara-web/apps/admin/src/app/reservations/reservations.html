@@ -19,76 +19,90 @@
 
 <byiara-tabs
   ariaLabel="Reservation views"
-  [tabs]="reservationTabs"
+  [tabs]="reservationTabs()"
   [activeValue]="activeView()"
   (activeValueChange)="setActiveView($event)"
 ></byiara-tabs>
 
-@if (activeView() === 'overview') {
-<div class="overview-layout" role="tabpanel" aria-label="Overview reservations">
-  <section class="overview-section" aria-labelledby="pending-reservations">
-    <div class="section-header">
-      <div>
-        <h2 id="pending-reservations">Needs action</h2>
-        <p>Review new booking requests and notify customers of the decision.</p>
+@if (activeView() === 'attention') {
+<section class="attention-section" role="tabpanel" aria-labelledby="attention-reservations">
+  <div class="section-header">
+    <div>
+      <h2 id="attention-reservations">Needs attention</h2>
+      <p>Reservations remain here until their next operational step is complete.</p>
+    </div>
+  </div>
+
+  @if (!loadingAttention() && attention().length === 0) {
+  <byiara-empty-state title="Nothing needs attention" compact>
+    New requests, overdue outcomes, and outstanding payments will appear here.
+  </byiara-empty-state>
+  } @else {
+  <byiara-data-table
+    ariaLabel="Reservations needing attention"
+    [columns]="attentionColumns"
+    [rows]="attention()"
+    [loading]="loadingAttention()"
+    [skeletonRows]="5"
+    [responsiveStack]="true"
+  >
+    <ng-template #rowTemplate let-item>
+      <tr
+        [id]="'reservation-' + item.reservation.id"
+        [class.is-highlighted]="item.reservation.id === highlightId()"
+      >
+        <td data-label="Customer">
+          <div class="primary-cell">
+            <span class="strong">{{ item.reservation.customer.name }}</span>
+            <span class="muted">{{ item.reservation.customer.email }}</span>
+          </div>
+        </td>
+        <td data-label="Appointment">
+          <div class="primary-cell">
+            <span>{{ formatDateTime(item.reservation.startsAt) }}</span>
+            <span class="muted">{{ serviceLabel(item.reservation) }}</span>
+          </div>
+        </td>
+        <td data-label="Needs attention">
+          <byiara-status-chip
+            [label]="attentionLabel(item.reason)"
+            [tone]="attentionTone(item.reason)"
+          ></byiara-status-chip>
+        </td>
+        <td data-label="Balance" [class.balance-empty]="item.reason !== 'PAYMENT_DUE'">
+          @if (item.reason === 'PAYMENT_DUE') {
+          <span class="balance-due">{{ formatBalance(item) }}</span>
+          } @else {
+          <span class="muted">—</span>
+          }
+        </td>
+        <td data-label="Action">
+          <byiara-button
+            variant="primary"
+            size="sm"
+            [routerLink]="['/reservations', item.reservation.id]"
+          >
+            Open
+          </byiara-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    @if (attentionTotal() > 0) {
+    <div data-table-footer class="pagination" aria-label="Attention queue pagination">
+      <span>{{ attentionTotal() }} reservation{{ attentionTotal() === 1 ? '' : 's' }} need attention</span>
+      <span class="pagination-page">Page {{ attentionPage() + 1 }} of {{ totalAttentionPages() }}</span>
+      <div class="pagination-actions">
+        <byiara-button variant="secondary" size="sm" [disabled]="!canGoToPreviousAttentionPage()" (click)="previousAttentionPage()">Previous</byiara-button>
+        <byiara-button variant="secondary" size="sm" [disabled]="!canGoToNextAttentionPage()" (click)="nextAttentionPage()">Next</byiara-button>
       </div>
     </div>
-
-    @if (loadingPending()) {
-    <byiara-empty-state title="Loading pending requests..." [dashed]="false" compact></byiara-empty-state>
-    } @else if (pending().length === 0) {
-    <byiara-empty-state title="No pending requests" compact></byiara-empty-state>
-    } @else {
-    <div class="request-list">
-      @for (reservation of pending(); track reservation.id) {
-      <byiara-card padding="md">
-        <div
-          class="request-card"
-          [id]="'reservation-' + reservation.id"
-          [class.is-highlighted]="reservation.id === highlightId()"
-        >
-          <div class="request-main">
-            <div>
-              <h3>{{ reservation.customer.name }}</h3>
-              <p>
-                {{ serviceLabel(reservation) }} · {{
-                formatMoney(reservation.price) }}
-              </p>
-            </div>
-            <byiara-status-chip
-              [label]="statusLabel(reservation.status)"
-              [tone]="statusTone(reservation.status)"
-            ></byiara-status-chip>
-          </div>
-
-          <div class="reservation-meta">
-            <span>{{ formatDateTime(reservation.startsAt) }}</span>
-            <span>{{ reservation.customer.email }}</span>
-            @if (reservation.customer.phone) {
-            <span>{{ reservation.customer.phone }}</span>
-            }
-          </div>
-
-          @if (reservation.notes) {
-          <p class="notes">{{ reservation.notes }}</p>
-          }
-
-          <div class="actions-wrapper">
-            <byiara-button
-              variant="primary"
-              [routerLink]="['/reservations', reservation.id]"
-            >
-              Review request
-            </byiara-button>
-          </div>
-        </div>
-      </byiara-card>
-      }
-    </div>
     }
-  </section>
-
-  <section class="overview-section" aria-labelledby="upcoming-reservations">
+  </byiara-data-table>
+  }
+</section>
+} @else if (activeView() === 'calendar') {
+  <section class="overview-section" role="tabpanel" aria-labelledby="upcoming-reservations">
     <div class="section-header agenda-header">
       <div>
         <h2 id="upcoming-reservations">Calendar agenda</h2>
@@ -369,7 +383,6 @@
       </div>
     </div>
   </section>
-</div>
 } @else {
 <section
   class="history-section"
@@ -398,29 +411,30 @@
     [rows]="history()"
     [loading]="loadingHistory()"
     [skeletonRows]="4"
+    [responsiveStack]="true"
   >
     <ng-template #rowTemplate let-reservation>
       <tr>
-        <td>
+        <td data-label="Customer">
           <div class="primary-cell">
             <span class="strong">{{ reservation.customer.name }}</span>
             <span class="muted">{{ reservation.customer.email }}</span>
           </div>
         </td>
-        <td>
+        <td data-label="Service">
           <div class="primary-cell">
             <span>{{ serviceLabel(reservation) }}</span>
             <span class="muted">{{ formatMoney(reservation.price) }}</span>
           </div>
         </td>
-        <td>{{ formatDateTime(reservation.startsAt) }}</td>
-        <td>
+        <td data-label="Date & time">{{ formatDateTime(reservation.startsAt) }}</td>
+        <td data-label="Status">
           <byiara-status-chip
             [label]="statusLabel(reservation.status)"
             [tone]="statusTone(reservation.status)"
           ></byiara-status-chip>
         </td>
-        <td>
+        <td data-label="Notes">
           @if (reservation.notes) {
           <span class="notes">{{ reservation.notes }}</span>
           } @else {

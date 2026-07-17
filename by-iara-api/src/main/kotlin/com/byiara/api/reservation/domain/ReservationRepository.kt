@@ -6,6 +6,9 @@ import java.util.UUID
 interface ReservationRepository {
     fun findById(id: UUID): Reservation?
 
+    /** Locks the reservation row for the current transaction before returning it. */
+    fun findByIdForUpdate(id: UUID): Reservation?
+
     fun findAll(query: ReservationListQuery, limit: Int, offset: Int): List<Reservation>
 
     fun countAll(query: ReservationListQuery): Int
@@ -30,6 +33,12 @@ interface ReservationRepository {
         cancellationReasonCode: CancellationReasonCode,
         cancellationMessage: String,
     ): Boolean
+
+    fun transitionStatus(id: UUID, from: ReservationStatus, to: ReservationStatus): Boolean
+
+    fun findAttention(now: OffsetDateTime, limit: Int, offset: Int): List<ReservationAttention>
+
+    fun countAttention(now: OffsetDateTime): Int
 
     fun findOrCreateCustomer(details: CustomerDetails): Customer
 }

@@ -14,6 +14,16 @@ data class ServiceTranslationCommand(
     val name: String,
     val description: String?,
     val slug: String? = null,
+    val treatmentDescription: String? = null,
+    val suitableFor: String? = null,
+    val sessionDescription: String? = null,
+    val faqs: List<ServiceFaqCommand> = emptyList(),
+)
+
+data class ServiceFaqCommand(
+    val question: String,
+    val answer: String,
+    val sortOrder: Int,
 )
 
 data class VariantCommand(

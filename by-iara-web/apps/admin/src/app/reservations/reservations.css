@@ -36,6 +36,7 @@
 }
 
 .overview-layout,
+.attention-section,
 .history-section,
 .overview-section,
 .request-list,
@@ -51,8 +52,20 @@
 }
 
 .overview-layout,
+.attention-section,
 .history-section {
   gap: var(--byiara-space-xl);
+}
+
+.balance-due {
+  color: var(--byiara-color-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--byiara-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.attention-section tr.is-highlighted td {
+  background: var(--byiara-color-primary-tint);
 }
 
 .calendar-panel {
@@ -275,6 +288,10 @@
 }
 
 @media (max-width: 48rem) {
+  .attention-section td.balance-empty {
+    display: none;
+  }
+
   .section-header,
   .history-header,
   .pagination {

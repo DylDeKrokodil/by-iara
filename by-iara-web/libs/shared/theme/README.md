@@ -1,6 +1,6 @@
 # @by-iara/theme
 
-Shared design tokens for By Iara frontend applications.
+Shared design tokens for Iara Gouveia frontend applications.
 
 ## Usage
 

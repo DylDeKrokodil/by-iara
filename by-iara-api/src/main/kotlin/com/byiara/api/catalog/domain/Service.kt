@@ -18,6 +18,16 @@ data class ServiceTranslation(
     val slug: String,
     val name: String,
     val description: String?,
+    val treatmentDescription: String?,
+    val suitableFor: String?,
+    val sessionDescription: String?,
+    val faqs: List<ServiceFaq> = emptyList(),
+)
+
+data class ServiceFaq(
+    val question: String,
+    val answer: String,
+    val sortOrder: Int,
 )
 
 data class ServiceVariant(

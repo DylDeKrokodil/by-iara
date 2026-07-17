@@ -1,6 +1,13 @@
 import type { LocaleCode } from '../i18n/supported-locales';
+import { BRAND } from '../brand/brand';
 
-export type StaticSeoPage = 'home' | 'services' | 'book';
+export type StaticSeoPage =
+  | 'home'
+  | 'services'
+  | 'book'
+  | 'privacy'
+  | 'bookingTerms'
+  | 'legalNotice';
 
 interface SeoCopy {
   readonly title: string;
@@ -13,43 +20,73 @@ export const SEO_MESSAGES: Record<
 > = {
   'pt-PT': {
     home: {
-      title: 'Massagem terapêutica em Almada | By Iara',
+      title: `Massagem terapêutica em Almada | ${BRAND.name}`,
       description:
         'Massagens terapêuticas e relaxantes em Almada, num estúdio tranquilo com atendimento individual e marcação online.',
     },
     services: {
-      title: 'Massagens e tratamentos em Almada | By Iara',
+      title: `Massagens e tratamentos em Almada | ${BRAND.name}`,
       description:
-        'Conheça os tratamentos, durações e preços disponíveis no estúdio By Iara em Almada.',
+        `Conheça os tratamentos, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
     },
     book: {
-      title: 'Marcar uma sessão | By Iara',
+      title: `Marcar uma sessão | ${BRAND.name}`,
       description:
-        'Escolha o tratamento e marque a sua sessão de massagem no estúdio By Iara em Almada.',
+        `Escolha o tratamento e marque a sua sessão de massagem no estúdio ${BRAND.name} em Almada.`,
+    },
+    privacy: {
+      title: `Política de privacidade | ${BRAND.name}`,
+      description:
+        'Informação sobre o tratamento de dados pessoais em pedidos de marcação e na utilização do website.',
+    },
+    bookingTerms: {
+      title: `Termos de marcação | ${BRAND.name}`,
+      description:
+        'Condições dos pedidos, confirmações, pagamentos presenciais, cancelamentos e reagendamentos.',
+    },
+    legalNotice: {
+      title: `Informação legal | ${BRAND.name}`,
+      description:
+        'Identificação legal, contactos e informação ao consumidor do prestador do serviço.',
     },
     notFound: {
-      title: 'Página não encontrada | By Iara',
+      title: `Página não encontrada | ${BRAND.name}`,
       description: 'A página ou o serviço que procura não está disponível.',
     },
   },
   'en-US': {
     home: {
-      title: 'Therapeutic massage in Almada | By Iara',
+      title: `Therapeutic massage in Almada | ${BRAND.name}`,
       description:
         'Therapeutic and relaxing massage in Almada, in a calm private studio with individual care and online booking.',
     },
     services: {
-      title: 'Massage treatments in Almada | By Iara',
+      title: `Massage treatments in Almada | ${BRAND.name}`,
       description:
-        'Explore the treatments, durations, and prices available at the By Iara studio in Almada.',
+        `Explore the treatments, durations, and prices available at the ${BRAND.name} studio in Almada.`,
     },
     book: {
-      title: 'Book a massage session | By Iara',
+      title: `Book a massage session | ${BRAND.name}`,
       description:
-        'Choose a treatment and book your massage session at the By Iara studio in Almada.',
+        `Choose a treatment and book your massage session at the ${BRAND.name} studio in Almada.`,
+    },
+    privacy: {
+      title: `Privacy policy | ${BRAND.name}`,
+      description:
+        'How personal data is handled when booking an appointment or using this website.',
+    },
+    bookingTerms: {
+      title: `Booking terms | ${BRAND.name}`,
+      description:
+        'Terms for booking requests, confirmations, in-person payments, cancellations, and rescheduling.',
+    },
+    legalNotice: {
+      title: `Legal information | ${BRAND.name}`,
+      description:
+        'Legal identity, contact, and consumer information for the service provider.',
     },
     notFound: {
-      title: 'Page not found | By Iara',
+      title: `Page not found | ${BRAND.name}`,
       description: 'The page or service you requested is unavailable.',
     },
   },

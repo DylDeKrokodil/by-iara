@@ -1,4 +1,5 @@
 import type { LocaleCode } from './supported-locales';
+import { BRAND } from '../brand/brand';
 
 export interface WebsiteMessages {
   readonly app: {
@@ -9,7 +10,26 @@ export interface WebsiteMessages {
       readonly openMenu: string;
       readonly closeMenu: string;
     };
-    readonly footer: string;
+    readonly footer: {
+      readonly tagline: string;
+      readonly navigationLabel: string;
+      readonly explore: string;
+      readonly home: string;
+      readonly services: string;
+      readonly book: string;
+      readonly legal: string;
+      readonly privacy: string;
+      readonly bookingTerms: string;
+      readonly legalNotice: string;
+      readonly complaintsBook: string;
+      readonly opensNewWindow: string;
+      readonly visit: string;
+      readonly location: string;
+      readonly availability: string;
+      readonly bookingPrompt: string;
+      readonly bookingAction: string;
+      readonly copyright: (year: number) => string;
+    };
   };
   readonly languageSwitcher: {
     readonly ariaLabel: string;
@@ -57,9 +77,18 @@ export interface WebsiteMessages {
     readonly bookAction: string;
   };
   readonly serviceDetail: {
+    readonly breadcrumbsLabel: string;
+    readonly homeBreadcrumb: string;
+    readonly servicesBreadcrumb: string;
     readonly back: string;
     readonly eyebrow: string;
+    readonly treatmentTitle: string;
+    readonly suitableForTitle: string;
+    readonly sessionTitle: string;
     readonly optionsTitle: string;
+    readonly locationTitle: string;
+    readonly locationText: string;
+    readonly faqTitle: string;
     readonly book: string;
     readonly notFoundTitle: string;
     readonly notFoundText: string;
@@ -111,6 +140,11 @@ export interface WebsiteMessages {
     readonly confirmedWhen: string;
     readonly pendingNote: string;
     readonly bookAnother: string;
+    readonly paymentNotice: string;
+    readonly dataUseNotice: string;
+    readonly privacyLink: string;
+    readonly termsNotice: string;
+    readonly termsLink: string;
   };
 }
 
@@ -124,14 +158,35 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
       },
-      footer: '© 2026 By Iara. Todos os direitos reservados.',
+      footer: {
+        tagline:
+          'Massagem terapêutica e relaxante, com tempo, cuidado e atenção inteira.',
+        navigationLabel: 'Navegação do rodapé',
+        explore: 'Explorar',
+        home: 'Início',
+        services: 'Serviços',
+        book: 'Marcar sessão',
+        legal: 'Legal',
+        privacy: 'Privacidade',
+        bookingTerms: 'Termos de marcação',
+        legalNotice: 'Informação legal',
+        complaintsBook: 'Livro de Reclamações',
+        opensNewWindow: 'abre numa nova janela',
+        visit: 'Visitar',
+        location: 'Almada, Portugal',
+        availability: 'Atendimento apenas por marcação',
+        bookingPrompt: 'O seu momento de pausa começa aqui.',
+        bookingAction: 'Ver horários',
+        copyright: (year) =>
+          `© ${year} ${BRAND.name}. Todos os direitos reservados.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Escolher idioma',
     },
     home: {
       location: 'Massagem terapêutica em Almada',
-      title: 'By Iara',
+      title: BRAND.name,
       lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar serviços',
@@ -195,9 +250,19 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       bookAction: 'Reservar',
     },
     serviceDetail: {
+      breadcrumbsLabel: 'Navegação estrutural',
+      homeBreadcrumb: 'Início',
+      servicesBreadcrumb: 'Serviços',
       back: 'Voltar aos serviços',
       eyebrow: 'Tratamento',
+      treatmentTitle: 'Sobre este tratamento',
+      suitableForTitle: 'Para quem é indicado?',
+      sessionTitle: 'O que acontece durante a sessão?',
       optionsTitle: 'Duração e preço',
+      locationTitle: 'Onde decorre',
+      locationText:
+        'A sessão decorre num estúdio privado em Almada. A morada exata é partilhada na confirmação da marcação.',
+      faqTitle: 'Perguntas frequentes',
       book: 'Marcar',
       notFoundTitle: 'Serviço não encontrado',
       notFoundText:
@@ -231,7 +296,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Nome',
       email: 'Email',
       phone: 'Telefone',
-      notes: 'Notas',
+      notes: 'Notas logísticas — não inclua dados de saúde',
       optional: '(opcional)',
       required: 'Obrigatório',
       invalidEmail: 'Introduza um email válido',
@@ -252,6 +317,13 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       confirmedWhen: 'Quando',
       pendingNote: 'O seu pedido está pendente de confirmação.',
       bookAnother: 'Fazer outra reserva',
+      paymentNotice:
+        'Não é feito qualquer pagamento online. O pagamento é presencial por numerário, MB WAY ou transferência bancária.',
+      dataUseNotice:
+        'Utilizamos os seus dados apenas para tratar e comunicar sobre este pedido.',
+      privacyLink: 'Política de privacidade',
+      termsNotice: 'Ao pedir a reserva, confirma que leu os',
+      termsLink: 'Termos de marcação',
     },
   },
   'en-US': {
@@ -263,14 +335,35 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         openMenu: 'Open menu',
         closeMenu: 'Close menu',
       },
-      footer: '© 2026 By Iara. All rights reserved.',
+      footer: {
+        tagline:
+          'Therapeutic and relaxing massage, with time, care, and full attention.',
+        navigationLabel: 'Footer navigation',
+        explore: 'Explore',
+        home: 'Home',
+        services: 'Services',
+        book: 'Book a session',
+        legal: 'Legal',
+        privacy: 'Privacy',
+        bookingTerms: 'Booking terms',
+        legalNotice: 'Legal information',
+        complaintsBook: 'Complaints Book',
+        opensNewWindow: 'opens in a new window',
+        visit: 'Visit',
+        location: 'Almada, Portugal',
+        availability: 'By appointment only',
+        bookingPrompt: 'Your moment of pause starts here.',
+        bookingAction: 'See availability',
+        copyright: (year) =>
+          `© ${year} ${BRAND.name}. All rights reserved.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Choose language',
     },
     home: {
       location: 'Therapeutic massage in Almada',
-      title: 'By Iara',
+      title: BRAND.name,
       lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
       primaryAction: 'Book a session',
       secondaryAction: 'Explore services',
@@ -333,9 +426,19 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       bookAction: 'Book',
     },
     serviceDetail: {
+      breadcrumbsLabel: 'Breadcrumbs',
+      homeBreadcrumb: 'Home',
+      servicesBreadcrumb: 'Services',
       back: 'Back to services',
       eyebrow: 'Treatment',
+      treatmentTitle: 'About this treatment',
+      suitableForTitle: 'Who is it suitable for?',
+      sessionTitle: 'What happens during the session?',
       optionsTitle: 'Duration and price',
+      locationTitle: 'Where it takes place',
+      locationText:
+        'Your session takes place in a private studio in Almada. The exact address is shared with your booking confirmation.',
+      faqTitle: 'Frequently asked questions',
       book: 'Book',
       notFoundTitle: 'Service not found',
       notFoundText:
@@ -368,7 +471,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Name',
       email: 'Email',
       phone: 'Phone',
-      notes: 'Notes',
+      notes: 'Logistical notes — do not include health information',
       optional: '(optional)',
       required: 'Required',
       invalidEmail: 'Enter a valid email',
@@ -390,6 +493,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       confirmedWhen: 'When',
       pendingNote: 'Your request is pending confirmation.',
       bookAnother: 'Book another',
+      paymentNotice:
+        'No payment is taken online. Payment is made in person by cash, MB WAY, or bank transfer.',
+      dataUseNotice:
+        'We use your details only to process and communicate about this request.',
+      privacyLink: 'Privacy policy',
+      termsNotice:
+        'By requesting the booking, you confirm that you have read the',
+      termsLink: 'Booking terms',
     },
   },
 };

@@ -1,8 +1,27 @@
 <main class="public-shell service-detail-shell">
   <div class="service-detail-container">
-    <a class="text-link" [routerLink]="language.localizedLink('services')">
-      {{ copy().back }}
-    </a>
+    <nav
+      class="service-breadcrumbs"
+      [attr.aria-label]="copy().breadcrumbsLabel"
+    >
+      <ol>
+        <li>
+          <a [routerLink]="language.localizedLink('home')">
+            {{ copy().homeBreadcrumb }}
+          </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a [routerLink]="language.localizedLink('services')">
+            {{ copy().servicesBreadcrumb }}
+          </a>
+        </li>
+        @if (translation(); as localized) {
+          <li aria-hidden="true">/</li>
+          <li aria-current="page">{{ localized.name }}</li>
+        }
+      </ol>
+    </nav>
 
     @if (service && translation(); as localized) {
     <article class="service-detail">
@@ -13,6 +32,28 @@
         <p class="service-detail-description">{{ localized.description }}</p>
         }
       </header>
+
+      @if (localized.treatmentDescription || localized.suitableFor ||
+      localized.sessionDescription) {
+      <div class="service-editorial">
+        @if (localized.treatmentDescription) {
+        <section aria-labelledby="treatment-description-title">
+          <h2 id="treatment-description-title">{{ copy().treatmentTitle }}</h2>
+          <p>{{ localized.treatmentDescription }}</p>
+        </section>
+        } @if (localized.suitableFor) {
+        <section aria-labelledby="suitable-for-title">
+          <h2 id="suitable-for-title">{{ copy().suitableForTitle }}</h2>
+          <p>{{ localized.suitableFor }}</p>
+        </section>
+        } @if (localized.sessionDescription) {
+        <section aria-labelledby="session-description-title">
+          <h2 id="session-description-title">{{ copy().sessionTitle }}</h2>
+          <p>{{ localized.sessionDescription }}</p>
+        </section>
+        }
+      </div>
+      }
 
       <section class="service-options" [attr.aria-label]="copy().optionsTitle">
         <h2>{{ copy().optionsTitle }}</h2>
@@ -31,6 +72,26 @@
           } }
         </ul>
       </section>
+
+      <section class="service-location" aria-labelledby="service-location-title">
+        <p class="eyebrow">Almada</p>
+        <h2 id="service-location-title">{{ copy().locationTitle }}</h2>
+        <p>{{ copy().locationText }}</p>
+      </section>
+
+      @if (localized.faqs.length) {
+      <section class="service-faq" aria-labelledby="service-faq-title">
+        <h2 id="service-faq-title">{{ copy().faqTitle }}</h2>
+        <div class="service-faq-list">
+          @for (faq of localized.faqs; track faq.question) {
+          <details>
+            <summary>{{ faq.question }}</summary>
+            <p>{{ faq.answer }}</p>
+          </details>
+          }
+        </div>
+      </section>
+      }
     </article>
     } @else {
     <section class="service-not-found">

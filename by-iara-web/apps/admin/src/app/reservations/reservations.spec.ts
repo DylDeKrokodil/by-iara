@@ -9,6 +9,7 @@ import {
   ReservationListParams,
   ReservationPage,
   ReservationResponse,
+  ReservationAttentionPage,
 } from './reservation.models';
 import { ReservationsApi } from './reservations-api';
 
@@ -18,6 +19,26 @@ const emptyPage: ReservationPage = {
   size: 10,
   total: 0,
 };
+
+const emptyAttentionPage: ReservationAttentionPage = {
+  items: [],
+  page: 0,
+  size: 20,
+  total: 0,
+};
+
+function attentionItem(item: ReservationResponse) {
+  return {
+    reservation: item,
+    reason: 'APPROVAL_REQUIRED' as const,
+    paymentSummary: {
+      totalPaidCents: 0,
+      balanceDueCents: item.price.amountCents,
+      currency: item.price.currency,
+      state: 'UNPAID' as const,
+    },
+  };
+}
 
 function reservation(
   id: string,
@@ -53,6 +74,7 @@ describe('Reservations', () => {
     list: ReturnType<typeof vi.fn>;
     confirm: ReturnType<typeof vi.fn>;
     reject: ReturnType<typeof vi.fn>;
+    attention: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -90,6 +112,10 @@ describe('Reservations', () => {
       }),
       confirm: vi.fn(),
       reject: vi.fn(),
+      attention: vi.fn(() => {
+        const pending = reservation('pending-1', '2026-06-29T09:00:00.000Z', 'PENDING');
+        return of({ ...emptyAttentionPage, items: [attentionItem(pending)], total: 1 });
+      }),
     };
 
     await TestBed.configureTestingModule({
@@ -125,9 +151,10 @@ describe('Reservations', () => {
   });
 
   it('renders calendar counts and empty day states separately from pending requests', () => {
+    (fixture.componentInstance as unknown as { setActiveView(value: string): void }).setActiveView('calendar');
+    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
-    expect(compiled.textContent).toContain('Needs action');
     expect(compiled.textContent).toContain('Calendar agenda');
     expect(compiled.textContent).toContain('Selected date');
     expect(compiled.textContent).toContain('reservation');
@@ -137,6 +164,8 @@ describe('Reservations', () => {
   });
 
   it('reloads the reservation range when moving to the next week', () => {
+    (fixture.componentInstance as unknown as { setActiveView(value: string): void }).setActiveView('calendar');
+    fixture.detectChanges();
     const nextButton = fixture.debugElement.query(
       By.css('button[aria-label="Next week"]'),
     );
@@ -176,6 +205,10 @@ describe('Reservations - arriving via the new-reservation email link', () => {
       ),
       confirm: vi.fn(),
       reject: vi.fn(),
+      attention: vi.fn(() => {
+        const pending = reservation('pending-1', '2026-06-29T09:00:00.000Z', 'PENDING');
+        return of({ ...emptyAttentionPage, items: [attentionItem(pending)], total: 1 });
+      }),
     };
 
     await TestBed.configureTestingModule({
@@ -205,7 +238,12 @@ describe('Reservations - arriving via the new-reservation email link', () => {
 
 describe('Reservations - calendar sync panel', () => {
   it('toggles the calendar sync panel open and closed', async () => {
-    const api = { list: vi.fn(() => of(emptyPage)), confirm: vi.fn(), reject: vi.fn() };
+    const api = {
+      list: vi.fn(() => of(emptyPage)),
+      attention: vi.fn(() => of(emptyAttentionPage)),
+      confirm: vi.fn(),
+      reject: vi.fn(),
+    };
     const calendarFeedApi = {
       status: vi.fn(() => of({ active: false, createdAt: null })),
       regenerate: vi.fn(),

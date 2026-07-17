@@ -2,6 +2,8 @@ package com.byiara.api.catalog.api
 
 import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
+import com.byiara.api.catalog.domain.ServiceFaq
+import com.byiara.api.catalog.domain.ServiceFaqCommand
 import com.byiara.api.catalog.domain.ServiceTranslation
 import com.byiara.api.catalog.domain.ServiceTranslationCommand
 import com.byiara.api.catalog.domain.ServiceVariant
@@ -70,12 +72,40 @@ data class ServiceTranslationRequest(
     val name: String,
 
     val description: String? = null,
+
+    val treatmentDescription: String? = null,
+
+    val suitableFor: String? = null,
+
+    val sessionDescription: String? = null,
+
+    @field:Valid
+    val faqs: List<ServiceFaqRequest> = emptyList(),
 ) {
     fun toCommand(): ServiceTranslationCommand =
         ServiceTranslationCommand(
             slug = slug?.trim()?.ifBlank { null },
             name = name.trim(),
             description = description?.trim()?.ifBlank { null },
+            treatmentDescription = treatmentDescription?.trim()?.ifBlank { null },
+            suitableFor = suitableFor?.trim()?.ifBlank { null },
+            sessionDescription = sessionDescription?.trim()?.ifBlank { null },
+            faqs = faqs.mapIndexed { index, faq -> faq.toCommand(index) },
+        )
+}
+
+data class ServiceFaqRequest(
+    @field:NotBlank
+    val question: String,
+
+    @field:NotBlank
+    val answer: String,
+) {
+    fun toCommand(sortOrder: Int): ServiceFaqCommand =
+        ServiceFaqCommand(
+            question = question.trim(),
+            answer = answer.trim(),
+            sortOrder = sortOrder,
         )
 }
 
@@ -119,6 +149,15 @@ data class ServiceTranslationResponse(
     val slug: String,
     val name: String,
     val description: String?,
+    val treatmentDescription: String?,
+    val suitableFor: String?,
+    val sessionDescription: String?,
+    val faqs: List<ServiceFaqResponse>,
+)
+
+data class ServiceFaqResponse(
+    val question: String,
+    val answer: String,
 )
 
 data class ServiceVariantResponse(
@@ -152,6 +191,16 @@ fun ServiceTranslation.toResponse(): ServiceTranslationResponse =
         slug = slug,
         name = name,
         description = description,
+        treatmentDescription = treatmentDescription,
+        suitableFor = suitableFor,
+        sessionDescription = sessionDescription,
+        faqs = faqs.map { it.toResponse() },
+    )
+
+fun ServiceFaq.toResponse(): ServiceFaqResponse =
+    ServiceFaqResponse(
+        question = question,
+        answer = answer,
     )
 
 fun ServiceVariant.toResponse(): ServiceVariantResponse =

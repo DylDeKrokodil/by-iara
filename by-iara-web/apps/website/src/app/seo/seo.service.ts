@@ -16,6 +16,7 @@ import { LanguageService } from '../i18n/language.service';
 import type { Service } from '../services/services-api';
 import { SEO_MESSAGES, StaticSeoPage } from './seo-messages';
 import { SITE_ORIGIN } from './site-origin';
+import { BRAND } from '../brand/brand';
 
 const HREFLANG: Record<LocalePath, string> = { pt: 'pt-PT', en: 'en' };
 const OG_LOCALE: Record<LocaleCode, string> = {
@@ -56,7 +57,7 @@ export class SeoService {
       return;
     }
 
-    const title = `${translation.name} em Almada | By Iara`;
+    const title = `${translation.name} em Almada | ${BRAND.name}`;
     const description =
       translation.description ??
       SEO_MESSAGES[locale.locale].services.description;
@@ -81,9 +82,9 @@ export class SeoService {
       indexable: true,
       type: 'product',
     });
-    this.setStructuredData({
-      '@context': 'https://schema.org',
+    const serviceSchema = {
       '@type': 'Service',
+      '@id': `${this.absolute(canonicalPath)}#service`,
       name: translation.name,
       description,
       url: this.absolute(canonicalPath),
@@ -92,7 +93,7 @@ export class SeoService {
       provider: {
         '@type': 'Organization',
         '@id': `${this.siteOrigin}/#organization`,
-        name: 'By Iara',
+        name: BRAND.name,
         url: `${this.siteOrigin}/pt`,
       },
       offers: service.variants
@@ -103,6 +104,52 @@ export class SeoService {
           priceCurrency: variant.price.currency,
           url: `${this.absolute(this.staticPath(locale.path, 'book'))}?service=${encodeURIComponent(service.slug)}&variant=${encodeURIComponent(variant.id)}`,
         })),
+    };
+    const breadcrumbCopy = this.language.messages().serviceDetail;
+    const graph: unknown[] = [
+      serviceSchema,
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${this.absolute(canonicalPath)}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: breadcrumbCopy.homeBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'home')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: breadcrumbCopy.servicesBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'services')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: translation.name,
+            item: this.absolute(canonicalPath),
+          },
+        ],
+      },
+    ];
+    if (translation.faqs.length) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${this.absolute(canonicalPath)}#faq`,
+        mainEntity: translation.faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      });
+    }
+    this.setStructuredData({
+      '@context': 'https://schema.org',
+      '@graph': graph,
     });
   }
 
@@ -133,7 +180,7 @@ export class SeoService {
   private updateStatic(page: PublicPageKey): void {
     const locale = this.language.current();
     const seo = SEO_MESSAGES[locale.locale][page as StaticSeoPage];
-    const indexable = page !== 'book';
+    const indexable = page === 'home' || page === 'services';
     const canonicalPath = this.staticPath(locale.path, page);
     const alternates = SUPPORTED_LOCALES.map((candidate) => ({
       locale: candidate.path,
@@ -156,14 +203,14 @@ export class SeoService {
           {
             '@type': 'Organization',
             '@id': `${this.siteOrigin}/#organization`,
-            name: 'By Iara',
+            name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
-            logo: `${this.siteOrigin}/brand/by-iara-logo.svg`,
+            logo: `${this.siteOrigin}/${BRAND.logoPath}`,
           },
           {
             '@type': 'WebSite',
             '@id': `${this.siteOrigin}/#website`,
-            name: 'By Iara',
+            name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
             inLanguage: ['pt-PT', 'en-US'],
             publisher: { '@id': `${this.siteOrigin}/#organization` },
@@ -211,7 +258,7 @@ export class SeoService {
     });
     this.meta.updateTag({ property: 'og:type', content: config.type });
     this.meta.updateTag({ property: 'og:url', content: canonical });
-    this.meta.updateTag({ property: 'og:site_name', content: 'By Iara' });
+    this.meta.updateTag({ property: 'og:site_name', content: BRAND.name });
     this.meta.updateTag({
       property: 'og:locale',
       content: OG_LOCALE[locale.locale],

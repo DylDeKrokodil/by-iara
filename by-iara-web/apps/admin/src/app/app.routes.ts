@@ -55,6 +55,11 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./availability/availability').then((m) => m.Availability),
       },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./finance/reports/reports').then((m) => m.Reports),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },

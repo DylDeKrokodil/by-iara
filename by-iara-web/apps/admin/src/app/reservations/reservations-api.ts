@@ -7,6 +7,11 @@ import {
   ReservationResponse,
   RejectReservationInput,
   CancelReservationInput,
+  CompleteReservationInput,
+  RecordPaymentInput,
+  ReservationAttentionPage,
+  ReservationPayment,
+  ReservationPayments,
 } from './reservation.models';
 
 @Injectable({ providedIn: 'root' })
@@ -52,6 +57,12 @@ export class ReservationsApi {
     return this.http.get<ReservationResponse>(`${this.baseUrl}/${id}`);
   }
 
+  attention(page = 0, size = 20): Observable<ReservationAttentionPage> {
+    return this.http.get<ReservationAttentionPage>(`${this.baseUrl}/attention`, {
+      params: { page, size },
+    });
+  }
+
   confirm(id: string): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/confirm`,
@@ -71,5 +82,21 @@ export class ReservationsApi {
       `${this.baseUrl}/${id}/cancel`,
       input,
     );
+  }
+
+  complete(id: string, input: CompleteReservationInput = {}): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(`${this.baseUrl}/${id}/complete`, input);
+  }
+
+  markNoShow(id: string): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(`${this.baseUrl}/${id}/no-show`, {});
+  }
+
+  payments(id: string): Observable<ReservationPayments> {
+    return this.http.get<ReservationPayments>(`${this.baseUrl}/${id}/payments`);
+  }
+
+  recordPayment(id: string, input: RecordPaymentInput): Observable<ReservationPayment> {
+    return this.http.post<ReservationPayment>(`${this.baseUrl}/${id}/payments`, input);
   }
 }

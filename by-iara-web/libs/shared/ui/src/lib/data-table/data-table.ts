@@ -22,6 +22,7 @@ export class DataTable {
   rowKey = input<string | null>('id');
   skeletonRows = input(4);
   ariaLabel = input<string | null>(null);
+  responsiveStack = input(false);
 
   @ContentChild('rowTemplate') protected rowTemplate?: TemplateRef<{ $implicit: unknown; index: number }>;
 

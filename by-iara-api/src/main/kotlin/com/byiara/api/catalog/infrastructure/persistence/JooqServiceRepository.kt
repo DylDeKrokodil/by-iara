@@ -3,6 +3,8 @@ package com.byiara.api.catalog.infrastructure.persistence
 import com.byiara.api.catalog.domain.Money
 import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
+import com.byiara.api.catalog.domain.ServiceFaq
+import com.byiara.api.catalog.domain.ServiceFaqCommand
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.catalog.domain.ServiceTranslation
 import com.byiara.api.catalog.domain.ServiceTranslationCommand
@@ -49,6 +51,16 @@ class JooqServiceRepository(
     private val stSlug = field(name("slug"), String::class.java)
     private val stName = field(name("name"), String::class.java)
     private val stDescription = field(name("description"), String::class.java)
+    private val stTreatmentDescription = field(name("treatment_description"), String::class.java)
+    private val stSuitableFor = field(name("suitable_for"), String::class.java)
+    private val stSessionDescription = field(name("session_description"), String::class.java)
+
+    private val serviceFaqs = table(name("service_faqs"))
+    private val sfServiceId = field(name("service_id"), UUID::class.java)
+    private val sfLocale = field(name("locale"), String::class.java)
+    private val sfQuestion = field(name("question"), String::class.java)
+    private val sfAnswer = field(name("answer"), String::class.java)
+    private val sfSortOrder = field(name("sort_order"), Int::class.java)
 
     override fun findCatalog(): List<Service> = loadServices(activeFilter = true, variantsActiveOnly = true)
 
@@ -170,14 +182,36 @@ class JooqServiceRepository(
     private fun insertTranslations(serviceId: UUID, commands: Map<String, ServiceTranslationCommand>) {
         commands.forEach { (locale, translation) ->
             dsl.insertInto(serviceTranslations)
-                .columns(stServiceId, stLocale, stSlug, stName, stDescription)
+                .columns(
+                    stServiceId,
+                    stLocale,
+                    stSlug,
+                    stName,
+                    stDescription,
+                    stTreatmentDescription,
+                    stSuitableFor,
+                    stSessionDescription,
+                )
                 .values(
                     serviceId,
                     locale,
                     requireNotNull(translation.slug),
                     translation.name,
                     translation.description,
+                    translation.treatmentDescription,
+                    translation.suitableFor,
+                    translation.sessionDescription,
                 )
+                .execute()
+            insertFaqs(serviceId, locale, translation.faqs)
+        }
+    }
+
+    private fun insertFaqs(serviceId: UUID, locale: String, faqs: List<ServiceFaqCommand>) {
+        faqs.forEach { faq ->
+            dsl.insertInto(serviceFaqs)
+                .columns(sfServiceId, sfLocale, sfQuestion, sfAnswer, sfSortOrder)
+                .values(serviceId, locale, faq.question, faq.answer, faq.sortOrder)
                 .execute()
         }
     }
@@ -218,8 +252,18 @@ class JooqServiceRepository(
             return emptyMap()
         }
 
+        val faqs = loadFaqs(serviceIds)
         return dsl
-            .select(stServiceId, stLocale, stSlug, stName, stDescription)
+            .select(
+                stServiceId,
+                stLocale,
+                stSlug,
+                stName,
+                stDescription,
+                stTreatmentDescription,
+                stSuitableFor,
+                stSessionDescription,
+            )
             .from(serviceTranslations)
             .where(stServiceId.`in`(serviceIds))
             .fetch()
@@ -230,10 +274,31 @@ class JooqServiceRepository(
                         slug = record.get(stSlug) ?: fallbackSlug(record.get(stName)),
                         name = record.get(stName),
                         description = record.get(stDescription),
+                        treatmentDescription = record.get(stTreatmentDescription),
+                        suitableFor = record.get(stSuitableFor),
+                        sessionDescription = record.get(stSessionDescription),
+                        faqs = faqs[TranslationKey(record.get(stServiceId), record.get(stLocale))].orEmpty(),
                     )
                 }
             }
     }
+
+    private fun loadFaqs(serviceIds: List<UUID>): Map<TranslationKey, List<ServiceFaq>> =
+        dsl.select(sfServiceId, sfLocale, sfQuestion, sfAnswer, sfSortOrder)
+            .from(serviceFaqs)
+            .where(sfServiceId.`in`(serviceIds))
+            .orderBy(sfServiceId.asc(), sfLocale.asc(), sfSortOrder.asc())
+            .fetch()
+            .groupBy { TranslationKey(it.get(sfServiceId), it.get(sfLocale)) }
+            .mapValues { (_, records) ->
+                records.map { record ->
+                    ServiceFaq(
+                        question = record.get(sfQuestion),
+                        answer = record.get(sfAnswer),
+                        sortOrder = record.get(sfSortOrder),
+                    )
+                }
+            }
 
     private fun fallbackSlug(value: String): String =
         Normalizer.normalize(value, Normalizer.Form.NFD)
@@ -293,5 +358,10 @@ class JooqServiceRepository(
     private data class OwnedVariant(
         val serviceId: UUID,
         val variant: ServiceVariant,
+    )
+
+    private data class TranslationKey(
+        val serviceId: UUID,
+        val locale: String,
     )
 }

@@ -4,8 +4,12 @@ import com.byiara.api.catalog.domain.Money
 import com.byiara.api.reservation.domain.Customer
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.CancellationReasonCode
+import com.byiara.api.reservation.domain.AttentionReason
 import com.byiara.api.reservation.domain.NewReservation
+import com.byiara.api.reservation.domain.PaymentState
+import com.byiara.api.reservation.domain.PaymentSummary
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationAttention
 import com.byiara.api.reservation.domain.ReservationListQuery
 import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationRepository
@@ -15,11 +19,15 @@ import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.ReservationWindow
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.Record
 import org.jooq.impl.DSL.currentOffsetDateTime
+import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.noCondition
+import org.jooq.impl.DSL.sum
 import org.jooq.impl.DSL.table
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
@@ -51,6 +59,18 @@ class JooqReservationRepository(
     private val rCancellationMessage = field(name("cancellation_message"), String::class.java)
     private val rUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
 
+    private val payments = table(name("reservation_payments"))
+    private val pReservationId = field(name("reservation_payments", "reservation_id"), UUID::class.java)
+    private val pAmountCents = field(name("reservation_payments", "amount_cents"), Long::class.java)
+    private val pStatus = field(name("reservation_payments", "status"), String::class.java)
+    private val totalPaidExpression: Field<Long> = field(
+        dsl.select(coalesce(sum(pAmountCents), inline(java.math.BigDecimal.ZERO)).cast(Long::class.java))
+            .from(payments)
+            .where(pReservationId.eq(rId))
+            .and(pStatus.eq("PAID")),
+    )
+    private val totalPaid = totalPaidExpression.`as`("total_paid_cents")
+
     private val customers = table(name("customers"))
     private val cId = field(name("customers", "id"), UUID::class.java)
     private val cName = field(name("name"), String::class.java)
@@ -63,6 +83,16 @@ class JooqReservationRepository(
         baseSelect()
             .where(rId.eq(id))
             .fetchOne { mapReservation(it) }
+
+    override fun findByIdForUpdate(id: UUID): Reservation? {
+        val locked = dsl.select(rId)
+            .from(reservations)
+            .where(rId.eq(id))
+            .forUpdate()
+            .fetchOne() ?: return null
+
+        return findById(locked.get(rId))
+    }
 
     override fun findAll(query: ReservationListQuery, limit: Int, offset: Int): List<Reservation> =
         baseSelect()
@@ -160,6 +190,57 @@ class JooqReservationRepository(
             .where(rId.eq(id))
             .execute() > 0
 
+    override fun transitionStatus(id: UUID, from: ReservationStatus, to: ReservationStatus): Boolean =
+        dsl.update(reservations)
+            .set(rStatus, to.name)
+            .set(rDecidedAt, currentOffsetDateTime())
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .and(rStatus.eq(from.name))
+            .execute() > 0
+
+    override fun findAttention(now: OffsetDateTime, limit: Int, offset: Int): List<ReservationAttention> =
+        dsl.select(
+            rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
+            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rRejectionReasonCode, rRejectionMessage, rDecidedAt,
+            rCancellationReasonCode, rCancellationMessage,
+            cName, cEmail, cPhone, totalPaid,
+        )
+            .from(reservations)
+            .join(customers).on(rCustomerId.eq(cId))
+            .where(attentionCondition(now))
+            .orderBy(
+                field(
+                    "case when {0} = {1} then 0 when {0} = {2} then 1 else 2 end",
+                    Int::class.java,
+                    rStatus,
+                    inline(ReservationStatus.CONFIRMED.name),
+                    inline(ReservationStatus.PENDING.name),
+                ).asc(),
+                rStartsAt.asc(),
+                rId.asc(),
+            )
+            .limit(limit)
+            .offset(offset)
+            .fetch { record ->
+                val reservation = mapReservation(record)
+                val paid = record.get(totalPaid) ?: 0L
+                ReservationAttention(
+                    reservation = reservation,
+                    reason = when (reservation.status) {
+                        ReservationStatus.PENDING -> AttentionReason.APPROVAL_REQUIRED
+                        ReservationStatus.CONFIRMED -> AttentionReason.OUTCOME_REQUIRED
+                        ReservationStatus.COMPLETED -> AttentionReason.PAYMENT_DUE
+                        else -> error("Unexpected attention status ${reservation.status}")
+                    },
+                    paymentSummary = paymentSummary(reservation, paid),
+                )
+            }
+
+    override fun countAttention(now: OffsetDateTime): Int =
+        dsl.fetchCount(dsl.selectFrom(reservations).where(attentionCondition(now)))
+
     override fun findOrCreateCustomer(details: CustomerDetails): Customer {
         val email = details.email.trim().lowercase()
         val name = details.name.trim()
@@ -223,6 +304,7 @@ class JooqReservationRepository(
                 ReservationStatus.REJECTED.name,
                 ReservationStatus.CANCELLED.name,
                 ReservationStatus.COMPLETED.name,
+                ReservationStatus.NO_SHOW.name,
             )
             condition = condition.and(
                 rStatus.`in`(closedStatuses)
@@ -231,6 +313,21 @@ class JooqReservationRepository(
         }
 
         return condition
+    }
+
+    private fun attentionCondition(now: OffsetDateTime): Condition =
+        rStatus.eq(ReservationStatus.PENDING.name)
+            .or(rStatus.eq(ReservationStatus.CONFIRMED.name).and(rEndsAt.lessOrEqual(now)))
+            .or(rStatus.eq(ReservationStatus.COMPLETED.name).and(totalPaidExpression.lessThan(rPriceCents)))
+
+    private fun paymentSummary(reservation: Reservation, totalPaidCents: Long): PaymentSummary {
+        val balance = (reservation.price.amountCents - totalPaidCents).coerceAtLeast(0L)
+        val state = when {
+            totalPaidCents <= 0L -> PaymentState.UNPAID
+            balance > 0L -> PaymentState.PARTIALLY_PAID
+            else -> PaymentState.PAID
+        }
+        return PaymentSummary(totalPaidCents, balance, reservation.price.currency, state)
     }
 
     private fun mapReservation(record: Record): Reservation =

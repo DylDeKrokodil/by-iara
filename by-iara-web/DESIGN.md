@@ -1,6 +1,6 @@
-# By Iara Design System
+# Iara Gouveia Design System
 
-This design system is the source of truth for By Iara across the public website
+This design system is the source of truth for Iara Gouveia across the public website
 and admin app. The current direction replaces all previous botanical, clay, and
 leaf rules with a true-white canvas, accessible rose primary color, Playfair
 Display headings, and DM Sans body text.

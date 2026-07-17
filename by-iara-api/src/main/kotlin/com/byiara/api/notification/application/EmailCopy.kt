@@ -60,7 +60,7 @@ object EmailCopy {
     }
 
     /** Matches the language the customer booked in. Null if the status isn't a customer-facing decision. */
-    fun reservationDecision(reservation: Reservation, zoneId: ZoneId): EmailContent? {
+    fun reservationDecision(reservation: Reservation, zoneId: ZoneId, businessPhone: String = ""): EmailContent? {
         val locale = when (reservation.locale) {
             ReservationLocale.PT -> Locale.forLanguageTag("pt-PT")
             ReservationLocale.EN -> Locale.forLanguageTag("en-US")
@@ -68,7 +68,7 @@ object EmailCopy {
         val whenText = formatDateTime(reservation, zoneId, locale)
 
         return when (reservation.status) {
-            ReservationStatus.CONFIRMED -> confirmed(reservation, whenText)
+            ReservationStatus.CONFIRMED -> confirmed(reservation, whenText, businessPhone.trim())
             ReservationStatus.REJECTED -> rejected(reservation, whenText)
             ReservationStatus.CANCELLED -> cancelled(reservation, whenText)
             else -> null
@@ -141,9 +141,11 @@ object EmailCopy {
         }
     }
 
-    private fun confirmed(reservation: Reservation, whenText: String): EmailContent {
+    private fun confirmed(reservation: Reservation, whenText: String, businessPhone: String): EmailContent {
         val name = reservation.customer.name
         val rows = listOf("Service" to escapeHtml(reservation.serviceName), "When" to whenText)
+        val portuguesePhone = businessPhone.takeIf(String::isNotBlank)?.let { " para ${it}" }.orEmpty()
+        val englishPhone = businessPhone.takeIf(String::isNotBlank)?.let { " on ${it}" }.orEmpty()
         return when (reservation.locale) {
             ReservationLocale.PT -> EmailContent(
                 subject = "A sua reserva foi confirmada",
@@ -155,6 +157,12 @@ object EmailCopy {
                     Serviço: ${reservation.serviceName}
                     Data: $whenText
 
+                    Saúde e segurança
+                    Se tiver uma lesão, condição de saúde, gravidez, cirurgia recente, medicação, alergia ou outra questão que possa afetar a massagem, terá de nos telefonar antes da marcação$portuguesePhone. Não envie dados de saúde por email nem através das notas do website.
+
+                    Cancelamentos
+                    Comunique qualquer cancelamento ou reagendamento com pelo menos 24 horas de antecedência. O primeiro cancelamento tardio não tem penalização; em caso de cancelamentos tardios repetidos, pode ser exigido um sinal de €15, deduzido ao preço da sessão.
+
                     Até breve!
                     By Iara
                 """.trimIndent(),
@@ -165,6 +173,10 @@ object EmailCopy {
                         <h1 style="$headingStyle">A sua reserva foi confirmada</h1>
                         <p style="$paragraphStyle">Olá ${escapeHtml(name)}, a sua marcação está confirmada &mdash; seguem os detalhes:</p>
                         ${detailsCard(listOf("Serviço" to rows[0].second, "Data" to rows[1].second))}
+                        <h2 style="$subheadingStyle">Saúde e segurança</h2>
+                        <p style="$paragraphStyle">Se tiver uma lesão, condição de saúde, gravidez, cirurgia recente, medicação, alergia ou outra questão que possa afetar a massagem, terá de nos telefonar antes da marcação${escapeHtml(portuguesePhone)}. Não envie dados de saúde por email nem através das notas do website.</p>
+                        <h2 style="$subheadingStyle">Cancelamentos</h2>
+                        <p style="$paragraphStyle">Comunique qualquer cancelamento ou reagendamento com pelo menos 24 horas de antecedência. O primeiro cancelamento tardio não tem penalização; em caso de cancelamentos tardios repetidos, pode ser exigido um sinal de €15, deduzido ao preço da sessão.</p>
                         <p style="$paragraphStyle; margin:0;">Até breve!</p>
                     """.trimIndent(),
                 ),
@@ -179,6 +191,12 @@ object EmailCopy {
                     Service: ${reservation.serviceName}
                     When: $whenText
 
+                    Health and safety
+                    If you have an injury, health condition, pregnancy, recent surgery, medication, allergy, or another concern that may affect your massage, you must call us before your appointment$englishPhone. Do not send health information by email or through the website notes.
+
+                    Cancellations
+                    Please cancel or reschedule at least 24 hours in advance. The first late cancellation has no penalty; repeated late cancellations may require a €15 deposit, deducted from the session price.
+
                     See you soon!
                     By Iara
                 """.trimIndent(),
@@ -189,6 +207,10 @@ object EmailCopy {
                         <h1 style="$headingStyle">Your booking is confirmed</h1>
                         <p style="$paragraphStyle">Hi ${escapeHtml(name)}, your appointment is set &mdash; here are the details:</p>
                         ${detailsCard(rows)}
+                        <h2 style="$subheadingStyle">Health and safety</h2>
+                        <p style="$paragraphStyle">If you have an injury, health condition, pregnancy, recent surgery, medication, allergy, or another concern that may affect your massage, you must call us before your appointment${escapeHtml(englishPhone)}. Do not send health information by email or through the website notes.</p>
+                        <h2 style="$subheadingStyle">Cancellations</h2>
+                        <p style="$paragraphStyle">Please cancel or reschedule at least 24 hours in advance. The first late cancellation has no penalty; repeated late cancellations may require a €15 deposit, deducted from the session price.</p>
                         <p style="$paragraphStyle; margin:0;">See you soon!</p>
                     """.trimIndent(),
                 ),
@@ -289,6 +311,8 @@ object EmailCopy {
 
     private val headingStyle =
         "margin:0 0 16px 0; font-family:$DISPLAY_FONT; font-size:22px; line-height:1.3; font-weight:700; color:$TEXT_PLUM;"
+    private val subheadingStyle =
+        "margin:24px 0 8px 0; font-family:$DISPLAY_FONT; font-size:18px; line-height:1.4; font-weight:700; color:$TEXT_PLUM;"
     private val paragraphStyle = "margin:0 0 24px 0; font-size:16px; line-height:1.6; color:$TEXT_PLUM;"
 
     /**

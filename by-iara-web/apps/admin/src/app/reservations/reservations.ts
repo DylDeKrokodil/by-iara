@@ -21,11 +21,11 @@ import {
   TabOption,
   Tabs,
 } from '@by-iara/shared-ui';
-import { forkJoin, Observable } from 'rxjs';
 import { formatMoney } from '../services/service.models';
 import { CalendarSync } from './calendar-sync/calendar-sync';
 import {
-  ReservationPage,
+  AttentionReason,
+  ReservationAttention,
   ReservationResponse,
   ReservationStatus,
   reservationStatusLabel,
@@ -33,19 +33,15 @@ import {
 } from './reservation.models';
 import { ReservationsApi } from './reservations-api';
 
-const reservationViewValues = ['overview', 'history'] as const;
+const reservationViewValues = ['attention', 'calendar', 'history'] as const;
 type ReservationView = (typeof reservationViewValues)[number];
-
-const reservationTabs: ReadonlyArray<TabOption> = [
-  { label: 'Overview', value: 'overview' },
-  { label: 'History', value: 'history' },
-];
 
 const historyFilterValues = [
   'all',
   'rejected',
   'cancelled',
   'completed',
+  'no_show',
   'past_confirmed',
 ] as const;
 
@@ -56,6 +52,7 @@ const historyFilters: ReadonlyArray<SelectFieldOption> = [
   { label: 'Rejected', value: 'rejected' },
   { label: 'Cancelled', value: 'cancelled' },
   { label: 'Completed', value: 'completed' },
+  { label: 'No-show', value: 'no_show' },
   { label: 'Past confirmed', value: 'past_confirmed' },
 ];
 
@@ -67,8 +64,16 @@ const reservationColumns: ReadonlyArray<DataTableColumn> = [
   { key: 'notes', label: 'Notes' },
 ];
 
+const attentionColumns: ReadonlyArray<DataTableColumn> = [
+  { key: 'customer', label: 'Customer' },
+  { key: 'appointment', label: 'Appointment' },
+  { key: 'attention', label: 'Needs attention' },
+  { key: 'balance', label: 'Balance', fit: true },
+  { key: 'action', label: 'Action', fit: true },
+];
+
 const historyPageSize = 10;
-const sectionPageSize = 50;
+const attentionPageSize = 20;
 const calendarPageSize = 250;
 const businessTimeZone = 'Europe/Brussels';
 
@@ -123,10 +128,10 @@ export class Reservations implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
   protected readonly calendarSyncOpen = signal(false);
-  protected readonly activeView = signal<ReservationView>('overview');
+  protected readonly activeView = signal<ReservationView>('attention');
   protected readonly selectedDateKey = signal(this.dateKey(new Date()));
   protected readonly calendarView = signal<'day' | 'week' | 'month'>('week');
-  protected readonly pending = signal<ReservationResponse[]>([]);
+  protected readonly attention = signal<ReservationAttention[]>([]);
   /** Set from ?id= when arriving via the "new reservation" admin email link. */
   protected readonly highlightId = signal<string | null>(null);
   private hasScrolledToHighlight = false;
@@ -136,7 +141,7 @@ export class Reservations implements OnInit {
   private loadedFrom: string | null = null;
   private loadedTo: string | null = null;
 
-  protected readonly loadingPending = signal(false);
+  protected readonly loadingAttention = signal(false);
   protected readonly loadingCalendar = signal(false);
   protected readonly loadingHistory = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -144,9 +149,19 @@ export class Reservations implements OnInit {
   protected readonly historyFilter = signal<HistoryFilter>('all');
   protected readonly historyPage = signal(0);
   protected readonly historyTotal = signal(0);
+  protected readonly attentionPage = signal(0);
+  protected readonly attentionTotal = signal(0);
 
-  protected readonly reservationTabs = reservationTabs;
+  protected readonly reservationTabs = computed<ReadonlyArray<TabOption>>(() => [
+    {
+      label: this.attentionTotal() > 0 ? `Needs attention (${this.attentionTotal()})` : 'Needs attention',
+      value: 'attention',
+    },
+    { label: 'Calendar', value: 'calendar' },
+    { label: 'History', value: 'history' },
+  ]);
   protected readonly reservationColumns = reservationColumns;
+  protected readonly attentionColumns = attentionColumns;
   protected readonly historyFilters = historyFilters;
   protected readonly formatMoney = formatMoney;
 
@@ -264,17 +279,23 @@ export class Reservations implements OnInit {
   protected readonly canGoToNextHistoryPage = computed(
     () => this.historyPage() + 1 < this.totalHistoryPages(),
   );
+  protected readonly totalAttentionPages = computed(() =>
+    Math.max(Math.ceil(this.attentionTotal() / attentionPageSize), 1),
+  );
+  protected readonly canGoToPreviousAttentionPage = computed(() => this.attentionPage() > 0);
+  protected readonly canGoToNextAttentionPage = computed(
+    () => this.attentionPage() + 1 < this.totalAttentionPages(),
+  );
 
   constructor() {
-    // Runs once the target reservation actually shows up in the loaded pending list
-    // (not on every pending() change) -- guards against re-scrolling on later reloads,
+    // Runs once the target reservation actually shows up in the attention queue.
     // e.g. after the admin accepts/declines something else in the list.
     effect(() => {
       const id = this.highlightId();
       if (!id || this.hasScrolledToHighlight) {
         return;
       }
-      if (this.pending().some((reservation) => reservation.id === id)) {
+      if (this.attention().some((item) => item.reservation.id === id)) {
         this.hasScrolledToHighlight = true;
         // Double rAF: a single frame isn't always enough for the browser to have
         // finished layout after this DOM update, which left scrollIntoView measuring
@@ -308,13 +329,14 @@ export class Reservations implements OnInit {
   }
 
   protected reload(): void {
-    this.reloadActiveSections(true);
+    this.reloadAttention();
+    this.reloadCalendar(true);
     this.reloadHistory();
   }
 
   protected setCalendarView(view: 'day' | 'week' | 'month'): void {
     this.calendarView.set(view);
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected previousCalendarPeriod(): void {
@@ -325,7 +347,7 @@ export class Reservations implements OnInit {
     } else if (this.calendarView() === 'month') {
       this.selectedDateKey.set(this.addMonths(this.selectedDateKey(), -1));
     }
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected nextCalendarPeriod(): void {
@@ -336,12 +358,12 @@ export class Reservations implements OnInit {
     } else if (this.calendarView() === 'month') {
       this.selectedDateKey.set(this.addMonths(this.selectedDateKey(), 1));
     }
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected goToToday(): void {
     this.selectedDateKey.set(this.todayKey());
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected selectCalendarDay(dayKey: string): void {
@@ -350,13 +372,13 @@ export class Reservations implements OnInit {
     }
 
     this.selectedDateKey.set(dayKey);
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected selectMonthGridDay(dayKey: string): void {
     this.selectedDateKey.set(dayKey);
     this.calendarView.set('day');
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected onDatePickerChange(event: Event): void {
@@ -367,7 +389,7 @@ export class Reservations implements OnInit {
     }
 
     this.selectedDateKey.set(value);
-    this.reloadActiveSections();
+    this.reloadCalendar();
   }
 
   protected onHistoryFilterChange(filter: string): void {
@@ -398,6 +420,18 @@ export class Reservations implements OnInit {
     this.reloadHistory();
   }
 
+  protected previousAttentionPage(): void {
+    if (!this.canGoToPreviousAttentionPage()) return;
+    this.attentionPage.update((page) => page - 1);
+    this.reloadAttention();
+  }
+
+  protected nextAttentionPage(): void {
+    if (!this.canGoToNextAttentionPage()) return;
+    this.attentionPage.update((page) => page + 1);
+    this.reloadAttention();
+  }
+
   protected serviceLabel(reservation: ReservationResponse): string {
     return `${reservation.serviceName} · ${reservation.durationMinutes} min`;
   }
@@ -426,6 +460,25 @@ export class Reservations implements OnInit {
     return reservationStatusTone(status);
   }
 
+  protected attentionLabel(reason: AttentionReason): string {
+    switch (reason) {
+      case 'APPROVAL_REQUIRED': return 'Approval required';
+      case 'OUTCOME_REQUIRED': return 'Outcome required';
+      case 'PAYMENT_DUE': return 'Payment due';
+    }
+  }
+
+  protected attentionTone(reason: AttentionReason) {
+    return reason === 'PAYMENT_DUE' ? 'warning' as const : 'danger' as const;
+  }
+
+  protected formatBalance(item: ReservationAttention): string {
+    return formatMoney({
+      amountCents: item.paymentSummary.balanceDueCents,
+      currency: item.paymentSummary.currency,
+    });
+  }
+
   private getMonthGridRange(key: string): { startKey: string; endKey: string } {
     const date = this.utcDateFromKey(key);
     const firstOfMonth = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
@@ -445,7 +498,7 @@ export class Reservations implements OnInit {
     return date.toISOString().slice(0, 10);
   }
 
-  private reloadActiveSections(force = false): void {
+  private reloadCalendar(force = false): void {
     const { startKey, endKey } = this.getMonthGridRange(this.selectedDateKey());
     const calendarStart = this.zonedDateTimeIso(startKey);
     const calendarEnd = this.zonedDateTimeIso(this.addDays(endKey, 1));
@@ -457,52 +510,46 @@ export class Reservations implements OnInit {
       startKey < this.loadedFrom ||
       endKey > this.loadedTo;
 
-    this.loadingPending.set(true);
     if (needsCalendarReload) {
       this.loadingCalendar.set(true);
     }
     this.error.set(null);
 
-    const apiCalls: {
-      pending: Observable<ReservationPage>;
-      calendar?: Observable<ReservationPage>;
-    } = {
-      pending: this.api.list({
-        statuses: ['PENDING'],
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: sectionPageSize,
-      }),
-    };
+    if (!needsCalendarReload) return;
 
-    if (needsCalendarReload) {
-      apiCalls.calendar = this.api.list({
-        statuses: ['PENDING', 'CONFIRMED'],
-        from: calendarStart,
-        to: calendarEnd,
-        sort: 'STARTS_AT_ASC',
-        page: 0,
-        size: calendarPageSize,
-      });
-    }
-
-    forkJoin(apiCalls).subscribe({
-      next: (results) => {
-        this.pending.set(results.pending.items);
-        
-        if (results.calendar) {
-          this.calendarReservations.set(results.calendar.items);
-          this.loadedFrom = startKey;
-          this.loadedTo = endKey;
-          this.loadingCalendar.set(false);
-        }
-        
-        this.loadingPending.set(false);
+    this.api.list({
+      statuses: ['PENDING', 'CONFIRMED'],
+      from: calendarStart,
+      to: calendarEnd,
+      sort: 'STARTS_AT_ASC',
+      page: 0,
+      size: calendarPageSize,
+    }).subscribe({
+      next: (page) => {
+        this.calendarReservations.set(page.items);
+        this.loadedFrom = startKey;
+        this.loadedTo = endKey;
+        this.loadingCalendar.set(false);
       },
       error: () => {
         this.error.set('Could not load current reservations.');
-        this.loadingPending.set(false);
         this.loadingCalendar.set(false);
+      },
+    });
+  }
+
+  private reloadAttention(): void {
+    this.loadingAttention.set(true);
+    this.error.set(null);
+    this.api.attention(this.attentionPage(), attentionPageSize).subscribe({
+      next: (page) => {
+        this.attention.set(page.items);
+        this.attentionTotal.set(page.total);
+        this.loadingAttention.set(false);
+      },
+      error: () => {
+        this.error.set('Could not load reservations that need attention.');
+        this.loadingAttention.set(false);
       },
     });
   }
@@ -541,6 +588,8 @@ export class Reservations implements OnInit {
         return { statuses: ['CANCELLED'] as const };
       case 'completed':
         return { statuses: ['COMPLETED'] as const };
+      case 'no_show':
+        return { statuses: ['NO_SHOW'] as const };
       case 'past_confirmed':
         return { statuses: ['CONFIRMED'] as const, to: now };
       default:

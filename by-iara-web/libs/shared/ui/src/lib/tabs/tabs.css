@@ -42,10 +42,12 @@
 
 @media (max-width: 40rem) {
   .tabs-navigation {
+    gap: 0;
     overflow-x: auto;
   }
 
   .tab-btn {
+    padding-inline: var(--byiara-space-sm);
     white-space: nowrap;
   }
 }

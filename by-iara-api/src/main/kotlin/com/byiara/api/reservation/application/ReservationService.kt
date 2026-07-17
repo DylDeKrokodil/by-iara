@@ -147,6 +147,19 @@ class ReservationService(
     fun get(id: UUID): Reservation =
         reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
 
+    @Transactional(readOnly = true)
+    fun listAttention(page: Int, size: Int): ReservationAttentionPage {
+        val safeSize = size.coerceIn(1, MAX_PAGE_SIZE)
+        val safePage = page.coerceAtLeast(0)
+        val now = OffsetDateTime.now()
+        return ReservationAttentionPage(
+            items = reservationRepository.findAttention(now, safeSize, safePage * safeSize),
+            page = safePage,
+            size = safeSize,
+            total = reservationRepository.countAttention(now),
+        )
+    }
+
     @Transactional
     fun confirm(id: UUID): Reservation = transition(id, ReservationStatus.CONFIRMED)
 
@@ -199,6 +212,13 @@ class ReservationService(
 
 data class ReservationPage(
     val items: List<Reservation>,
+    val page: Int,
+    val size: Int,
+    val total: Int,
+)
+
+data class ReservationAttentionPage(
+    val items: List<com.byiara.api.reservation.domain.ReservationAttention>,
     val page: Int,
     val size: Int,
     val total: Int,
