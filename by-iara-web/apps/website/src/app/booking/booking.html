@@ -213,6 +213,18 @@
                 <byiara-detail-list [items]="reviewItems()"></byiara-detail-list>
               </div>
 
+              <div class="booking-legal-notice">
+                <p>{{ copy().paymentNotice }}</p>
+                <p>
+                  {{ copy().dataUseNotice }}
+                  <a [routerLink]="language.localizedLink('privacy')">{{ copy().privacyLink }}</a>.
+                </p>
+                <p>
+                  {{ copy().termsNotice }}
+                  <a [routerLink]="language.localizedLink('bookingTerms')">{{ copy().termsLink }}</a>.
+                </p>
+              </div>
+
               @if (submitError()) {
                 <p class="field-error" role="alert">{{ submitError() }}</p>
               }

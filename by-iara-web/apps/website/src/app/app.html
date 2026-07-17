@@ -39,7 +39,7 @@
         [routerLink]="language.localizedLink()"
         [attr.aria-label]="brand.name"
       >
-        <img class="logo-img" [src]="brand.logoPath" [alt]="brand.name" />
+        <span class="logo-img" aria-hidden="true"></span>
       </a>
 
       <div class="header-actions">
@@ -115,6 +115,26 @@
           <a [routerLink]="language.localizedLink('book')"
             >{{ copy().footer.book }}</a
           >
+          <h2 class="footer-legal-heading">{{ copy().footer.legal }}</h2>
+          <a [routerLink]="language.localizedLink('privacy')">
+            {{ copy().footer.privacy }}
+          </a>
+          <a [routerLink]="language.localizedLink('bookingTerms')">
+            {{ copy().footer.bookingTerms }}
+          </a>
+          <a [routerLink]="language.localizedLink('legalNotice')">
+            {{ copy().footer.legalNotice }}
+          </a>
+          <a
+            href="https://www.livroreclamacoes.pt/Inicio/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ copy().footer.complaintsBook }}
+            <span class="visually-hidden"
+              >({{ copy().footer.opensNewWindow }})</span
+            >
+          </a>
         </nav>
 
         <div class="footer-visit">

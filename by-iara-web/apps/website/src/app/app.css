@@ -62,8 +62,12 @@
 
 .logo-img {
   display: block;
-  width: auto;
+  width: 5.67rem;
   height: 2.2rem;
+  background: var(--byiara-color-primary-action);
+  -webkit-mask: url('/brand/iara-gouveia-lockup-v3.svg') center / contain
+    no-repeat;
+  mask: url('/brand/iara-gouveia-lockup-v3.svg') center / contain no-repeat;
 }
 
 .header-actions {
@@ -254,6 +258,10 @@
 .footer-nav,
 .footer-visit {
   gap: var(--byiara-space-xs);
+}
+
+.footer-nav .footer-legal-heading {
+  margin-top: var(--byiara-space-lg);
 }
 
 .site-footer h2 {

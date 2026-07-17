@@ -1,5 +1,5 @@
 :host {
-  --intro-logo-color: #e11d74;
+  --intro-logo-color: var(--byiara-color-primary-action);
 
   position: fixed;
   inset: 0;
@@ -34,7 +34,7 @@
 }
 
 .intro-mark-svg,
-.intro-wordmark img {
+.intro-wordmark {
   display: block;
   width: 100%;
   height: auto;
@@ -79,10 +79,12 @@
 }
 
 .intro-wordmark {
+  aspect-ratio: 645 / 219;
   overflow: hidden;
-}
-
-.intro-wordmark img {
+  background: var(--intro-logo-color);
+  -webkit-mask: url('/brand/iara-gouveia-wordmark-v2.svg') center / contain
+    no-repeat;
+  mask: url('/brand/iara-gouveia-wordmark-v2.svg') center / contain no-repeat;
   opacity: 0;
   transform: translateX(-4%);
   clip-path: inset(0 100% 0 0);

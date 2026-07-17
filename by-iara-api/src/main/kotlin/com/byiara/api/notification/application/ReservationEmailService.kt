@@ -22,6 +22,8 @@ class ReservationEmailService(
     private val timezoneIdStr: String,
     @Value("\${by-iara.admin-url}")
     private val adminUrl: String,
+    @Value("\${by-iara.business-phone:}")
+    private val businessPhone: String,
 ) {
     private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
 
@@ -43,7 +45,7 @@ class ReservationEmailService(
 
     fun notifyCustomerOfDecision(reservation: Reservation) {
         runCatching {
-            val content = EmailCopy.reservationDecision(reservation, zoneId) ?: return@runCatching
+            val content = EmailCopy.reservationDecision(reservation, zoneId, businessPhone) ?: return@runCatching
             val type = when (reservation.status) {
                 ReservationStatus.CONFIRMED -> EmailType.RESERVATION_CONFIRMED
                 ReservationStatus.REJECTED -> EmailType.RESERVATION_REJECTED

@@ -1,7 +1,13 @@
 import type { LocaleCode } from '../i18n/supported-locales';
 import { BRAND } from '../brand/brand';
 
-export type StaticSeoPage = 'home' | 'services' | 'book';
+export type StaticSeoPage =
+  | 'home'
+  | 'services'
+  | 'book'
+  | 'privacy'
+  | 'bookingTerms'
+  | 'legalNotice';
 
 interface SeoCopy {
   readonly title: string;
@@ -28,6 +34,21 @@ export const SEO_MESSAGES: Record<
       description:
         `Escolha o tratamento e marque a sua sessão de massagem no estúdio ${BRAND.name} em Almada.`,
     },
+    privacy: {
+      title: `Política de privacidade | ${BRAND.name}`,
+      description:
+        'Informação sobre o tratamento de dados pessoais em pedidos de marcação e na utilização do website.',
+    },
+    bookingTerms: {
+      title: `Termos de marcação | ${BRAND.name}`,
+      description:
+        'Condições dos pedidos, confirmações, pagamentos presenciais, cancelamentos e reagendamentos.',
+    },
+    legalNotice: {
+      title: `Informação legal | ${BRAND.name}`,
+      description:
+        'Identificação legal, contactos e informação ao consumidor do prestador do serviço.',
+    },
     notFound: {
       title: `Página não encontrada | ${BRAND.name}`,
       description: 'A página ou o serviço que procura não está disponível.',
@@ -48,6 +69,21 @@ export const SEO_MESSAGES: Record<
       title: `Book a massage session | ${BRAND.name}`,
       description:
         `Choose a treatment and book your massage session at the ${BRAND.name} studio in Almada.`,
+    },
+    privacy: {
+      title: `Privacy policy | ${BRAND.name}`,
+      description:
+        'How personal data is handled when booking an appointment or using this website.',
+    },
+    bookingTerms: {
+      title: `Booking terms | ${BRAND.name}`,
+      description:
+        'Terms for booking requests, confirmations, in-person payments, cancellations, and rescheduling.',
+    },
+    legalNotice: {
+      title: `Legal information | ${BRAND.name}`,
+      description:
+        'Legal identity, contact, and consumer information for the service provider.',
     },
     notFound: {
       title: `Page not found | ${BRAND.name}`,

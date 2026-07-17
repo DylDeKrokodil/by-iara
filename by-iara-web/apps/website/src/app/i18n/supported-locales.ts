@@ -1,6 +1,12 @@
 export type LocaleCode = 'pt-PT' | 'en-US';
 export type LocalePath = 'pt' | 'en';
-export type PublicPageKey = 'home' | 'services' | 'book';
+export type PublicPageKey =
+  | 'home'
+  | 'services'
+  | 'book'
+  | 'privacy'
+  | 'bookingTerms'
+  | 'legalNotice';
 
 export interface SupportedLocale {
   readonly locale: LocaleCode;
@@ -32,11 +38,17 @@ export const LOCALIZED_PAGE_PATHS = {
     home: '',
     services: 'servicos',
     book: 'marcar',
+    privacy: 'privacidade',
+    bookingTerms: 'termos-de-marcacao',
+    legalNotice: 'informacao-legal',
   },
   en: {
     home: '',
     services: 'services',
     book: 'book',
+    privacy: 'privacy',
+    bookingTerms: 'booking-terms',
+    legalNotice: 'legal-information',
   },
 } as const satisfies Record<LocalePath, Record<PublicPageKey, string>>;
 

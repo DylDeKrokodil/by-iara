@@ -147,6 +147,27 @@ class ReservationEmailServiceTests {
     }
 
     @Test
+    fun `confirmation tells customers to call about health concerns and includes cancellation terms`() {
+        val ptConfirmed = EmailCopy.reservationDecision(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.PT),
+            zone,
+            "+351 912 345 678",
+        )!!
+        val enConfirmed = EmailCopy.reservationDecision(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.EN),
+            zone,
+            "+351 912 345 678",
+        )!!
+
+        assertTrue(ptConfirmed.body.contains("terá de nos telefonar antes da marcação para +351 912 345 678"))
+        assertTrue(ptConfirmed.body.contains("pelo menos 24 horas"))
+        assertTrue(ptConfirmed.htmlBody!!.contains("Não envie dados de saúde por email"))
+        assertTrue(enConfirmed.body.contains("you must call us before your appointment on +351 912 345 678"))
+        assertTrue(enConfirmed.body.contains("repeated late cancellations may require a €15 deposit"))
+        assertTrue(enConfirmed.htmlBody!!.contains("Do not send health information by email"))
+    }
+
+    @Test
     fun `non-decision status produces no customer email`() {
         assertNull(EmailCopy.reservationDecision(reservation(ReservationStatus.PENDING, ReservationLocale.EN), zone))
     }

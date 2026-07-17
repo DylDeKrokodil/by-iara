@@ -17,6 +17,12 @@ export interface WebsiteMessages {
       readonly home: string;
       readonly services: string;
       readonly book: string;
+      readonly legal: string;
+      readonly privacy: string;
+      readonly bookingTerms: string;
+      readonly legalNotice: string;
+      readonly complaintsBook: string;
+      readonly opensNewWindow: string;
       readonly visit: string;
       readonly location: string;
       readonly availability: string;
@@ -125,6 +131,11 @@ export interface WebsiteMessages {
     readonly confirmedWhen: string;
     readonly pendingNote: string;
     readonly bookAnother: string;
+    readonly paymentNotice: string;
+    readonly dataUseNotice: string;
+    readonly privacyLink: string;
+    readonly termsNotice: string;
+    readonly termsLink: string;
   };
 }
 
@@ -146,6 +157,12 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         home: 'Início',
         services: 'Serviços',
         book: 'Marcar sessão',
+        legal: 'Legal',
+        privacy: 'Privacidade',
+        bookingTerms: 'Termos de marcação',
+        legalNotice: 'Informação legal',
+        complaintsBook: 'Livro de Reclamações',
+        opensNewWindow: 'abre numa nova janela',
         visit: 'Visitar',
         location: 'Almada, Portugal',
         availability: 'Atendimento apenas por marcação',
@@ -260,7 +277,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Nome',
       email: 'Email',
       phone: 'Telefone',
-      notes: 'Notas',
+      notes: 'Notas logísticas — não inclua dados de saúde',
       optional: '(opcional)',
       required: 'Obrigatório',
       invalidEmail: 'Introduza um email válido',
@@ -281,6 +298,13 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       confirmedWhen: 'Quando',
       pendingNote: 'O seu pedido está pendente de confirmação.',
       bookAnother: 'Fazer outra reserva',
+      paymentNotice:
+        'Não é feito qualquer pagamento online. O pagamento é presencial por numerário, MB WAY ou transferência bancária.',
+      dataUseNotice:
+        'Utilizamos os seus dados apenas para tratar e comunicar sobre este pedido.',
+      privacyLink: 'Política de privacidade',
+      termsNotice: 'Ao pedir a reserva, confirma que leu os',
+      termsLink: 'Termos de marcação',
     },
   },
   'en-US': {
@@ -300,6 +324,12 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         home: 'Home',
         services: 'Services',
         book: 'Book a session',
+        legal: 'Legal',
+        privacy: 'Privacy',
+        bookingTerms: 'Booking terms',
+        legalNotice: 'Legal information',
+        complaintsBook: 'Complaints Book',
+        opensNewWindow: 'opens in a new window',
         visit: 'Visit',
         location: 'Almada, Portugal',
         availability: 'By appointment only',
@@ -412,7 +442,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Name',
       email: 'Email',
       phone: 'Phone',
-      notes: 'Notes',
+      notes: 'Logistical notes — do not include health information',
       optional: '(optional)',
       required: 'Required',
       invalidEmail: 'Enter a valid email',
@@ -434,6 +464,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       confirmedWhen: 'When',
       pendingNote: 'Your request is pending confirmation.',
       bookAnother: 'Book another',
+      paymentNotice:
+        'No payment is taken online. Payment is made in person by cash, MB WAY, or bank transfer.',
+      dataUseNotice:
+        'We use your details only to process and communicate about this request.',
+      privacyLink: 'Privacy policy',
+      termsNotice:
+        'By requesting the booking, you confirm that you have read the',
+      termsLink: 'Booking terms',
     },
   },
 };

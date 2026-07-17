@@ -1,0 +1,71 @@
+<article class="legal-page">
+  <div class="legal-container">
+    <header class="legal-header">
+      <p class="eyebrow">{{ content().eyebrow }}</p>
+      <h1>{{ content().title }}</h1>
+      <p class="legal-intro">{{ content().intro }}</p>
+      <p class="legal-updated">
+        {{ content().updatedLabel }}:
+        <time datetime="2026-07-17">{{ content().updatedDate }}</time>
+      </p>
+    </header>
+
+    @if (hasMissingDetails) {
+    <aside class="legal-incomplete" aria-labelledby="legal-incomplete-title">
+      <h2 id="legal-incomplete-title">{{ content().incompleteTitle }}</h2>
+      <p>{{ content().incompleteText }}</p>
+    </aside>
+    }
+
+    <div class="legal-layout">
+      <div class="legal-content">
+        @for (section of content().sections; track section.title; let index =
+        $index) {
+        <section
+          class="legal-section"
+          [attr.aria-labelledby]="sectionId(index)"
+        >
+          <h2 [id]="sectionId(index)">{{ section.title }}</h2>
+
+          @for (paragraph of section.paragraphs ?? []; track paragraph) {
+          <p>{{ paragraph }}</p>
+          } @if (section.items?.length) {
+          <ul>
+            @for (item of section.items; track item) {
+            <li>{{ item }}</li>
+            }
+          </ul>
+          } @if (section.links?.length) {
+          <ul class="legal-links">
+            @for (link of section.links; track link.href) {
+            <li>
+              <a [href]="link.href" target="_blank" rel="noopener noreferrer">
+                {{ link.label }}
+                <span class="visually-hidden"> ({{ opensNewWindow() }})</span>
+              </a>
+            </li>
+            }
+          </ul>
+          }
+        </section>
+        }
+      </div>
+
+      <aside class="legal-details" aria-labelledby="legal-details-title">
+        <h2 id="legal-details-title">{{ content().sections[0].title }}</h2>
+        <dl>
+          @for (row of detailRows(); track row.label) {
+          <div>
+            <dt>{{ row.label }}</dt>
+            <dd [class.is-missing]="row.missing">
+              @if (row.href) {
+              <a [href]="row.href">{{ row.value }}</a>
+              } @else { {{ row.value }} }
+            </dd>
+          </div>
+          }
+        </dl>
+      </aside>
+    </div>
+  </div>
+</article>

@@ -134,7 +134,7 @@ export class SeoService {
   private updateStatic(page: PublicPageKey): void {
     const locale = this.language.current();
     const seo = SEO_MESSAGES[locale.locale][page as StaticSeoPage];
-    const indexable = page !== 'book';
+    const indexable = page === 'home' || page === 'services';
     const canonicalPath = this.staticPath(locale.path, page);
     const alternates = SUPPORTED_LOCALES.map((candidate) => ({
       locale: candidate.path,
