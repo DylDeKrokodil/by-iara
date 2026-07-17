@@ -185,8 +185,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Escolher idioma',
     },
     home: {
-      location: 'Massagem terapêutica em Almada',
-      title: BRAND.name,
+      location: BRAND.name,
+      title: 'Massagem terapêutica em Almada',
       lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar serviços',
@@ -196,10 +196,10 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       mediaCredit: 'Vídeo via Mixkit',
       servicesTitle: 'Tratamentos',
       servicesLede:
-        'Do alívio profundo ao puro relaxamento — escolha o ritmo do seu corpo.',
+        'Do alívio profundo ao puro relaxamento, escolha o ritmo do seu corpo.',
       servicesFrom: (price) => `desde ${price}`,
       servicesDuration: (min, max) =>
-        min === max ? `${min} min` : `${min}–${max} min`,
+        min === max ? `${min} min` : `${min} a ${max} min`,
       servicesAction: 'Reservar',
       servicesViewAll: 'Ver todos os serviços',
       expectTitle: 'O que esperar',
@@ -210,7 +210,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         },
         {
           title: 'Chegue com calma',
-          text: 'Sem salas de espera — o espaço é seu. Chegue uns minutos antes e respire.',
+          text: 'Sem salas de espera. O espaço é seu. Chegue uns minutos antes e respire.',
         },
         {
           title: 'A sessão',
@@ -223,7 +223,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ],
       aboutTitle: 'Olá, sou a Iara.',
       aboutParagraphs: [
-        'Trabalho com massagem terapêutica porque acredito que o corpo guarda aquilo que a cabeça não consegue largar. Cada sessão começa por ouvir — o que dói, o que pesa, o que precisa de espaço.',
+        'Trabalho com massagem terapêutica porque acredito que o corpo guarda aquilo que a cabeça não consegue largar. Cada sessão começa por ouvir: o que dói, o que pesa e o que precisa de espaço.',
         'O estúdio é pequeno de propósito: uma pessoa de cada vez, sem pressa, com atenção inteira. É esse o luxo que quero oferecer.',
       ],
       visitTitle: 'Em Almada, à sua espera',
@@ -232,7 +232,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'O estúdio fica em Almada. A morada exata é partilhada na confirmação da sua marcação.',
       visitHoursTitle: 'Quando',
       visitHoursText:
-        'As sessões são sempre com marcação prévia — veja os horários livres ao reservar.',
+        'As sessões são sempre com marcação prévia. Veja os horários livres ao reservar.',
       closingTitle: 'Reserve o seu momento de pausa',
       closingText:
         'O primeiro passo para um corpo mais leve demora menos de um minuto.',
@@ -296,7 +296,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Nome',
       email: 'Email',
       phone: 'Telefone',
-      notes: 'Notas logísticas — não inclua dados de saúde',
+      notes: 'Notas logísticas (não inclua dados de saúde)',
       optional: '(opcional)',
       required: 'Obrigatório',
       invalidEmail: 'Introduza um email válido',
@@ -362,8 +362,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ariaLabel: 'Choose language',
     },
     home: {
-      location: 'Therapeutic massage in Almada',
-      title: BRAND.name,
+      location: BRAND.name,
+      title: 'Therapeutic massage in Almada',
       lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
       primaryAction: 'Book a session',
       secondaryAction: 'Explore services',
@@ -373,10 +373,10 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       mediaCredit: 'Video via Mixkit',
       servicesTitle: 'Treatments',
       servicesLede:
-        "From deep relief to pure relaxation — choose your body's pace.",
+        "From deep relief to pure relaxation, choose your body's pace.",
       servicesFrom: (price) => `from ${price}`,
       servicesDuration: (min, max) =>
-        min === max ? `${min} min` : `${min}–${max} min`,
+        min === max ? `${min} min` : `${min} to ${max} min`,
       servicesAction: 'Book',
       servicesViewAll: 'See all services',
       expectTitle: 'What to expect',
@@ -387,7 +387,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         },
         {
           title: 'Arrive slowly',
-          text: 'No waiting rooms — the space is yours. Come a few minutes early and breathe.',
+          text: 'No waiting rooms. The space is yours. Come a few minutes early and breathe.',
         },
         {
           title: 'The session',
@@ -400,7 +400,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ],
       aboutTitle: "Hello, I'm Iara.",
       aboutParagraphs: [
-        'I work with therapeutic massage because I believe the body holds what the mind cannot let go of. Every session starts with listening — what hurts, what weighs, what needs room.',
+        'I work with therapeutic massage because I believe the body holds what the mind cannot let go of. Every session starts with listening: what hurts, what weighs, and what needs room.',
         'The studio is small on purpose: one person at a time, unhurried, with full attention. That is the luxury I want to offer.',
       ],
       visitTitle: 'In Almada, waiting for you',
@@ -409,7 +409,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'The studio is in Almada. The exact address is shared when your booking is confirmed.',
       visitHoursTitle: 'When',
       visitHoursText:
-        'Sessions are by appointment only — see open times as you book.',
+        'Sessions are by appointment only. See open times as you book.',
       closingTitle: 'Reserve your moment of pause',
       closingText:
         'The first step towards a lighter body takes less than a minute.',
@@ -471,7 +471,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       name: 'Name',
       email: 'Email',
       phone: 'Phone',
-      notes: 'Logistical notes — do not include health information',
+      notes: 'Logistical notes (do not include health information)',
       optional: '(optional)',
       required: 'Required',
       invalidEmail: 'Enter a valid email',
