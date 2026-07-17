@@ -26,24 +26,38 @@
         >
           {{ copy().nav.home }}
         </a>
-        <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
+        <a
+          [routerLink]="language.localizedLink('services')"
+          routerLinkActive="active"
+        >
           {{ copy().nav.services }}
         </a>
       </nav>
 
-      <a class="logo-link" [routerLink]="language.localizedLink()" aria-label="By Iara">
-        <img class="logo-img" src="brand/by-iara-logo.svg" alt="By Iara" />
+      <a
+        class="logo-link"
+        [routerLink]="language.localizedLink()"
+        [attr.aria-label]="brand.name"
+      >
+        <img class="logo-img" [src]="brand.logoPath" [alt]="brand.name" />
       </a>
 
       <div class="header-actions">
-        <byiara-language-switcher class="header-language"></byiara-language-switcher>
+        <byiara-language-switcher
+          class="header-language"
+        ></byiara-language-switcher>
         <byiara-button size="sm" [routerLink]="language.localizedLink('book')">
           {{ copy().nav.bookCta }}
         </byiara-button>
       </div>
     </div>
 
-    <div class="mobile-menu" [class.is-open]="menuOpen()" [inert]="!menuOpen()" id="mobile-menu">
+    <div
+      class="mobile-menu"
+      [class.is-open]="menuOpen()"
+      [inert]="!menuOpen()"
+      id="mobile-menu"
+    >
       <div class="mobile-menu-content">
         <nav class="mobile-menu-nav">
           <a
@@ -53,7 +67,10 @@
           >
             {{ copy().nav.home }}
           </a>
-          <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
+          <a
+            [routerLink]="language.localizedLink('services')"
+            routerLinkActive="active"
+          >
             {{ copy().nav.services }}
           </a>
         </nav>
@@ -68,7 +85,59 @@
 
   <footer class="site-footer">
     <div class="footer-container">
-      <p class="footer-text">{{ copy().footer }}</p>
+      <div class="footer-main">
+        <div class="footer-brand">
+          <a
+            class="footer-logo-link"
+            [routerLink]="language.localizedLink()"
+            [attr.aria-label]="brand.name"
+          >
+            <img
+              class="footer-logo"
+              [src]="brand.logoPath"
+              [alt]="brand.name"
+            />
+          </a>
+          <p>{{ copy().footer.tagline }}</p>
+        </div>
+
+        <nav
+          class="footer-nav"
+          [attr.aria-label]="copy().footer.navigationLabel"
+        >
+          <h2>{{ copy().footer.explore }}</h2>
+          <a [routerLink]="language.localizedLink()"
+            >{{ copy().footer.home }}</a
+          >
+          <a [routerLink]="language.localizedLink('services')"
+            >{{ copy().footer.services }}</a
+          >
+          <a [routerLink]="language.localizedLink('book')"
+            >{{ copy().footer.book }}</a
+          >
+        </nav>
+
+        <div class="footer-visit">
+          <h2>{{ copy().footer.visit }}</h2>
+          <p>{{ copy().footer.location }}</p>
+          <p>{{ copy().footer.availability }}</p>
+        </div>
+
+        <div class="footer-booking">
+          <p>{{ copy().footer.bookingPrompt }}</p>
+          <byiara-button
+            variant="secondary"
+            [routerLink]="language.localizedLink('book')"
+          >
+            {{ copy().footer.bookingAction }}
+          </byiara-button>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>{{ copy().footer.copyright(currentYear) }}</p>
+        <span aria-hidden="true">Almada · 38.6765° N</span>
+      </div>
     </div>
   </footer>
 </div>

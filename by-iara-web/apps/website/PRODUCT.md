@@ -13,7 +13,7 @@ the primary language; English is offered as a secondary locale.
 
 ## Product Purpose
 
-The public website for By Iara, an independent massage-therapy studio. It exists to convey
+The public website for Iara Gouveia, an independent massage-therapy studio. It exists to convey
 the calm, restorative feel of the studio and to turn a visitor into a booking. Success is a
 visitor who feels at ease and reaches the booking flow for a specific treatment.
 

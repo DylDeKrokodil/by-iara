@@ -6,6 +6,7 @@ import { LanguageService } from './i18n/language.service';
 import { LanguageSwitcher } from './i18n/language-switcher/language-switcher';
 import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
+import { BRAND } from './brand/brand';
 
 @Component({
   imports: [
@@ -26,6 +27,8 @@ export class App {
   protected readonly language = inject(LanguageService);
   protected readonly copy = computed(() => this.language.messages().app);
   protected readonly menuOpen = signal(false);
+  protected readonly currentYear = new Date().getFullYear();
+  protected readonly brand = BRAND;
 
   constructor() {
     this.router.events

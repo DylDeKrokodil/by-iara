@@ -1,4 +1,5 @@
 import type { LocaleCode } from './supported-locales';
+import { BRAND } from '../brand/brand';
 
 export interface WebsiteMessages {
   readonly app: {
@@ -9,7 +10,20 @@ export interface WebsiteMessages {
       readonly openMenu: string;
       readonly closeMenu: string;
     };
-    readonly footer: string;
+    readonly footer: {
+      readonly tagline: string;
+      readonly navigationLabel: string;
+      readonly explore: string;
+      readonly home: string;
+      readonly services: string;
+      readonly book: string;
+      readonly visit: string;
+      readonly location: string;
+      readonly availability: string;
+      readonly bookingPrompt: string;
+      readonly bookingAction: string;
+      readonly copyright: (year: number) => string;
+    };
   };
   readonly languageSwitcher: {
     readonly ariaLabel: string;
@@ -124,14 +138,29 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
       },
-      footer: '© 2026 By Iara. Todos os direitos reservados.',
+      footer: {
+        tagline:
+          'Massagem terapêutica e relaxante, com tempo, cuidado e atenção inteira.',
+        navigationLabel: 'Navegação do rodapé',
+        explore: 'Explorar',
+        home: 'Início',
+        services: 'Serviços',
+        book: 'Marcar sessão',
+        visit: 'Visitar',
+        location: 'Almada, Portugal',
+        availability: 'Atendimento apenas por marcação',
+        bookingPrompt: 'O seu momento de pausa começa aqui.',
+        bookingAction: 'Ver horários',
+        copyright: (year) =>
+          `© ${year} ${BRAND.name}. Todos os direitos reservados.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Escolher idioma',
     },
     home: {
       location: 'Massagem terapêutica em Almada',
-      title: 'By Iara',
+      title: BRAND.name,
       lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar serviços',
@@ -263,14 +292,29 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         openMenu: 'Open menu',
         closeMenu: 'Close menu',
       },
-      footer: '© 2026 By Iara. All rights reserved.',
+      footer: {
+        tagline:
+          'Therapeutic and relaxing massage, with time, care, and full attention.',
+        navigationLabel: 'Footer navigation',
+        explore: 'Explore',
+        home: 'Home',
+        services: 'Services',
+        book: 'Book a session',
+        visit: 'Visit',
+        location: 'Almada, Portugal',
+        availability: 'By appointment only',
+        bookingPrompt: 'Your moment of pause starts here.',
+        bookingAction: 'See availability',
+        copyright: (year) =>
+          `© ${year} ${BRAND.name}. All rights reserved.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Choose language',
     },
     home: {
       location: 'Therapeutic massage in Almada',
-      title: 'By Iara',
+      title: BRAND.name,
       lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
       primaryAction: 'Book a session',
       secondaryAction: 'Explore services',

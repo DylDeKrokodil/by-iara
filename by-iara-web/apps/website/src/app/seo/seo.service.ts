@@ -16,6 +16,7 @@ import { LanguageService } from '../i18n/language.service';
 import type { Service } from '../services/services-api';
 import { SEO_MESSAGES, StaticSeoPage } from './seo-messages';
 import { SITE_ORIGIN } from './site-origin';
+import { BRAND } from '../brand/brand';
 
 const HREFLANG: Record<LocalePath, string> = { pt: 'pt-PT', en: 'en' };
 const OG_LOCALE: Record<LocaleCode, string> = {
@@ -56,7 +57,7 @@ export class SeoService {
       return;
     }
 
-    const title = `${translation.name} em Almada | By Iara`;
+    const title = `${translation.name} em Almada | ${BRAND.name}`;
     const description =
       translation.description ??
       SEO_MESSAGES[locale.locale].services.description;
@@ -92,7 +93,7 @@ export class SeoService {
       provider: {
         '@type': 'Organization',
         '@id': `${this.siteOrigin}/#organization`,
-        name: 'By Iara',
+        name: BRAND.name,
         url: `${this.siteOrigin}/pt`,
       },
       offers: service.variants
@@ -156,14 +157,14 @@ export class SeoService {
           {
             '@type': 'Organization',
             '@id': `${this.siteOrigin}/#organization`,
-            name: 'By Iara',
+            name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
-            logo: `${this.siteOrigin}/brand/by-iara-logo.svg`,
+            logo: `${this.siteOrigin}/${BRAND.logoPath}`,
           },
           {
             '@type': 'WebSite',
             '@id': `${this.siteOrigin}/#website`,
-            name: 'By Iara',
+            name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
             inLanguage: ['pt-PT', 'en-US'],
             publisher: { '@id': `${this.siteOrigin}/#organization` },
@@ -211,7 +212,7 @@ export class SeoService {
     });
     this.meta.updateTag({ property: 'og:type', content: config.type });
     this.meta.updateTag({ property: 'og:url', content: canonical });
-    this.meta.updateTag({ property: 'og:site_name', content: 'By Iara' });
+    this.meta.updateTag({ property: 'og:site_name', content: BRAND.name });
     this.meta.updateTag({
       property: 'og:locale',
       content: OG_LOCALE[locale.locale],
