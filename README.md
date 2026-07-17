@@ -99,3 +99,13 @@ The Docker database seeds a local admin user:
 ## Bruno
 
 Open the [bruno](/Users/dylan/Developer/by-iara/bruno) collection in Bruno and select the `Local` environment.
+
+## Production deployment
+
+The single-server production stack for a Hetzner CX33-class host is defined in
+`docker-compose.production.yml`. It includes Caddy-managed HTTPS, private
+application/database networking, resource limits, log rotation, PostgreSQL
+backups, and first-run admin provisioning.
+
+See [deploy/hetzner/README.md](deploy/hetzner/README.md) for DNS, server setup,
+deployment, backup, and scaling instructions.

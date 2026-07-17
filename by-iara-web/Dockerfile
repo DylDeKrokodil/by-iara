@@ -22,6 +22,7 @@ ENV PORT=4000
 ENV NG_ALLOWED_HOSTS=localhost
 # server.mjs resolves ../browser relative to itself, so keep the dist layout intact.
 COPY --from=build /workspace/dist/apps/website ./dist/apps/website
+USER node
 EXPOSE 4000
 CMD ["node", "dist/apps/website/server/server.mjs"]
 
