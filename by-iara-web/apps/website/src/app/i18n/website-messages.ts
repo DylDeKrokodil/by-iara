@@ -26,6 +26,9 @@ export interface WebsiteMessages {
       readonly visit: string;
       readonly location: string;
       readonly availability: string;
+      readonly contact: string;
+      readonly emailLabel: string;
+      readonly phoneLabel: string;
       readonly bookingPrompt: string;
       readonly bookingAction: string;
       readonly copyright: (year: number) => string;
@@ -113,9 +116,19 @@ export interface WebsiteMessages {
     readonly periodAfternoon: string;
     readonly periodEvening: string;
     readonly slotsLoading: string;
+    readonly slotsErrorTitle: string;
     readonly slotsError: string;
-    readonly noSlots: string;
-    readonly noSlotsForDate: string;
+    readonly retryAvailability: string;
+    readonly calendarPreviousMonth: string;
+    readonly calendarNextMonth: string;
+    readonly calendarPrevious: string;
+    readonly calendarNext: string;
+    readonly calendarAvailable: string;
+    readonly calendarUnavailable: string;
+    readonly noAvailabilityInMonth: (month: string) => string;
+    readonly chooseAnotherTreatment: string;
+    readonly contactByEmail: string;
+    readonly contactByPhone: (phone: string) => string;
     readonly yourDetails: string;
     readonly name: string;
     readonly email: string;
@@ -154,7 +167,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Serviços',
-        bookCta: 'Marca agora',
+        bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
       },
@@ -175,6 +188,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         visit: 'Visitar',
         location: 'Almada, Portugal',
         availability: 'Atendimento apenas por marcação',
+        contact: 'Contacto',
+        emailLabel: 'Email',
+        phoneLabel: 'Telemóvel',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
         bookingAction: 'Ver horários',
         copyright: (year) =>
@@ -289,9 +305,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       periodAfternoon: 'Tarde',
       periodEvening: 'Noite',
       slotsLoading: 'A carregar horários...',
-      slotsError: 'Não foi possível carregar a disponibilidade.',
-      noSlots: 'Sem horários disponíveis nas próximas semanas.',
-      noSlotsForDate: 'Sem horários disponíveis para esta data.',
+      slotsErrorTitle: 'Não foi possível consultar os horários',
+      slotsError:
+        'A ligação pode ter falhado. Tente novamente ou escolha outro tratamento.',
+      retryAvailability: 'Tentar novamente',
+      calendarPreviousMonth: 'Ver mês anterior',
+      calendarNextMonth: 'Ver mês seguinte',
+      calendarPrevious: 'Anterior',
+      calendarNext: 'Seguinte',
+      calendarAvailable: 'Disponível',
+      calendarUnavailable: 'Indisponível',
+      noAvailabilityInMonth: (month) =>
+        `Sem horários disponíveis em ${month}. Consulte outro mês ou contacte a Iara diretamente.`,
+      chooseAnotherTreatment: 'Escolher outro tratamento',
+      contactByEmail: 'Enviar email',
+      contactByPhone: (phone) => `Ligar para ${phone}`,
       yourDetails: 'Os seus dados',
       name: 'Nome',
       email: 'Email',
@@ -352,10 +380,12 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         visit: 'Visit',
         location: 'Almada, Portugal',
         availability: 'By appointment only',
+        contact: 'Contact',
+        emailLabel: 'Email',
+        phoneLabel: 'Mobile',
         bookingPrompt: 'Your moment of pause starts here.',
         bookingAction: 'See availability',
-        copyright: (year) =>
-          `© ${year} ${BRAND.name}. All rights reserved.`,
+        copyright: (year) => `© ${year} ${BRAND.name}. All rights reserved.`,
       },
     },
     languageSwitcher: {
@@ -464,9 +494,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       periodAfternoon: 'Afternoon',
       periodEvening: 'Evening',
       slotsLoading: 'Loading available times...',
-      slotsError: 'Could not load availability.',
-      noSlots: 'No times available in the next weeks.',
-      noSlotsForDate: 'No times available for this date.',
+      slotsErrorTitle: 'We could not check the available times',
+      slotsError:
+        'The connection may have failed. Try again or choose another treatment.',
+      retryAvailability: 'Try again',
+      calendarPreviousMonth: 'View previous month',
+      calendarNextMonth: 'View next month',
+      calendarPrevious: 'Previous',
+      calendarNext: 'Next',
+      calendarAvailable: 'Available',
+      calendarUnavailable: 'Unavailable',
+      noAvailabilityInMonth: (month) =>
+        `No times are available in ${month}. Try another month or contact Iara directly.`,
+      chooseAnotherTreatment: 'Choose another treatment',
+      contactByEmail: 'Send an email',
+      contactByPhone: (phone) => `Call ${phone}`,
       yourDetails: 'Your details',
       name: 'Name',
       email: 'Email',

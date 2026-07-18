@@ -1,10 +1,12 @@
 import {
   Component,
   computed,
+  ElementRef,
   inject,
   OnInit,
   PLATFORM_ID,
   signal,
+  viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -32,8 +34,8 @@ import {
   BUSINESS_TIMEZONE,
   ReservationConfirmation,
 } from './booking-api';
-
-const BOOKING_WINDOW_DAYS = 28;
+import { bookingCalendarMonth } from './booking-calendar';
+import { BUSINESS_DETAILS } from '../legal/business-details';
 
 type BookingStep = 'service' | 'time' | 'details' | 'review';
 const BOOKING_STEPS: readonly BookingStep[] = [
@@ -66,6 +68,15 @@ interface DateSlots {
   readonly slots: ReadonlyArray<SlotView>;
 }
 
+interface CalendarDay {
+  readonly key: string;
+  readonly day: string;
+  readonly label: string;
+  readonly inMonth: boolean;
+  readonly isPast: boolean;
+  readonly available: boolean;
+}
+
 @Component({
   selector: 'byiara-booking',
   imports: [
@@ -88,6 +99,8 @@ export class Booking implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly fb = inject(FormBuilder);
   protected readonly language = inject(LanguageService);
+  private readonly timeChoicesSection =
+    viewChild<ElementRef<HTMLElement>>('timeChoicesSection');
 
   protected readonly copy = computed(() => this.language.messages().booking);
 
@@ -100,6 +113,7 @@ export class Booking implements OnInit {
   protected readonly slots = signal<string[]>([]);
   protected readonly slotsLoading = signal(false);
   protected readonly slotsError = signal(false);
+  protected readonly calendarMonthOffset = signal(0);
   protected readonly selectedDateKey = signal<string | null>(null);
   protected readonly selectedSlot = signal<string | null>(null);
   protected readonly currentStep = signal<BookingStep>('service');
@@ -202,6 +216,70 @@ export class Booking implements OnInit {
     return slot ? this.formatDateTime(slot) : '';
   });
 
+  protected readonly calendarMonth = computed(() =>
+    bookingCalendarMonth(new Date(), this.calendarMonthOffset()),
+  );
+
+  protected readonly calendarMonthLabel = computed(() => {
+    const label = new Intl.DateTimeFormat(this.language.current().locale, {
+      month: 'long',
+      year: 'numeric',
+    }).format(this.calendarMonth().firstDay);
+    return (
+      label.charAt(0).toLocaleUpperCase(this.language.current().locale) +
+      label.slice(1)
+    );
+  });
+
+  protected readonly calendarWeekdays = computed(() => {
+    const formatter = new Intl.DateTimeFormat(this.language.current().locale, {
+      weekday: 'short',
+    });
+    const monday = new Date(2024, 0, 1);
+    return Array.from({ length: 7 }, (_, index) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + index);
+      return formatter.format(day).replace('.', '').slice(0, 3);
+    });
+  });
+
+  protected readonly calendarDays = computed<CalendarDay[]>(() => {
+    const month = this.calendarMonth();
+    const availableKeys = new Set(
+      this.availableDates().map((date) => date.key),
+    );
+    const todayKey = businessDateKey(new Date());
+    const labelFormatter = new Intl.DateTimeFormat(
+      this.language.current().locale,
+      {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      },
+    );
+
+    return Array.from({ length: month.gridDayCount }, (_, index) => {
+      const date = new Date(month.gridStart);
+      date.setDate(month.gridStart.getDate() + index);
+      const key = businessDateKey(date);
+      return {
+        key,
+        day: `${date.getDate()}`,
+        label: labelFormatter.format(date),
+        inMonth: date.getMonth() === month.firstDay.getMonth(),
+        isPast: key < todayKey,
+        available: availableKeys.has(key),
+      };
+    });
+  });
+
+  protected readonly contact = {
+    email: BUSINESS_DETAILS.email,
+    emailHref: `mailto:${BUSINESS_DETAILS.email}`,
+    phone: BUSINESS_DETAILS.phone,
+    phoneHref: `tel:${BUSINESS_DETAILS.phone.replace(/\s/g, '')}`,
+  };
+
   protected readonly steps = computed(() => {
     const copy = this.copy();
     return [
@@ -279,6 +357,7 @@ export class Booking implements OnInit {
       return;
     }
     this.selectedVariantId.set(id);
+    this.calendarMonthOffset.set(0);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);
     this.loadSlots();
@@ -292,11 +371,57 @@ export class Booking implements OnInit {
     this.selectedDateKey.set(dateKey);
     this.selectedSlot.set(null);
     this.submitError.set(null);
+    this.revealTimeChoices();
   }
 
   protected selectSlot(iso: string): void {
     this.selectedSlot.set(iso);
     this.submitError.set(null);
+  }
+
+  private revealTimeChoices(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      const section = this.timeChoicesSection()?.nativeElement;
+      if (!section) {
+        return;
+      }
+
+      const reduceMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+      section.scrollIntoView({
+        behavior: reduceMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+      section.focus({ preventScroll: true });
+    });
+  }
+
+  protected nextCalendarMonth(): void {
+    this.calendarMonthOffset.update((offset) => offset + 1);
+    this.resetTimeSelection();
+    this.loadSlots();
+  }
+
+  protected previousCalendarMonth(): void {
+    if (this.calendarMonthOffset() === 0) {
+      return;
+    }
+    this.calendarMonthOffset.update((offset) => offset - 1);
+    this.resetTimeSelection();
+    this.loadSlots();
+  }
+
+  protected retryAvailability(): void {
+    this.loadSlots({ forceRefresh: true });
+  }
+
+  protected chooseAnotherTreatment(): void {
+    this.goToStep('service');
   }
 
   protected openStep(step: BookingStep): void {
@@ -521,6 +646,7 @@ export class Booking implements OnInit {
     preselectedVariant: string | null,
   ): void {
     this.selectedServiceId.set(serviceId);
+    this.calendarMonthOffset.set(0);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);
     const variants = this.activeVariants();
@@ -542,11 +668,9 @@ export class Booking implements OnInit {
       return;
     }
 
-    const start = new Date();
-    const end = new Date();
-    end.setDate(end.getDate() + BOOKING_WINDOW_DAYS);
-    const startDate = this.isoDate(start);
-    const endDate = this.isoDate(end);
+    const month = this.calendarMonth();
+    const startDate = this.isoDate(month.firstDay);
+    const endDate = this.isoDate(month.lastDay);
     const cacheKey = `${service.id}:${variant.id}:${startDate}:${endDate}`;
     const requestId = ++this.slotRequestId;
 
@@ -643,7 +767,13 @@ export class Booking implements OnInit {
       return;
     }
 
-    this.selectedDateKey.set(dates[0]?.key ?? null);
+    this.selectedDateKey.set(null);
+  }
+
+  private resetTimeSelection(): void {
+    this.selectedDateKey.set(null);
+    this.selectedSlot.set(null);
+    this.submitError.set(null);
   }
 }
 

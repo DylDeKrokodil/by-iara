@@ -141,6 +141,22 @@
           <h2>{{ copy().footer.visit }}</h2>
           <p>{{ copy().footer.location }}</p>
           <p>{{ copy().footer.availability }}</p>
+
+          <h2 class="footer-contact-heading">{{ copy().footer.contact }}</h2>
+          <address class="footer-contact">
+            <a
+              [href]="contact.emailHref"
+              [attr.aria-label]="copy().footer.emailLabel + ': ' + contact.email"
+            >
+              {{ contact.email }}
+            </a>
+            <a
+              [href]="contact.phoneHref"
+              [attr.aria-label]="copy().footer.phoneLabel + ': ' + contact.phone"
+            >
+              {{ contact.phone }}
+            </a>
+          </address>
         </div>
 
         <div class="footer-booking">

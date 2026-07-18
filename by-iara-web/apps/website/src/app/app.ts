@@ -7,6 +7,7 @@ import { LanguageSwitcher } from './i18n/language-switcher/language-switcher';
 import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
 import { BRAND } from './brand/brand';
+import { BUSINESS_DETAILS } from './legal/business-details';
 
 @Component({
   imports: [
@@ -29,6 +30,12 @@ export class App {
   protected readonly menuOpen = signal(false);
   protected readonly currentYear = new Date().getFullYear();
   protected readonly brand = BRAND;
+  protected readonly contact = {
+    email: BUSINESS_DETAILS.email,
+    emailHref: `mailto:${BUSINESS_DETAILS.email}`,
+    phone: BUSINESS_DETAILS.phone,
+    phoneHref: `tel:${BUSINESS_DETAILS.phone.replace(/\s/g, '')}`,
+  };
 
   constructor() {
     this.router.events
