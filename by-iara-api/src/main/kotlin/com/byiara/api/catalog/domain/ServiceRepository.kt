@@ -8,8 +8,8 @@ interface ServiceRepository {
 
     fun findPublicByLocalizedSlug(locale: String, slug: String): Service?
 
-    /** All services with all variants — for admin management. Supports optional active status filtering. */
-    fun findAll(active: Boolean? = null): List<Service>
+    /** All services with all variants — filtered and sorted in the database for admin management. */
+    fun findAll(query: ServiceListQuery = ServiceListQuery()): List<Service>
 
     fun findById(id: UUID): Service?
 
@@ -24,3 +24,22 @@ interface ServiceRepository {
     /** Soft-delete: marks the service inactive. Returns false if it did not exist. */
     fun deactivate(id: UUID): Boolean
 }
+
+enum class ServiceSort {
+    DISPLAY_ORDER,
+    NAME,
+    DURATION,
+    PRICE,
+}
+
+enum class SortDirection {
+    ASC,
+    DESC,
+}
+
+data class ServiceListQuery(
+    val active: Boolean? = null,
+    val search: String? = null,
+    val sort: ServiceSort = ServiceSort.DISPLAY_ORDER,
+    val direction: SortDirection = SortDirection.ASC,
+)

@@ -1,5 +1,9 @@
 <byiara-page-header admin label="Catalogue" title="Services">
-  <byiara-button page-header-action variant="primary" routerLink="/services/new">
+  <byiara-button
+    page-header-action
+    variant="primary"
+    routerLink="/services/new"
+  >
     New service
   </byiara-button>
 </byiara-page-header>
@@ -9,6 +13,13 @@
 }
 
 <div class="list-toolbar" aria-label="Service list filters">
+  <byiara-text-field
+    class="search-filter"
+    label="Search services"
+    type="search"
+    autocomplete="off"
+    [formControl]="searchControl"
+  ></byiara-text-field>
   <byiara-select-field
     label="Status"
     [options]="statusFilters"
@@ -19,10 +30,18 @@
 </div>
 
 @if (!loading() && services().length === 0) {
-<byiara-empty-state title="No services yet.">
+<byiara-empty-state
+  [title]="hasFilters() ? 'No services match your filters.' : 'No services yet.'"
+>
+  @if (hasFilters()) {
+  <byiara-button variant="secondary" (click)="clearFilters()">
+    Clear filters
+  </byiara-button>
+  } @else {
   <byiara-button variant="primary" routerLink="/services/new">
     Create your first service
   </byiara-button>
+  }
 </byiara-empty-state>
 } @else {
 <byiara-data-table
@@ -31,6 +50,9 @@
   [rows]="services()"
   [loading]="loading()"
   [skeletonRows]="4"
+  [sortKey]="sortKey()"
+  [sortDirection]="sortDirection() === 'ASC' ? 'asc' : 'desc'"
+  (sortChange)="onSortChange($event)"
 >
   <ng-template #rowTemplate let-service>
     <tr [class.inactive]="!service.active">
@@ -41,17 +63,13 @@
         </div>
       </td>
       <td>
-        <div class="variants">
-          @for (variant of service.variants; track variant.id) {
-          <byiara-duration-chip
-            [label]="variantLabel(variant)"
-            [active]="variant.active"
-          >
-          </byiara-duration-chip>
-          } @empty {
-          <span class="muted">No durations</span>
-          }
-        </div>
+        <span class="metric-value">{{ durationSummary(service) }}</span>
+      </td>
+      <td>
+        <span class="metric-value">{{ priceSummary(service) }}</span>
+      </td>
+      <td>
+        <span class="metric-value">{{ service.sortOrder }}</span>
       </td>
       <td>
         <byiara-status-chip [active]="service.active"></byiara-status-chip>

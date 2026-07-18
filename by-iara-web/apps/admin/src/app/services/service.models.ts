@@ -72,6 +72,16 @@ export interface ServiceInput {
   variants: VariantInput[];
 }
 
+export type ServiceSort = 'DISPLAY_ORDER' | 'NAME' | 'DURATION' | 'PRICE';
+export type SortDirection = 'ASC' | 'DESC';
+
+export interface ServiceListParams {
+  active?: boolean;
+  query?: string;
+  sort?: ServiceSort;
+  direction?: SortDirection;
+}
+
 export function formatMoney(money: Money): string {
   return new Intl.NumberFormat('nl-NL', {
     style: 'currency',

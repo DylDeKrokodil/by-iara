@@ -6,15 +6,20 @@ import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceFaq
 import com.byiara.api.catalog.domain.ServiceFaqCommand
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.catalog.domain.ServiceListQuery
+import com.byiara.api.catalog.domain.ServiceSort
+import com.byiara.api.catalog.domain.SortDirection
 import com.byiara.api.catalog.domain.ServiceTranslation
 import com.byiara.api.catalog.domain.ServiceTranslationCommand
 import com.byiara.api.catalog.domain.ServiceVariant
 import com.byiara.api.catalog.domain.VariantCommand
 import org.jooq.DSLContext
 import org.jooq.Record
+import org.jooq.SortField
 import org.jooq.impl.DSL.currentOffsetDateTime
 import org.jooq.impl.DSL.field
 import org.jooq.impl.DSL.name
+import org.jooq.impl.DSL.min
 import org.jooq.impl.DSL.noCondition
 import org.jooq.impl.DSL.table
 import org.springframework.stereotype.Repository
@@ -89,7 +94,8 @@ class JooqServiceRepository(
         )
     }
 
-    override fun findAll(active: Boolean?): List<Service> = loadServices(activeFilter = active, variantsActiveOnly = false)
+    override fun findAll(query: ServiceListQuery): List<Service> =
+        loadServices(activeFilter = query.active, variantsActiveOnly = false, adminQuery = query)
 
     override fun findById(id: UUID): Service? {
         val record = dsl
@@ -216,18 +222,59 @@ class JooqServiceRepository(
         }
     }
 
-    private fun loadServices(activeFilter: Boolean?, variantsActiveOnly: Boolean): List<Service> {
+    private fun loadServices(
+        activeFilter: Boolean?,
+        variantsActiveOnly: Boolean,
+        adminQuery: ServiceListQuery? = null,
+    ): List<Service> {
+        val variantStats = dsl
+            .select(
+                vServiceId.`as`("stats_service_id"),
+                min(vDuration).`as`("min_duration"),
+                min(vPriceCents).`as`("min_price"),
+            )
+            .from(variants)
+            .where(vActive.isTrue)
+            .groupBy(vServiceId)
+            .asTable("variant_stats")
+        val statsServiceId = variantStats.field("stats_service_id", UUID::class.java)!!
+        val minDuration = variantStats.field("min_duration", Int::class.java)!!
+        val minPrice = variantStats.field("min_price", Long::class.java)!!
+
+        val activeCondition = when (activeFilter) {
+            true -> sActive.isTrue
+            false -> sActive.isFalse
+            null -> noCondition()
+        }
+        val searchCondition = adminQuery?.search
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { search ->
+                sName.containsIgnoreCase(search)
+                    .or(sSlug.containsIgnoreCase(search))
+                    .or(
+                        sId.`in`(
+                            dsl.select(stServiceId)
+                                .from(serviceTranslations)
+                                .where(
+                                    stName.containsIgnoreCase(search)
+                                        .or(stSlug.containsIgnoreCase(search)),
+                                ),
+                        ),
+                    )
+            }
+            ?: noCondition()
+        val orderBy = adminQuery
+            ?.let { serviceOrderBy(it, minDuration, minPrice) }
+            ?: listOf(sSortOrder.asc(), sName.asc())
+
         val records = dsl
             .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
             .from(services)
-            .where(
-                when (activeFilter) {
-                    true -> sActive.isTrue
-                    false -> sActive.isFalse
-                    null -> noCondition()
-                }
-            )
-            .orderBy(sSortOrder.asc(), sName.asc())
+            .leftJoin(variantStats)
+            .on(sId.eq(statsServiceId))
+            .where(activeCondition.and(searchCondition))
+            .orderBy(orderBy)
             .fetch()
 
         if (records.isEmpty()) {
@@ -245,6 +292,33 @@ class JooqServiceRepository(
                 translationsByService[record.get(sId)].orEmpty(),
             )
         }
+    }
+
+    private fun serviceOrderBy(
+        query: ServiceListQuery,
+        minDuration: org.jooq.Field<Int>,
+        minPrice: org.jooq.Field<Long>,
+    ): List<SortField<*>> {
+        val primary = when (query.sort) {
+            ServiceSort.DISPLAY_ORDER -> when (query.direction) {
+                SortDirection.ASC -> sSortOrder.asc()
+                SortDirection.DESC -> sSortOrder.desc()
+            }
+            ServiceSort.NAME -> when (query.direction) {
+                SortDirection.ASC -> sName.asc()
+                SortDirection.DESC -> sName.desc()
+            }
+            ServiceSort.DURATION -> when (query.direction) {
+                SortDirection.ASC -> minDuration.asc().nullsLast()
+                SortDirection.DESC -> minDuration.desc().nullsLast()
+            }
+            ServiceSort.PRICE -> when (query.direction) {
+                SortDirection.ASC -> minPrice.asc().nullsLast()
+                SortDirection.DESC -> minPrice.desc().nullsLast()
+            }
+        }
+
+        return listOf(primary, sName.asc(), sId.asc())
     }
 
     private fun loadTranslations(serviceIds: List<UUID>): Map<UUID, Map<String, ServiceTranslation>> {

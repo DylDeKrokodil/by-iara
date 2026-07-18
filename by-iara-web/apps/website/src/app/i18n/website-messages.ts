@@ -26,6 +26,9 @@ export interface WebsiteMessages {
       readonly visit: string;
       readonly location: string;
       readonly availability: string;
+      readonly contact: string;
+      readonly emailLabel: string;
+      readonly phoneLabel: string;
       readonly bookingPrompt: string;
       readonly bookingAction: string;
       readonly copyright: (year: number) => string;
@@ -113,9 +116,19 @@ export interface WebsiteMessages {
     readonly periodAfternoon: string;
     readonly periodEvening: string;
     readonly slotsLoading: string;
+    readonly slotsErrorTitle: string;
     readonly slotsError: string;
-    readonly noSlots: string;
-    readonly noSlotsForDate: string;
+    readonly retryAvailability: string;
+    readonly calendarPreviousMonth: string;
+    readonly calendarNextMonth: string;
+    readonly calendarPrevious: string;
+    readonly calendarNext: string;
+    readonly calendarAvailable: string;
+    readonly calendarUnavailable: string;
+    readonly noAvailabilityInMonth: (month: string) => string;
+    readonly chooseAnotherTreatment: string;
+    readonly contactByEmail: string;
+    readonly contactByPhone: (phone: string) => string;
     readonly yourDetails: string;
     readonly name: string;
     readonly email: string;
@@ -154,7 +167,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Serviços',
-        bookCta: 'Marca agora',
+        bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
       },
@@ -175,6 +188,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         visit: 'Visitar',
         location: 'Almada, Portugal',
         availability: 'Atendimento apenas por marcação',
+        contact: 'Contacto',
+        emailLabel: 'Email',
+        phoneLabel: 'Telemóvel',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
         bookingAction: 'Ver horários',
         copyright: (year) =>
@@ -205,26 +221,27 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       expectTitle: 'O que esperar',
       expectSteps: [
         {
-          title: 'Reserve online',
-          text: 'Escolha o tratamento e o horário que lhe convém, em poucos toques.',
+          title: 'Marque a sua sessão',
+          text: 'Escolha a massagem e o horário que melhor se adaptam à sua agenda. A marcação é rápida e simples.',
         },
         {
-          title: 'Chegue com calma',
-          text: 'Sem salas de espera. O espaço é seu. Chegue uns minutos antes e respire.',
+          title: 'Boas-vindas',
+          text: 'Será recebido num ambiente calmo e relaxante. Recomendamos que chegue alguns minutos mais cedo para se instalar com tranquilidade.',
         },
         {
-          title: 'A sessão',
-          text: 'Conversamos primeiro sobre o que o seu corpo precisa. Depois, é só entregar-se.',
+          title: 'A sua massagem',
+          text: 'Antes de começar, reservamos um momento para compreender as suas necessidades e adaptar a massagem a si.',
         },
         {
-          title: 'Depois',
-          text: 'Tempo para voltar a si, sem pressa, e sugestões para prolongar o efeito em casa.',
+          title: 'Depois da sessão',
+          text: 'Antes de sair, aproveite o tempo de que precisar. Se necessário, receberá algumas recomendações para ajudar a prolongar os benefícios da sua massagem.',
         },
       ],
-      aboutTitle: 'Olá, sou a Iara.',
+      aboutTitle: 'Olá, sou a Iara!',
       aboutParagraphs: [
-        'Trabalho com massagem terapêutica porque acredito que o corpo guarda aquilo que a cabeça não consegue largar. Cada sessão começa por ouvir: o que dói, o que pesa e o que precisa de espaço.',
-        'O estúdio é pequeno de propósito: uma pessoa de cada vez, sem pressa, com atenção inteira. É esse o luxo que quero oferecer.',
+        'Sou estudante do quarto ano de Fisioterapia, com um forte interesse pela saúde, pelo bem-estar e pela reabilitação física.',
+        'Acredito que todas as pessoas merecem um momento para cuidar de si. É por isso que ofereço tratamentos de massagem personalizados num ambiente calmo e acolhedor, onde cada cliente pode relaxar, aliviar tensões e sentir-se no seu melhor.',
+        'Estou constantemente a aprender e a desenvolver as minhas competências para prestar um serviço de alta qualidade, com dedicação, cuidado e atenção aos detalhes. Espero proporcionar a cada cliente um momento de bem-estar em cada sessão.',
       ],
       visitTitle: 'Em Almada, à sua espera',
       visitAddressTitle: 'Onde',
@@ -289,9 +306,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       periodAfternoon: 'Tarde',
       periodEvening: 'Noite',
       slotsLoading: 'A carregar horários...',
-      slotsError: 'Não foi possível carregar a disponibilidade.',
-      noSlots: 'Sem horários disponíveis nas próximas semanas.',
-      noSlotsForDate: 'Sem horários disponíveis para esta data.',
+      slotsErrorTitle: 'Não foi possível consultar os horários',
+      slotsError:
+        'A ligação pode ter falhado. Tente novamente ou escolha outro tratamento.',
+      retryAvailability: 'Tentar novamente',
+      calendarPreviousMonth: 'Ver mês anterior',
+      calendarNextMonth: 'Ver mês seguinte',
+      calendarPrevious: 'Anterior',
+      calendarNext: 'Seguinte',
+      calendarAvailable: 'Disponível',
+      calendarUnavailable: 'Indisponível',
+      noAvailabilityInMonth: (month) =>
+        `Sem horários disponíveis em ${month}. Consulte outro mês ou contacte a Iara diretamente.`,
+      chooseAnotherTreatment: 'Escolher outro tratamento',
+      contactByEmail: 'Enviar email',
+      contactByPhone: (phone) => `Ligar para ${phone}`,
       yourDetails: 'Os seus dados',
       name: 'Nome',
       email: 'Email',
@@ -352,10 +381,12 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         visit: 'Visit',
         location: 'Almada, Portugal',
         availability: 'By appointment only',
+        contact: 'Contact',
+        emailLabel: 'Email',
+        phoneLabel: 'Mobile',
         bookingPrompt: 'Your moment of pause starts here.',
         bookingAction: 'See availability',
-        copyright: (year) =>
-          `© ${year} ${BRAND.name}. All rights reserved.`,
+        copyright: (year) => `© ${year} ${BRAND.name}. All rights reserved.`,
       },
     },
     languageSwitcher: {
@@ -382,26 +413,27 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       expectTitle: 'What to expect',
       expectSteps: [
         {
-          title: 'Book online',
-          text: 'Pick a treatment and a time that suits you, in a few taps.',
+          title: 'Book your session',
+          text: 'Choose the massage and time that best suits your schedule. Booking is quick and easy.',
         },
         {
-          title: 'Arrive slowly',
-          text: 'No waiting rooms. The space is yours. Come a few minutes early and breathe.',
+          title: 'Welcome',
+          text: "You'll be welcomed into a calm and relaxing environment. We recommend arriving a few minutes early to settle in.",
         },
         {
-          title: 'The session',
-          text: 'We start by talking about what your body needs. Then simply let go.',
+          title: 'Your massage',
+          text: "Before the session begins, we'll take a moment to understand your needs and tailor the massage to you.",
         },
         {
-          title: 'Afterwards',
-          text: 'Time to come back to yourself, unhurried, with tips to carry the calm home.',
+          title: 'After your session',
+          text: "Take your time before heading off, and if needed, you'll receive a few recommendations to help extend the benefits of your massage.",
         },
       ],
-      aboutTitle: "Hello, I'm Iara.",
+      aboutTitle: "Hi, I'm Iara!",
       aboutParagraphs: [
-        'I work with therapeutic massage because I believe the body holds what the mind cannot let go of. Every session starts with listening: what hurts, what weighs, and what needs room.',
-        'The studio is small on purpose: one person at a time, unhurried, with full attention. That is the luxury I want to offer.',
+        "I'm a fourth-year Physical Therapy student with a strong interest in health, well-being, and physical rehabilitation.",
+        "I believe everyone deserves a moment to take care of themselves. That's why I offer personalised massage treatments in a calm and welcoming environment, where every client can relax, relieve tension, and feel their best.",
+        "I'm constantly learning and developing my skills to provide a high-quality service with dedication, care, and attention to detail. I hope to provide every client with a moment of well-being during each session.",
       ],
       visitTitle: 'In Almada, waiting for you',
       visitAddressTitle: 'Where',
@@ -464,9 +496,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       periodAfternoon: 'Afternoon',
       periodEvening: 'Evening',
       slotsLoading: 'Loading available times...',
-      slotsError: 'Could not load availability.',
-      noSlots: 'No times available in the next weeks.',
-      noSlotsForDate: 'No times available for this date.',
+      slotsErrorTitle: 'We could not check the available times',
+      slotsError:
+        'The connection may have failed. Try again or choose another treatment.',
+      retryAvailability: 'Try again',
+      calendarPreviousMonth: 'View previous month',
+      calendarNextMonth: 'View next month',
+      calendarPrevious: 'Previous',
+      calendarNext: 'Next',
+      calendarAvailable: 'Available',
+      calendarUnavailable: 'Unavailable',
+      noAvailabilityInMonth: (month) =>
+        `No times are available in ${month}. Try another month or contact Iara directly.`,
+      chooseAnotherTreatment: 'Choose another treatment',
+      contactByEmail: 'Send an email',
+      contactByPhone: (phone) => `Call ${phone}`,
       yourDetails: 'Your details',
       name: 'Name',
       email: 'Email',

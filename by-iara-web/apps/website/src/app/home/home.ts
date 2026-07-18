@@ -18,9 +18,7 @@ import {
   localizedService,
 } from '../services/services-api';
 import { NextAvailableLink } from './next-available-link/next-available-link';
-import { BRAND } from '../brand/brand';
-
-const TASTER_SIZE = 3;
+import { featuredServices } from './featured-services';
 
 @Component({
   selector: 'byiara-home',
@@ -34,22 +32,11 @@ export class Home implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly copy = computed(() => this.language.messages().home);
-  protected readonly brand = BRAND;
 
   private readonly services = signal<Service[]>([]);
-  /** Featured-first taster; the section renders only when this is non-empty. */
+  /** Admin-controlled selection; the section renders only when this is non-empty. */
   protected readonly taster = computed(() =>
-    [...this.services()]
-      .filter(
-        (service) =>
-          service.translations[this.language.current().locale] &&
-          service.variants.some((variant) => variant.active),
-      )
-      .sort(
-        (a, b) =>
-          Number(b.featured) - Number(a.featured) || a.sortOrder - b.sortOrder,
-      )
-      .slice(0, TASTER_SIZE),
+    featuredServices(this.services(), this.language.current().locale),
   );
 
   private readonly heroSection =

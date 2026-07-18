@@ -1,43 +1,60 @@
-<div class="byiara-data-table-container" [class.responsive-stack]="responsiveStack()">
+<div
+  class="byiara-data-table-container"
+  [class.responsive-stack]="responsiveStack()"
+>
   <div class="byiara-data-table-scroll">
-  <table
-    class="byiara-data-table"
-    [attr.aria-label]="ariaLabel()"
-    [attr.aria-busy]="loading()"
-  >
-    <thead>
-      <tr>
-        @for (column of columns(); track column.key) {
-        <th
-          scope="col"
-          [class.fit-column]="column.fit"
-          [style.width]="column.width ?? null"
+    <table
+      class="byiara-data-table"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-busy]="loading()"
+    >
+      <thead>
+        <tr>
+          @for (column of columns(); track column.key) {
+          <th
+            scope="col"
+            [class.fit-column]="column.fit"
+            [style.width]="column.width ?? null"
+            [attr.aria-sort]="ariaSort(column)"
+          >
+            @if (column.sortable) {
+            <button
+              type="button"
+              class="byiara-data-table-sort"
+              [attr.aria-label]="sortLabel(column)"
+              (click)="toggleSort(column)"
+            >
+              <span>{{ column.label }}</span>
+              <span class="byiara-data-table-sort-icon" aria-hidden="true">
+                @if (sortKey() === column.key) { {{ sortDirection() === 'asc' ?
+                '↑' : '↓' }} } @else { ↕ }
+              </span>
+            </button>
+            } @else { {{ column.label }} }
+          </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @if (loading()) { @for (rowIndex of skeletonRowIndexes(); track
+        rowIndex) {
+        <tr class="skeleton-row" aria-hidden="true">
+          @for (column of columns(); track column.key) {
+          <td [class.fit-column]="column.fit">
+            <span class="skeleton-line" [class.short]="column.fit"></span>
+          </td>
+          }
+        </tr>
+        } } @else if (rowTemplate) { @for (row of rows(); track rowIdentity(row,
+        $index); let rowIndex = $index) {
+        <ng-container
+          [ngTemplateOutlet]="rowTemplate"
+          [ngTemplateOutletContext]="{ $implicit: row, index: rowIndex }"
         >
-          {{ column.label }}
-        </th>
-        }
-      </tr>
-    </thead>
-    <tbody>
-      @if (loading()) { @for (rowIndex of skeletonRowIndexes(); track rowIndex)
-      {
-      <tr class="skeleton-row" aria-hidden="true">
-        @for (column of columns(); track column.key) {
-        <td [class.fit-column]="column.fit">
-          <span class="skeleton-line" [class.short]="column.fit"></span>
-        </td>
-        }
-      </tr>
-      } } @else if (rowTemplate) { @for (row of rows(); track rowIdentity(row,
-      $index); let rowIndex = $index) {
-      <ng-container
-        [ngTemplateOutlet]="rowTemplate"
-        [ngTemplateOutletContext]="{ $implicit: row, index: rowIndex }"
-      >
-      </ng-container>
-      } }
-    </tbody>
-  </table>
+        </ng-container>
+        } }
+      </tbody>
+    </table>
   </div>
   <div class="byiara-data-table-footer">
     <ng-content select="[data-table-footer]"></ng-content>

@@ -260,7 +260,8 @@
   gap: var(--byiara-space-xs);
 }
 
-.footer-nav .footer-legal-heading {
+.footer-nav .footer-legal-heading,
+.footer-visit .footer-contact-heading {
   margin-top: var(--byiara-space-lg);
 }
 
@@ -272,14 +273,16 @@
   font-weight: var(--byiara-font-weight-semibold);
 }
 
-.footer-nav a {
+.footer-nav a,
+.footer-contact a {
   color: color-mix(in srgb, var(--byiara-color-white) 78%, transparent);
   font-size: var(--byiara-font-size-sm);
   text-decoration: none;
   text-underline-offset: 0.3em;
 }
 
-.footer-nav a:hover {
+.footer-nav a:hover,
+.footer-contact a:hover {
   color: var(--byiara-color-white);
   text-decoration: underline;
 }
@@ -287,6 +290,18 @@
 .footer-visit p {
   color: color-mix(in srgb, var(--byiara-color-white) 74%, transparent);
   font-size: var(--byiara-font-size-sm);
+}
+
+.footer-contact {
+  display: grid;
+  gap: var(--byiara-space-2xs);
+  font: inherit;
+}
+
+.footer-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
 
 .footer-booking {
