@@ -121,14 +121,8 @@
 
   <section class="home-about" aria-labelledby="home-about-title">
     <div class="home-section-inner home-about-inner">
-      <img
-        class="home-about-mark"
-        [src]="brand.markPath"
-        alt=""
-        aria-hidden="true"
-      />
-      <div class="home-about-text">
-        <h2 id="home-about-title">{{ copy().aboutTitle }}</h2>
+      <h2 id="home-about-title">{{ copy().aboutTitle }}</h2>
+      <div class="home-about-copy">
         @for (paragraph of copy().aboutParagraphs; track paragraph) {
         <p>{{ paragraph }}</p>
         }

@@ -161,7 +161,7 @@ h1 {
 .home-section-lede,
 .home-service-description,
 .home-expect-step p,
-.home-about-text p,
+.home-about-copy p,
 .home-visit-fact p {
   margin: 0;
   color: var(--byiara-color-text-muted);
@@ -282,30 +282,29 @@ h1 {
 
 .home-about {
   padding-block: clamp(4rem, 9vw, 7rem);
+  background: var(--byiara-color-background);
 }
 
 .home-about-inner {
   display: grid;
-  grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 1.3fr);
+  gap: clamp(2.5rem, 8vw, 7rem);
 }
 
-.home-about-mark {
-  width: 100%;
-  max-width: 11rem;
-  opacity: 0.16;
-}
-
-.home-about-text {
+.home-about-copy {
   display: grid;
-  gap: var(--byiara-space-md);
-  max-width: 58ch;
+  gap: var(--byiara-space-lg);
+  max-width: 66ch;
 }
 
-.home-about-text p {
+.home-about-copy p {
   font-size: clamp(1rem, 0.96rem + 0.2vw, 1.1rem);
   line-height: var(--byiara-line-height-loose);
+}
+
+.home-about-copy p:first-child {
+  color: var(--byiara-color-text);
+  font-size: clamp(1.12rem, 1.04rem + 0.35vw, 1.3rem);
 }
 
 .home-visit {
@@ -404,10 +403,7 @@ h1 {
 
   .home-about-inner {
     grid-template-columns: 1fr;
-  }
-
-  .home-about-mark {
-    max-width: 5.5rem;
+    gap: var(--byiara-space-xl);
   }
 
   .home-visit-inner {
