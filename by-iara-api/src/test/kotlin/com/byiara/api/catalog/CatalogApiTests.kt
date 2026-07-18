@@ -289,6 +289,76 @@ class CatalogApiTests {
     }
 
     @Test
+    fun `admin can sort services by display order duration and price`() {
+        createService("Premium", durationMinutes = 90, priceCents = 12_000, sortOrder = 2)
+        createService("Express", durationMinutes = 30, priceCents = 4_000, sortOrder = 1)
+        createService("Standard", durationMinutes = 60, priceCents = 7_000, sortOrder = 0)
+
+        mockMvc.perform(get("/api/admin/services").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].name").value("Standard"))
+            .andExpect(jsonPath("$[1].name").value("Express"))
+            .andExpect(jsonPath("$[2].name").value("Premium"))
+
+        mockMvc.perform(
+            get("/api/admin/services")
+                .param("sort", "PRICE")
+                .param("direction", "ASC")
+                .with(adminJwt()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].name").value("Express"))
+            .andExpect(jsonPath("$[1].name").value("Standard"))
+            .andExpect(jsonPath("$[2].name").value("Premium"))
+
+        mockMvc.perform(
+            get("/api/admin/services")
+                .param("sort", "DURATION")
+                .param("direction", "DESC")
+                .with(adminJwt()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].name").value("Premium"))
+            .andExpect(jsonPath("$[1].name").value("Standard"))
+            .andExpect(jsonPath("$[2].name").value("Express"))
+    }
+
+    @Test
+    fun `admin service search and status filters are applied by the backend`() {
+        createService(
+            name = "Massagem profunda",
+            englishName = "Deep tissue massage",
+            durationMinutes = 60,
+            priceCents = 7_500,
+        )
+        createService(
+            name = "Sazonal",
+            durationMinutes = 45,
+            priceCents = 6_000,
+            active = false,
+        )
+
+        mockMvc.perform(
+            get("/api/admin/services")
+                .param("q", "DEEP")
+                .param("active", "true")
+                .with(adminJwt()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("Massagem profunda"))
+
+        mockMvc.perform(
+            get("/api/admin/services")
+                .param("active", "false")
+                .with(adminJwt()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(1))
+            .andExpect(jsonPath("$[0].name").value("Sazonal"))
+    }
+
+    @Test
     fun `admin service routes require authentication`() {
         mockMvc.perform(get("/api/admin/services"))
             .andExpect(status().isUnauthorized)
@@ -300,5 +370,31 @@ class CatalogApiTests {
             get("/api/admin/services/00000000-0000-0000-0000-000000000000").with(adminJwt()),
         )
             .andExpect(status().isNotFound)
+    }
+
+    private fun createService(
+        name: String,
+        durationMinutes: Int,
+        priceCents: Long,
+        sortOrder: Int = 0,
+        active: Boolean = true,
+        englishName: String? = null,
+    ) {
+        val englishTranslation = englishName?.let {
+            ",\"en-US\":{\"name\":\"$it\"}"
+        }.orEmpty()
+        mockMvc.perform(
+            post("/api/admin/services").with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{
+                      "name":"$name",
+                      "active":$active,
+                      "sortOrder":$sortOrder,
+                      "translations":{"pt-PT":{"name":"$name"}$englishTranslation},
+                      "variants":[{"durationMinutes":$durationMinutes,"priceCents":$priceCents}]
+                    }""".trimIndent(),
+                ),
+        ).andExpect(status().isCreated)
     }
 }

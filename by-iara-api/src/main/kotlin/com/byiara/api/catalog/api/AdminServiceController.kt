@@ -1,6 +1,9 @@
 package com.byiara.api.catalog.api
 
 import com.byiara.api.catalog.application.CatalogService
+import com.byiara.api.catalog.domain.ServiceListQuery
+import com.byiara.api.catalog.domain.ServiceSort
+import com.byiara.api.catalog.domain.SortDirection
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -21,8 +24,20 @@ class AdminServiceController(
     private val catalogService: CatalogService,
 ) {
     @GetMapping
-    fun list(@RequestParam(required = false) active: Boolean?): List<ServiceResponse> =
-        catalogService.listAll(active).map { it.toResponse() }
+    fun list(
+        @RequestParam(required = false) active: Boolean?,
+        @RequestParam(required = false, name = "q") search: String?,
+        @RequestParam(defaultValue = "DISPLAY_ORDER") sort: ServiceSort,
+        @RequestParam(defaultValue = "ASC") direction: SortDirection,
+    ): List<ServiceResponse> =
+        catalogService.listAll(
+            ServiceListQuery(
+                active = active,
+                search = search,
+                sort = sort,
+                direction = direction,
+            ),
+        ).map { it.toResponse() }
 
     @GetMapping("/{id}")
     fun get(@PathVariable id: UUID): ServiceResponse =

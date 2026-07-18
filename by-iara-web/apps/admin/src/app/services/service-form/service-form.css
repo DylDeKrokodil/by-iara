@@ -32,6 +32,19 @@
   color: var(--byiara-color-text-muted);
 }
 
+.display-order-field {
+  display: grid;
+  gap: var(--byiara-space-3xs);
+  max-width: 14rem;
+}
+
+.display-order-field p {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+  line-height: var(--byiara-line-height-body);
+}
+
 .localized-content-grid {
   display: grid;
   gap: var(--byiara-space-md);
@@ -111,7 +124,8 @@
 
 .section-divider {
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--byiara-color-border) 20%, transparent);
+  border-top: 1px solid
+    color-mix(in srgb, var(--byiara-color-border) 20%, transparent);
   margin: var(--byiara-space-lg) 0;
 }
 
@@ -153,9 +167,11 @@
 .field input:focus-visible,
 .field textarea:focus-visible {
   border-color: var(--byiara-color-primary);
-  outline: 2px solid color-mix(in srgb, var(--byiara-color-primary) 15%, transparent);
+  outline: 2px solid
+    color-mix(in srgb, var(--byiara-color-primary) 15%, transparent);
   outline-offset: 0;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--byiara-color-primary) 8%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--byiara-color-primary) 8%, transparent);
 }
 
 .is-invalid {
@@ -163,8 +179,13 @@
 }
 
 .is-invalid:focus-visible {
-  outline-color: color-mix(in srgb, var(--byiara-color-danger) 20%, transparent) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--byiara-color-danger) 8%, transparent) !important;
+  outline-color: color-mix(
+    in srgb,
+    var(--byiara-color-danger) 20%,
+    transparent
+  ) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--byiara-color-danger) 8%, transparent) !important;
 }
 
 .error-message {
@@ -241,9 +262,14 @@
 }
 
 .variant-card:hover {
-  border-color: color-mix(in srgb, var(--byiara-color-primary) 15%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--byiara-color-primary) 15%,
+    transparent
+  );
   background: var(--byiara-color-white);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+  box-shadow: 0 2px 8px
+    color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
 }
 
 .variant-fields {
@@ -292,7 +318,8 @@
   .form-section {
     max-width: none;
     padding-right: var(--byiara-space-xl);
-    border-right: 1px solid color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
+    border-right: 1px solid
+      color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
   }
 
   .variants-section {
@@ -306,7 +333,8 @@
   .form-actions-bar {
     grid-column: 1 / -1;
     max-width: none;
-    border-top: 1px solid color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
+    border-top: 1px solid
+      color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
     padding-top: var(--byiara-space-lg);
     margin-top: var(--byiara-space-sm);
   }

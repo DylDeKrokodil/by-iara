@@ -87,6 +87,7 @@ export class ServiceForm implements OnInit {
     }),
     active: [true],
     featured: [false],
+    sortOrder: [0, [Validators.min(0)]],
     variants: this.fb.array([this.variantGroup()]),
   });
 
@@ -130,6 +131,7 @@ export class ServiceForm implements OnInit {
           },
           active: service.active,
           featured: service.featured,
+          sortOrder: service.sortOrder,
         });
         this.setFaqs('ptPT', ptTranslation.faqs);
         this.setFaqs('enUS', enTranslation.faqs);
@@ -195,8 +197,7 @@ export class ServiceForm implements OnInit {
         treatmentDescription:
           raw.translations.ptPT['treatmentDescription'] || null,
         suitableFor: raw.translations.ptPT['suitableFor'] || null,
-        sessionDescription:
-          raw.translations.ptPT['sessionDescription'] || null,
+        sessionDescription: raw.translations.ptPT['sessionDescription'] || null,
         faqs: raw.translations.ptPT['faqs'].map((faq: ServiceFaq) => ({
           question: faq['question'],
           answer: faq['answer'],
@@ -211,8 +212,7 @@ export class ServiceForm implements OnInit {
         treatmentDescription:
           raw.translations.enUS['treatmentDescription'] || null,
         suitableFor: raw.translations.enUS['suitableFor'] || null,
-        sessionDescription:
-          raw.translations.enUS['sessionDescription'] || null,
+        sessionDescription: raw.translations.enUS['sessionDescription'] || null,
         faqs: raw.translations.enUS['faqs'].map((faq: ServiceFaq) => ({
           question: faq['question'],
           answer: faq['answer'],
@@ -224,6 +224,7 @@ export class ServiceForm implements OnInit {
       description: translations['pt-PT'].description,
       active: raw.active,
       featured: raw.featured,
+      sortOrder: Number(raw.sortOrder),
       translations,
       variants: raw.variants.map((variant) => ({
         durationMinutes: variant['durationMinutes'],

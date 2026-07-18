@@ -53,44 +53,44 @@
           ></byiara-tabs>
           @if (activeContentTab() === 'basics') {
           <div class="content-tab-panel">
-          <byiara-text-field
-            label="Service name"
-            formControlName="name"
-            [error]="translationNameInvalid('ptPT') ? 'Portuguese service name is required' : null"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="URL slug"
-            optionalLabel="(auto-generated if empty)"
-            formControlName="slug"
-            [error]="translationSlugError('ptPT')"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="Short summary"
-            multiline
-            [rows]="3"
-            formControlName="description"
-          ></byiara-text-field>
+            <byiara-text-field
+              label="Service name"
+              formControlName="name"
+              [error]="translationNameInvalid('ptPT') ? 'Portuguese service name is required' : null"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="URL slug"
+              optionalLabel="(auto-generated if empty)"
+              formControlName="slug"
+              [error]="translationSlugError('ptPT')"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Short summary"
+              multiline
+              [rows]="3"
+              formControlName="description"
+            ></byiara-text-field>
           </div>
           } @if (activeContentTab() === 'pageContent') {
           <div class="content-tab-panel">
-          <byiara-text-field
-            label="What is the treatment?"
-            multiline
-            [rows]="5"
-            formControlName="treatmentDescription"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="Who is it suitable for?"
-            multiline
-            [rows]="4"
-            formControlName="suitableFor"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="What happens during the session?"
-            multiline
-            [rows]="5"
-            formControlName="sessionDescription"
-          ></byiara-text-field>
+            <byiara-text-field
+              label="What is the treatment?"
+              multiline
+              [rows]="5"
+              formControlName="treatmentDescription"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Who is it suitable for?"
+              multiline
+              [rows]="4"
+              formControlName="suitableFor"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="What happens during the session?"
+              multiline
+              [rows]="5"
+              formControlName="sessionDescription"
+            ></byiara-text-field>
           </div>
           } @if (activeContentTab() === 'faqs') {
           <div class="faq-editor" formArrayName="faqs">
@@ -137,44 +137,44 @@
           ></byiara-tabs>
           @if (activeContentTab() === 'basics') {
           <div class="content-tab-panel">
-          <byiara-text-field
-            label="Service name"
-            formControlName="name"
-            [error]="translationNameInvalid('enUS') ? 'English service name is required' : null"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="URL slug"
-            optionalLabel="(auto-generated if empty)"
-            formControlName="slug"
-            [error]="translationSlugError('enUS')"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="Short summary"
-            multiline
-            [rows]="3"
-            formControlName="description"
-          ></byiara-text-field>
+            <byiara-text-field
+              label="Service name"
+              formControlName="name"
+              [error]="translationNameInvalid('enUS') ? 'English service name is required' : null"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="URL slug"
+              optionalLabel="(auto-generated if empty)"
+              formControlName="slug"
+              [error]="translationSlugError('enUS')"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Short summary"
+              multiline
+              [rows]="3"
+              formControlName="description"
+            ></byiara-text-field>
           </div>
           } @if (activeContentTab() === 'pageContent') {
           <div class="content-tab-panel">
-          <byiara-text-field
-            label="What is the treatment?"
-            multiline
-            [rows]="5"
-            formControlName="treatmentDescription"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="Who is it suitable for?"
-            multiline
-            [rows]="4"
-            formControlName="suitableFor"
-          ></byiara-text-field>
-          <byiara-text-field
-            label="What happens during the session?"
-            multiline
-            [rows]="5"
-            formControlName="sessionDescription"
-          ></byiara-text-field>
+            <byiara-text-field
+              label="What is the treatment?"
+              multiline
+              [rows]="5"
+              formControlName="treatmentDescription"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="Who is it suitable for?"
+              multiline
+              [rows]="4"
+              formControlName="suitableFor"
+            ></byiara-text-field>
+            <byiara-text-field
+              label="What happens during the session?"
+              multiline
+              [rows]="5"
+              formControlName="sessionDescription"
+            ></byiara-text-field>
           </div>
           } @if (activeContentTab() === 'faqs') {
           <div class="faq-editor" formArrayName="faqs">
@@ -226,6 +226,18 @@
         description="Highlight this service on the public homepage"
         formControlName="featured"
       ></byiara-switch>
+
+      <div class="display-order-field">
+        <byiara-text-field
+          label="Display order"
+          type="number"
+          formControlName="sortOrder"
+          [error]="form.controls.sortOrder.touched && form.controls.sortOrder.invalid ? 'Use zero or a positive number' : null"
+        ></byiara-text-field>
+        <p>
+          Lower numbers appear first in the public catalogue and booking flow.
+        </p>
+      </div>
     </div>
 
     <hr class="section-divider" />

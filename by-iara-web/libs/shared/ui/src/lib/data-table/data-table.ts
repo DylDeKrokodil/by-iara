@@ -1,11 +1,27 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, ContentChild, TemplateRef, ViewEncapsulation, computed, input } from '@angular/core';
+import {
+  Component,
+  ContentChild,
+  TemplateRef,
+  ViewEncapsulation,
+  computed,
+  input,
+  output,
+} from '@angular/core';
+
+export type DataTableSortDirection = 'asc' | 'desc';
+
+export interface DataTableSort {
+  key: string;
+  direction: DataTableSortDirection;
+}
 
 export interface DataTableColumn {
   key: string;
   label: string;
   fit?: boolean;
   width?: string;
+  sortable?: boolean;
 }
 
 @Component({
@@ -23,8 +39,14 @@ export class DataTable {
   skeletonRows = input(4);
   ariaLabel = input<string | null>(null);
   responsiveStack = input(false);
+  sortKey = input<string | null>(null);
+  sortDirection = input<DataTableSortDirection>('asc');
+  sortChange = output<DataTableSort>();
 
-  @ContentChild('rowTemplate') protected rowTemplate?: TemplateRef<{ $implicit: unknown; index: number }>;
+  @ContentChild('rowTemplate') protected rowTemplate?: TemplateRef<{
+    $implicit: unknown;
+    index: number;
+  }>;
 
   protected readonly skeletonRowIndexes = computed(() => {
     const rowCount = Math.max(this.skeletonRows(), 0);
@@ -40,5 +62,37 @@ export class DataTable {
     }
 
     return (row as Record<string, unknown>)[rowKey] ?? index;
+  }
+
+  protected ariaSort(
+    column: DataTableColumn,
+  ): 'ascending' | 'descending' | 'none' | null {
+    if (!column.sortable) {
+      return null;
+    }
+    if (this.sortKey() !== column.key) {
+      return 'none';
+    }
+    return this.sortDirection() === 'asc' ? 'ascending' : 'descending';
+  }
+
+  protected sortLabel(column: DataTableColumn): string {
+    const nextDirection =
+      this.sortKey() === column.key && this.sortDirection() === 'asc'
+        ? 'descending'
+        : 'ascending';
+    return `Sort by ${column.label} ${nextDirection}`;
+  }
+
+  protected toggleSort(column: DataTableColumn): void {
+    if (!column.sortable) {
+      return;
+    }
+
+    const direction: DataTableSortDirection =
+      this.sortKey() === column.key && this.sortDirection() === 'asc'
+        ? 'desc'
+        : 'asc';
+    this.sortChange.emit({ key: column.key, direction });
   }
 }

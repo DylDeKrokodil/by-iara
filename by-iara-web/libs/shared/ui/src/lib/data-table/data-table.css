@@ -37,7 +37,8 @@ byiara-data-table {
 .byiara-data-table td {
   padding: 0.875rem 1.25rem;
   vertical-align: middle;
-  border: 1px solid color-mix(in srgb, var(--byiara-color-border) 25%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--byiara-color-border) 25%, transparent);
 }
 
 .byiara-data-table th {
@@ -50,12 +51,47 @@ byiara-data-table {
   border-bottom: 2px solid var(--byiara-color-border);
 }
 
+.byiara-data-table-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--byiara-space-xs);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.byiara-data-table-sort:hover {
+  color: var(--byiara-color-text);
+}
+
+.byiara-data-table-sort:focus-visible {
+  border-radius: var(--byiara-radius-sm);
+  outline: 2px solid var(--byiara-color-focus);
+  outline-offset: 0.2rem;
+}
+
+.byiara-data-table-sort-icon {
+  min-width: 1em;
+  color: var(--byiara-color-primary-strong);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
 .byiara-data-table tbody tr {
   transition: background-color 0.15s ease;
 }
 
 .byiara-data-table tbody tr:not(.skeleton-row):hover td {
-  background-color: color-mix(in srgb, var(--byiara-color-primary) 2%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--byiara-color-primary) 2%,
+    transparent
+  );
 }
 
 .byiara-data-table .fit-column {

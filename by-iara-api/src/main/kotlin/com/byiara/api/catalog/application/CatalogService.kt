@@ -5,6 +5,7 @@ import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceNotFoundException
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.catalog.domain.ServiceListQuery
 import org.springframework.stereotype.Service as SpringService
 import org.springframework.transaction.annotation.Transactional
 import java.text.Normalizer
@@ -22,7 +23,7 @@ class CatalogService(
         serviceRepository.findPublicByLocalizedSlug(normalizeLocale(locale), slug)
 
     @Transactional(readOnly = true)
-    fun listAll(active: Boolean? = null): List<Service> = serviceRepository.findAll(active)
+    fun listAll(query: ServiceListQuery = ServiceListQuery()): List<Service> = serviceRepository.findAll(query)
 
     @Transactional(readOnly = true)
     fun get(id: UUID): Service =

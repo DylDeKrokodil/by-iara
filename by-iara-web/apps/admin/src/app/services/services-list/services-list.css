@@ -4,17 +4,32 @@
 
 .list-toolbar {
   display: flex;
+  align-items: end;
   justify-content: flex-end;
+  gap: var(--byiara-space-md);
   margin-bottom: var(--byiara-space-md);
+}
+
+.search-filter {
+  width: min(24rem, 100%);
+  margin-right: auto;
 }
 
 .inactive td {
   opacity: 0.65;
-  background-color: color-mix(in srgb, var(--byiara-color-text) 1%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--byiara-color-text) 1%,
+    transparent
+  );
 }
 
 .inactive:hover td {
-  background-color: color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--byiara-color-text) 2%,
+    transparent
+  );
 }
 
 .name-cell {
@@ -36,10 +51,11 @@
   opacity: 0.7;
 }
 
-.variants {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--byiara-space-xs);
+.metric-value {
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .actions-col {
@@ -56,6 +72,11 @@
 
 @media (max-width: 40rem) {
   .list-toolbar {
-    justify-content: stretch;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-filter {
+    width: 100%;
   }
 }
