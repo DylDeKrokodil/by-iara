@@ -353,6 +353,90 @@
       </byiara-button>
     </fieldset>
 
+    <hr class="section-divider" />
+
+    <fieldset class="variants-section" formArrayName="packOffers">
+      <legend class="section-title">Session packs</legend>
+      <p class="section-subtitle">
+        Sell several appointments for one upfront price. The first booked
+        appointment is included in the session count.
+      </p>
+
+      <div class="variants-list">
+        @for (offer of packOffers.controls; track offer) {
+        <div class="variant-card" [formGroupName]="$index">
+          <div class="variant-fields pack-fields">
+            <label class="field">
+              <span>Duration</span>
+              <div class="input-with-suffix">
+                <input
+                  type="number"
+                  min="1"
+                  formControlName="durationMinutes"
+                />
+                <span class="input-suffix">min</span>
+              </div>
+            </label>
+            <label class="field">
+              <span>Sessions</span>
+              <input type="number" min="2" formControlName="sessionCount" />
+            </label>
+            <label class="field">
+              <span>Pack price</span>
+              <div class="input-with-prefix">
+                <span class="input-prefix">€</span>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  formControlName="priceEuros"
+                />
+              </div>
+            </label>
+            <label class="field">
+              <span>Valid for</span>
+              <div class="input-with-suffix">
+                <input type="number" min="1" formControlName="validityDays" />
+                <span class="input-suffix">days</span>
+              </div>
+            </label>
+            <div class="form-group compact toggle-only">
+              <byiara-switch
+                labelPosition="inline"
+                label="Active"
+                formControlName="active"
+              ></byiara-switch>
+            </div>
+          </div>
+          <byiara-button
+            variant="ghost"
+            iconOnly
+            (click)="removePackOffer($index)"
+            ariaLabel="Remove pack offer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M3 6h18" />
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+            </svg>
+          </byiara-button>
+        </div>
+        }
+      </div>
+
+      <byiara-button variant="secondary" (click)="addPackOffer()">
+        Add session pack
+      </byiara-button>
+    </fieldset>
+
     <!-- Form Footer Actions -->
     <div class="form-actions-bar">
       <byiara-button type="submit" variant="primary" [loading]="submitting()">

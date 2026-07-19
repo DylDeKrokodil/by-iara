@@ -6,6 +6,8 @@ import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
+import com.byiara.api.pack.domain.PackNotAvailableException
+import com.byiara.api.pack.domain.CustomerAccessDeniedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -35,6 +37,18 @@ class ReservationExceptionHandler {
     fun handleSlotAlreadyBooked(exception: SlotAlreadyBookedException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.CONFLICT).body(
             ApiErrorResponse(message = exception.message ?: "The requested time slot is already booked"),
+        )
+
+    @ExceptionHandler(PackNotAvailableException::class)
+    fun handlePackNotAvailable(exception: PackNotAvailableException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ApiErrorResponse(message = exception.message ?: "The selected pack is not available"),
+        )
+
+    @ExceptionHandler(CustomerAccessDeniedException::class)
+    fun handleCustomerAccessDenied(exception: CustomerAccessDeniedException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+            ApiErrorResponse(message = exception.message ?: "Customer verification is required"),
         )
 
     @ExceptionHandler(IllegalReservationTransitionException::class)

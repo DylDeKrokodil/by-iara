@@ -91,6 +91,43 @@
           </div>
         </div>
 
+        <div class="booking-section" aria-labelledby="payment-choice">
+          <h2 id="payment-choice">{{ copy().paymentChoice }}</h2>
+          <div
+            class="purchase-options"
+            role="radiogroup"
+            [attr.aria-label]="copy().paymentChoice"
+          >
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="!selectedPackOfferId() && !selectedCustomerPackId()"
+              (click)="selectRegularSession()"
+            >
+              {{ copy().singleSession }}
+            </button>
+            @for (offer of availablePackOffers(); track offer.id) {
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="offer.id === selectedPackOfferId()"
+              (click)="selectPackOffer(offer.id)"
+            >
+              {{ packOfferLabel(offer) }}
+            </button>
+            } @for (pack of eligibleCustomerPacks(); track pack.id) {
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="pack.id === selectedCustomerPackId()"
+              (click)="selectCustomerPack(pack.id)"
+            >
+              {{ customerPackLabel(pack) }}
+            </button>
+            }
+          </div>
+        </div>
+
         <div class="step-actions">
           <button
             type="button"
@@ -286,6 +323,33 @@
             autocomplete="email"
             [error]="form.controls.email.touched && form.controls.email.invalid ? copy().invalidEmail : null"
           ></byiara-text-field>
+
+          <section class="pack-access" aria-labelledby="pack-access-title">
+            <div>
+              <h3 id="pack-access-title">{{ copy().alreadyHavePack }}</h3>
+              <p>
+                {{ customerSessionToken() ? copy().packConnected :
+                copy().packAccessHelp }}
+              </p>
+            </div>
+            @if (!customerSessionToken()) {
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="accessRequesting()"
+              (click)="requestPackAccess()"
+            >
+              {{ accessRequesting() ? copy().sendingPackLink :
+              copy().emailPackLink }}
+            </button>
+            } @if (accessSent()) {
+            <p class="access-message" role="status">
+              {{ copy().packLinkSent }}
+            </p>
+            } @if (accessError()) {
+            <p class="field-error" role="alert">{{ copy().packAccessError }}</p>
+            }
+          </section>
 
           <byiara-text-field
             [label]="copy().phone"

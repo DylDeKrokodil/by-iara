@@ -1,0 +1,60 @@
+<byiara-page-header
+  admin
+  label="Sales"
+  title="Customer packs"
+></byiara-page-header>
+
+@if (error()) {
+<byiara-alert tone="danger">Could not load customer packs.</byiara-alert>
+} @else if (!loading() && packs().length === 0) {
+<byiara-empty-state title="No customer packs yet.">
+  Packs will appear here after a customer books their first pack session.
+</byiara-empty-state>
+} @else {
+<div class="packs-card" [attr.aria-busy]="loading()">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Pack</th>
+          <th>Sessions</th>
+          <th>Status</th>
+          <th>Pack value</th>
+          <th>Expires</th>
+          <th>First booking</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (pack of packs(); track pack.id) {
+        <tr>
+          <td>
+            <strong>{{ pack.customerName }}</strong
+            ><span>{{ pack.customerEmail }}</span>
+          </td>
+          <td>
+            <strong>{{ pack.serviceName }}</strong
+            ><span>{{ pack.durationMinutes }} min</span>
+          </td>
+          <td>
+            {{ pack.remainingSessions }} of {{ pack.totalSessions }} remaining
+          </td>
+          <td>
+            <span class="status" [attr.data-status]="pack.status"
+              >{{ statusLabel(pack.status) }}</span
+            >
+          </td>
+          <td>{{ money(pack) }}</td>
+          <td>{{ date(pack.expiresAt) }}</td>
+          <td>
+            <a [routerLink]="['/reservations', pack.originatingReservationId]"
+              >Open</a
+            >
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>
+}

@@ -31,6 +31,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import java.util.UUID
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -56,6 +58,9 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists customer_access_tokens")
+        dsl.execute("drop table if exists pack_redemptions")
+        dsl.execute("drop table if exists customer_packs")
         dsl.execute("drop table if exists reservation_payments")
         dsl.execute("drop table if exists email_logs")
         dsl.execute("drop table if exists calendar_feed_tokens")
@@ -65,6 +70,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists availability_rules")
         dsl.execute("drop table if exists service_faqs")
         dsl.execute("drop table if exists service_translations")
+        dsl.execute("drop table if exists pack_offers")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
         dsl.execute("drop table if exists admin_users")
@@ -92,6 +98,23 @@ class ReservationApiTests {
                 duration_minutes integer not null,
                 price_cents bigint not null,
                 currency varchar(3) not null default 'EUR',
+                active boolean not null default true,
+                sort_order integer not null default 0,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table pack_offers (
+                id uuid default random_uuid() primary key,
+                service_id uuid not null references services(id) on delete cascade,
+                duration_minutes integer not null,
+                session_count integer not null,
+                price_cents bigint not null,
+                currency varchar(3) not null default 'EUR',
+                validity_days integer,
                 active boolean not null default true,
                 sort_order integer not null default 0,
                 created_at timestamp with time zone not null default now(),
@@ -219,6 +242,56 @@ class ReservationApiTests {
                 reference varchar(255),
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table customer_packs (
+                id uuid default random_uuid() primary key,
+                customer_id uuid not null references customers(id),
+                pack_offer_id uuid references pack_offers(id) on delete set null,
+                originating_reservation_id uuid not null unique references reservations(id),
+                status varchar(30) not null,
+                service_id uuid references services(id) on delete set null,
+                service_name varchar(160) not null,
+                duration_minutes integer not null,
+                total_sessions integer not null,
+                validity_days integer,
+                price_cents bigint not null,
+                currency varchar(3) not null,
+                activated_at timestamp with time zone,
+                expires_at timestamp with time zone,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table pack_redemptions (
+                id uuid default random_uuid() primary key,
+                customer_pack_id uuid not null references customer_packs(id),
+                reservation_id uuid not null unique references reservations(id),
+                status varchar(20) not null,
+                reserved_at timestamp with time zone not null default now(),
+                consumed_at timestamp with time zone,
+                released_at timestamp with time zone,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table customer_access_tokens (
+                id uuid default random_uuid() primary key,
+                customer_id uuid not null references customers(id),
+                token_hash varchar(64) not null unique,
+                token_type varchar(20) not null,
+                expires_at timestamp with time zone not null,
+                used_at timestamp with time zone,
+                created_at timestamp with time zone not null default now()
             )
             """.trimIndent(),
         )
@@ -492,6 +565,128 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `customer can buy access and redeem a session pack through email verification`() {
+        val offerId = UUID.randomUUID()
+        dsl.query(
+            """
+            insert into pack_offers (
+                id, service_id, duration_minutes, session_count, price_cents,
+                currency, validity_days, active, sort_order
+            ) values (?, ?, 60, 4, 14000, 'EUR', 365, true, 0)
+            """.trimIndent(),
+            offerId,
+            UUID.fromString(serviceId),
+        ).execute()
+
+        val firstResult = mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId": "$serviceId",
+                      "serviceVariantId": "$variantId",
+                      "startsAt": "${iso(slotStart)}",
+                      "customer": { "name": "Pack Customer", "email": "pack@example.com" },
+                      "packOfferId": "$offerId",
+                      "locale": "en"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.price.amountCents").value(14000))
+            .andReturn()
+        val firstReservationId = reservationIdFrom(firstResult)
+
+        assertEquals(
+            "PENDING_PAYMENT",
+            dsl.fetchValue("select status from customer_packs where originating_reservation_id = ?", firstReservationId),
+        )
+
+        dsl.query(
+            "update reservations set starts_at = ?, ends_at = ? where id = ?",
+            OffsetDateTime.now(zone).minusHours(2),
+            OffsetDateTime.now(zone).minusHours(1),
+            UUID.fromString(firstReservationId),
+        ).execute()
+        mockMvc.perform(patch("/api/admin/reservations/$firstReservationId/confirm").with(adminJwt()))
+            .andExpect(status().isOk)
+        mockMvc.perform(
+            patch("/api/admin/reservations/$firstReservationId/complete")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"payment":{"amountCents":14000,"currency":"EUR","method":"CARD"}}"""),
+        ).andExpect(status().isOk)
+
+        val customerPackId = dsl.fetchValue(
+            "select id from customer_packs where originating_reservation_id = ?",
+            UUID.fromString(firstReservationId),
+            UUID::class.java,
+        )!!
+        assertEquals("ACTIVE", dsl.fetchValue("select status from customer_packs where id = ?", customerPackId))
+        assertEquals(
+            "CONSUMED",
+            dsl.fetchValue("select status from pack_redemptions where reservation_id = ?", firstReservationId),
+        )
+
+        val customerId = dsl.fetchValue(
+            "select customer_id from customer_packs where id = ?",
+            customerPackId,
+            UUID::class.java,
+        )!!
+        val magicToken = "integration-magic-token"
+        dsl.query(
+            "insert into customer_access_tokens (customer_id, token_hash, token_type, expires_at) values (?, ?, 'MAGIC_LINK', ?)",
+            customerId,
+            sha256(magicToken),
+            OffsetDateTime.now().plusMinutes(10),
+        ).execute()
+        val exchangeJson = mockMvc.perform(
+            post("/api/customer-access/exchange")
+                .contentType("application/json")
+                .content("""{"token":"$magicToken"}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.packs[0].remainingSessions").value(3))
+            .andReturn().response.contentAsString
+        val customerSessionToken = Regex(""""sessionToken":"([^"]+)"""")
+            .find(exchangeJson)?.groupValues?.get(1) ?: error("Missing customer session token")
+
+        val secondResult = mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId": "$serviceId",
+                      "serviceVariantId": "$variantId",
+                      "startsAt": "${iso(slotStart.plusHours(2))}",
+                      "customer": { "name": "Ignored", "email": "ignored@example.com" },
+                      "customerPackId": "$customerPackId",
+                      "customerSessionToken": "$customerSessionToken",
+                      "locale": "en"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.price.amountCents").value(0))
+            .andExpect(jsonPath("$.customer.email").value("pack@example.com"))
+            .andReturn()
+        val secondReservationId = reservationIdFrom(secondResult)
+
+        mockMvc.perform(get("/api/admin/packs").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].remainingSessions").value(2))
+
+        mockMvc.perform(cancelRequest(secondReservationId)).andExpect(status().isOk)
+        mockMvc.perform(get("/api/admin/packs").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].remainingSessions").value(3))
+    }
+
+    @Test
     fun `future confirmed reservation cannot be completed or marked no-show`() {
         val id = insertReservation(slotStart, "CONFIRMED", "future-closeout@example.com")
 
@@ -705,6 +900,10 @@ class ReservationApiTests {
             ?.groupValues
             ?.get(1)
             ?: error("Missing reservation id")
+
+    private fun sha256(value: String): String = MessageDigest.getInstance("SHA-256")
+        .digest(value.toByteArray(StandardCharsets.UTF_8))
+        .joinToString("") { "%02x".format(it) }
 
     private fun insertReservation(start: OffsetDateTime, status: String, email: String): String {
         val customerId = UUID.randomUUID()

@@ -8,6 +8,7 @@ data class ServiceCommand(
     val featured: Boolean = false,
     val translations: Map<String, ServiceTranslationCommand> = emptyMap(),
     val variants: List<VariantCommand>,
+    val packOffers: List<PackOfferCommand> = emptyList(),
 )
 
 data class ServiceTranslationCommand(
@@ -30,6 +31,16 @@ data class VariantCommand(
     val durationMinutes: Int,
     val priceCents: Long,
     val currency: String,
+    val active: Boolean,
+    val sortOrder: Int,
+)
+
+data class PackOfferCommand(
+    val durationMinutes: Int,
+    val sessionCount: Int,
+    val priceCents: Long,
+    val currency: String,
+    val validityDays: Int?,
     val active: Boolean,
     val sortOrder: Int,
 )

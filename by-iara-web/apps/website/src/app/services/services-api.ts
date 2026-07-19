@@ -17,6 +17,16 @@ export interface ServiceVariant {
   sortOrder: number;
 }
 
+export interface PackOffer {
+  id: string;
+  durationMinutes: number;
+  sessionCount: number;
+  price: Money;
+  validityDays: number | null;
+  active: boolean;
+  sortOrder: number;
+}
+
 export interface ServiceTranslation {
   slug: string;
   name: string;
@@ -42,6 +52,7 @@ export interface Service {
   featured: boolean;
   translations: Record<string, ServiceTranslation>;
   variants: ServiceVariant[];
+  packOffers?: PackOffer[];
 }
 
 /**

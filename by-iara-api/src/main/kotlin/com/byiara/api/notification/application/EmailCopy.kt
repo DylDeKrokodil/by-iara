@@ -20,6 +20,59 @@ data class EmailContent(val subject: String, val body: String, val htmlBody: Str
  * through; the plain-text body remains as the multipart/alternative fallback.
  */
 object EmailCopy {
+    fun customerPackAccess(
+        customerName: String,
+        accessUrl: String,
+        locale: String,
+        expiresInMinutes: Long,
+    ): EmailContent = if (locale == "pt") {
+        EmailContent(
+            subject = "Aceda ao seu pack By Iara",
+            body = """
+                Olá $customerName,
+
+                Use este link seguro para marcar a próxima sessão do seu pack:
+                $accessUrl
+
+                O link expira em $expiresInMinutes minutos.
+            """.trimIndent(),
+            htmlBody = htmlDocument(
+                lang = "pt",
+                title = "Aceda ao seu pack",
+                bodyHtml = """
+                    <h1 style="$headingStyle">Aceda ao seu pack</h1>
+                    <p style="$paragraphStyle">Olá ${escapeHtml(customerName)}, use o botão abaixo para marcar a próxima sessão incluída no seu pack.</p>
+                    ${detailsCard(listOf("Link seguro" to "Válido durante $expiresInMinutes minutos"))}
+                    ${ctaButton("Marcar próxima sessão", accessUrl)}
+                    <p style="margin:24px 0 0; font-size:13px; line-height:1.5; color:$TEXT_MUTED;">Se não pediu este link, pode ignorar este email.</p>
+                """.trimIndent(),
+            ),
+        )
+    } else {
+        EmailContent(
+            subject = "Access your By Iara pack",
+            body = """
+                Hi $customerName,
+
+                Use this secure link to book your next pack session:
+                $accessUrl
+
+                The link expires in $expiresInMinutes minutes.
+            """.trimIndent(),
+            htmlBody = htmlDocument(
+                lang = "en",
+                title = "Access your pack",
+                bodyHtml = """
+                    <h1 style="$headingStyle">Access your pack</h1>
+                    <p style="$paragraphStyle">Hi ${escapeHtml(customerName)}, use the button below to book the next session included in your pack.</p>
+                    ${detailsCard(listOf("Secure link" to "Valid for $expiresInMinutes minutes"))}
+                    ${ctaButton("Book next session", accessUrl)}
+                    <p style="margin:24px 0 0; font-size:13px; line-height:1.5; color:$TEXT_MUTED;">If you did not request this link, you can safely ignore this email.</p>
+                """.trimIndent(),
+            ),
+        )
+    }
+
     /** Always English: single internal recipient list, not tied to any customer's locale. */
     fun newReservationAlert(reservation: Reservation, zoneId: ZoneId, adminUrl: String): EmailContent {
         val whenText = formatDateTime(reservation, zoneId, Locale.forLanguageTag("en-US"))

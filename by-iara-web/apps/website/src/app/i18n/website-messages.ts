@@ -112,6 +112,21 @@ export interface WebsiteMessages {
     readonly reviewStep: string;
     readonly chooseService: string;
     readonly chooseOption: string;
+    readonly paymentChoice: string;
+    readonly singleSession: string;
+    readonly buyPackLabel: (
+      sessions: number,
+      minutes: number,
+      price: string,
+    ) => string;
+    readonly usePackLabel: (remaining: number) => string;
+    readonly alreadyHavePack: string;
+    readonly packAccessHelp: string;
+    readonly packConnected: string;
+    readonly emailPackLink: string;
+    readonly sendingPackLink: string;
+    readonly packLinkSent: string;
+    readonly packAccessError: string;
     readonly chooseDate: string;
     readonly chooseSlot: string;
     readonly periodMorning: string;
@@ -304,6 +319,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Revisão',
       chooseService: 'Escolha o serviço',
       chooseOption: 'Escolha uma opção',
+      paymentChoice: 'Como pretende reservar?',
+      singleSession: 'Sessão individual',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Comprar pack de ${sessions} × ${minutes} min · ${price}`,
+      usePackLabel: (remaining) =>
+        `Usar o meu pack · ${remaining} ${remaining === 1 ? 'sessão restante' : 'sessões restantes'}`,
+      alreadyHavePack: 'Já tem um pack?',
+      packAccessHelp:
+        'Introduza o email usado na compra e enviaremos um link seguro para aceder às suas sessões.',
+      packConnected: 'O seu pack está ligado a este pedido de reserva.',
+      emailPackLink: 'Enviar link seguro por email',
+      sendingPackLink: 'A enviar...',
+      packLinkSent:
+        'Se existir um pack ativo para este email, receberá um link dentro de momentos.',
+      packAccessError: 'Não foi possível enviar o link. Tente novamente.',
       chooseDate: 'Escolha uma data',
       chooseSlot: 'Escolha um horário',
       periodMorning: 'Manhã',
@@ -496,6 +526,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Review',
       chooseService: 'Choose a service',
       chooseOption: 'Choose an option',
+      paymentChoice: 'How would you like to book?',
+      singleSession: 'Single session',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Buy ${sessions} × ${minutes} min pack · ${price}`,
+      usePackLabel: (remaining) =>
+        `Use my pack · ${remaining} ${remaining === 1 ? 'session' : 'sessions'} remaining`,
+      alreadyHavePack: 'Already have a pack?',
+      packAccessHelp:
+        'Enter the email used for your purchase and we will send you a secure link to access your sessions.',
+      packConnected: 'Your pack is connected to this booking request.',
+      emailPackLink: 'Email me a secure link',
+      sendingPackLink: 'Sending...',
+      packLinkSent:
+        'If an active pack exists for this email, a link will arrive shortly.',
+      packAccessError: 'We could not send the link. Please try again.',
       chooseDate: 'Choose a date',
       chooseSlot: 'Choose a time',
       periodMorning: 'Morning',

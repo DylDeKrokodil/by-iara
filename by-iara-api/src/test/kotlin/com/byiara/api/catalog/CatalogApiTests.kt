@@ -36,6 +36,7 @@ class CatalogApiTests {
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists service_faqs")
         dsl.execute("drop table if exists service_translations")
+        dsl.execute("drop table if exists pack_offers")
         dsl.execute("drop table if exists service_variants")
         dsl.execute("drop table if exists services")
         dsl.execute(
@@ -66,6 +67,23 @@ class CatalogApiTests {
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now(),
                 constraint service_variants_service_duration_unique unique (service_id, duration_minutes)
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table pack_offers (
+                id uuid default random_uuid() primary key,
+                service_id uuid not null references services(id) on delete cascade,
+                duration_minutes integer not null,
+                session_count integer not null,
+                price_cents bigint not null,
+                currency varchar(3) not null default 'EUR',
+                validity_days integer,
+                active boolean not null default true,
+                sort_order integer not null default 0,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
             )
             """.trimIndent(),
         )

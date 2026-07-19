@@ -280,6 +280,22 @@
   flex-grow: 1;
 }
 
+.variant-fields.pack-fields {
+  grid-template-columns: repeat(5, minmax(7rem, 1fr));
+}
+
+@media (max-width: 70rem) {
+  .variant-fields.pack-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .variant-fields.pack-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 .variant-fields .form-group.compact {
   width: 8.5rem;
 }

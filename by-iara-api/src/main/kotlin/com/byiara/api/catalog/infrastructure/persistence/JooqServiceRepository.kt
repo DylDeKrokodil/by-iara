@@ -1,6 +1,8 @@
 package com.byiara.api.catalog.infrastructure.persistence
 
 import com.byiara.api.catalog.domain.Money
+import com.byiara.api.catalog.domain.PackOffer
+import com.byiara.api.catalog.domain.PackOfferCommand
 import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceFaq
@@ -50,6 +52,17 @@ class JooqServiceRepository(
     private val vActive = field(name("active"), Boolean::class.java)
     private val vSortOrder = field(name("sort_order"), Int::class.java)
 
+    private val packOffers = table(name("pack_offers"))
+    private val poId = field(name("pack_offers", "id"), UUID::class.java)
+    private val poServiceId = field(name("pack_offers", "service_id"), UUID::class.java)
+    private val poDuration = field(name("pack_offers", "duration_minutes"), Int::class.java)
+    private val poSessionCount = field(name("pack_offers", "session_count"), Int::class.java)
+    private val poPriceCents = field(name("pack_offers", "price_cents"), Long::class.java)
+    private val poCurrency = field(name("pack_offers", "currency"), String::class.java)
+    private val poValidityDays = field(name("pack_offers", "validity_days"), Int::class.java)
+    private val poActive = field(name("pack_offers", "active"), Boolean::class.java)
+    private val poSortOrder = field(name("pack_offers", "sort_order"), Int::class.java)
+
     private val serviceTranslations = table(name("service_translations"))
     private val stServiceId = field(name("service_id"), UUID::class.java)
     private val stLocale = field(name("locale"), String::class.java)
@@ -91,6 +104,7 @@ class JooqServiceRepository(
             record,
             loadVariants(listOf(id), activeOnly = true).map { it.variant },
             loadTranslations(listOf(id))[id].orEmpty(),
+            loadPackOffers(listOf(id), activeOnly = true).map { it.offer },
         )
     }
 
@@ -109,6 +123,7 @@ class JooqServiceRepository(
             record,
             loadVariants(listOf(id), activeOnly = false).map { it.variant },
             loadTranslations(listOf(id))[id].orEmpty(),
+            loadPackOffers(listOf(id), activeOnly = false).map { it.offer },
         )
     }
 
@@ -136,6 +151,7 @@ class JooqServiceRepository(
             .get(sId)
 
         insertVariants(newId, command.variants)
+        insertPackOffers(newId, command.packOffers)
         insertTranslations(newId, command.translations)
 
         return findById(newId)!!
@@ -155,6 +171,9 @@ class JooqServiceRepository(
         // Variants are owned by the service; replace them wholesale on update.
         dsl.deleteFrom(variants).where(vServiceId.eq(id)).execute()
         insertVariants(id, command.variants)
+
+        dsl.deleteFrom(packOffers).where(poServiceId.eq(id)).execute()
+        insertPackOffers(id, command.packOffers)
 
         dsl.deleteFrom(serviceTranslations).where(stServiceId.eq(id)).execute()
         insertTranslations(id, command.translations)
@@ -180,6 +199,33 @@ class JooqServiceRepository(
                     variant.currency,
                     variant.active,
                     variant.sortOrder,
+                )
+                .execute()
+        }
+    }
+
+    private fun insertPackOffers(serviceId: UUID, commands: List<PackOfferCommand>) {
+        commands.forEach { offer ->
+            dsl.insertInto(packOffers)
+                .columns(
+                    poServiceId,
+                    poDuration,
+                    poSessionCount,
+                    poPriceCents,
+                    poCurrency,
+                    poValidityDays,
+                    poActive,
+                    poSortOrder,
+                )
+                .values(
+                    serviceId,
+                    offer.durationMinutes,
+                    offer.sessionCount,
+                    offer.priceCents,
+                    offer.currency,
+                    offer.validityDays,
+                    offer.active,
+                    offer.sortOrder,
                 )
                 .execute()
         }
@@ -283,6 +329,8 @@ class JooqServiceRepository(
 
         val variantsByService = loadVariants(records.map { it.get(sId) }, variantsActiveOnly)
             .groupBy { it.serviceId }
+        val offersByService = loadPackOffers(records.map { it.get(sId) }, variantsActiveOnly)
+            .groupBy { it.serviceId }
         val translationsByService = loadTranslations(records.map { it.get(sId) })
 
         return records.map { record ->
@@ -290,6 +338,7 @@ class JooqServiceRepository(
                 record,
                 variantsByService[record.get(sId)].orEmpty().map { it.variant },
                 translationsByService[record.get(sId)].orEmpty(),
+                offersByService[record.get(sId)].orEmpty().map { it.offer },
             )
         }
     }
@@ -404,6 +453,7 @@ class JooqServiceRepository(
         record: Record,
         variants: List<ServiceVariant>,
         translations: Map<String, ServiceTranslation>,
+        packOffers: List<PackOffer>,
     ): Service =
         Service(
             id = record.get(sId),
@@ -415,7 +465,33 @@ class JooqServiceRepository(
             featured = record.get(sFeatured),
             translations = translations,
             variants = variants,
+            packOffers = packOffers,
         )
+
+    private fun loadPackOffers(serviceIds: List<UUID>, activeOnly: Boolean): List<OwnedPackOffer> {
+        if (serviceIds.isEmpty()) return emptyList()
+        return dsl.select(
+            poId, poServiceId, poDuration, poSessionCount, poPriceCents,
+            poCurrency, poValidityDays, poActive, poSortOrder,
+        )
+            .from(packOffers)
+            .where(poServiceId.`in`(serviceIds).and(if (activeOnly) poActive.isTrue else noCondition()))
+            .orderBy(poSortOrder.asc(), poDuration.asc(), poSessionCount.asc())
+            .fetch { record ->
+                OwnedPackOffer(
+                    serviceId = record.get(poServiceId),
+                    offer = PackOffer(
+                        id = record.get(poId),
+                        durationMinutes = record.get(poDuration),
+                        sessionCount = record.get(poSessionCount),
+                        price = Money(record.get(poPriceCents), record.get(poCurrency)),
+                        validityDays = record.get(poValidityDays),
+                        active = record.get(poActive),
+                        sortOrder = record.get(poSortOrder),
+                    ),
+                )
+            }
+    }
 
     private fun mapVariant(record: Record): ServiceVariant =
         ServiceVariant(
@@ -433,6 +509,8 @@ class JooqServiceRepository(
         val serviceId: UUID,
         val variant: ServiceVariant,
     )
+
+    private data class OwnedPackOffer(val serviceId: UUID, val offer: PackOffer)
 
     private data class TranslationKey(
         val serviceId: UUID,

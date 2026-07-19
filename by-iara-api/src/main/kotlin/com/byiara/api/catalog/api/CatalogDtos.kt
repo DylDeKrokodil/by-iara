@@ -8,6 +8,8 @@ import com.byiara.api.catalog.domain.ServiceTranslation
 import com.byiara.api.catalog.domain.ServiceTranslationCommand
 import com.byiara.api.catalog.domain.ServiceVariant
 import com.byiara.api.catalog.domain.VariantCommand
+import com.byiara.api.catalog.domain.PackOffer
+import com.byiara.api.catalog.domain.PackOfferCommand
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -34,6 +36,9 @@ data class ServiceRequest(
     @field:NotEmpty
     @field:Valid
     val variants: List<VariantRequest> = emptyList(),
+
+    @field:Valid
+    val packOffers: List<PackOfferRequest> = emptyList(),
 ) {
     fun toCommand(): ServiceCommand {
         val normalizedName = name.trim()
@@ -56,8 +61,34 @@ data class ServiceRequest(
             featured = featured,
             translations = normalizedTranslations,
             variants = variants.map { it.toCommand() },
+            packOffers = packOffers.mapIndexed { index, offer -> offer.toCommand(index) },
         )
     }
+}
+
+data class PackOfferRequest(
+    @field:Positive
+    val durationMinutes: Int,
+    @field:Positive
+    val sessionCount: Int,
+    @field:Positive
+    val priceCents: Long,
+    @field:Size(min = 3, max = 3)
+    val currency: String = "EUR",
+    @field:Positive
+    val validityDays: Int? = null,
+    val active: Boolean = true,
+    val sortOrder: Int = 0,
+) {
+    fun toCommand(index: Int): PackOfferCommand = PackOfferCommand(
+        durationMinutes = durationMinutes,
+        sessionCount = sessionCount,
+        priceCents = priceCents,
+        currency = currency.uppercase(),
+        validityDays = validityDays,
+        active = active,
+        sortOrder = sortOrder.takeIf { it >= 0 } ?: index,
+    )
 }
 
 data class ServiceTranslationRequest(
@@ -143,6 +174,7 @@ data class ServiceResponse(
     val featured: Boolean,
     val translations: Map<String, ServiceTranslationResponse>,
     val variants: List<ServiceVariantResponse>,
+    val packOffers: List<PackOfferResponse>,
 )
 
 data class ServiceTranslationResponse(
@@ -168,6 +200,16 @@ data class ServiceVariantResponse(
     val sortOrder: Int,
 )
 
+data class PackOfferResponse(
+    val id: UUID,
+    val durationMinutes: Int,
+    val sessionCount: Int,
+    val price: MoneyResponse,
+    val validityDays: Int?,
+    val active: Boolean,
+    val sortOrder: Int,
+)
+
 data class MoneyResponse(
     val amountCents: Long,
     val currency: String,
@@ -184,6 +226,7 @@ fun Service.toResponse(): ServiceResponse =
         featured = featured,
         translations = translations.mapValues { it.value.toResponse() },
         variants = variants.map { it.toResponse() },
+        packOffers = packOffers.map { it.toResponse() },
     )
 
 fun ServiceTranslation.toResponse(): ServiceTranslationResponse =
@@ -211,6 +254,16 @@ fun ServiceVariant.toResponse(): ServiceVariantResponse =
         active = active,
         sortOrder = sortOrder,
     )
+
+fun PackOffer.toResponse(): PackOfferResponse = PackOfferResponse(
+    id = id,
+    durationMinutes = durationMinutes,
+    sessionCount = sessionCount,
+    price = MoneyResponse(price.amountCents, price.currency),
+    validityDays = validityDays,
+    active = active,
+    sortOrder = sortOrder,
+)
 
 private const val PRIMARY_LOCALE = "pt-PT"
 

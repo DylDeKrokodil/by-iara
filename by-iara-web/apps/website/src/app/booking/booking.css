@@ -58,6 +58,21 @@
   gap: var(--byiara-space-xs);
 }
 
+.purchase-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--byiara-space-sm);
+}
+
+.pack-access {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+}
+
 .slot-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

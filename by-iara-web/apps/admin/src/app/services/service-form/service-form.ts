@@ -29,6 +29,13 @@ import {
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
+interface PackOfferFormValue {
+  durationMinutes: number;
+  sessionCount: number;
+  priceEuros: number;
+  validityDays: number | null;
+  active: boolean;
+}
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -89,10 +96,15 @@ export class ServiceForm implements OnInit {
     featured: [false],
     sortOrder: [0, [Validators.min(0)]],
     variants: this.fb.array([this.variantGroup()]),
+    packOffers: this.fb.array([]),
   });
 
   get variants(): FormArray {
     return this.form.get('variants') as FormArray;
+  }
+
+  get packOffers(): FormArray {
+    return this.form.get('packOffers') as FormArray;
   }
 
   get editing(): boolean {
@@ -148,6 +160,18 @@ export class ServiceForm implements OnInit {
         if (this.variants.length === 0) {
           this.variants.push(this.variantGroup());
         }
+        this.packOffers.clear();
+        service.packOffers.forEach((offer) =>
+          this.packOffers.push(
+            this.packOfferGroup({
+              durationMinutes: offer.durationMinutes,
+              sessionCount: offer.sessionCount,
+              priceEuros: offer.price.amountCents / 100,
+              validityDays: offer.validityDays,
+              active: offer.active,
+            }),
+          ),
+        );
       },
       error: () => this.error.set('Could not load the service.'),
     });
@@ -161,6 +185,25 @@ export class ServiceForm implements OnInit {
     if (this.variants.length > 1) {
       this.variants.removeAt(index);
     }
+  }
+
+  protected addPackOffer(): void {
+    const firstDuration = Number(
+      this.variants.at(0)?.get('durationMinutes')?.value ?? 60,
+    );
+    this.packOffers.push(
+      this.packOfferGroup({
+        durationMinutes: firstDuration,
+        sessionCount: 4,
+        priceEuros: 0,
+        validityDays: 365,
+        active: true,
+      }),
+    );
+  }
+
+  protected removePackOffer(index: number): void {
+    this.packOffers.removeAt(index);
   }
 
   protected faqsFor(key: TranslationFormKey): FormArray {
@@ -231,6 +274,16 @@ export class ServiceForm implements OnInit {
         priceCents: Math.round(variant['priceEuros'] * 100),
         active: variant['active'],
       })),
+      packOffers: (raw.packOffers as PackOfferFormValue[]).map(
+        (offer, index) => ({
+          durationMinutes: Number(offer.durationMinutes),
+          sessionCount: Number(offer.sessionCount),
+          priceCents: Math.round(Number(offer.priceEuros) * 100),
+          validityDays: offer.validityDays ? Number(offer.validityDays) : null,
+          active: offer.active,
+          sortOrder: index,
+        }),
+      ),
     };
 
     const id = this.serviceId;
@@ -379,6 +432,31 @@ export class ServiceForm implements OnInit {
         value?.priceEuros ?? 0,
         [Validators.required, Validators.min(0)],
       ],
+      active: [value?.active ?? true],
+    });
+  }
+
+  private packOfferGroup(value?: {
+    durationMinutes: number;
+    sessionCount: number;
+    priceEuros: number;
+    validityDays: number | null;
+    active: boolean;
+  }): FormGroup {
+    return this.fb.nonNullable.group({
+      durationMinutes: [
+        value?.durationMinutes ?? 60,
+        [Validators.required, Validators.min(1)],
+      ],
+      sessionCount: [
+        value?.sessionCount ?? 4,
+        [Validators.required, Validators.min(2)],
+      ],
+      priceEuros: [
+        value?.priceEuros ?? 0,
+        [Validators.required, Validators.min(0.01)],
+      ],
+      validityDays: [value?.validityDays ?? 365, [Validators.min(1)]],
       active: [value?.active ?? true],
     });
   }

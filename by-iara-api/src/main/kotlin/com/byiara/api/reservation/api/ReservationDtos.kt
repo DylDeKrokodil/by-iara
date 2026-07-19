@@ -45,6 +45,11 @@ data class CreateReservationRequest(
     // Optional and defaults to English so older clients that don't send it still work.
     @field:Pattern(regexp = "pt|en", message = "must be 'pt' or 'en'")
     val locale: String? = null,
+
+    val packOfferId: UUID? = null,
+    val customerPackId: UUID? = null,
+    @field:Size(max = 200)
+    val customerSessionToken: String? = null,
 ) {
     fun toCommand(): CreateReservationCommand =
         CreateReservationCommand(
@@ -54,6 +59,9 @@ data class CreateReservationRequest(
             customer = customer!!.toDetails(),
             notes = notes?.trim()?.ifBlank { null },
             locale = locale?.let { ReservationLocale.fromCode(it) } ?: ReservationLocale.EN,
+            packOfferId = packOfferId,
+            customerPackId = customerPackId,
+            customerSessionToken = customerSessionToken,
         )
 }
 
