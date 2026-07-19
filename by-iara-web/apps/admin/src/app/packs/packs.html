@@ -4,7 +4,15 @@
   </byiara-button>
 </byiara-page-header>
 
-<section class="pack-section" aria-labelledby="pack-offers-title">
+<byiara-tabs
+  ariaLabel="Pack views"
+  [tabs]="packTabs"
+  [activeValue]="activeTab()"
+  (activeValueChange)="setActiveTab($event)"
+></byiara-tabs>
+
+@if (activeTab() === 'offers') {
+<section class="pack-section" role="tabpanel" aria-label="Pack offers">
   <header class="section-header">
     <div>
       <h2 id="pack-offers-title">Pack offers</h2>
@@ -86,8 +94,9 @@
   </div>
   }
 </section>
+} @else {
 
-<section class="pack-section" aria-labelledby="customer-packs-title">
+<section class="pack-section" role="tabpanel" aria-label="Customer packs">
   <header class="section-header">
     <div>
       <h2 id="customer-packs-title">Customer packs</h2>
@@ -156,3 +165,4 @@
   </div>
   }
 </section>
+}

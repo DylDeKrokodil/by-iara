@@ -6,6 +6,8 @@ import {
   EmptyState,
   PageHeader,
   StatusChip,
+  TabOption,
+  Tabs,
 } from '@by-iara/shared-ui';
 import { ServicesApi } from '../services/services-api';
 import type { PackOffer, Service } from '../services/service.models';
@@ -17,9 +19,24 @@ interface ConfiguredPackOffer {
   readonly perSessionCents: number;
 }
 
+type PacksTab = 'offers' | 'customers';
+
+const packTabs: ReadonlyArray<TabOption> = [
+  { label: 'Pack offers', value: 'offers' },
+  { label: 'Customer packs', value: 'customers' },
+];
+
 @Component({
   selector: 'byiara-packs',
-  imports: [Alert, Button, EmptyState, PageHeader, RouterLink, StatusChip],
+  imports: [
+    Alert,
+    Button,
+    EmptyState,
+    PageHeader,
+    RouterLink,
+    StatusChip,
+    Tabs,
+  ],
   templateUrl: './packs.html',
   styleUrl: './packs.css',
 })
@@ -32,6 +49,8 @@ export class Packs implements OnInit {
   protected readonly services = signal<Service[]>([]);
   protected readonly offersLoading = signal(true);
   protected readonly offersError = signal(false);
+  protected readonly activeTab = signal<PacksTab>('offers');
+  protected readonly packTabs = packTabs;
   protected readonly configuredOffers = computed<ConfiguredPackOffer[]>(() =>
     [...this.services()]
       .sort((a, b) => a.sortOrder - b.sortOrder)
@@ -82,6 +101,12 @@ export class Packs implements OnInit {
 
   protected statusLabel(status: CustomerPack['status']): string {
     return status.toLowerCase().replace('_', ' ');
+  }
+
+  protected setActiveTab(value: string): void {
+    if (value === 'offers' || value === 'customers') {
+      this.activeTab.set(value);
+    }
   }
 
   private loadConfiguredOffers(): void {
