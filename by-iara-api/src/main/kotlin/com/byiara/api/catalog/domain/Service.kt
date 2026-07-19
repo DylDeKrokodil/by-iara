@@ -12,6 +12,7 @@ data class Service(
     val featured: Boolean = false,
     val translations: Map<String, ServiceTranslation> = emptyMap(),
     val variants: List<ServiceVariant>,
+    val packOffers: List<PackOffer> = emptyList(),
 )
 
 data class ServiceTranslation(
@@ -34,6 +35,16 @@ data class ServiceVariant(
     val id: UUID,
     val durationMinutes: Int,
     val price: Money,
+    val active: Boolean,
+    val sortOrder: Int,
+)
+
+data class PackOffer(
+    val id: UUID,
+    val durationMinutes: Int,
+    val sessionCount: Int,
+    val price: Money,
+    val validityDays: Int?,
     val active: Boolean,
     val sortOrder: Int,
 )

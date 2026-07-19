@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
 import java.util.UUID
+import com.byiara.api.pack.application.CustomerAccessService
+import com.byiara.api.pack.domain.PackRepository
 
 data class RecordReservationPaymentCommand(
     val amountCents: Long,
@@ -33,6 +35,8 @@ data class ReservationPayments(
 class ReservationPaymentService(
     private val reservationRepository: ReservationRepository,
     private val paymentRepository: ReservationPaymentRepository,
+    private val packRepository: PackRepository,
+    private val customerAccessService: CustomerAccessService,
 ) {
     @Transactional
     fun record(reservationId: UUID, command: RecordReservationPaymentCommand): ReservationPayment {
@@ -60,7 +64,7 @@ class ReservationPaymentService(
             throw InvalidReservationRequestException("Payment time cannot be in the future")
         }
 
-        return paymentRepository.create(
+        val payment = paymentRepository.create(
             NewReservationPayment(
                 reservationId = reservationId,
                 amountCents = command.amountCents,
@@ -70,6 +74,12 @@ class ReservationPaymentService(
                 reference = command.reference?.trim()?.ifBlank { null },
             ),
         )
+        if (alreadyPaid + command.amountCents == reservation.price.amountCents &&
+            packRepository.activateForOriginatingReservation(reservationId, OffsetDateTime.now())
+        ) {
+            customerAccessService.sendLink(reservation.customer, reservation.locale.name.lowercase())
+        }
+        return payment
     }
 
     @Transactional(readOnly = true)

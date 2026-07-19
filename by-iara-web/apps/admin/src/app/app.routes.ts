@@ -56,6 +56,10 @@ export const appRoutes: Route[] = [
           import('./availability/availability').then((m) => m.Availability),
       },
       {
+        path: 'packs',
+        loadComponent: () => import('./packs/packs').then((m) => m.Packs),
+      },
+      {
         path: 'reports',
         loadComponent: () =>
           import('./finance/reports/reports').then((m) => m.Reports),

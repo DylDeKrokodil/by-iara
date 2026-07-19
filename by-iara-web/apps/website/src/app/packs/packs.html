@@ -1,0 +1,142 @@
+<main class="packs-page">
+  <header class="packs-hero">
+    <div class="packs-hero-media" aria-hidden="true">
+      <img
+        src="hero/hero-treatment-mixkit-4744.jpg"
+        width="1400"
+        height="933"
+        alt=""
+      />
+    </div>
+    <div class="packs-hero-copy">
+      <p class="eyebrow">{{ copy().eyebrow }}</p>
+      <h1>{{ copy().title }}</h1>
+      <p>{{ copy().lede }}</p>
+    </div>
+  </header>
+
+  <div class="packs-content" [attr.aria-busy]="loading()">
+    @if (hasError()) {
+    <byiara-alert tone="danger">{{ copy().loadError }}</byiara-alert>
+    } @else if (loading()) {
+    <div class="pack-groups pack-skeleton" aria-hidden="true">
+      @for (group of skeletonGroups; track group) {
+      <section class="pack-group">
+        <div class="skeleton-group-intro">
+          <byiara-skeleton width="72%" height="2.75rem"></byiara-skeleton>
+          <byiara-skeleton width="100%" height="0.9rem"></byiara-skeleton>
+          <byiara-skeleton width="84%" height="0.9rem"></byiara-skeleton>
+        </div>
+        <div class="skeleton-offers">
+          @for (offer of skeletonOffers; track offer) {
+          <div class="skeleton-offer">
+            <div class="skeleton-offer-copy">
+              <byiara-skeleton width="11rem" height="1.8rem"></byiara-skeleton>
+              <byiara-skeleton width="15rem" height="0.8rem"></byiara-skeleton>
+            </div>
+            <div class="skeleton-offer-price">
+              <byiara-skeleton width="4rem" height="0.7rem"></byiara-skeleton>
+              <byiara-skeleton width="6rem" height="2.1rem"></byiara-skeleton>
+              <byiara-skeleton width="7rem" height="0.75rem"></byiara-skeleton>
+            </div>
+            <div class="skeleton-benefits">
+              <byiara-skeleton width="6rem" height="0.8rem"></byiara-skeleton>
+              <byiara-skeleton width="8rem" height="0.8rem"></byiara-skeleton>
+            </div>
+            <byiara-skeleton
+              variant="block"
+              width="9rem"
+              height="2.75rem"
+            ></byiara-skeleton>
+          </div>
+          }
+        </div>
+      </section>
+      }
+    </div>
+    <p class="visually-hidden" role="status">{{ copy().loading }}</p>
+    } @else if (groups().length === 0) {
+    <byiara-empty-state
+      [title]="copy().emptyTitle"
+      [description]="copy().emptyText"
+    >
+      <byiara-button [routerLink]="language.localizedLink('services')">
+        {{ copy().exploreServices }}
+      </byiara-button>
+    </byiara-empty-state>
+    } @else {
+    <div class="pack-groups">
+      @for (group of groups(); track group.service.id) {
+      <section class="pack-group">
+        <div class="pack-group-intro">
+          <h2>{{ localized(group.service).name }}</h2>
+          @if (localized(group.service).description) {
+          <p>{{ localized(group.service).description }}</p>
+          }
+        </div>
+
+        <ul class="pack-offers">
+          @for (item of group.offers; track item.offer.id) {
+          <li class="pack-offer">
+            <div class="pack-offer-main">
+              <h3>
+                {{ copy().offerSessions(item.offer.sessionCount,
+                item.offer.durationMinutes) }}
+              </h3>
+              <p class="pack-regular">
+                {{ copy().regularValue(formatPrice(item.regularTotalCents)) }}
+              </p>
+            </div>
+            <div class="pack-price">
+              <span>{{ copy().totalPrice }}</span>
+              <strong>{{ formatPrice(item.offer.price.amountCents) }}</strong>
+              <small
+                >{{ copy().perSession(formatPrice(item.perSessionCents))
+                }}</small
+              >
+            </div>
+            <div class="pack-benefits">
+              @if (item.savingCents > 0) {
+              <strong
+                >{{ copy().saving(formatPrice(item.savingCents)) }}</strong
+              >
+              } @if (item.offer.validityDays; as validityDays) {
+              <span>{{ copy().validity(validityDays) }}</span>
+              }
+            </div>
+            <byiara-button (click)="onBook(item)">
+              {{ copy().book }}
+            </byiara-button>
+          </li>
+          }
+        </ul>
+      </section>
+      }
+    </div>
+    }
+
+    <section class="packs-how" aria-labelledby="packs-how-title">
+      <h2 id="packs-how-title">{{ copy().howTitle }}</h2>
+      <ol>
+        @for (step of copy().steps; track step.title; let index = $index) {
+        <li>
+          <span aria-hidden="true">0{{ index + 1 }}</span>
+          <div>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.text }}</p>
+          </div>
+        </li>
+        }
+      </ol>
+    </section>
+
+    <aside class="packs-terms">
+      <h2>{{ copy().termsTitle }}</h2>
+      <ul>
+        @for (term of copy().terms; track term) {
+        <li>{{ term }}</li>
+        }
+      </ul>
+    </aside>
+  </div>
+</main>

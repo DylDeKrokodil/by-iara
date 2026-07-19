@@ -6,6 +6,7 @@ export interface WebsiteMessages {
     readonly nav: {
       readonly home: string;
       readonly services: string;
+      readonly packs: string;
       readonly bookCta: string;
       readonly openMenu: string;
       readonly closeMenu: string;
@@ -16,6 +17,7 @@ export interface WebsiteMessages {
       readonly explore: string;
       readonly home: string;
       readonly services: string;
+      readonly packs: string;
       readonly book: string;
       readonly legal: string;
       readonly privacy: string;
@@ -29,6 +31,8 @@ export interface WebsiteMessages {
       readonly contact: string;
       readonly emailLabel: string;
       readonly phoneLabel: string;
+      readonly social: string;
+      readonly socialNavigationLabel: string;
       readonly bookingPrompt: string;
       readonly bookingAction: string;
       readonly copyright: (year: number) => string;
@@ -53,6 +57,12 @@ export interface WebsiteMessages {
     readonly servicesDuration: (min: number, max: number) => string;
     readonly servicesAction: string;
     readonly servicesViewAll: string;
+    readonly packsTitle: string;
+    readonly packsLede: string;
+    readonly packsExample: (sessions: number, minutes: number) => string;
+    readonly packsPerSession: (price: string) => string;
+    readonly packsSaving: (price: string) => string;
+    readonly packsAction: string;
     readonly expectTitle: string;
     readonly expectSteps: ReadonlyArray<{
       readonly title: string;
@@ -78,6 +88,7 @@ export interface WebsiteMessages {
     readonly empty: string;
     readonly variantsTitle: string;
     readonly bookAction: string;
+    readonly packsAvailable: string;
   };
   readonly serviceDetail: {
     readonly breadcrumbsLabel: string;
@@ -93,8 +104,39 @@ export interface WebsiteMessages {
     readonly locationText: string;
     readonly faqTitle: string;
     readonly book: string;
+    readonly packsTitle: string;
+    readonly packsLede: string;
+    readonly packSessions: (sessions: number, minutes: number) => string;
+    readonly packPerSession: (price: string) => string;
+    readonly packSaving: (price: string) => string;
+    readonly packValidity: (days: number) => string;
+    readonly packBook: string;
     readonly notFoundTitle: string;
     readonly notFoundText: string;
+  };
+  readonly packs: {
+    readonly eyebrow: string;
+    readonly title: string;
+    readonly lede: string;
+    readonly loading: string;
+    readonly loadError: string;
+    readonly emptyTitle: string;
+    readonly emptyText: string;
+    readonly exploreServices: string;
+    readonly offerSessions: (sessions: number, minutes: number) => string;
+    readonly regularValue: (price: string) => string;
+    readonly totalPrice: string;
+    readonly perSession: (price: string) => string;
+    readonly saving: (price: string) => string;
+    readonly validity: (days: number) => string;
+    readonly book: string;
+    readonly howTitle: string;
+    readonly steps: ReadonlyArray<{
+      readonly title: string;
+      readonly text: string;
+    }>;
+    readonly termsTitle: string;
+    readonly terms: readonly string[];
   };
   readonly booking: {
     readonly eyebrow: string;
@@ -110,6 +152,21 @@ export interface WebsiteMessages {
     readonly reviewStep: string;
     readonly chooseService: string;
     readonly chooseOption: string;
+    readonly paymentChoice: string;
+    readonly singleSession: string;
+    readonly buyPackLabel: (
+      sessions: number,
+      minutes: number,
+      price: string,
+    ) => string;
+    readonly usePackLabel: (remaining: number) => string;
+    readonly alreadyHavePack: string;
+    readonly packAccessHelp: string;
+    readonly packConnected: string;
+    readonly emailPackLink: string;
+    readonly sendingPackLink: string;
+    readonly packLinkSent: string;
+    readonly packAccessError: string;
     readonly chooseDate: string;
     readonly chooseSlot: string;
     readonly periodMorning: string;
@@ -167,6 +224,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Serviços',
+        packs: 'Packs',
         bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
@@ -178,6 +236,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         explore: 'Explorar',
         home: 'Início',
         services: 'Serviços',
+        packs: 'Packs',
         book: 'Marcar sessão',
         legal: 'Legal',
         privacy: 'Privacidade',
@@ -191,6 +250,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         contact: 'Contacto',
         emailLabel: 'Email',
         phoneLabel: 'Telemóvel',
+        social: 'Redes sociais',
+        socialNavigationLabel: 'Redes sociais',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
         bookingAction: 'Ver horários',
         copyright: (year) =>
@@ -218,6 +279,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         min === max ? `${min} min` : `${min} a ${max} min`,
       servicesAction: 'Reservar',
       servicesViewAll: 'Ver todos os serviços',
+      packsTitle: 'Mais tempo para cuidar de si',
+      packsLede:
+        'Escolha um pack para manter a sua rotina de bem-estar e beneficiar de um valor mais leve por sessão.',
+      packsExample: (sessions, minutes) =>
+        `${sessions} sessões de ${minutes} min`,
+      packsPerSession: (price) => `${price} por sessão`,
+      packsSaving: (price) => `Poupa ${price}`,
+      packsAction: 'Descobrir os packs',
       expectTitle: 'O que esperar',
       expectSteps: [
         {
@@ -265,6 +334,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       empty: 'Não existem serviços disponíveis para reserva neste momento.',
       variantsTitle: 'Opções e preços',
       bookAction: 'Reservar',
+      packsAvailable: 'Packs de sessões disponíveis',
     },
     serviceDetail: {
       breadcrumbsLabel: 'Navegação estrutural',
@@ -281,9 +351,57 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'A sessão decorre num estúdio privado em Almada. A morada exata é partilhada na confirmação da marcação.',
       faqTitle: 'Perguntas frequentes',
       book: 'Marcar',
+      packsTitle: 'Transforme esta pausa numa rotina',
+      packsLede:
+        'Reserve a primeira sessão agora e pague o valor total do pack depois dessa sessão.',
+      packSessions: (sessions, minutes) => `${sessions} × ${minutes} min`,
+      packPerSession: (price) => `${price} por sessão`,
+      packSaving: (price) => `Poupa ${price}`,
+      packValidity: (days) => `Válido durante ${days} dias`,
+      packBook: 'Escolher este pack',
       notFoundTitle: 'Serviço não encontrado',
       notFoundText:
         'Este serviço não está disponível neste idioma ou deixou de estar publicado.',
+    },
+    packs: {
+      eyebrow: 'Continuidade e cuidado',
+      title: 'Packs para fazer da pausa um hábito',
+      lede: 'Reserve várias sessões do mesmo tratamento por um valor especial. A primeira marcação é feita já; o pack completo é pago depois dessa sessão.',
+      loading: 'A carregar os packs disponíveis...',
+      loadError: 'Não foi possível carregar os packs. Tente novamente.',
+      emptyTitle: 'Ainda não existem packs disponíveis',
+      emptyText:
+        'Pode continuar a marcar sessões individuais ou voltar mais tarde para conhecer novas opções.',
+      exploreServices: 'Explorar serviços',
+      offerSessions: (sessions, minutes) =>
+        `${sessions} sessões · ${minutes} min`,
+      regularValue: (price) => `Valor em sessões individuais: ${price}`,
+      totalPrice: 'Valor do pack',
+      perSession: (price) => `${price} por sessão`,
+      saving: (price) => `Poupa ${price}`,
+      validity: (days) => `Utilize em até ${days} dias`,
+      book: 'Marcar primeira sessão',
+      howTitle: 'Como funciona',
+      steps: [
+        {
+          title: 'Escolha o pack',
+          text: 'Compare as opções por tratamento, duração e número de sessões.',
+        },
+        {
+          title: 'Marque a primeira sessão',
+          text: 'Escolha uma data e envie o pedido de reserva como habitualmente.',
+        },
+        {
+          title: 'Pague e continue por email',
+          text: 'Depois da primeira sessão, paga o pack completo. Para as seguintes, recebe um link seguro no email usado na compra.',
+        },
+      ],
+      termsTitle: 'Antes de escolher',
+      terms: [
+        'Cada pack pertence a um tratamento e duração específicos.',
+        'Quando aplicável, a validade começa na data da primeira sessão e aparece em cada opção.',
+        'Cancelamentos e reagendamentos seguem os termos de marcação.',
+      ],
     },
     booking: {
       eyebrow: 'Reserva',
@@ -300,6 +418,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Revisão',
       chooseService: 'Escolha o serviço',
       chooseOption: 'Escolha uma opção',
+      paymentChoice: 'Como pretende reservar?',
+      singleSession: 'Sessão individual',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Comprar pack de ${sessions} × ${minutes} min · ${price}`,
+      usePackLabel: (remaining) =>
+        `Usar o meu pack · ${remaining} ${remaining === 1 ? 'sessão restante' : 'sessões restantes'}`,
+      alreadyHavePack: 'Já tem um pack?',
+      packAccessHelp:
+        'Introduza o email usado na compra e enviaremos um link seguro para aceder às suas sessões.',
+      packConnected: 'O seu pack está ligado a este pedido de reserva.',
+      emailPackLink: 'Enviar link seguro por email',
+      sendingPackLink: 'A enviar...',
+      packLinkSent:
+        'Se existir um pack ativo para este email, receberá um link dentro de momentos.',
+      packAccessError: 'Não foi possível enviar o link. Tente novamente.',
       chooseDate: 'Escolha uma data',
       chooseSlot: 'Escolha um horário',
       periodMorning: 'Manhã',
@@ -360,6 +493,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Home',
         services: 'Services',
+        packs: 'Packs',
         bookCta: 'Book now',
         openMenu: 'Open menu',
         closeMenu: 'Close menu',
@@ -371,6 +505,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         explore: 'Explore',
         home: 'Home',
         services: 'Services',
+        packs: 'Packs',
         book: 'Book a session',
         legal: 'Legal',
         privacy: 'Privacy',
@@ -384,6 +519,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         contact: 'Contact',
         emailLabel: 'Email',
         phoneLabel: 'Mobile',
+        social: 'Social',
+        socialNavigationLabel: 'Social media',
         bookingPrompt: 'Your moment of pause starts here.',
         bookingAction: 'See availability',
         copyright: (year) => `© ${year} ${BRAND.name}. All rights reserved.`,
@@ -410,6 +547,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         min === max ? `${min} min` : `${min} to ${max} min`,
       servicesAction: 'Book',
       servicesViewAll: 'See all services',
+      packsTitle: 'More time to care for yourself',
+      packsLede:
+        'Choose a pack to make wellbeing part of your routine, with a gentler price for each session.',
+      packsExample: (sessions, minutes) =>
+        `${sessions} × ${minutes} min sessions`,
+      packsPerSession: (price) => `${price} per session`,
+      packsSaving: (price) => `Save ${price}`,
+      packsAction: 'Discover session packs',
       expectTitle: 'What to expect',
       expectSteps: [
         {
@@ -456,6 +601,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       empty: 'No services are currently available for booking.',
       variantsTitle: 'Options and prices',
       bookAction: 'Book',
+      packsAvailable: 'Session packs available',
     },
     serviceDetail: {
       breadcrumbsLabel: 'Breadcrumbs',
@@ -472,9 +618,57 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'Your session takes place in a private studio in Almada. The exact address is shared with your booking confirmation.',
       faqTitle: 'Frequently asked questions',
       book: 'Book',
+      packsTitle: 'Turn this pause into a routine',
+      packsLede:
+        'Book the first session now and pay the full pack price after that session.',
+      packSessions: (sessions, minutes) => `${sessions} × ${minutes} min`,
+      packPerSession: (price) => `${price} per session`,
+      packSaving: (price) => `Save ${price}`,
+      packValidity: (days) => `Valid for ${days} days`,
+      packBook: 'Choose this pack',
       notFoundTitle: 'Service not found',
       notFoundText:
         'This service is unavailable in this language or is no longer published.',
+    },
+    packs: {
+      eyebrow: 'Continuity and care',
+      title: 'Packs that make pausing a habit',
+      lede: 'Reserve several sessions of the same treatment at a special price. Book your first visit now, then pay for the complete pack after that session.',
+      loading: 'Loading available packs...',
+      loadError: 'We could not load the packs. Please try again.',
+      emptyTitle: 'No packs are available yet',
+      emptyText:
+        'You can still book individual sessions or return later to discover new options.',
+      exploreServices: 'Explore services',
+      offerSessions: (sessions, minutes) =>
+        `${sessions} sessions · ${minutes} min`,
+      regularValue: (price) => `Individual session value: ${price}`,
+      totalPrice: 'Pack price',
+      perSession: (price) => `${price} per session`,
+      saving: (price) => `Save ${price}`,
+      validity: (days) => `Use within ${days} days`,
+      book: 'Book first session',
+      howTitle: 'How it works',
+      steps: [
+        {
+          title: 'Choose your pack',
+          text: 'Compare options by treatment, duration, and number of sessions.',
+        },
+        {
+          title: 'Book the first session',
+          text: 'Choose a date and submit your booking request as usual.',
+        },
+        {
+          title: 'Pay and continue by email',
+          text: 'After the first session, pay for the complete pack. For later visits, use the secure link sent to the email used for purchase.',
+        },
+      ],
+      termsTitle: 'Before you choose',
+      terms: [
+        'Each pack is tied to one treatment and session duration.',
+        'Where applicable, validity starts on the first session date and is shown on each option.',
+        'Cancellations and rescheduling follow the booking terms.',
+      ],
     },
     booking: {
       eyebrow: 'Booking',
@@ -490,6 +684,21 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Review',
       chooseService: 'Choose a service',
       chooseOption: 'Choose an option',
+      paymentChoice: 'How would you like to book?',
+      singleSession: 'Single session',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Buy ${sessions} × ${minutes} min pack · ${price}`,
+      usePackLabel: (remaining) =>
+        `Use my pack · ${remaining} ${remaining === 1 ? 'session' : 'sessions'} remaining`,
+      alreadyHavePack: 'Already have a pack?',
+      packAccessHelp:
+        'Enter the email used for your purchase and we will send you a secure link to access your sessions.',
+      packConnected: 'Your pack is connected to this booking request.',
+      emailPackLink: 'Email me a secure link',
+      sendingPackLink: 'Sending...',
+      packLinkSent:
+        'If an active pack exists for this email, a link will arrive shortly.',
+      packAccessError: 'We could not send the link. Please try again.',
       chooseDate: 'Choose a date',
       chooseSlot: 'Choose a time',
       periodMorning: 'Morning',

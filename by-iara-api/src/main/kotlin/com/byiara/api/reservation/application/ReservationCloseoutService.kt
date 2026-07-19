@@ -6,6 +6,7 @@ import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.ReservationRepository
 import com.byiara.api.reservation.domain.ReservationStatus
+import com.byiara.api.pack.domain.PackRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.OffsetDateTime
@@ -15,6 +16,7 @@ import java.util.UUID
 class ReservationCloseoutService(
     private val reservationRepository: ReservationRepository,
     private val paymentService: ReservationPaymentService,
+    private val packRepository: PackRepository,
 ) {
     @Transactional
     fun complete(id: UUID, payment: RecordReservationPaymentCommand?): Reservation {
@@ -23,6 +25,7 @@ class ReservationCloseoutService(
             throw InvalidReservationRequestException("A reservation cannot be completed before its end time")
         }
         transition(id, ReservationStatus.CONFIRMED, ReservationStatus.COMPLETED)
+        packRepository.consumeReservation(id)
         if (payment != null) {
             paymentService.record(id, payment)
         }
@@ -36,6 +39,7 @@ class ReservationCloseoutService(
             throw InvalidReservationRequestException("A reservation cannot be marked as no-show before its start time")
         }
         transition(id, ReservationStatus.CONFIRMED, ReservationStatus.NO_SHOW)
+        packRepository.forfeitReservation(id)
         return reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
     }
 

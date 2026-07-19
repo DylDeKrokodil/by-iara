@@ -33,6 +33,7 @@ import {
   BookingApi,
   BUSINESS_TIMEZONE,
   ReservationConfirmation,
+  CustomerPack,
 } from './booking-api';
 import { bookingCalendarMonth } from './booking-calendar';
 import { BUSINESS_DETAILS } from '../legal/business-details';
@@ -44,6 +45,7 @@ const BOOKING_STEPS: readonly BookingStep[] = [
   'details',
   'review',
 ];
+const CUSTOMER_SESSION_KEY = 'byiara.customer-pack-session';
 
 interface SlotView {
   readonly iso: string;
@@ -110,6 +112,13 @@ export class Booking implements OnInit {
 
   protected readonly selectedServiceId = signal<string | null>(null);
   protected readonly selectedVariantId = signal<string | null>(null);
+  protected readonly selectedPackOfferId = signal<string | null>(null);
+  protected readonly selectedCustomerPackId = signal<string | null>(null);
+  protected readonly customerSessionToken = signal<string | null>(null);
+  protected readonly customerPacks = signal<CustomerPack[]>([]);
+  protected readonly accessRequesting = signal(false);
+  protected readonly accessSent = signal(false);
+  protected readonly accessError = signal(false);
   protected readonly slots = signal<string[]>([]);
   protected readonly slotsLoading = signal(false);
   protected readonly slotsError = signal(false);
@@ -160,6 +169,28 @@ export class Booking implements OnInit {
       this.activeVariants().find((v) => v.id === this.selectedVariantId()) ??
       null,
   );
+
+  protected readonly availablePackOffers = computed(() => {
+    const service = this.selectedService();
+    const variant = this.selectedVariant();
+    if (!service || !variant) return [];
+    return (service.packOffers ?? []).filter(
+      (offer) =>
+        offer.active && offer.durationMinutes === variant.durationMinutes,
+    );
+  });
+
+  protected readonly eligibleCustomerPacks = computed(() => {
+    const service = this.selectedService();
+    const variant = this.selectedVariant();
+    if (!service || !variant) return [];
+    return this.customerPacks().filter(
+      (pack) =>
+        pack.serviceId === service.id &&
+        pack.durationMinutes === variant.durationMinutes &&
+        pack.remainingSessions > 0,
+    );
+  });
 
   protected readonly availableDates = computed(() =>
     this.groupByDate(this.slots()),
@@ -319,8 +350,16 @@ export class Booking implements OnInit {
       return;
     }
 
+    const accessToken = this.route.snapshot.queryParamMap.get('packAccess');
+    if (accessToken) {
+      this.exchangePackAccess(accessToken);
+    } else {
+      this.restoreCustomerSession();
+    }
+
     const slug = this.route.snapshot.queryParamMap.get('service');
     const preselectedVariant = this.route.snapshot.queryParamMap.get('variant');
+    const preselectedPack = this.route.snapshot.queryParamMap.get('pack');
 
     this.api.list().subscribe({
       next: (services) => {
@@ -339,7 +378,7 @@ export class Booking implements OnInit {
           return;
         }
         const initial = active.find((s) => s.slug === slug) ?? active[0];
-        this.selectService(initial.id, preselectedVariant);
+        this.selectService(initial.id, preselectedVariant, preselectedPack);
       },
       error: () => {
         this.loading.set(false);
@@ -357,10 +396,46 @@ export class Booking implements OnInit {
       return;
     }
     this.selectedVariantId.set(id);
+    this.selectRegularSession();
     this.calendarMonthOffset.set(0);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);
     this.loadSlots();
+  }
+
+  protected selectRegularSession(): void {
+    this.selectedPackOfferId.set(null);
+    this.selectedCustomerPackId.set(null);
+  }
+
+  protected selectPackOffer(id: string): void {
+    this.selectedPackOfferId.set(id);
+    this.selectedCustomerPackId.set(null);
+  }
+
+  protected selectCustomerPack(id: string): void {
+    this.selectedCustomerPackId.set(id);
+    this.selectedPackOfferId.set(null);
+  }
+
+  protected requestPackAccess(): void {
+    const emailControl = this.form.controls.email;
+    emailControl.markAsTouched();
+    if (emailControl.invalid || this.accessRequesting()) return;
+    this.accessRequesting.set(true);
+    this.accessError.set(false);
+    this.bookingApi
+      .requestPackAccess(emailControl.value, this.language.current().path)
+      .subscribe({
+        next: () => {
+          this.accessRequesting.set(false);
+          this.accessSent.set(true);
+        },
+        error: () => {
+          this.accessRequesting.set(false);
+          this.accessError.set(true);
+        },
+      });
   }
 
   protected selectDate(dateKey: string): void {
@@ -521,6 +596,9 @@ export class Booking implements OnInit {
         customer: { name, email, phone: phone.trim() || null },
         notes: notes.trim() || null,
         locale: this.language.current().path,
+        packOfferId: this.selectedPackOfferId(),
+        customerPackId: this.selectedCustomerPackId(),
+        customerSessionToken: this.customerSessionToken(),
       })
       .subscribe({
         next: (confirmation) => {
@@ -557,6 +635,20 @@ export class Booking implements OnInit {
     return `${variant.durationMinutes} min · ${this.formatPrice(variant.price.amountCents)}`;
   }
 
+  protected packOfferLabel(
+    offer: NonNullable<Service['packOffers']>[number],
+  ): string {
+    return this.copy().buyPackLabel(
+      offer.sessionCount,
+      offer.durationMinutes,
+      this.formatPrice(offer.price.amountCents),
+    );
+  }
+
+  protected customerPackLabel(pack: CustomerPack): string {
+    return this.copy().usePackLabel(pack.remainingSessions);
+  }
+
   protected formatPrice(cents: number): string {
     return new Intl.NumberFormat(this.language.current().locale, {
       style: 'currency',
@@ -578,6 +670,12 @@ export class Booking implements OnInit {
   protected summaryItems(): DetailListItem[] {
     const copy = this.copy();
     const variant = this.selectedVariant();
+    const packOffer = this.availablePackOffers().find(
+      (offer) => offer.id === this.selectedPackOfferId(),
+    );
+    const customerPack = this.eligibleCustomerPacks().find(
+      (pack) => pack.id === this.selectedCustomerPackId(),
+    );
     return [
       {
         term: copy.confirmedService,
@@ -588,6 +686,14 @@ export class Booking implements OnInit {
         detail: variant ? this.variantLabel(variant) : copy.notSelected,
       },
       {
+        term: copy.paymentChoice,
+        detail: customerPack
+          ? this.customerPackLabel(customerPack)
+          : packOffer
+            ? this.packOfferLabel(packOffer)
+            : copy.singleSession,
+      },
+      {
         term: copy.chooseDate,
         detail: this.selectedDateLabel() || copy.notSelected,
       },
@@ -596,6 +702,41 @@ export class Booking implements OnInit {
         detail: this.selectedSlotLabel() || copy.notSelected,
       },
     ];
+  }
+
+  private exchangePackAccess(token: string): void {
+    this.bookingApi.exchangePackAccess(token).subscribe({
+      next: (access) => {
+        this.customerSessionToken.set(access.sessionToken);
+        this.customerPacks.set(access.packs);
+        sessionStorage.setItem(CUSTOMER_SESSION_KEY, access.sessionToken);
+        this.form.patchValue({
+          name: access.customer.name,
+          email: access.customer.email,
+          phone: access.customer.phone ?? '',
+        });
+        const url = new URL(window.location.href);
+        url.searchParams.delete('packAccess');
+        window.history.replaceState(
+          {},
+          '',
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      },
+      error: () => this.accessError.set(true),
+    });
+  }
+
+  private restoreCustomerSession(): void {
+    const token = sessionStorage.getItem(CUSTOMER_SESSION_KEY);
+    if (!token) return;
+    this.bookingApi.customerPacks(token).subscribe({
+      next: (packs) => {
+        this.customerSessionToken.set(token);
+        this.customerPacks.set(packs);
+      },
+      error: () => sessionStorage.removeItem(CUSTOMER_SESSION_KEY),
+    });
   }
 
   // A plain method, not a computed: the review reads live form values, which
@@ -644,8 +785,11 @@ export class Booking implements OnInit {
   private selectService(
     serviceId: string,
     preselectedVariant: string | null,
+    preselectedPack: string | null = null,
   ): void {
     this.selectedServiceId.set(serviceId);
+    this.selectedPackOfferId.set(null);
+    this.selectedCustomerPackId.set(null);
     this.calendarMonthOffset.set(0);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);
@@ -653,6 +797,10 @@ export class Booking implements OnInit {
     const variant =
       variants.find((v) => v.id === preselectedVariant) ?? variants[0] ?? null;
     this.selectedVariantId.set(variant?.id ?? null);
+    const pack = this.availablePackOffers().find(
+      (offer) => offer.id === preselectedPack,
+    );
+    this.selectedPackOfferId.set(pack?.id ?? null);
     if (variant) {
       this.loadSlots();
     } else {

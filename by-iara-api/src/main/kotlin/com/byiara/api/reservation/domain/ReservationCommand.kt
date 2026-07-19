@@ -12,6 +12,9 @@ data class CreateReservationCommand(
     val customer: CustomerDetails,
     val notes: String?,
     val locale: ReservationLocale,
+    val packOfferId: UUID? = null,
+    val customerPackId: UUID? = null,
+    val customerSessionToken: String? = null,
 )
 
 /** A customer-facing slot lookup for a selected catalog option. */

@@ -21,6 +21,11 @@ function localizedRoutes(locale: LocalePath): Route[] {
         import('./services/services-catalog').then((m) => m.ServicesCatalog),
     },
     {
+      path: getLocalizedPagePath(locale, 'packs'),
+      pathMatch: 'full',
+      loadComponent: () => import('./packs/packs').then((m) => m.Packs),
+    },
+    {
       path: `${getLocalizedPagePath(locale, 'services')}/:slug`,
       resolve: { service: serviceResolver },
       loadComponent: () =>

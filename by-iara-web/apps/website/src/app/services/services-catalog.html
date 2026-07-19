@@ -1,5 +1,5 @@
 <main class="public-shell">
-  <div class="catalog-container">
+  <div class="catalog-container" [attr.aria-busy]="loading()">
     <header class="catalog-header">
       <p class="eyebrow">{{ copy().eyebrow }}</p>
       <h1>{{ copy().title }}</h1>
@@ -9,9 +9,42 @@
     @if (hasError()) {
     <byiara-alert tone="danger">{{ copy().loadError }}</byiara-alert>
     } @if (loading()) {
-    <byiara-empty-state [description]="copy().loading" [dashed]="false">
-      <byiara-spinner></byiara-spinner>
-    </byiara-empty-state>
+    <div class="services-grid" aria-hidden="true">
+      @for (card of skeletonCards; track card) {
+      <byiara-card padding="lg">
+        <div class="service-skeleton">
+          <div class="skeleton-copy">
+            <byiara-skeleton width="58%" height="1.8rem"></byiara-skeleton>
+            <byiara-skeleton width="100%" height="0.85rem"></byiara-skeleton>
+            <byiara-skeleton width="82%" height="0.85rem"></byiara-skeleton>
+          </div>
+          <div class="skeleton-variants">
+            <byiara-skeleton width="7rem" height="0.75rem"></byiara-skeleton>
+            @for (variant of skeletonVariants; track variant) {
+            <div class="skeleton-variant-row">
+              <div>
+                <byiara-skeleton
+                  width="3.5rem"
+                  height="0.85rem"
+                ></byiara-skeleton>
+                <byiara-skeleton
+                  width="4.5rem"
+                  height="1.1rem"
+                ></byiara-skeleton>
+              </div>
+              <byiara-skeleton
+                variant="block"
+                width="5rem"
+                height="2.25rem"
+              ></byiara-skeleton>
+            </div>
+            }
+          </div>
+        </div>
+      </byiara-card>
+      }
+    </div>
+    <p class="visually-hidden" role="status">{{ copy().loading }}</p>
     } @if (!loading() && !hasError() && services().length === 0) {
     <byiara-empty-state [title]="copy().empty"></byiara-empty-state>
     } @if (!loading() && !hasError() && services().length > 0) {
@@ -29,6 +62,15 @@
             <p class="service-description">
               {{ localized(service).description }}
             </p>
+            } @if (hasPackOffers(service)) {
+            <a
+              class="pack-availability"
+              [routerLink]="detailLink(service)"
+              fragment="session-packs"
+            >
+              <span aria-hidden="true"></span>
+              {{ copy().packsAvailable }}
+            </a>
             }
           </div>
 

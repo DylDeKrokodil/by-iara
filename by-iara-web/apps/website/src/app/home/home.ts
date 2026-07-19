@@ -19,10 +19,12 @@ import {
 } from '../services/services-api';
 import { NextAvailableLink } from './next-available-link/next-available-link';
 import { featuredServices } from './featured-services';
+import { packPresentations } from '../packs/pack-presentation';
+import { HomePack } from './home-pack/home-pack';
 
 @Component({
   selector: 'byiara-home',
-  imports: [Button, NextAvailableLink, RouterLink],
+  imports: [Button, HomePack, NextAvailableLink, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -38,6 +40,15 @@ export class Home implements OnInit {
   protected readonly taster = computed(() =>
     featuredServices(this.services(), this.language.current().locale),
   );
+  protected readonly featuredPack = computed(() => {
+    const featuredIds = new Set(this.taster().map((service) => service.id));
+    const offers = packPresentations(this.services());
+    return (
+      offers.find((item) => featuredIds.has(item.service.id)) ??
+      offers[0] ??
+      null
+    );
+  });
 
   private readonly heroSection =
     viewChild<ElementRef<HTMLElement>>('heroSection');

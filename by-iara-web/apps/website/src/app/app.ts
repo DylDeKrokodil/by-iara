@@ -6,7 +6,7 @@ import { LanguageService } from './i18n/language.service';
 import { LanguageSwitcher } from './i18n/language-switcher/language-switcher';
 import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
-import { BRAND } from './brand/brand';
+import { BRAND, SOCIAL_LINKS } from './brand/brand';
 import { BUSINESS_DETAILS } from './legal/business-details';
 
 @Component({
@@ -30,6 +30,7 @@ export class App {
   protected readonly menuOpen = signal(false);
   protected readonly currentYear = new Date().getFullYear();
   protected readonly brand = BRAND;
+  protected readonly socialLinks = SOCIAL_LINKS;
   protected readonly contact = {
     email: BUSINESS_DETAILS.email,
     emailHref: `mailto:${BUSINESS_DETAILS.email}`,

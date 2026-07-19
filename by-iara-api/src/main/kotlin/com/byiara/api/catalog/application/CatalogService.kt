@@ -6,6 +6,7 @@ import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceNotFoundException
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.catalog.domain.ServiceListQuery
+import com.byiara.api.catalog.domain.InvalidPackOfferException
 import org.springframework.stereotype.Service as SpringService
 import org.springframework.transaction.annotation.Transactional
 import java.text.Normalizer
@@ -31,6 +32,7 @@ class CatalogService(
 
     @Transactional
     fun create(command: ServiceCommand): Service {
+        validatePackOffers(command)
         val slug = slugify(command.name)
         if (serviceRepository.existsBySlug(slug)) {
             throw DuplicateServiceSlugException(slug)
@@ -40,6 +42,7 @@ class CatalogService(
 
     @Transactional
     fun update(id: UUID, command: ServiceCommand): Service {
+        validatePackOffers(command)
         val existing = serviceRepository.findById(id) ?: throw ServiceNotFoundException(id)
         return serviceRepository.update(id, withLocalizedSlugs(command, existing))
     }
@@ -79,4 +82,20 @@ class CatalogService(
             "en", "en-US" -> "en-US"
             else -> locale.trim()
         }
+
+    private fun validatePackOffers(command: ServiceCommand) {
+        val durations = command.variants.map { it.durationMinutes }.toSet()
+        command.packOffers.forEach { offer ->
+            if (offer.durationMinutes !in durations) {
+                throw InvalidPackOfferException("Every pack must use a duration offered by the service")
+            }
+            if (offer.sessionCount < 2) {
+                throw InvalidPackOfferException("A pack must contain at least two sessions")
+            }
+        }
+        val duplicates = command.packOffers.groupBy { it.durationMinutes to it.sessionCount }.any { it.value.size > 1 }
+        if (duplicates) {
+            throw InvalidPackOfferException("Pack duration and session count combinations must be unique")
+        }
+    }
 }

@@ -237,9 +237,16 @@
 .variants-section {
   border: 0;
   margin: 0;
+  min-width: 0;
   padding: 0;
   max-width: 42rem;
   width: 100%;
+}
+
+.pricing-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .variants-list {
@@ -278,6 +285,22 @@
   flex-wrap: wrap;
   gap: var(--byiara-space-md);
   flex-grow: 1;
+}
+
+.variant-fields.pack-fields {
+  grid-template-columns: repeat(5, minmax(7rem, 1fr));
+}
+
+@media (max-width: 70rem) {
+  .variant-fields.pack-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .variant-fields.pack-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .variant-fields .form-group.compact {
@@ -324,6 +347,12 @@
 
   .variants-section {
     max-width: none;
+  }
+
+  .pricing-column {
+    grid-column: 2;
+    grid-row: 1;
+    gap: var(--byiara-space-xl);
   }
 
   .section-divider {

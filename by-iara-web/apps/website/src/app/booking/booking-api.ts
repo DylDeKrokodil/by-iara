@@ -15,6 +15,9 @@ export interface CreateReservationPayload {
   notes: string | null;
   /** Language the confirmation/rejection email should be sent in. */
   locale: 'pt' | 'en';
+  packOfferId?: string | null;
+  customerPackId?: string | null;
+  customerSessionToken?: string | null;
 }
 
 export interface ReservationConfirmation {
@@ -26,6 +29,22 @@ export interface ReservationConfirmation {
   startsAt: string;
   endsAt: string;
   customer: { name: string; email: string; phone: string | null };
+}
+
+export interface CustomerPack {
+  id: string;
+  serviceId: string | null;
+  serviceName: string;
+  durationMinutes: number;
+  totalSessions: number;
+  remainingSessions: number;
+  expiresAt: string | null;
+}
+
+export interface CustomerAccess {
+  sessionToken: string;
+  customer: { name: string; email: string; phone: string | null };
+  packs: CustomerPack[];
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,6 +76,27 @@ export class BookingApi {
     return this.http.post<ReservationConfirmation>(
       apiUrl(this.apiOrigin, '/api/reservations'),
       payload,
+    );
+  }
+
+  requestPackAccess(email: string, locale: 'pt' | 'en'): Observable<void> {
+    return this.http.post<void>(
+      apiUrl(this.apiOrigin, '/api/customer-access/request'),
+      { email, locale },
+    );
+  }
+
+  exchangePackAccess(token: string): Observable<CustomerAccess> {
+    return this.http.post<CustomerAccess>(
+      apiUrl(this.apiOrigin, '/api/customer-access/exchange'),
+      { token },
+    );
+  }
+
+  customerPacks(sessionToken: string): Observable<CustomerPack[]> {
+    return this.http.get<CustomerPack[]>(
+      apiUrl(this.apiOrigin, '/api/customer-access/packs'),
+      { headers: { 'X-Customer-Session': sessionToken } },
     );
   }
 

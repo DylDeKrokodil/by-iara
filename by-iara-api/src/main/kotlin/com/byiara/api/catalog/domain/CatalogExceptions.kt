@@ -7,3 +7,5 @@ class ServiceNotFoundException(id: UUID) :
 
 class DuplicateServiceSlugException(slug: String) :
     RuntimeException("A service with slug '$slug' already exists")
+
+class InvalidPackOfferException(message: String) : RuntimeException(message)

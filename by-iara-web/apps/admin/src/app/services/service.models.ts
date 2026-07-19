@@ -11,6 +11,16 @@ export interface ServiceVariant {
   sortOrder: number;
 }
 
+export interface PackOffer {
+  id: string;
+  durationMinutes: number;
+  sessionCount: number;
+  price: Money;
+  validityDays: number | null;
+  active: boolean;
+  sortOrder: number;
+}
+
 export type ServiceLocale = 'pt-PT' | 'en-US';
 
 export interface ServiceFaq {
@@ -50,11 +60,21 @@ export interface Service {
   featured: boolean;
   translations?: Partial<Record<ServiceLocale, ServiceTranslation>>;
   variants: ServiceVariant[];
+  packOffers: PackOffer[];
 }
 
 export interface VariantInput {
   durationMinutes: number;
   priceCents: number;
+  active?: boolean;
+  sortOrder?: number;
+}
+
+export interface PackOfferInput {
+  durationMinutes: number;
+  sessionCount: number;
+  priceCents: number;
+  validityDays?: number | null;
   active?: boolean;
   sortOrder?: number;
 }
@@ -70,6 +90,7 @@ export interface ServiceInput {
     'en-US'?: ServiceTranslationInput;
   };
   variants: VariantInput[];
+  packOffers: PackOfferInput[];
 }
 
 export type ServiceSort = 'DISPLAY_ORDER' | 'NAME' | 'DURATION' | 'PRICE';

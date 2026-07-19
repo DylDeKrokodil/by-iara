@@ -4,6 +4,11 @@ import com.byiara.api.availability.application.AvailabilityService
 import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.notification.application.ReservationEmailService
+import com.byiara.api.pack.application.CustomerAccessService
+import com.byiara.api.pack.domain.NewCustomerPack
+import com.byiara.api.pack.domain.PackNotAvailableException
+import com.byiara.api.pack.domain.PackRepository
+import com.byiara.api.catalog.domain.Money
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
@@ -30,11 +35,17 @@ class ReservationService(
     private val serviceRepository: ServiceRepository,
     private val availabilityService: AvailabilityService,
     private val reservationEmailService: ReservationEmailService,
+    private val packRepository: PackRepository,
+    private val customerAccessService: CustomerAccessService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
         val service = requireActiveService(command.serviceId)
         val variant = requireActiveVariant(service, command.serviceVariantId)
+
+        if (command.packOfferId != null && command.customerPackId != null) {
+            throw InvalidReservationRequestException("Choose either a new pack or an existing pack")
+        }
 
         val endsAt = command.startsAt.plusMinutes(variant.durationMinutes.toLong())
 
@@ -45,7 +56,29 @@ class ReservationService(
             throw SlotAlreadyBookedException()
         }
 
-        val customer = reservationRepository.findOrCreateCustomer(command.customer)
+        val existingPack = command.customerPackId?.let { packId ->
+            val token = command.customerSessionToken
+                ?: throw InvalidReservationRequestException("Customer verification is required to use a pack")
+            val verifiedCustomer = customerAccessService.authenticate(token)
+            packRepository.findUsableForUpdate(packId, verifiedCustomer.id, service.id, variant.durationMinutes)
+                ?: throw PackNotAvailableException("This pack is not available for the selected appointment")
+        }
+        val customer = if (existingPack != null) {
+            customerAccessService.authenticate(command.customerSessionToken!!)
+        } else {
+            reservationRepository.findOrCreateCustomer(command.customer)
+        }
+        val newPackOffer = command.packOfferId?.let { offerId ->
+            service.packOffers.firstOrNull {
+                it.id == offerId && it.active && it.durationMinutes == variant.durationMinutes
+            } ?: throw PackNotAvailableException("This pack offer is no longer available")
+        }
+
+        val reservationPrice = when {
+            existingPack != null -> Money(0, existingPack.price.currency)
+            newPackOffer != null -> newPackOffer.price
+            else -> variant.price
+        }
 
         val reservation = reservationRepository.create(
             NewReservation(
@@ -54,13 +87,30 @@ class ReservationService(
                 serviceVariantId = variant.id,
                 serviceName = service.name,
                 durationMinutes = variant.durationMinutes,
-                price = variant.price,
+                price = reservationPrice,
                 startsAt = command.startsAt,
                 endsAt = endsAt,
                 notes = command.notes,
                 locale = command.locale,
             ),
         )
+        if (newPackOffer != null) {
+            packRepository.createPending(
+                NewCustomerPack(
+                    customerId = customer.id,
+                    packOfferId = newPackOffer.id,
+                    originatingReservationId = reservation.id,
+                    serviceId = service.id,
+                    serviceName = service.name,
+                    durationMinutes = variant.durationMinutes,
+                    totalSessions = newPackOffer.sessionCount,
+                    price = newPackOffer.price,
+                    validityDays = newPackOffer.validityDays,
+                ),
+            )
+        } else if (existingPack != null) {
+            packRepository.addRedemption(existingPack.id, reservation.id)
+        }
         reservationEmailService.notifyAdminsOfNewReservation(reservation)
         return reservation
     }
@@ -165,7 +215,9 @@ class ReservationService(
 
     @Transactional
     fun reject(id: UUID, reasonCode: RejectionReasonCode, message: String): Reservation =
-        transition(id, ReservationStatus.REJECTED, reasonCode, message)
+        transition(id, ReservationStatus.REJECTED, reasonCode, message).also {
+            packRepository.releaseReservation(id)
+        }
 
     @Transactional
     fun cancel(id: UUID, reasonCode: CancellationReasonCode, message: String): Reservation {
@@ -174,6 +226,7 @@ class ReservationService(
             throw IllegalReservationTransitionException(reservation.status, ReservationStatus.CANCELLED)
         }
         reservationRepository.updateCancellation(id, reasonCode, message)
+        packRepository.releaseReservation(id)
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         reservationEmailService.notifyCustomerOfDecision(updated)
         return updated

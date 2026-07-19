@@ -80,6 +80,7 @@ app.get('/sitemap.xml', async (req, res) => {
   const staticGroups = [
     { pt: '/pt', en: '/en' },
     { pt: '/pt/servicos', en: '/en/services' },
+    { pt: '/pt/packs', en: '/en/packs' },
   ];
   const serviceGroups = services.map((service) => ({
     pt: service.translations['pt-PT']?.slug

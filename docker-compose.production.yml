@@ -115,6 +115,7 @@ services:
       NOTIFICATIONS_FROM_ADDRESS: ${NOTIFICATIONS_FROM_ADDRESS:?Set NOTIFICATIONS_FROM_ADDRESS in .env.production}
       BUSINESS_PHONE: ${BUSINESS_PHONE:?Set BUSINESS_PHONE in .env.production}
       ADMIN_URL: https://admin.${DOMAIN}
+      WEBSITE_URL: https://${DOMAIN}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
       SERVER_FORWARD_HEADERS_STRATEGY: framework
     expose:

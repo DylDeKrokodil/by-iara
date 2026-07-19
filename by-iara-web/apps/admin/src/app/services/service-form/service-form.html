@@ -242,116 +242,261 @@
 
     <hr class="section-divider" />
 
-    <!-- Durations & Pricing Section -->
-    <fieldset class="variants-section" formArrayName="variants">
-      <legend class="section-title">Durations &amp; Pricing</legend>
-      <p class="section-subtitle">
-        Define the durations and prices offered for this service.
-      </p>
+    <div class="pricing-column">
+      <!-- Durations & Pricing Section -->
+      <fieldset class="variants-section" formArrayName="variants">
+        <legend class="section-title">Durations &amp; Pricing</legend>
+        <p class="section-subtitle">
+          Define the durations and prices offered for this service.
+        </p>
 
-      <div class="variants-list">
-        @for (variant of variants.controls; track variant) {
-        <div class="variant-card" [formGroupName]="$index">
-          <div class="variant-fields">
-            <!-- Duration -->
-            <div class="form-group compact">
+        <div class="variants-list">
+          @for (variant of variants.controls; track variant) {
+          <div class="variant-card" [formGroupName]="$index">
+            <div class="variant-fields">
+              <!-- Duration -->
+              <div class="form-group compact">
+                <label class="field">
+                  <span>Duration</span>
+                  <div class="input-with-suffix">
+                    <input
+                      type="number"
+                      formControlName="durationMinutes"
+                      min="1"
+                      [class.is-invalid]="variant.get('durationMinutes')?.invalid && variant.get('durationMinutes')?.touched"
+                    />
+                    <span class="input-suffix">min</span>
+                  </div>
+                </label>
+                @if (variant.get('durationMinutes')?.invalid &&
+                variant.get('durationMinutes')?.touched) {
+                <span class="error-message">Required (min: 1)</span>
+                }
+              </div>
+
+              <!-- Price -->
+              <div class="form-group compact">
+                <label class="field">
+                  <span>Price</span>
+                  <div class="input-with-prefix">
+                    <span class="input-prefix">€</span>
+                    <input
+                      type="number"
+                      formControlName="priceEuros"
+                      min="0"
+                      step="0.01"
+                      [class.is-invalid]="variant.get('priceEuros')?.invalid && variant.get('priceEuros')?.touched"
+                    />
+                  </div>
+                </label>
+                @if (variant.get('priceEuros')?.invalid &&
+                variant.get('priceEuros')?.touched) {
+                <span class="error-message">Required (min: 0)</span>
+                }
+              </div>
+
+              <!-- Inline Switch -->
+              <div class="form-group compact toggle-only">
+                <byiara-switch
+                  labelPosition="inline"
+                  label="Active"
+                  formControlName="active"
+                ></byiara-switch>
+              </div>
+            </div>
+
+            <!-- Trash bin action -->
+            <byiara-button
+              variant="ghost"
+              iconOnly
+              [disabled]="variants.length === 1"
+              (click)="removeVariant($index)"
+              ariaLabel="Remove duration option"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </byiara-button>
+          </div>
+          }
+        </div>
+
+        <!-- Add Duration Button -->
+        <byiara-button variant="secondary" (click)="addVariant()">
+          <svg
+            class="btn-icon"
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add duration option
+        </byiara-button>
+      </fieldset>
+
+      <hr class="section-divider" />
+
+      <fieldset
+        class="variants-section pack-offers-section"
+        formArrayName="packOffers"
+      >
+        <legend class="section-title">Session packs</legend>
+        <p class="section-subtitle">
+          Sell several appointments for one upfront price. The first booked
+          appointment is included in the session count.
+        </p>
+
+        @if (packError()) {
+        <byiara-alert tone="danger">{{ packError() }}</byiara-alert>
+        }
+
+        <div class="variants-list">
+          @for (offer of packOffers.controls; track offer) {
+          <div class="variant-card" [formGroupName]="$index">
+            <div class="variant-fields pack-fields">
               <label class="field">
                 <span>Duration</span>
                 <div class="input-with-suffix">
                   <input
                     type="number"
-                    formControlName="durationMinutes"
                     min="1"
-                    [class.is-invalid]="variant.get('durationMinutes')?.invalid && variant.get('durationMinutes')?.touched"
+                    formControlName="durationMinutes"
+                    [class.is-invalid]="packFieldError($index, 'durationMinutes')"
+                    [attr.aria-invalid]="packFieldError($index, 'durationMinutes') ? 'true' : null"
+                    [attr.aria-describedby]="packFieldError($index, 'durationMinutes') ? 'pack-' + $index + '-duration-error' : null"
+                    (input)="clearPackError()"
                   />
                   <span class="input-suffix">min</span>
                 </div>
+                @if (packFieldError($index, 'durationMinutes'); as fieldError) {
+                <span
+                  class="error-message"
+                  [id]="'pack-' + $index + '-duration-error'"
+                  >{{ fieldError }}</span
+                >
+                }
               </label>
-              @if (variant.get('durationMinutes')?.invalid &&
-              variant.get('durationMinutes')?.touched) {
-              <span class="error-message">Required (min: 1)</span>
-              }
-            </div>
-
-            <!-- Price -->
-            <div class="form-group compact">
               <label class="field">
-                <span>Price</span>
+                <span>Sessions</span>
+                <input
+                  type="number"
+                  min="2"
+                  formControlName="sessionCount"
+                  [class.is-invalid]="packFieldError($index, 'sessionCount')"
+                  [attr.aria-invalid]="packFieldError($index, 'sessionCount') ? 'true' : null"
+                  [attr.aria-describedby]="packFieldError($index, 'sessionCount') ? 'pack-' + $index + '-sessions-error' : null"
+                  (input)="clearPackError()"
+                />
+                @if (packFieldError($index, 'sessionCount'); as fieldError) {
+                <span
+                  class="error-message"
+                  [id]="'pack-' + $index + '-sessions-error'"
+                  >{{ fieldError }}</span
+                >
+                }
+              </label>
+              <label class="field">
+                <span>Pack price</span>
                 <div class="input-with-prefix">
                   <span class="input-prefix">€</span>
                   <input
                     type="number"
-                    formControlName="priceEuros"
-                    min="0"
+                    min="0.01"
                     step="0.01"
-                    [class.is-invalid]="variant.get('priceEuros')?.invalid && variant.get('priceEuros')?.touched"
+                    formControlName="priceEuros"
+                    [class.is-invalid]="packFieldError($index, 'priceEuros')"
+                    [attr.aria-invalid]="packFieldError($index, 'priceEuros') ? 'true' : null"
+                    [attr.aria-describedby]="packFieldError($index, 'priceEuros') ? 'pack-' + $index + '-price-error' : null"
+                    (input)="clearPackError()"
                   />
                 </div>
+                @if (packFieldError($index, 'priceEuros'); as fieldError) {
+                <span
+                  class="error-message"
+                  [id]="'pack-' + $index + '-price-error'"
+                  >{{ fieldError }}</span
+                >
+                }
               </label>
-              @if (variant.get('priceEuros')?.invalid &&
-              variant.get('priceEuros')?.touched) {
-              <span class="error-message">Required (min: 0)</span>
-              }
+              <label class="field">
+                <span>Valid for</span>
+                <div class="input-with-suffix">
+                  <input
+                    type="number"
+                    min="1"
+                    formControlName="validityDays"
+                    [class.is-invalid]="packFieldError($index, 'validityDays')"
+                    [attr.aria-invalid]="packFieldError($index, 'validityDays') ? 'true' : null"
+                    [attr.aria-describedby]="packFieldError($index, 'validityDays') ? 'pack-' + $index + '-validity-error' : null"
+                    (input)="clearPackError()"
+                  />
+                  <span class="input-suffix">days</span>
+                </div>
+                @if (packFieldError($index, 'validityDays'); as fieldError) {
+                <span
+                  class="error-message"
+                  [id]="'pack-' + $index + '-validity-error'"
+                  >{{ fieldError }}</span
+                >
+                }
+              </label>
+              <div class="form-group compact toggle-only">
+                <byiara-switch
+                  labelPosition="inline"
+                  label="Active"
+                  formControlName="active"
+                ></byiara-switch>
+              </div>
             </div>
-
-            <!-- Inline Switch -->
-            <div class="form-group compact toggle-only">
-              <byiara-switch
-                labelPosition="inline"
-                label="Active"
-                formControlName="active"
-              ></byiara-switch>
-            </div>
-          </div>
-
-          <!-- Trash bin action -->
-          <byiara-button
-            variant="ghost"
-            iconOnly
-            [disabled]="variants.length === 1"
-            (click)="removeVariant($index)"
-            ariaLabel="Remove duration option"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+            <byiara-button
+              variant="ghost"
+              iconOnly
+              (click)="removePackOffer($index)"
+              ariaLabel="Remove pack offer"
             >
-              <path d="M3 6h18" />
-              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-            </svg>
-          </byiara-button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </byiara-button>
+          </div>
+          }
         </div>
-        }
-      </div>
 
-      <!-- Add Duration Button -->
-      <byiara-button variant="secondary" (click)="addVariant()">
-        <svg
-          class="btn-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="12" y1="5" x2="12" y2="19"></line>
-          <line x1="5" y1="12" x2="19" y2="12"></line>
-        </svg>
-        Add duration option
-      </byiara-button>
-    </fieldset>
+        <byiara-button variant="secondary" (click)="addPackOffer()">
+          Add session pack
+        </byiara-button>
+      </fieldset>
+    </div>
 
     <!-- Form Footer Actions -->
     <div class="form-actions-bar">
