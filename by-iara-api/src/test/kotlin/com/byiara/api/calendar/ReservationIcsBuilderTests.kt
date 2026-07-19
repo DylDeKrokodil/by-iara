@@ -105,6 +105,24 @@ class ReservationIcsBuilderTests {
     }
 
     @Test
+    fun `customer appointment includes the business location and branded summary`() {
+        val ics = ReservationIcsBuilder.buildAppointment(
+            reservation(),
+            generatedAt,
+            "Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal",
+        )
+        val lines = unfold(ics)
+
+        assertTrue(lines.contains("X-WR-CALNAME:By Iara appointment"))
+        assertTrue(lines.contains("METHOD:REQUEST"))
+        assertTrue(lines.contains("SUMMARY:Relaxing massage — By Iara"))
+        assertTrue(lines.contains("LOCATION:Rua Vila do Seixal 5\\, 1.º direito\\, 2810-141 Almada\\, Portugal"))
+        assertTrue(lines.contains("STATUS:CONFIRMED"))
+        assertTrue(lines.contains("ORGANIZER:mailto:info@iaragouveia.com"))
+        assertTrue(lines.contains("ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:ana@example.com"))
+    }
+
+    @Test
     fun `escapes commas, semicolons, backslashes, and embedded newlines in the summary`() {
         val name = "Foo, Bar; Baz\\Qux\nNext line"
         val ics = ReservationIcsBuilder.build(listOf(reservation(serviceName = name)), generatedAt)

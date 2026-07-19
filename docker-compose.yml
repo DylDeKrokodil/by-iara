@@ -33,6 +33,8 @@ services:
       # TODO(legal-launch): Set this before launch; confirmation emails use it for
       # the private telephone channel for health and safety concerns.
       BUSINESS_PHONE: ${BUSINESS_PHONE:-}
+      BUSINESS_ADDRESS: ${BUSINESS_ADDRESS:-Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal}
+      BUSINESS_EMAIL: ${BUSINESS_EMAIL:-info@iaragouveia.com}
       # A human clicks this link from their own browser, not container-to-container --
       # must be the host-published admin port, unlike MAIL_HOST above.
       ADMIN_URL: http://localhost:4201

@@ -302,11 +302,6 @@ h1 {
   line-height: var(--byiara-line-height-loose);
 }
 
-.home-about-copy p:first-child {
-  color: var(--byiara-color-text);
-  font-size: clamp(1.12rem, 1.04rem + 0.35vw, 1.3rem);
-}
-
 .home-visit {
   padding-block: clamp(3rem, 7vw, 5rem);
   border-top: 1px solid var(--byiara-color-border-subtle);

@@ -1,6 +1,7 @@
 package com.byiara.api.notification.application
 
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.ClassPathResource
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
@@ -31,18 +32,34 @@ class MailTransport(
 
     @Retryable(maxRetries = 2, delay = 1000, multiplier = 2.0)
     fun send(recipient: String, content: EmailContent) {
-        if (content.htmlBody != null) {
+        if (content.htmlBody != null || content.attachments.isNotEmpty()) {
             val message = mailSender.createMimeMessage()
-            // RELATED mode is required for an inline (CID) image to sit alongside the
-            // multipart/alternative text+html body that setText(plain, html) builds below.
-            val helper = MimeMessageHelper(message, MimeMessageHelper.MULTIPART_MODE_RELATED, "UTF-8")
+            // Attachments need a MIXED root; the nested RELATED part keeps the inline logo
+            // alongside the multipart/alternative text+html body built below.
+            val multipartMode = if (content.attachments.isEmpty()) {
+                MimeMessageHelper.MULTIPART_MODE_RELATED
+            } else {
+                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED
+            }
+            val helper = MimeMessageHelper(message, multipartMode, "UTF-8")
             helper.setFrom(fromAddress)
             helper.setTo(recipient)
             helper.setSubject(content.subject)
             // Plain text first, HTML second -- MimeMessageHelper builds a multipart/alternative
             // so clients that can't (or won't) render HTML still get a readable fallback.
-            helper.setText(content.body, content.htmlBody)
-            helper.addInline("logo", logo)
+            if (content.htmlBody != null) {
+                helper.setText(content.body, content.htmlBody)
+                helper.addInline("logo", logo)
+            } else {
+                helper.setText(content.body)
+            }
+            content.attachments.forEach { attachment ->
+                helper.addAttachment(
+                    attachment.filename,
+                    ByteArrayResource(attachment.content),
+                    attachment.contentType,
+                )
+            }
             mailSender.send(message)
         } else {
             mailSender.send(

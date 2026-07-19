@@ -10,8 +10,19 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
+data class EmailAttachment(
+    val filename: String,
+    val contentType: String,
+    val content: ByteArray,
+)
+
 /** htmlBody is null only where an email has no HTML version (none currently -- kept for flexibility). */
-data class EmailContent(val subject: String, val body: String, val htmlBody: String? = null)
+data class EmailContent(
+    val subject: String,
+    val body: String,
+    val htmlBody: String? = null,
+    val attachments: List<EmailAttachment> = emptyList(),
+)
 
 /**
  * Subject/body copy for reservation emails, kept separate from send logic so wording
@@ -113,7 +124,12 @@ object EmailCopy {
     }
 
     /** Matches the language the customer booked in. Null if the status isn't a customer-facing decision. */
-    fun reservationDecision(reservation: Reservation, zoneId: ZoneId, businessPhone: String = ""): EmailContent? {
+    fun reservationDecision(
+        reservation: Reservation,
+        zoneId: ZoneId,
+        businessPhone: String = "",
+        businessAddress: String = "",
+    ): EmailContent? {
         val locale = when (reservation.locale) {
             ReservationLocale.PT -> Locale.forLanguageTag("pt-PT")
             ReservationLocale.EN -> Locale.forLanguageTag("en-US")
@@ -121,7 +137,12 @@ object EmailCopy {
         val whenText = formatDateTime(reservation, zoneId, locale)
 
         return when (reservation.status) {
-            ReservationStatus.CONFIRMED -> confirmed(reservation, whenText, businessPhone.trim())
+            ReservationStatus.CONFIRMED -> confirmed(
+                reservation,
+                whenText,
+                businessPhone.trim(),
+                businessAddress.trim(),
+            )
             ReservationStatus.REJECTED -> rejected(reservation, whenText)
             ReservationStatus.CANCELLED -> cancelled(reservation, whenText)
             else -> null
@@ -194,38 +215,99 @@ object EmailCopy {
         }
     }
 
-    private fun confirmed(reservation: Reservation, whenText: String, businessPhone: String): EmailContent {
+    private fun confirmed(
+        reservation: Reservation,
+        whenText: String,
+        businessPhone: String,
+        businessAddress: String,
+    ): EmailContent {
         val name = reservation.customer.name
-        val rows = listOf("Service" to escapeHtml(reservation.serviceName), "When" to whenText)
+        val address = businessAddress.takeIf(String::isNotBlank)
+        val googleMapsUrl = address?.let { mapsUrl("https://www.google.com/maps/search/?api=1&query=", it) }
+        val appleMapsUrl = address?.let { mapsUrl("https://maps.apple.com/?q=", it) }
+        val rows = buildList {
+            add("Service" to escapeHtml(reservation.serviceName))
+            add("When" to whenText)
+            address?.let { add("Location" to escapeHtml(it)) }
+        }
         val portuguesePhone = businessPhone.takeIf(String::isNotBlank)?.let { " para ${it}" }.orEmpty()
         val englishPhone = businessPhone.takeIf(String::isNotBlank)?.let { " on ${it}" }.orEmpty()
+        val portugueseLocationLines = address?.let {
+            listOf(
+                "",
+                "Local: $it",
+                "Google Maps: $googleMapsUrl",
+                "Apple Maps: $appleMapsUrl",
+                "",
+                "Adicionar ao calendário",
+                "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro by-iara-marcacao.ics em anexo.",
+            )
+        }.orEmpty()
+        val englishLocationLines = address?.let {
+            listOf(
+                "",
+                "Location: $it",
+                "Google Maps: $googleMapsUrl",
+                "Apple Maps: $appleMapsUrl",
+                "",
+                "Add to your calendar",
+                "Your email app may show an option to add or accept this appointment. If it does not, open the attached by-iara-appointment.ics file.",
+            )
+        }.orEmpty()
+        val portugueseLocationHtml = address?.let {
+            locationAndCalendarHtml(
+                heading = "Local",
+                address = it,
+                googleMapsUrl = requireNotNull(googleMapsUrl),
+                appleMapsUrl = requireNotNull(appleMapsUrl),
+                calendarHeading = "Adicionar ao calendário",
+                calendarCopy = "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro <strong>by-iara-marcacao.ics</strong> em anexo.",
+            )
+        }.orEmpty()
+        val englishLocationHtml = address?.let {
+            locationAndCalendarHtml(
+                heading = "Location",
+                address = it,
+                googleMapsUrl = requireNotNull(googleMapsUrl),
+                appleMapsUrl = requireNotNull(appleMapsUrl),
+                calendarHeading = "Add to your calendar",
+                calendarCopy = "Your email app may show an option to add or accept this appointment. If it does not, open the attached <strong>by-iara-appointment.ics</strong> file.",
+            )
+        }.orEmpty()
         return when (reservation.locale) {
             ReservationLocale.PT -> EmailContent(
                 subject = "A sua reserva foi confirmada",
-                body = """
-                    Olá $name,
-
-                    A sua reserva está confirmada:
-
-                    Serviço: ${reservation.serviceName}
-                    Data: $whenText
-
-                    Saúde e segurança
-                    Se tiver uma lesão, condição de saúde, gravidez, cirurgia recente, medicação, alergia ou outra questão que possa afetar a massagem, terá de nos telefonar antes da marcação$portuguesePhone. Não envie dados de saúde por email nem através das notas do website.
-
-                    Cancelamentos
-                    Comunique qualquer cancelamento ou reagendamento com pelo menos 24 horas de antecedência. O primeiro cancelamento tardio não tem penalização; em caso de cancelamentos tardios repetidos, pode ser exigido um sinal de €15, deduzido ao preço da sessão.
-
-                    Até breve!
-                    By Iara
-                """.trimIndent(),
+                body = (listOf(
+                    "Olá $name,",
+                    "",
+                    "A sua reserva está confirmada:",
+                    "",
+                    "Serviço: ${reservation.serviceName}",
+                    "Data: $whenText",
+                ) + portugueseLocationLines + listOf(
+                    "",
+                    "Saúde e segurança",
+                    "Se tiver uma lesão, condição de saúde, gravidez, cirurgia recente, medicação, alergia ou outra questão que possa afetar a massagem, terá de nos telefonar antes da marcação$portuguesePhone. Não envie dados de saúde por email nem através das notas do website.",
+                    "",
+                    "Cancelamentos",
+                    "Comunique qualquer cancelamento ou reagendamento com pelo menos 24 horas de antecedência. O primeiro cancelamento tardio não tem penalização; em caso de cancelamentos tardios repetidos, pode ser exigido um sinal de €15, deduzido ao preço da sessão.",
+                    "",
+                    "Até breve!",
+                    "By Iara",
+                )).joinToString("\n"),
                 htmlBody = htmlDocument(
                     lang = "pt",
                     title = "A sua reserva foi confirmada",
                     bodyHtml = """
                         <h1 style="$headingStyle">A sua reserva foi confirmada</h1>
                         <p style="$paragraphStyle">Olá ${escapeHtml(name)}, a sua marcação está confirmada &mdash; seguem os detalhes:</p>
-                        ${detailsCard(listOf("Serviço" to rows[0].second, "Data" to rows[1].second))}
+                        ${detailsCard(
+                            rows.mapIndexed { index, row ->
+                                (if (index == 0) "Serviço" else if (index == 1) "Data" else "Local") to row.second
+                            },
+                            fullWidthLabels = setOf("Local"),
+                        )}
+                        $portugueseLocationHtml
                         <h2 style="$subheadingStyle">Saúde e segurança</h2>
                         <p style="$paragraphStyle">Se tiver uma lesão, condição de saúde, gravidez, cirurgia recente, medicação, alergia ou outra questão que possa afetar a massagem, terá de nos telefonar antes da marcação${escapeHtml(portuguesePhone)}. Não envie dados de saúde por email nem através das notas do website.</p>
                         <h2 style="$subheadingStyle">Cancelamentos</h2>
@@ -236,30 +318,32 @@ object EmailCopy {
             )
             ReservationLocale.EN -> EmailContent(
                 subject = "Your booking is confirmed",
-                body = """
-                    Hi $name,
-
-                    Your booking is confirmed:
-
-                    Service: ${reservation.serviceName}
-                    When: $whenText
-
-                    Health and safety
-                    If you have an injury, health condition, pregnancy, recent surgery, medication, allergy, or another concern that may affect your massage, you must call us before your appointment$englishPhone. Do not send health information by email or through the website notes.
-
-                    Cancellations
-                    Please cancel or reschedule at least 24 hours in advance. The first late cancellation has no penalty; repeated late cancellations may require a €15 deposit, deducted from the session price.
-
-                    See you soon!
-                    By Iara
-                """.trimIndent(),
+                body = (listOf(
+                    "Hi $name,",
+                    "",
+                    "Your booking is confirmed:",
+                    "",
+                    "Service: ${reservation.serviceName}",
+                    "When: $whenText",
+                ) + englishLocationLines + listOf(
+                    "",
+                    "Health and safety",
+                    "If you have an injury, health condition, pregnancy, recent surgery, medication, allergy, or another concern that may affect your massage, you must call us before your appointment$englishPhone. Do not send health information by email or through the website notes.",
+                    "",
+                    "Cancellations",
+                    "Please cancel or reschedule at least 24 hours in advance. The first late cancellation has no penalty; repeated late cancellations may require a €15 deposit, deducted from the session price.",
+                    "",
+                    "See you soon!",
+                    "By Iara",
+                )).joinToString("\n"),
                 htmlBody = htmlDocument(
                     lang = "en",
                     title = "Your booking is confirmed",
                     bodyHtml = """
                         <h1 style="$headingStyle">Your booking is confirmed</h1>
                         <p style="$paragraphStyle">Hi ${escapeHtml(name)}, your appointment is set &mdash; here are the details:</p>
-                        ${detailsCard(rows)}
+                        ${detailsCard(rows, fullWidthLabels = setOf("Location"))}
+                        $englishLocationHtml
                         <h2 style="$subheadingStyle">Health and safety</h2>
                         <p style="$paragraphStyle">If you have an injury, health condition, pregnancy, recent surgery, medication, allergy, or another concern that may affect your massage, you must call us before your appointment${escapeHtml(englishPhone)}. Do not send health information by email or through the website notes.</p>
                         <h2 style="$subheadingStyle">Cancellations</h2>
@@ -411,14 +495,28 @@ object EmailCopy {
     """.trimIndent()
 
     /** Label/value rows in a rose-tinted rounded box. Values must already be HTML-escaped by the caller. */
-    private fun detailsCard(rows: List<Pair<String, String>>): String {
+    private fun detailsCard(
+        rows: List<Pair<String, String>>,
+        fullWidthLabels: Set<String> = emptySet(),
+    ): String {
         val rowsHtml = rows.joinToString("\n") { (label, value) ->
-            """
-            <tr>
-              <td style="padding:4px 0; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:$TEXT_MUTED;">$label</td>
-              <td style="padding:4px 0; font-size:15px; font-weight:600; color:$TEXT_PLUM; text-align:right;">$value</td>
-            </tr>
-            """.trimIndent()
+            if (label in fullWidthLabels) {
+                """
+                <tr>
+                  <td colspan="2" style="padding:12px 0 4px; border-top:1px solid $BORDER_ROSE;">
+                    <span style="display:block; margin-bottom:4px; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:$TEXT_MUTED;">$label</span>
+                    <span style="display:block; font-size:15px; line-height:1.45; font-weight:600; color:$TEXT_PLUM; text-align:left;">$value</span>
+                  </td>
+                </tr>
+                """.trimIndent()
+            } else {
+                """
+                <tr>
+                  <td style="padding:4px 12px 4px 0; font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:$TEXT_MUTED; white-space:nowrap;">$label</td>
+                  <td style="padding:4px 0; font-size:15px; font-weight:600; color:$TEXT_PLUM; text-align:right;">$value</td>
+                </tr>
+                """.trimIndent()
+            }
         }
         return """
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:$SURFACE_TINTED; border-radius:8px; margin-bottom:24px;">
@@ -438,11 +536,33 @@ object EmailCopy {
         <table role="presentation" align="center" cellpadding="0" cellspacing="0" style="margin:8px auto 0;">
           <tr>
             <td style="border-radius:8px; background-color:$PRIMARY;">
-              <a href="$url" style="display:inline-block; padding:12px 28px; font-family:$BODY_FONT; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:8px;">${escapeHtml(label)}</a>
+              <a href="${escapeHtml(url)}" style="display:inline-block; padding:12px 28px; font-family:$BODY_FONT; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:8px;">${escapeHtml(label)}</a>
             </td>
           </tr>
         </table>
     """.trimIndent()
+
+    private fun locationAndCalendarHtml(
+        heading: String,
+        address: String,
+        googleMapsUrl: String,
+        appleMapsUrl: String,
+        calendarHeading: String,
+        calendarCopy: String,
+    ): String = """
+        <h2 style="$subheadingStyle">${escapeHtml(heading)}</h2>
+        <p style="$paragraphStyle">
+          ${escapeHtml(address)}<br />
+          <a href="${escapeHtml(googleMapsUrl)}" style="color:$PRIMARY; font-weight:600;">Google Maps</a>
+          &nbsp;&middot;&nbsp;
+          <a href="${escapeHtml(appleMapsUrl)}" style="color:$PRIMARY; font-weight:600;">Apple Maps</a>
+        </p>
+        <h2 style="$subheadingStyle">${escapeHtml(calendarHeading)}</h2>
+        <p style="$paragraphStyle">$calendarCopy</p>
+    """.trimIndent()
+
+    private fun mapsUrl(baseUrl: String, address: String): String =
+        baseUrl + urlEncode("By Iara, $address")
 
     private fun urlEncode(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8)
 

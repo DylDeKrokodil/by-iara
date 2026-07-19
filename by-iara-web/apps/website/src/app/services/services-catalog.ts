@@ -10,6 +10,7 @@ import {
 } from './services-api';
 import { LanguageService } from '../i18n/language.service';
 import { SeoService } from '../seo/seo.service';
+import { resolveServiceCardImage } from './service-card-images';
 
 @Component({
   selector: 'byiara-services-catalog',
@@ -29,6 +30,7 @@ export class ServicesCatalog implements OnInit {
   protected readonly copy = computed(() => this.language.messages().services);
   protected readonly skeletonCards = [0, 1, 2, 3] as const;
   protected readonly skeletonVariants = [0, 1] as const;
+  protected readonly serviceCardImage = resolveServiceCardImage;
 
   ngOnInit(): void {
     this.loadCatalog();

@@ -18,35 +18,85 @@ object ReservationIcsBuilder {
     private val UTC_FORMAT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
 
     fun build(reservations: List<Reservation>, generatedAt: OffsetDateTime): String {
+        return buildCalendar(
+            calendarName = "by-iara Reservations",
+            method = "PUBLISH",
+            events = reservations.map { eventLines(it, generatedAt) },
+        )
+    }
+
+    /** An iTIP request that mail clients can present as a native calendar invitation. */
+    fun buildAppointment(
+        reservation: Reservation,
+        generatedAt: OffsetDateTime,
+        location: String,
+        organizerEmail: String = "info@iaragouveia.com",
+    ): String =
+        buildCalendar(
+            calendarName = "By Iara appointment",
+            method = "REQUEST",
+            events = listOf(
+                eventLines(
+                    reservation = reservation,
+                    generatedAt = generatedAt,
+                    summaryOverride = "${reservation.serviceName} — By Iara",
+                    location = location.trim().takeIf(String::isNotBlank),
+                    organizerEmail = organizerEmail.trim(),
+                    attendeeEmail = reservation.customer.email,
+                ),
+            ),
+        )
+
+    private fun buildCalendar(calendarName: String, method: String, events: List<List<String>>): String {
         val lines = mutableListOf<String>()
         lines += "BEGIN:VCALENDAR"
         lines += "VERSION:2.0"
         lines += "PRODID:-//by-iara//Reservations Feed//EN"
         lines += "CALSCALE:GREGORIAN"
-        lines += "METHOD:PUBLISH"
-        lines += "X-WR-CALNAME:by-iara Reservations"
+        lines += "METHOD:$method"
+        lines += "X-WR-CALNAME:${escapeText(calendarName)}"
         lines += "REFRESH-INTERVAL;VALUE=DURATION:PT1H"
-        reservations.forEach { lines += eventLines(it, generatedAt) }
+        events.forEach { lines += it }
         lines += "END:VCALENDAR"
 
         return lines.joinToString(separator = "\r\n", postfix = "\r\n") { foldLine(it) }
     }
 
-    private fun eventLines(reservation: Reservation, generatedAt: OffsetDateTime): List<String> {
+    private fun eventLines(
+        reservation: Reservation,
+        generatedAt: OffsetDateTime,
+        summaryOverride: String? = null,
+        location: String? = null,
+        organizerEmail: String? = null,
+        attendeeEmail: String? = null,
+    ): List<String> {
         val isPending = reservation.status == ReservationStatus.PENDING
-        val summary = if (isPending) "${reservation.serviceName} (Pending)" else reservation.serviceName
+        val summary = summaryOverride ?: if (isPending) "${reservation.serviceName} (Pending)" else reservation.serviceName
         val status = if (isPending) "TENTATIVE" else "CONFIRMED"
 
-        return listOf(
-            "BEGIN:VEVENT",
-            "UID:${reservation.id}@by-iara.app",
-            "DTSTAMP:${formatUtc(generatedAt)}",
-            "DTSTART:${formatUtc(reservation.startsAt)}",
-            "DTEND:${formatUtc(reservation.endsAt)}",
-            "SUMMARY:${escapeText(summary)}",
-            "STATUS:$status",
-            "END:VEVENT",
-        )
+        return buildList {
+            addAll(
+                listOf(
+                    "BEGIN:VEVENT",
+                    "UID:${reservation.id}@by-iara.app",
+                    "DTSTAMP:${formatUtc(generatedAt)}",
+                    "DTSTART:${formatUtc(reservation.startsAt)}",
+                    "DTEND:${formatUtc(reservation.endsAt)}",
+                    "SUMMARY:${escapeText(summary)}",
+                    "STATUS:$status",
+                ),
+            )
+            location?.let { add("LOCATION:${escapeText(it)}") }
+            organizerEmail?.takeIf(String::isNotBlank)?.let { add("ORGANIZER:mailto:$it") }
+            attendeeEmail?.takeIf(String::isNotBlank)?.let {
+                add("ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:$it")
+            }
+            if (organizerEmail != null) {
+                add("SEQUENCE:0")
+                add("TRANSP:OPAQUE")
+            }
+            add("END:VEVENT")
+        }
     }
 
     private fun formatUtc(value: OffsetDateTime): String =

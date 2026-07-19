@@ -1,15 +1,18 @@
 package com.byiara.api.notification.application
 
 import com.byiara.api.auth.domain.AdminCredentialsRepository
+import com.byiara.api.calendar.application.ReservationIcsBuilder
 import com.byiara.api.notification.domain.EmailLogRepository
 import com.byiara.api.notification.domain.EmailStatus
 import com.byiara.api.notification.domain.EmailType
 import com.byiara.api.notification.domain.NewEmailLog
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationStatus
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.util.UUID
 
@@ -24,6 +27,10 @@ class ReservationEmailService(
     private val adminUrl: String,
     @Value("\${by-iara.business-phone:}")
     private val businessPhone: String,
+    @Value("\${by-iara.business-address:}")
+    private val businessAddress: String,
+    @Value("\${by-iara.business-email}")
+    private val businessEmail: String,
 ) {
     private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
 
@@ -45,9 +52,34 @@ class ReservationEmailService(
 
     fun notifyCustomerOfDecision(reservation: Reservation) {
         runCatching {
-            val content = EmailCopy.reservationDecision(reservation, zoneId, businessPhone) ?: return@runCatching
+            var content = EmailCopy.reservationDecision(
+                reservation,
+                zoneId,
+                businessPhone,
+                businessAddress,
+            ) ?: return@runCatching
             val type = when (reservation.status) {
-                ReservationStatus.CONFIRMED -> EmailType.RESERVATION_CONFIRMED
+                ReservationStatus.CONFIRMED -> {
+                    val filename = when (reservation.locale) {
+                        ReservationLocale.PT -> "by-iara-marcacao.ics"
+                        ReservationLocale.EN -> "by-iara-appointment.ics"
+                    }
+                    content = content.copy(
+                        attachments = listOf(
+                            EmailAttachment(
+                                filename = filename,
+                                contentType = "text/calendar; charset=UTF-8; method=REQUEST",
+                                content = ReservationIcsBuilder.buildAppointment(
+                                    reservation,
+                                    OffsetDateTime.now(),
+                                    businessAddress,
+                                    businessEmail,
+                                ).toByteArray(Charsets.UTF_8),
+                            ),
+                        ),
+                    )
+                    EmailType.RESERVATION_CONFIRMED
+                }
                 ReservationStatus.REJECTED -> EmailType.RESERVATION_REJECTED
                 ReservationStatus.CANCELLED -> EmailType.RESERVATION_CANCELLED
                 else -> return@runCatching

@@ -315,7 +315,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       visitTitle: 'Em Almada, à sua espera',
       visitAddressTitle: 'Onde',
       visitAddressText:
-        'O estúdio fica em Almada. A morada exata é partilhada na confirmação da sua marcação.',
+        'As sessões decorrem num espaço calmo e relaxante em Almada. A morada exata é partilhada na confirmação da sua marcação.',
       visitHoursTitle: 'Quando',
       visitHoursText:
         'As sessões são sempre com marcação prévia. Veja os horários livres ao reservar.',
@@ -583,7 +583,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       visitTitle: 'In Almada, waiting for you',
       visitAddressTitle: 'Where',
       visitAddressText:
-        'The studio is in Almada. The exact address is shared when your booking is confirmed.',
+        'Sessions take place in a calm and relaxing space in Almada. The exact address is shared when your booking is confirmed.',
       visitHoursTitle: 'When',
       visitHoursText:
         'Sessions are by appointment only. See open times as you book.',
