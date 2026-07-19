@@ -13,6 +13,7 @@ const service: Service = {
   description: null,
   active: true,
   featured: true,
+  image: null,
   sortOrder: 0,
   translations: {},
   variants: [],

@@ -11,6 +11,7 @@ function service(): Service {
     active: true,
     sortOrder: 0,
     featured: true,
+    image: null,
     translations: {},
     variants: [
       {

@@ -50,5 +50,6 @@ function createService(overrides: Partial<Service>): Service {
       },
     ],
     ...overrides,
+    image: overrides.image ?? null,
   };
 }
