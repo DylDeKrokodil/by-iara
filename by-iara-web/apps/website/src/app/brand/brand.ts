@@ -8,7 +8,7 @@ export const BRAND = {
 export const SOCIAL_LINKS = [
   {
     platform: 'Instagram',
-    handle: '@studioiaragouveia',
-    url: 'https://www.instagram.com/studioiaragouveia/',
+    handle: '@iaragouveia.pt',
+    url: 'https://www.instagram.com/iaragouveia.pt/',
   },
 ] as const;
