@@ -26,9 +26,15 @@ import {
   TextField,
   ToastService,
 } from '@by-iara/shared-ui';
+import { apiErrorMessage } from '../../core/api-error-message';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
+type PackOfferField =
+  | 'durationMinutes'
+  | 'sessionCount'
+  | 'priceEuros'
+  | 'validityDays';
 interface PackOfferFormValue {
   durationMinutes: number;
   sessionCount: number;
@@ -81,6 +87,7 @@ export class ServiceForm implements OnInit {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly packError = signal<string | null>(null);
   protected readonly activeLanguageTab = signal<TranslationFormKey>('ptPT');
   protected readonly activeContentTab = signal<ContentFormTab>('basics');
   protected readonly languageTabs = languageTabs;
@@ -188,6 +195,7 @@ export class ServiceForm implements OnInit {
   }
 
   protected addPackOffer(): void {
+    this.packError.set(null);
     const firstDuration = Number(
       this.variants.at(0)?.get('durationMinutes')?.value ?? 60,
     );
@@ -203,7 +211,12 @@ export class ServiceForm implements OnInit {
   }
 
   protected removePackOffer(index: number): void {
+    this.packError.set(null);
     this.packOffers.removeAt(index);
+  }
+
+  protected clearPackError(): void {
+    this.packError.set(null);
   }
 
   protected faqsFor(key: TranslationFormKey): FormArray {
@@ -222,14 +235,26 @@ export class ServiceForm implements OnInit {
     if (this.submitting()) {
       return;
     }
+    this.error.set(null);
+    this.packError.set(null);
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.activateFirstInvalidLanguageTab();
+      if (this.packOffers.invalid) {
+        this.packError.set('Check the highlighted pack fields before saving.');
+      }
+      return;
+    }
+
+    const packConfigurationError = this.packConfigurationError();
+    if (packConfigurationError) {
+      this.packError.set(packConfigurationError);
+      this.toast.show(packConfigurationError, 'error');
       return;
     }
 
     this.submitting.set(true);
-    this.error.set(null);
 
     const raw = this.form.getRawValue();
     const translations: ServiceInput['translations'] = {
@@ -303,9 +328,15 @@ export class ServiceForm implements OnInit {
         const errMsg =
           err.status === 409
             ? 'A service with this URL slug already exists.'
-            : 'Could not save the service.';
-        this.toast.show(errMsg, 'error');
-        this.error.set(errMsg);
+            : apiErrorMessage(err, 'Could not save the service.');
+        if (this.isPackError(errMsg)) {
+          const packMessage = this.friendlyPackError(errMsg);
+          this.packError.set(packMessage);
+          this.toast.show(packMessage, 'error');
+        } else {
+          this.error.set(errMsg);
+          this.toast.show(errMsg, 'error');
+        }
       },
     });
   }
@@ -324,6 +355,24 @@ export class ServiceForm implements OnInit {
     return control.hasError('maxlength')
       ? 'URL slug must be 140 characters or fewer'
       : 'Use lowercase letters, numbers, and single hyphens only';
+  }
+
+  protected packFieldError(
+    index: number,
+    field: PackOfferField,
+  ): string | null {
+    const control = this.packOffers.at(index)?.get(field);
+    if (!control?.touched || !control.errors) {
+      return null;
+    }
+
+    const messages: Record<PackOfferField, string> = {
+      durationMinutes: 'Enter a duration of at least 1 minute.',
+      sessionCount: 'A pack must contain at least 2 sessions.',
+      priceEuros: 'Enter a pack price greater than €0.',
+      validityDays: 'Enter at least 1 day.',
+    };
+    return messages[field];
   }
 
   protected setActiveLanguageTab(value: string): void {
@@ -351,6 +400,45 @@ export class ServiceForm implements OnInit {
       this.activeLanguageTab.set('enUS');
       this.activateInvalidContentTab('enUS');
     }
+  }
+
+  private packConfigurationError(): string | null {
+    const durations = new Set(
+      this.variants.controls.map((variant) =>
+        Number(variant.get('durationMinutes')?.value),
+      ),
+    );
+    const combinations = new Set<string>();
+
+    for (const offer of this.packOffers.controls) {
+      const duration = Number(offer.get('durationMinutes')?.value);
+      const sessions = Number(offer.get('sessionCount')?.value);
+      if (!durations.has(duration)) {
+        return 'Choose a pack duration already listed in Durations & Pricing.';
+      }
+
+      const combination = `${duration}:${sessions}`;
+      if (combinations.has(combination)) {
+        return 'Each pack needs a unique duration and session count combination.';
+      }
+      combinations.add(combination);
+    }
+
+    return null;
+  }
+
+  private isPackError(message: string): boolean {
+    return /pack/i.test(message);
+  }
+
+  private friendlyPackError(message: string): string {
+    if (/must use a duration offered by the service/i.test(message)) {
+      return 'Choose a pack duration already listed in Durations & Pricing.';
+    }
+    if (/duration and session count combinations must be unique/i.test(message)) {
+      return 'Each pack needs a unique duration and session count combination.';
+    }
+    return message;
   }
 
   private activateInvalidContentTab(key: TranslationFormKey): void {

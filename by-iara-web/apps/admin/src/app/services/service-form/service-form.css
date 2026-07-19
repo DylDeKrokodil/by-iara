@@ -237,9 +237,16 @@
 .variants-section {
   border: 0;
   margin: 0;
+  min-width: 0;
   padding: 0;
   max-width: 42rem;
   width: 100%;
+}
+
+.pricing-column {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .variants-list {
@@ -340,6 +347,12 @@
 
   .variants-section {
     max-width: none;
+  }
+
+  .pricing-column {
+    grid-column: 2;
+    grid-row: 1;
+    gap: var(--byiara-space-xl);
   }
 
   .section-divider {
