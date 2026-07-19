@@ -7,6 +7,8 @@ import com.byiara.api.reservation.domain.Customer
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationStatus
+import jakarta.mail.Multipart
+import jakarta.mail.Part
 import jakarta.mail.Session
 import jakarta.mail.internet.MimeMessage
 import org.jooq.DSLContext
@@ -168,6 +170,56 @@ class ReservationEmailServiceTests {
     }
 
     @Test
+    fun `confirmation includes exact location and links for Google and Apple Maps`() {
+        val address = "Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal"
+        val content = EmailCopy.reservationDecision(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.EN),
+            zone,
+            businessAddress = address,
+        )!!
+
+        assertTrue(content.body.contains("Location: $address"))
+        assertTrue(content.body.contains("https://www.google.com/maps/search/?api=1&query=By+Iara%2C+Rua+Vila"))
+        assertTrue(content.body.contains("https://maps.apple.com/?q=By+Iara%2C+Rua+Vila"))
+        assertTrue(content.htmlBody!!.contains("1.º direito"))
+        assertTrue(content.htmlBody.contains("Google Maps"))
+        assertTrue(content.htmlBody.contains("Apple Maps"))
+        assertTrue(content.htmlBody.contains("colspan=\"2\""))
+        assertTrue(content.htmlBody.contains("text-align:left;\">$address"))
+        assertTrue(content.body.contains("email app may show an option to add or accept"))
+        assertTrue(content.htmlBody.contains("by-iara-appointment.ics"))
+    }
+
+    @Test
+    fun `confirmed email carries a portable calendar attachment with the appointment location`() {
+        var sentMessage: MimeMessage? = null
+        Mockito.doAnswer { invocation ->
+            sentMessage = invocation.getArgument(0)
+            null
+        }.`when`(mailSender).send(anyOfType<MimeMessage>())
+
+        reservationEmailService.notifyCustomerOfDecision(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.EN),
+        )
+
+        requireNotNull(sentMessage).saveChanges()
+        val attachment = flattenParts(requireNotNull(sentMessage))
+            .first { it.fileName == "by-iara-appointment.ics" }
+        val calendar = attachment.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+        val unfoldedCalendar = calendar.replace("\r\n ", "")
+        assertTrue(attachment.contentType.startsWith("text/calendar"), attachment.contentType)
+        assertTrue(calendar.contains("BEGIN:VCALENDAR\r\n"))
+        assertTrue(unfoldedCalendar.contains("SUMMARY:Relaxing massage — By Iara"))
+        assertTrue(unfoldedCalendar.contains("METHOD:REQUEST"))
+        assertTrue(unfoldedCalendar.contains("ORGANIZER:mailto:info@iaragouveia.com"))
+        assertTrue(unfoldedCalendar.contains("ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:ana@example.com"))
+        assertTrue(
+            unfoldedCalendar.contains("LOCATION:Rua Vila do Seixal 5\\, 1.º direito\\,"),
+            unfoldedCalendar,
+        )
+    }
+
+    @Test
     fun `non-decision status produces no customer email`() {
         assertNull(EmailCopy.reservationDecision(reservation(ReservationStatus.PENDING, ReservationLocale.EN), zone))
     }
@@ -245,5 +297,11 @@ class ReservationEmailServiceTests {
     private fun <T> anyOfType(): T {
         Mockito.any<T>()
         return null as T
+    }
+
+    private fun flattenParts(part: Part): List<Part> {
+        val content = part.content
+        if (content !is Multipart) return listOf(part)
+        return (0 until content.count).flatMap { flattenParts(content.getBodyPart(it)) }
     }
 }
