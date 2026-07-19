@@ -5,6 +5,8 @@ import com.byiara.api.catalog.domain.Service
 import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceNotFoundException
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.catalog.domain.ServiceImageStorage
+import com.byiara.api.catalog.domain.StoredServiceImage
 import com.byiara.api.catalog.domain.ServiceListQuery
 import com.byiara.api.catalog.domain.InvalidPackOfferException
 import org.springframework.stereotype.Service as SpringService
@@ -15,6 +17,8 @@ import java.util.UUID
 @SpringService
 class CatalogService(
     private val serviceRepository: ServiceRepository,
+    private val serviceImageProcessor: ServiceImageProcessor,
+    private val serviceImageStorage: ServiceImageStorage,
 ) {
     @Transactional(readOnly = true)
     fun listPublicCatalog(): List<Service> = serviceRepository.findCatalog()
@@ -52,6 +56,51 @@ class CatalogService(
         if (!serviceRepository.deactivate(id)) {
             throw ServiceNotFoundException(id)
         }
+    }
+
+    @Transactional
+    fun saveImage(id: UUID, input: ByteArray): Service {
+        if (serviceRepository.findById(id) == null) throw ServiceNotFoundException(id)
+        val image = serviceImageProcessor.optimize(input)
+        val previous = serviceRepository.findImageAsset(id)
+        val storageKey = "services/$id/${UUID.randomUUID()}.jpg"
+        serviceImageStorage.write(storageKey, image.data)
+        try {
+            serviceRepository.saveImage(
+                id = id,
+                storageKey = storageKey,
+                contentType = image.contentType,
+                width = image.width,
+                height = image.height,
+                byteSize = image.data.size,
+            )
+        } catch (exception: Exception) {
+            runCatching { serviceImageStorage.delete(storageKey) }
+            throw exception
+        }
+        previous?.let { runCatching { serviceImageStorage.delete(it.storageKey) } }
+        return get(id)
+    }
+
+    @Transactional(readOnly = true)
+    fun getImage(id: UUID): StoredServiceImage? {
+        val asset = serviceRepository.findImageAsset(id) ?: return null
+        val data = serviceImageStorage.read(asset.storageKey) ?: return null
+        return StoredServiceImage(
+            contentType = asset.contentType,
+            width = asset.width,
+            height = asset.height,
+            data = data,
+            updatedAt = asset.updatedAt,
+        )
+    }
+
+    @Transactional
+    fun deleteImage(id: UUID) {
+        if (serviceRepository.findById(id) == null) throw ServiceNotFoundException(id)
+        val asset = serviceRepository.findImageAsset(id)
+        serviceRepository.deleteImage(id)
+        asset?.let { runCatching { serviceImageStorage.delete(it.storageKey) } }
     }
 
     private fun withLocalizedSlugs(command: ServiceCommand, existing: Service? = null): ServiceCommand =

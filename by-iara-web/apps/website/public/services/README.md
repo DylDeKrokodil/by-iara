@@ -1,12 +1,11 @@
-# Service card images
+# Legacy service image sources
 
-These static images are intentionally mapped to service slugs in
-`src/app/services/service-card-images.ts`. They do not come from the API or the
-database.
+Service cards now render only images uploaded for that service in the admin.
+These original stock files remain as a source archive and are not mapped to
+services or used as fallbacks.
 
 All four source photos are free-to-use Pexels stock images. The checked-in
-assets are cropped to 1400 x 788 and encoded as WebP for consistent card crops
-and smaller transfers.
+assets are cropped to 1400 x 788 and encoded as WebP.
 
 - `relaxation-massage.webp`: https://www.pexels.com/photo/relaxing-massage-in-spa-19666189/
 - `deep-tissue-massage.webp`: https://www.pexels.com/photo/a-woman-doing-massage-therapy-8312875/

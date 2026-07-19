@@ -172,9 +172,17 @@ data class ServiceResponse(
     val active: Boolean,
     val sortOrder: Int,
     val featured: Boolean,
+    val image: ServiceImageResponse?,
     val translations: Map<String, ServiceTranslationResponse>,
     val variants: List<ServiceVariantResponse>,
     val packOffers: List<PackOfferResponse>,
+)
+
+data class ServiceImageResponse(
+    val url: String,
+    val width: Int,
+    val height: Int,
+    val byteSize: Int,
 )
 
 data class ServiceTranslationResponse(
@@ -224,6 +232,14 @@ fun Service.toResponse(): ServiceResponse =
         active = active,
         sortOrder = sortOrder,
         featured = featured,
+        image = image?.let {
+            ServiceImageResponse(
+                url = "/api/services/$id/image?v=${it.updatedAt.toInstant().toEpochMilli()}",
+                width = it.width,
+                height = it.height,
+                byteSize = it.byteSize,
+            )
+        },
         translations = translations.mapValues { it.value.toResponse() },
         variants = variants.map { it.toResponse() },
         packOffers = packOffers.map { it.toResponse() },

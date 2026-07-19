@@ -21,6 +21,19 @@ interface ServiceRepository {
 
     fun update(id: UUID, command: ServiceCommand): Service
 
+    fun saveImage(
+        id: UUID,
+        storageKey: String,
+        contentType: String,
+        width: Int,
+        height: Int,
+        byteSize: Int,
+    )
+
+    fun findImageAsset(id: UUID): ServiceImageAsset?
+
+    fun deleteImage(id: UUID): Boolean
+
     /** Soft-delete: marks the service inactive. Returns false if it did not exist. */
     fun deactivate(id: UUID): Boolean
 }

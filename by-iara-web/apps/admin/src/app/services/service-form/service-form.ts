@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormArray,
@@ -12,6 +12,7 @@ import { ServicesApi } from '../services-api';
 import {
   Service,
   ServiceFaq,
+  ServiceImage,
   ServiceInput,
   ServiceLocale,
   ServiceTranslation,
@@ -27,6 +28,11 @@ import {
   ToastService,
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../../core/api-error-message';
+import { concatMap, map, Observable, of } from 'rxjs';
+import {
+  optimizeServiceImage,
+  OptimizedImage,
+} from '../service-image-optimizer';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
@@ -78,7 +84,7 @@ function isContentFormTab(value: string): value is ContentFormTab {
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })
-export class ServiceForm implements OnInit {
+export class ServiceForm implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
@@ -88,6 +94,11 @@ export class ServiceForm implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly packError = signal<string | null>(null);
+  protected readonly imageError = signal<string | null>(null);
+  protected readonly imageProcessing = signal(false);
+  protected readonly currentImage = signal<ServiceImage | null>(null);
+  protected readonly selectedImage = signal<OptimizedImage | null>(null);
+  protected readonly imageMarkedForRemoval = signal(false);
   protected readonly activeLanguageTab = signal<TranslationFormKey>('ptPT');
   protected readonly activeContentTab = signal<ContentFormTab>('basics');
   protected readonly languageTabs = languageTabs;
@@ -127,6 +138,7 @@ export class ServiceForm implements OnInit {
     this.serviceId = id;
     this.api.get(id).subscribe({
       next: (service) => {
+        this.currentImage.set(service.image);
         const ptTranslation = this.translationFor(service, 'pt-PT', true);
         const enTranslation = this.translationFor(service, 'en-US', false);
         this.form.patchValue({
@@ -182,6 +194,54 @@ export class ServiceForm implements OnInit {
       },
       error: () => this.error.set('Could not load the service.'),
     });
+  }
+
+  ngOnDestroy(): void {
+    this.revokeSelectedImagePreview();
+  }
+
+  protected async selectImage(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.imageError.set(null);
+    this.imageProcessing.set(true);
+    try {
+      const image = await optimizeServiceImage(file);
+      this.revokeSelectedImagePreview();
+      this.selectedImage.set(image);
+      this.imageMarkedForRemoval.set(false);
+    } catch (error) {
+      this.imageError.set(
+        error instanceof Error
+          ? error.message
+          : 'The image could not be processed.',
+      );
+      input.value = '';
+    } finally {
+      this.imageProcessing.set(false);
+    }
+  }
+
+  protected removeImage(): void {
+    this.revokeSelectedImagePreview();
+    this.selectedImage.set(null);
+    this.currentImage.set(null);
+    this.imageMarkedForRemoval.set(true);
+    this.imageError.set(null);
+  }
+
+  protected imagePreviewUrl(): string | null {
+    return this.selectedImage()?.previewUrl ?? this.currentImage()?.url ?? null;
+  }
+
+  protected imagePreviewWidth(): number {
+    return this.selectedImage()?.width ?? this.currentImage()?.width ?? 1600;
+  }
+
+  protected imagePreviewHeight(): number {
+    return this.selectedImage()?.height ?? this.currentImage()?.height ?? 900;
   }
 
   protected addVariant(): void {
@@ -314,7 +374,7 @@ export class ServiceForm implements OnInit {
     const id = this.serviceId;
     const request = id ? this.api.update(id, input) : this.api.create(input);
 
-    request.subscribe({
+    request.pipe(concatMap((service) => this.persistImage(service))).subscribe({
       next: () => {
         const actionMsg = id ? 'updated' : 'created';
         this.toast.show(
@@ -339,6 +399,24 @@ export class ServiceForm implements OnInit {
         }
       },
     });
+  }
+
+  private persistImage(service: Service): Observable<Service> {
+    const selected = this.selectedImage();
+    if (selected) {
+      return this.api.uploadImage(service.id, selected.blob);
+    }
+    if (this.imageMarkedForRemoval()) {
+      return this.api
+        .removeImage(service.id)
+        .pipe(map(() => ({ ...service, image: null })));
+    }
+    return of(service);
+  }
+
+  private revokeSelectedImagePreview(): void {
+    const previewUrl = this.selectedImage()?.previewUrl;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
   }
 
   protected translationNameInvalid(key: TranslationFormKey): boolean {
@@ -435,7 +513,9 @@ export class ServiceForm implements OnInit {
     if (/must use a duration offered by the service/i.test(message)) {
       return 'Choose a pack duration already listed in Durations & Pricing.';
     }
-    if (/duration and session count combinations must be unique/i.test(message)) {
+    if (
+      /duration and session count combinations must be unique/i.test(message)
+    ) {
       return 'Each pack needs a unique duration and session count combination.';
     }
     return message;

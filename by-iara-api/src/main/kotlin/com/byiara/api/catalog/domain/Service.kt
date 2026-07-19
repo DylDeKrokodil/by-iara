@@ -1,6 +1,7 @@
 package com.byiara.api.catalog.domain
 
 import java.util.UUID
+import java.time.OffsetDateTime
 
 data class Service(
     val id: UUID,
@@ -10,9 +11,34 @@ data class Service(
     val active: Boolean,
     val sortOrder: Int,
     val featured: Boolean = false,
+    val image: ServiceImageMetadata? = null,
     val translations: Map<String, ServiceTranslation> = emptyMap(),
     val variants: List<ServiceVariant>,
     val packOffers: List<PackOffer> = emptyList(),
+)
+
+data class ServiceImageMetadata(
+    val width: Int,
+    val height: Int,
+    val byteSize: Int,
+    val updatedAt: OffsetDateTime,
+)
+
+data class StoredServiceImage(
+    val contentType: String,
+    val width: Int,
+    val height: Int,
+    val data: ByteArray,
+    val updatedAt: OffsetDateTime,
+)
+
+data class ServiceImageAsset(
+    val storageKey: String,
+    val contentType: String,
+    val width: Int,
+    val height: Int,
+    val byteSize: Int,
+    val updatedAt: OffsetDateTime,
 )
 
 data class ServiceTranslation(

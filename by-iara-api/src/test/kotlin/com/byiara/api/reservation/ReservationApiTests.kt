@@ -16,6 +16,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
@@ -37,6 +38,7 @@ import java.security.MessageDigest
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class ReservationApiTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -69,6 +71,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists availability_blocks")
         dsl.execute("drop table if exists availability_rules")
         dsl.execute("drop table if exists service_faqs")
+        dsl.execute("drop table if exists service_images")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists pack_offers")
         dsl.execute("drop table if exists service_variants")
@@ -86,6 +89,19 @@ class ReservationApiTests {
                 sort_order integer not null default 0,
                 featured boolean not null default false,
                 created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_images (
+                service_id uuid primary key references services(id) on delete cascade,
+                content_type varchar(32) not null,
+                width integer not null,
+                height integer not null,
+                byte_size integer not null,
+                storage_key varchar(500) not null unique,
                 updated_at timestamp with time zone not null default now()
             )
             """.trimIndent(),

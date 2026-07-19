@@ -8,6 +8,8 @@ import com.byiara.api.catalog.domain.ServiceCommand
 import com.byiara.api.catalog.domain.ServiceFaq
 import com.byiara.api.catalog.domain.ServiceFaqCommand
 import com.byiara.api.catalog.domain.ServiceRepository
+import com.byiara.api.catalog.domain.ServiceImageMetadata
+import com.byiara.api.catalog.domain.ServiceImageAsset
 import com.byiara.api.catalog.domain.ServiceListQuery
 import com.byiara.api.catalog.domain.ServiceSort
 import com.byiara.api.catalog.domain.SortDirection
@@ -42,6 +44,15 @@ class JooqServiceRepository(
     private val sSortOrder = field(name("sort_order"), Int::class.java)
     private val sFeatured = field(name("featured"), Boolean::class.java)
     private val sUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
+
+    private val serviceImages = table(name("service_images"))
+    private val siServiceId = field(name("service_images", "service_id"), UUID::class.java)
+    private val siContentType = field(name("service_images", "content_type"), String::class.java)
+    private val siWidth = field(name("service_images", "width"), Int::class.java)
+    private val siHeight = field(name("service_images", "height"), Int::class.java)
+    private val siByteSize = field(name("service_images", "byte_size"), Int::class.java)
+    private val siStorageKey = field(name("service_images", "storage_key"), String::class.java)
+    private val siUpdatedAt = field(name("service_images", "updated_at"), OffsetDateTime::class.java)
 
     private val variants = table(name("service_variants"))
     private val vId = field(name("id"), UUID::class.java)
@@ -105,6 +116,7 @@ class JooqServiceRepository(
             loadVariants(listOf(id), activeOnly = true).map { it.variant },
             loadTranslations(listOf(id))[id].orEmpty(),
             loadPackOffers(listOf(id), activeOnly = true).map { it.offer },
+            loadImageMetadata(listOf(id))[id],
         )
     }
 
@@ -124,6 +136,7 @@ class JooqServiceRepository(
             loadVariants(listOf(id), activeOnly = false).map { it.variant },
             loadTranslations(listOf(id))[id].orEmpty(),
             loadPackOffers(listOf(id), activeOnly = false).map { it.offer },
+            loadImageMetadata(listOf(id))[id],
         )
     }
 
@@ -180,6 +193,46 @@ class JooqServiceRepository(
 
         return findById(id)!!
     }
+
+    override fun saveImage(
+        id: UUID,
+        storageKey: String,
+        contentType: String,
+        width: Int,
+        height: Int,
+        byteSize: Int,
+    ) {
+        dsl.insertInto(serviceImages)
+            .columns(siServiceId, siStorageKey, siContentType, siWidth, siHeight, siByteSize)
+            .values(id, storageKey, contentType, width, height, byteSize)
+            .onConflict(siServiceId)
+            .doUpdate()
+            .set(siContentType, contentType)
+            .set(siWidth, width)
+            .set(siHeight, height)
+            .set(siByteSize, byteSize)
+            .set(siStorageKey, storageKey)
+            .set(siUpdatedAt, currentOffsetDateTime())
+            .execute()
+    }
+
+    override fun findImageAsset(id: UUID): ServiceImageAsset? =
+        dsl.select(siStorageKey, siContentType, siWidth, siHeight, siByteSize, siUpdatedAt)
+            .from(serviceImages)
+            .where(siServiceId.eq(id))
+            .fetchOne { record ->
+                ServiceImageAsset(
+                    storageKey = record.get(siStorageKey),
+                    contentType = record.get(siContentType),
+                    width = record.get(siWidth),
+                    height = record.get(siHeight),
+                    byteSize = record.get(siByteSize),
+                    updatedAt = record.get(siUpdatedAt),
+                )
+            }
+
+    override fun deleteImage(id: UUID): Boolean =
+        dsl.deleteFrom(serviceImages).where(siServiceId.eq(id)).execute() > 0
 
     override fun deactivate(id: UUID): Boolean =
         dsl.update(services)
@@ -332,6 +385,7 @@ class JooqServiceRepository(
         val offersByService = loadPackOffers(records.map { it.get(sId) }, variantsActiveOnly)
             .groupBy { it.serviceId }
         val translationsByService = loadTranslations(records.map { it.get(sId) })
+        val imagesByService = loadImageMetadata(records.map { it.get(sId) })
 
         return records.map { record ->
             mapService(
@@ -339,8 +393,27 @@ class JooqServiceRepository(
                 variantsByService[record.get(sId)].orEmpty().map { it.variant },
                 translationsByService[record.get(sId)].orEmpty(),
                 offersByService[record.get(sId)].orEmpty().map { it.offer },
+                imagesByService[record.get(sId)],
             )
         }
+    }
+
+    private fun loadImageMetadata(serviceIds: List<UUID>): Map<UUID, ServiceImageMetadata> {
+        if (serviceIds.isEmpty()) return emptyMap()
+        return dsl.select(siServiceId, siWidth, siHeight, siByteSize, siUpdatedAt)
+            .from(serviceImages)
+            .where(siServiceId.`in`(serviceIds))
+            .fetchMap(
+                { it.get(siServiceId) },
+                {
+                    ServiceImageMetadata(
+                        width = it.get(siWidth),
+                        height = it.get(siHeight),
+                        byteSize = it.get(siByteSize),
+                        updatedAt = it.get(siUpdatedAt),
+                    )
+                },
+            )
     }
 
     private fun serviceOrderBy(
@@ -454,6 +527,7 @@ class JooqServiceRepository(
         variants: List<ServiceVariant>,
         translations: Map<String, ServiceTranslation>,
         packOffers: List<PackOffer>,
+        image: ServiceImageMetadata?,
     ): Service =
         Service(
             id = record.get(sId),
@@ -463,6 +537,7 @@ class JooqServiceRepository(
             active = record.get(sActive),
             sortOrder = record.get(sSortOrder),
             featured = record.get(sFeatured),
+            image = image,
             translations = translations,
             variants = variants,
             packOffers = packOffers,

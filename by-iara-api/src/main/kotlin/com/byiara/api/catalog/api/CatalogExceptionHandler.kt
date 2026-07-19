@@ -3,6 +3,7 @@ package com.byiara.api.catalog.api
 import com.byiara.api.catalog.domain.DuplicateServiceSlugException
 import com.byiara.api.catalog.domain.ServiceNotFoundException
 import com.byiara.api.catalog.domain.InvalidPackOfferException
+import com.byiara.api.catalog.domain.InvalidServiceImageException
 import com.byiara.api.common.api.ApiErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -27,5 +28,11 @@ class CatalogExceptionHandler {
     fun handleInvalidPack(exception: InvalidPackOfferException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
             ApiErrorResponse(message = exception.message ?: "Invalid pack offer"),
+        )
+
+    @ExceptionHandler(InvalidServiceImageException::class)
+    fun handleInvalidImage(exception: InvalidServiceImageException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            ApiErrorResponse(message = exception.message ?: "Invalid service image"),
         )
 }

@@ -9,17 +9,26 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.mock.web.MockMultipartFile
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 class CatalogApiTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -35,6 +44,7 @@ class CatalogApiTests {
         dsl.execute("drop table if exists email_logs")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists service_faqs")
+        dsl.execute("drop table if exists service_images")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists pack_offers")
         dsl.execute("drop table if exists service_variants")
@@ -50,6 +60,19 @@ class CatalogApiTests {
                 sort_order integer not null default 0,
                 featured boolean not null default false,
                 created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_images (
+                service_id uuid primary key references services(id) on delete cascade,
+                content_type varchar(32) not null,
+                width integer not null,
+                height integer not null,
+                byte_size integer not null,
+                storage_key varchar(500) not null unique,
                 updated_at timestamp with time zone not null default now()
             )
             """.trimIndent(),
@@ -155,6 +178,50 @@ class CatalogApiTests {
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].name").value("Deep tissue"))
             .andExpect(jsonPath("$[0].variants.length()").value(2))
+    }
+
+    @Test
+    fun `admin can upload an optimized service image and public clients can fetch it`() {
+        val created = mockMvc.perform(
+            post("/api/admin/services").with(adminJwt())
+                .contentType("application/json")
+                .content("""{"name":"Image service","variants":[{"durationMinutes":60,"priceCents":7000}]}"""),
+        ).andExpect(status().isCreated).andReturn()
+        val serviceId: String = JsonPath.read(created.response.contentAsString, "$.id")
+
+        val source = BufferedImage(2000, 1500, BufferedImage.TYPE_INT_RGB).apply {
+            createGraphics().run {
+                color = Color(180, 80, 100)
+                fillRect(0, 0, width, height)
+                dispose()
+            }
+        }
+        val bytes = ByteArrayOutputStream().also { ImageIO.write(source, "png", it) }.toByteArray()
+        val file = MockMultipartFile("image", "service.png", "image/png", bytes)
+
+        mockMvc.perform(
+            multipart("/api/admin/services/$serviceId/image")
+                .file(file)
+                .with { request -> request.method = "PUT"; request }
+                .with(adminJwt()),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.image.width").value(1600))
+            .andExpect(jsonPath("$.image.height").value(1200))
+            .andExpect(jsonPath("$.image.url").value(org.hamcrest.Matchers.containsString("/api/services/$serviceId/image?v=")))
+
+        mockMvc.perform(get("/api/services/$serviceId/image"))
+            .andExpect(status().isOk)
+            .andExpect { result -> check(result.response.contentType == "image/jpeg") }
+            .andExpect { result -> check(result.response.contentAsByteArray.size < 1_000_000) }
+
+        mockMvc.perform(delete("/api/admin/services/$serviceId/image").with(adminJwt()))
+            .andExpect(status().isNoContent)
+        mockMvc.perform(get("/api/admin/services/$serviceId").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.image").doesNotExist())
+        mockMvc.perform(get("/api/services/$serviceId/image"))
+            .andExpect(status().isNotFound)
     }
 
     @Test

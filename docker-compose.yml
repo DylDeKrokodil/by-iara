@@ -41,6 +41,8 @@ services:
       WEBSITE_URL: http://localhost:4200
     ports:
       - "8080:8080"
+    volumes:
+      - by_iara_service_media:/app/data/media
     depends_on:
       postgres:
         condition: service_healthy
@@ -105,3 +107,4 @@ services:
 
 volumes:
   by_iara_postgres_data:
+  by_iara_service_media:
