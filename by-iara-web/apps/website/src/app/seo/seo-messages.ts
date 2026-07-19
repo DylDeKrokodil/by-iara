@@ -4,6 +4,7 @@ import { BRAND } from '../brand/brand';
 export type StaticSeoPage =
   | 'home'
   | 'services'
+  | 'packs'
   | 'book'
   | 'privacy'
   | 'bookingTerms'
@@ -26,13 +27,16 @@ export const SEO_MESSAGES: Record<
     },
     services: {
       title: `Massagens e tratamentos em Almada | ${BRAND.name}`,
+      description: `Conheça os tratamentos, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
+    },
+    packs: {
+      title: `Packs de massagem em Almada | ${BRAND.name}`,
       description:
-        `Conheça os tratamentos, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
+        'Poupe ao reservar várias sessões de massagem em Almada. Compare os packs disponíveis, o valor por sessão e a validade.',
     },
     book: {
       title: `Marcar uma sessão | ${BRAND.name}`,
-      description:
-        `Escolha o tratamento e marque a sua sessão de massagem no estúdio ${BRAND.name} em Almada.`,
+      description: `Escolha o tratamento e marque a sua sessão de massagem no estúdio ${BRAND.name} em Almada.`,
     },
     privacy: {
       title: `Política de privacidade | ${BRAND.name}`,
@@ -62,13 +66,16 @@ export const SEO_MESSAGES: Record<
     },
     services: {
       title: `Massage treatments in Almada | ${BRAND.name}`,
+      description: `Explore the treatments, durations, and prices available at the ${BRAND.name} studio in Almada.`,
+    },
+    packs: {
+      title: `Massage session packs in Almada | ${BRAND.name}`,
       description:
-        `Explore the treatments, durations, and prices available at the ${BRAND.name} studio in Almada.`,
+        'Save when you reserve several massage sessions in Almada. Compare available packs, the price per session, and validity.',
     },
     book: {
       title: `Book a massage session | ${BRAND.name}`,
-      description:
-        `Choose a treatment and book your massage session at the ${BRAND.name} studio in Almada.`,
+      description: `Choose a treatment and book your massage session at the ${BRAND.name} studio in Almada.`,
     },
     privacy: {
       title: `Privacy policy | ${BRAND.name}`,

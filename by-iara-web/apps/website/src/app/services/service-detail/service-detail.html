@@ -17,8 +17,8 @@
           </a>
         </li>
         @if (translation(); as localized) {
-          <li aria-hidden="true">/</li>
-          <li aria-current="page">{{ localized.name }}</li>
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{{ localized.name }}</li>
         }
       </ol>
     </nav>
@@ -73,7 +73,51 @@
         </ul>
       </section>
 
-      <section class="service-location" aria-labelledby="service-location-title">
+      @if (packOffers().length) {
+      <section
+        class="service-packs"
+        id="session-packs"
+        aria-labelledby="service-packs-title"
+      >
+        <header>
+          <h2 id="service-packs-title">{{ copy().packsTitle }}</h2>
+          <p>{{ copy().packsLede }}</p>
+        </header>
+        <ul>
+          @for (item of packOffers(); track item.offer.id) {
+          <li>
+            <div class="service-pack-name">
+              <strong
+                >{{ copy().packSessions(item.offer.sessionCount,
+                item.offer.durationMinutes) }}</strong
+              >
+              @if (item.offer.validityDays; as validityDays) {
+              <span>{{ copy().packValidity(validityDays) }}</span>
+              }
+            </div>
+            <div class="service-pack-price">
+              <strong>{{ formatPrice(item.offer.price.amountCents) }}</strong>
+              <span
+                >{{ copy().packPerSession(formatPrice(item.perSessionCents))
+                }}</span
+              >
+              @if (item.savingCents > 0) {
+              <em>{{ copy().packSaving(formatPrice(item.savingCents)) }}</em>
+              }
+            </div>
+            <byiara-button variant="secondary" (click)="onBookPack(item)">
+              {{ copy().packBook }}
+            </byiara-button>
+          </li>
+          }
+        </ul>
+      </section>
+      }
+
+      <section
+        class="service-location"
+        aria-labelledby="service-location-title"
+      >
         <p class="eyebrow">Almada</p>
         <h2 id="service-location-title">{{ copy().locationTitle }}</h2>
         <p>{{ copy().locationText }}</p>

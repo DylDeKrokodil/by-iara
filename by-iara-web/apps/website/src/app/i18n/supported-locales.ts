@@ -3,6 +3,7 @@ export type LocalePath = 'pt' | 'en';
 export type PublicPageKey =
   | 'home'
   | 'services'
+  | 'packs'
   | 'book'
   | 'privacy'
   | 'bookingTerms'
@@ -37,6 +38,7 @@ export const LOCALIZED_PAGE_PATHS = {
   pt: {
     home: '',
     services: 'servicos',
+    packs: 'packs',
     book: 'marcar',
     privacy: 'privacidade',
     bookingTerms: 'termos-de-marcacao',
@@ -45,6 +47,7 @@ export const LOCALIZED_PAGE_PATHS = {
   en: {
     home: '',
     services: 'services',
+    packs: 'packs',
     book: 'book',
     privacy: 'privacy',
     bookingTerms: 'booking-terms',

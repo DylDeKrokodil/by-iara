@@ -32,6 +32,12 @@
         >
           {{ copy().nav.services }}
         </a>
+        <a
+          [routerLink]="language.localizedLink('packs')"
+          routerLinkActive="active"
+        >
+          {{ copy().nav.packs }}
+        </a>
       </nav>
 
       <a
@@ -73,6 +79,12 @@
           >
             {{ copy().nav.services }}
           </a>
+          <a
+            [routerLink]="language.localizedLink('packs')"
+            routerLinkActive="active"
+          >
+            {{ copy().nav.packs }}
+          </a>
         </nav>
         <byiara-language-switcher></byiara-language-switcher>
       </div>
@@ -111,6 +123,9 @@
           >
           <a [routerLink]="language.localizedLink('services')"
             >{{ copy().footer.services }}</a
+          >
+          <a [routerLink]="language.localizedLink('packs')"
+            >{{ copy().footer.packs }}</a
           >
           <a [routerLink]="language.localizedLink('book')"
             >{{ copy().footer.book }}</a
@@ -164,11 +179,11 @@
             [attr.aria-label]="copy().footer.socialNavigationLabel"
           >
             @for (social of socialLinks; track social.url) {
-              <a
-                [href]="social.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                [attr.aria-label]="
+            <a
+              [href]="social.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="
                   social.platform +
                   ': ' +
                   social.handle +
@@ -176,32 +191,32 @@
                   copy().footer.opensNewWindow +
                   ')'
                 "
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                focusable="false"
+                style="margin-inline-end: var(--byiara-space-xs)"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.8"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  focusable="false"
-                  style="margin-inline-end: var(--byiara-space-xs)"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
-                  <circle cx="12" cy="12" r="4.25"></circle>
-                  <circle
-                    cx="17.4"
-                    cy="6.6"
-                    r="0.8"
-                    fill="currentColor"
-                    stroke="none"
-                  ></circle>
-                </svg>
-                {{ social.handle }}
-              </a>
+                <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                <circle cx="12" cy="12" r="4.25"></circle>
+                <circle
+                  cx="17.4"
+                  cy="6.6"
+                  r="0.8"
+                  fill="currentColor"
+                  stroke="none"
+                ></circle>
+              </svg>
+              {{ social.handle }}
+            </a>
             }
           </nav>
         </div>

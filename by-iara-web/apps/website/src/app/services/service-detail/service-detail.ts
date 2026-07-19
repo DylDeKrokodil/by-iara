@@ -4,6 +4,10 @@ import { Button } from '@by-iara/shared-ui';
 import { LanguageService } from '../../i18n/language.service';
 import type { Service, ServiceTranslation } from '../services-api';
 import { SeoService } from '../../seo/seo.service';
+import {
+  PackPresentation,
+  servicePackPresentations,
+} from '../../packs/pack-presentation';
 
 @Component({
   selector: 'byiara-service-detail',
@@ -29,6 +33,9 @@ export class ServiceDetail {
       ? (this.service.translations[this.language.current().locale] ?? null)
       : null,
   );
+  protected readonly packOffers = computed(() =>
+    this.service ? servicePackPresentations(this.service) : [],
+  );
 
   constructor() {
     if (!this.service && this.responseInit) {
@@ -50,6 +57,17 @@ export class ServiceDetail {
     }
     this.router.navigate(this.language.localizedLink('book'), {
       queryParams: { service: this.service.slug, variant: variantId },
+    });
+  }
+
+  protected onBookPack(item: PackPresentation): void {
+    if (!this.service) return;
+    this.router.navigate(this.language.localizedLink('book'), {
+      queryParams: {
+        service: this.service.slug,
+        variant: item.variant.id,
+        pack: item.offer.id,
+      },
     });
   }
 }

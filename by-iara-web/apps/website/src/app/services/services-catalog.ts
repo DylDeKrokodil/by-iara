@@ -70,6 +70,17 @@ export class ServicesCatalog implements OnInit {
     );
   }
 
+  protected hasPackOffers(service: Service): boolean {
+    return (service.packOffers ?? []).some(
+      (offer) =>
+        offer.active &&
+        service.variants.some(
+          (variant) =>
+            variant.active && variant.durationMinutes === offer.durationMinutes,
+        ),
+    );
+  }
+
   protected onBook(service: Service, variant: ServiceVariant): void {
     this.router.navigate(this.language.localizedLink('book'), {
       queryParams: { service: service.slug, variant: variant.id },

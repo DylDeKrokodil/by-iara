@@ -359,6 +359,7 @@ export class Booking implements OnInit {
 
     const slug = this.route.snapshot.queryParamMap.get('service');
     const preselectedVariant = this.route.snapshot.queryParamMap.get('variant');
+    const preselectedPack = this.route.snapshot.queryParamMap.get('pack');
 
     this.api.list().subscribe({
       next: (services) => {
@@ -377,7 +378,7 @@ export class Booking implements OnInit {
           return;
         }
         const initial = active.find((s) => s.slug === slug) ?? active[0];
-        this.selectService(initial.id, preselectedVariant);
+        this.selectService(initial.id, preselectedVariant, preselectedPack);
       },
       error: () => {
         this.loading.set(false);
@@ -784,8 +785,11 @@ export class Booking implements OnInit {
   private selectService(
     serviceId: string,
     preselectedVariant: string | null,
+    preselectedPack: string | null = null,
   ): void {
     this.selectedServiceId.set(serviceId);
+    this.selectedPackOfferId.set(null);
+    this.selectedCustomerPackId.set(null);
     this.calendarMonthOffset.set(0);
     this.selectedDateKey.set(null);
     this.selectedSlot.set(null);
@@ -793,6 +797,10 @@ export class Booking implements OnInit {
     const variant =
       variants.find((v) => v.id === preselectedVariant) ?? variants[0] ?? null;
     this.selectedVariantId.set(variant?.id ?? null);
+    const pack = this.availablePackOffers().find(
+      (offer) => offer.id === preselectedPack,
+    );
+    this.selectedPackOfferId.set(pack?.id ?? null);
     if (variant) {
       this.loadSlots();
     } else {

@@ -103,6 +103,8 @@
       </a>
     </div>
   </section>
+  } @if (featuredPack(); as item) {
+  <byiara-home-pack [item]="item" />
   }
 
   <section class="home-expect" aria-labelledby="home-expect-title">

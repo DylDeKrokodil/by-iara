@@ -29,6 +29,15 @@
             <p class="service-description">
               {{ localized(service).description }}
             </p>
+            } @if (hasPackOffers(service)) {
+            <a
+              class="pack-availability"
+              [routerLink]="detailLink(service)"
+              fragment="session-packs"
+            >
+              <span aria-hidden="true"></span>
+              {{ copy().packsAvailable }}
+            </a>
             }
           </div>
 
