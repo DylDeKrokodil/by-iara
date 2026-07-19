@@ -39,6 +39,16 @@ export class ServicesApi {
     return this.http.put<Service>(`${this.baseUrl}/${id}`, input);
   }
 
+  uploadImage(id: string, image: Blob): Observable<Service> {
+    const form = new FormData();
+    form.append('image', image, 'service-image.jpg');
+    return this.http.put<Service>(`${this.baseUrl}/${id}/image`, form);
+  }
+
+  removeImage(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}/image`);
+  }
+
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }

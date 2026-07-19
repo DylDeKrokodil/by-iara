@@ -9,3 +9,5 @@ class DuplicateServiceSlugException(slug: String) :
     RuntimeException("A service with slug '$slug' already exists")
 
 class InvalidPackOfferException(message: String) : RuntimeException(message)
+
+class InvalidServiceImageException(message: String) : RuntimeException(message)

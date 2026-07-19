@@ -58,9 +58,17 @@ export interface Service {
   active: boolean;
   sortOrder: number;
   featured: boolean;
+  image: ServiceImage | null;
   translations?: Partial<Record<ServiceLocale, ServiceTranslation>>;
   variants: ServiceVariant[];
   packOffers: PackOffer[];
+}
+
+export interface ServiceImage {
+  url: string;
+  width: number;
+  height: number;
+  byteSize: number;
 }
 
 export interface VariantInput {

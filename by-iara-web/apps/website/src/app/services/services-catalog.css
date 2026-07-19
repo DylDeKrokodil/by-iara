@@ -56,7 +56,7 @@
   height: 100%;
   overflow: hidden;
   border-radius: inherit;
-  background: var(--byiara-color-text);
+  background: var(--byiara-color-primary-action);
 }
 
 .service-card-content {
@@ -90,12 +90,6 @@
   min-width: 0;
   padding: clamp(1.25rem, 4vw, 2rem);
   background: var(--byiara-color-surface);
-}
-
-.service-media-skeleton {
-  display: block;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
 }
 
 .service-card-content .service-name,

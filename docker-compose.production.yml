@@ -122,6 +122,8 @@ services:
       SERVER_FORWARD_HEADERS_STRATEGY: framework
     expose:
       - "8080"
+    volumes:
+      - service_media:/app/data/media
     depends_on:
       postgres:
         condition: service_healthy
@@ -198,5 +200,6 @@ networks:
 
 volumes:
   postgres_data:
+  service_media:
   caddy_data:
   caddy_config:
