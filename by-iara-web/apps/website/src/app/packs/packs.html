@@ -15,13 +15,46 @@
     </div>
   </header>
 
-  <div class="packs-content">
+  <div class="packs-content" [attr.aria-busy]="loading()">
     @if (hasError()) {
     <byiara-alert tone="danger">{{ copy().loadError }}</byiara-alert>
     } @else if (loading()) {
-    <byiara-empty-state [description]="copy().loading" [dashed]="false">
-      <byiara-spinner></byiara-spinner>
-    </byiara-empty-state>
+    <div class="pack-groups pack-skeleton" aria-hidden="true">
+      @for (group of skeletonGroups; track group) {
+      <section class="pack-group">
+        <div class="skeleton-group-intro">
+          <byiara-skeleton width="72%" height="2.75rem"></byiara-skeleton>
+          <byiara-skeleton width="100%" height="0.9rem"></byiara-skeleton>
+          <byiara-skeleton width="84%" height="0.9rem"></byiara-skeleton>
+        </div>
+        <div class="skeleton-offers">
+          @for (offer of skeletonOffers; track offer) {
+          <div class="skeleton-offer">
+            <div class="skeleton-offer-copy">
+              <byiara-skeleton width="11rem" height="1.8rem"></byiara-skeleton>
+              <byiara-skeleton width="15rem" height="0.8rem"></byiara-skeleton>
+            </div>
+            <div class="skeleton-offer-price">
+              <byiara-skeleton width="4rem" height="0.7rem"></byiara-skeleton>
+              <byiara-skeleton width="6rem" height="2.1rem"></byiara-skeleton>
+              <byiara-skeleton width="7rem" height="0.75rem"></byiara-skeleton>
+            </div>
+            <div class="skeleton-benefits">
+              <byiara-skeleton width="6rem" height="0.8rem"></byiara-skeleton>
+              <byiara-skeleton width="8rem" height="0.8rem"></byiara-skeleton>
+            </div>
+            <byiara-skeleton
+              variant="block"
+              width="9rem"
+              height="2.75rem"
+            ></byiara-skeleton>
+          </div>
+          }
+        </div>
+      </section>
+      }
+    </div>
+    <p class="visually-hidden" role="status">{{ copy().loading }}</p>
     } @else if (groups().length === 0) {
     <byiara-empty-state
       [title]="copy().emptyTitle"

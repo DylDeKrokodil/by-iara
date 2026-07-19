@@ -48,6 +48,32 @@
   min-width: 0;
 }
 
+.service-skeleton {
+  display: grid;
+  align-content: start;
+  gap: var(--byiara-space-lg);
+  min-width: 0;
+}
+
+.skeleton-copy,
+.skeleton-variants,
+.skeleton-variant-row > div {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.skeleton-variants {
+  gap: var(--byiara-space-md);
+}
+
+.skeleton-variant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+  min-height: 3.5rem;
+}
+
 .service-name a {
   color: inherit;
   text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);

@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+.skeleton {
+  display: block;
+  max-width: 100%;
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--byiara-color-border) 32%, transparent) 10%,
+    color-mix(in srgb, var(--byiara-color-surface) 92%, transparent) 42%,
+    color-mix(in srgb, var(--byiara-color-border) 32%, transparent) 74%
+  );
+  background-size: 220% 100%;
+  animation: byiara-skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+.skeleton-line {
+  border-radius: var(--byiara-radius-pill);
+}
+
+.skeleton-block {
+  border-radius: var(--byiara-radius-md);
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+@keyframes byiara-skeleton-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+
+  to {
+    background-position: -120% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

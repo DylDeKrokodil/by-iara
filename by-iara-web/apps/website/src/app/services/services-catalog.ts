@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Alert, Button, Card, EmptyState, Spinner } from '@by-iara/shared-ui';
+import { Alert, Button, Card, EmptyState, Skeleton } from '@by-iara/shared-ui';
 import {
   ServicesApi,
   Service,
@@ -13,7 +13,7 @@ import { SeoService } from '../seo/seo.service';
 
 @Component({
   selector: 'byiara-services-catalog',
-  imports: [Alert, Button, Card, EmptyState, Spinner, RouterLink],
+  imports: [Alert, Button, Card, EmptyState, Skeleton, RouterLink],
   templateUrl: './services-catalog.html',
   styleUrl: './services-catalog.css',
 })
@@ -27,6 +27,8 @@ export class ServicesCatalog implements OnInit {
   protected readonly loading = signal(true);
   protected readonly hasError = signal(false);
   protected readonly copy = computed(() => this.language.messages().services);
+  protected readonly skeletonCards = [0, 1, 2, 3] as const;
+  protected readonly skeletonVariants = [0, 1] as const;
 
   ngOnInit(): void {
     this.loadCatalog();

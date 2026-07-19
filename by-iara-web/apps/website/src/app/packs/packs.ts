@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { Alert, Button, EmptyState, Spinner } from '@by-iara/shared-ui';
+import { Alert, Button, EmptyState, Skeleton } from '@by-iara/shared-ui';
 import { LanguageService } from '../i18n/language.service';
 import {
   Service,
@@ -17,7 +17,7 @@ interface PackServiceGroup {
 
 @Component({
   selector: 'byiara-packs',
-  imports: [Alert, Button, EmptyState, RouterLink, Spinner],
+  imports: [Alert, Button, EmptyState, RouterLink, Skeleton],
   templateUrl: './packs.html',
   styleUrl: './packs.css',
 })
@@ -29,6 +29,8 @@ export class Packs implements OnInit {
   protected readonly services = signal<Service[]>([]);
   protected readonly loading = signal(true);
   protected readonly hasError = signal(false);
+  protected readonly skeletonGroups = [0, 1] as const;
+  protected readonly skeletonOffers = [0, 1] as const;
   protected readonly groups = computed<PackServiceGroup[]>(() => {
     const allOffers = packPresentations(this.services());
     return this.services().flatMap((service) => {
