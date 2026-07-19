@@ -75,8 +75,6 @@
 
 .service-editorial {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
-  gap: clamp(1.25rem, 4vw, 2.5rem);
 }
 
 .service-editorial section,
@@ -84,6 +82,24 @@
   display: grid;
   align-content: start;
   gap: var(--byiara-space-sm);
+}
+
+.service-editorial section {
+  grid-template-columns: minmax(12rem, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  padding-block: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.service-editorial section:first-child {
+  padding-top: 0;
+}
+
+.service-editorial section:last-child {
+  padding-bottom: 0;
+}
+
+.service-editorial section + section {
+  border-top: 1px solid var(--byiara-color-border-subtle);
 }
 
 .service-editorial h2,
@@ -175,4 +191,11 @@
   display: grid;
   gap: var(--byiara-space-md);
   margin-top: clamp(3rem, 8vw, 6rem);
+}
+
+@media (max-width: 44rem) {
+  .service-editorial section {
+    grid-template-columns: 1fr;
+    gap: var(--byiara-space-sm);
+  }
 }

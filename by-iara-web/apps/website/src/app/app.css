@@ -261,7 +261,7 @@
 }
 
 .footer-nav .footer-legal-heading,
-.footer-visit .footer-contact-heading {
+.footer-visit .footer-section-heading {
   margin-top: var(--byiara-space-lg);
 }
 
@@ -274,7 +274,7 @@
 }
 
 .footer-nav a,
-.footer-contact a {
+.footer-link-list a {
   color: color-mix(in srgb, var(--byiara-color-white) 78%, transparent);
   font-size: var(--byiara-font-size-sm);
   text-decoration: none;
@@ -282,7 +282,7 @@
 }
 
 .footer-nav a:hover,
-.footer-contact a:hover {
+.footer-link-list a:hover {
   color: var(--byiara-color-white);
   text-decoration: underline;
 }
@@ -292,13 +292,13 @@
   font-size: var(--byiara-font-size-sm);
 }
 
-.footer-contact {
+.footer-link-list {
   display: grid;
   gap: var(--byiara-space-2xs);
   font: inherit;
 }
 
-.footer-contact a {
+.footer-link-list a {
   display: inline-flex;
   align-items: center;
   min-height: 2.75rem;

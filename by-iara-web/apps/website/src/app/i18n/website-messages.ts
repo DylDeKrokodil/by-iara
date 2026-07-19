@@ -29,6 +29,8 @@ export interface WebsiteMessages {
       readonly contact: string;
       readonly emailLabel: string;
       readonly phoneLabel: string;
+      readonly social: string;
+      readonly socialNavigationLabel: string;
       readonly bookingPrompt: string;
       readonly bookingAction: string;
       readonly copyright: (year: number) => string;
@@ -191,6 +193,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         contact: 'Contacto',
         emailLabel: 'Email',
         phoneLabel: 'Telemóvel',
+        social: 'Redes sociais',
+        socialNavigationLabel: 'Redes sociais',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
         bookingAction: 'Ver horários',
         copyright: (year) =>
@@ -384,6 +388,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         contact: 'Contact',
         emailLabel: 'Email',
         phoneLabel: 'Mobile',
+        social: 'Social',
+        socialNavigationLabel: 'Social media',
         bookingPrompt: 'Your moment of pause starts here.',
         bookingAction: 'See availability',
         copyright: (year) => `© ${year} ${BRAND.name}. All rights reserved.`,
