@@ -201,6 +201,20 @@
 
       <!-- Availability -->
       <a
+        routerLink="/discounts"
+        routerLinkActive="active"
+        [title]="isCollapsed() ? 'Discounts' : ''"
+        (click)="closeMobileMenu()"
+      >
+        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z" />
+          <circle cx="7.5" cy="6.5" r=".5" fill="currentColor" />
+        </svg>
+        <span class="nav-label">Discounts</span>
+      </a>
+
+      <!-- Availability -->
+      <a
         routerLink="/availability"
         routerLinkActive="active"
         [title]="isCollapsed() ? 'Availability' : ''"

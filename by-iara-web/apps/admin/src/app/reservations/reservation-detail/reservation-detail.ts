@@ -53,6 +53,11 @@ const paymentMethodOptions: ReadonlyArray<SelectFieldOption> = [
   { label: 'Other', value: 'OTHER' },
 ];
 
+const discountTypeOptions: ReadonlyArray<SelectFieldOption> = [
+  { label: 'Percentage', value: 'PERCENTAGE' },
+  { label: 'Fixed euro amount', value: 'FIXED_AMOUNT' },
+];
+
 const defaultMessages: Record<'en' | 'pt', Record<RejectionReasonCode, string>> = {
   en: {
     TIME_UNAVAILABLE: 'Unfortunately, the requested time is no longer available. Please visit our website to choose another time.',
@@ -126,6 +131,8 @@ export class ReservationDetail implements OnInit {
   protected readonly reasonOptions = reasonOptions;
   protected readonly cancellationOptions = cancellationOptions;
   protected readonly paymentMethodOptions = paymentMethodOptions;
+  protected readonly discountTypeOptions = discountTypeOptions;
+  protected readonly selectedDiscountType = signal<'PERCENTAGE' | 'FIXED_AMOUNT'>('PERCENTAGE');
   protected readonly selectedCancellationReason = signal<CancellationReasonCode>('SCHEDULE_CHANGE');
   protected readonly formatMoney = formatMoney;
 
@@ -139,6 +146,12 @@ export class ReservationDetail implements OnInit {
     recordPayment: [true],
     amount: ['', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
     reference: ['', [Validators.maxLength(255)]],
+  });
+  protected readonly completionDiscountForm = this.fb.nonNullable.group({
+    includeDiscount: [true],
+    value: ['10', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
+    validityDays: ['30', [Validators.required, Validators.pattern(/^\d+$/)]],
+    sameServiceOnly: [false],
   });
 
   @ViewChild('confirmAcceptModal')
@@ -272,15 +285,26 @@ export class ReservationDetail implements OnInit {
     this.paymentOpen.set(false);
     this.resetPaymentForm();
     this.paymentForm.controls.recordPayment.setValue((this.paymentSummary()?.balanceDueCents ?? 0) > 0);
+    this.completionDiscountForm.reset({ includeDiscount: true, value: '10', validityDays: '30', sameServiceOnly: false });
+    this.selectedDiscountType.set('PERCENTAGE');
   }
 
   protected closeCompletionForm(): void {
     this.completionOpen.set(false);
     this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
+    this.completionDiscountForm.reset({ includeDiscount: true, value: '10', validityDays: '30', sameServiceOnly: false });
   }
 
   protected completionRecordsPayment(): boolean {
     return this.paymentForm.controls.recordPayment.value;
+  }
+
+  protected completionIncludesDiscount(): boolean {
+    return this.completionDiscountForm.controls.includeDiscount.value;
+  }
+
+  protected setDiscountType(value: string): void {
+    if (value === 'PERCENTAGE' || value === 'FIXED_AMOUNT') this.selectedDiscountType.set(value);
   }
 
   protected openPaymentForm(): void {
@@ -307,21 +331,41 @@ export class ReservationDetail implements OnInit {
       this.paymentForm.markAllAsTouched();
       return;
     }
+    if (this.completionIncludesDiscount() && this.completionDiscountForm.invalid) {
+      this.completionDiscountForm.markAllAsTouched();
+      return;
+    }
 
     this.submitting.set(true);
-    const input = this.completionRecordsPayment()
-      ? { payment: this.paymentInput(reservation) }
-      : {};
+    const input = {
+      ...(this.completionRecordsPayment() ? { payment: this.paymentInput(reservation) } : {}),
+      ...(this.completionIncludesDiscount() ? { discount: this.completionDiscountInput() } : {}),
+    };
     this.api.complete(reservation.id, input).subscribe({
       next: (updated) => {
         this.reservation.set(updated);
         this.completionOpen.set(false);
         this.submitting.set(false);
         this.reloadPayments();
-        this.toast.show('Reservation marked as completed.', 'success');
+        this.toast.show(
+          this.completionIncludesDiscount()
+            ? 'Reservation completed. The thank-you email includes the review link and personal discount.'
+            : 'Reservation completed and thank-you email sent.',
+          'success',
+        );
       },
       error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not complete the reservation.'),
     });
+  }
+
+  private completionDiscountInput() {
+    const form = this.completionDiscountForm.getRawValue();
+    return {
+      valueType: this.selectedDiscountType(),
+      valueAmount: Math.round(Number(form.value.replace(',', '.')) * 100),
+      validityDays: Number(form.validityDays),
+      sameServiceOnly: form.sameServiceOnly,
+    };
   }
 
   protected openNoShowConfirmation(): void {

@@ -1,0 +1,12 @@
+<aside class="promotion-bar" aria-label="Featured discount">
+  <div class="promotion-content">
+    <p>
+      <span>{{ copy().prefix }}</span>
+      <strong>{{ benefit() }}</strong>
+      <span>{{ copy().suffix }}</span>
+      <code>{{ discount().code }}</code>
+    </p>
+    <a class="promotion-action" [routerLink]="bookingLink()">{{ copy().action }}</a>
+  </div>
+  <button type="button" class="promotion-close" (click)="dismissed.emit()" [attr.aria-label]="copy().close">×</button>
+</aside>

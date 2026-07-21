@@ -113,9 +113,9 @@ class ReservationIcsBuilderTests {
         )
         val lines = unfold(ics)
 
-        assertTrue(lines.contains("X-WR-CALNAME:By Iara appointment"))
+        assertTrue(lines.contains("X-WR-CALNAME:Iara Gouveia appointment"))
         assertTrue(lines.contains("METHOD:REQUEST"))
-        assertTrue(lines.contains("SUMMARY:Relaxing massage — By Iara"))
+        assertTrue(lines.contains("SUMMARY:Relaxing massage — Iara Gouveia"))
         assertTrue(lines.contains("LOCATION:Rua Vila do Seixal 5\\, 1.º direito\\, 2810-141 Almada\\, Portugal"))
         assertTrue(lines.contains("STATUS:CONFIRMED"))
         assertTrue(lines.contains("ORGANIZER:mailto:info@iaragouveia.com"))

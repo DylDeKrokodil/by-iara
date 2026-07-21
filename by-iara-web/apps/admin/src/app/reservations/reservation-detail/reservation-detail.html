@@ -198,6 +198,32 @@
               <byiara-text-field label="Reference" optionalLabel="optional" formControlName="reference"></byiara-text-field>
             }
           </div>
+          <section class="completion-discount" [formGroup]="completionDiscountForm" aria-label="Thank-you discount">
+            <byiara-checkbox label="Include a unique personal discount in the thank-you email" formControlName="includeDiscount"></byiara-checkbox>
+            @if (completionIncludesDiscount()) {
+              <div class="completion-discount-fields">
+                <byiara-select-field
+                  label="Discount type"
+                  [options]="discountTypeOptions"
+                  [value]="selectedDiscountType()"
+                  (valueChange)="setDiscountType($event)"
+                ></byiara-select-field>
+                <byiara-text-field
+                  [label]="selectedDiscountType() === 'PERCENTAGE' ? 'Percentage' : 'Amount in euros'"
+                  formControlName="value"
+                  [error]="completionDiscountForm.controls.value.touched && completionDiscountForm.controls.value.invalid ? 'Enter a valid discount value.' : null"
+                ></byiara-text-field>
+                <byiara-text-field
+                  label="Valid for days"
+                  type="number"
+                  formControlName="validityDays"
+                  [error]="completionDiscountForm.controls.validityDays.touched && completionDiscountForm.controls.validityDays.invalid ? 'Enter a valid number of days.' : null"
+                ></byiara-text-field>
+                <byiara-checkbox label="Only for another session of this service" formControlName="sameServiceOnly"></byiara-checkbox>
+              </div>
+              <p class="form-note">The secure one-time code is generated when you complete the reservation and appears in the same email as the Google review request.</p>
+            }
+          </section>
           <p class="form-note">Completion records the appointment outcome. Payment can also be recorded later.</p>
           <div class="decision-actions decision-actions-inline">
             <byiara-button type="submit" variant="primary" [loading]="submitting()">

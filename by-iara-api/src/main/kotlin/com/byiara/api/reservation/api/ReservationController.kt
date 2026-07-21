@@ -51,4 +51,8 @@ class ReservationController(
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: CreateReservationRequest): ReservationResponse =
         reservationService.create(request.toCommand()).toResponse()
+
+    @PostMapping("/discount-preview")
+    fun previewDiscount(@Valid @RequestBody request: PreviewDiscountRequest): DiscountQuoteResponse =
+        reservationService.previewDiscount(request.toCommand()).toResponse()
 }

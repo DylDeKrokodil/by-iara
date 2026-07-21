@@ -1,6 +1,12 @@
 package com.byiara.api.notification
 
 import com.byiara.api.catalog.domain.Money
+import com.byiara.api.discount.domain.CreatedDiscount
+import com.byiara.api.discount.domain.Discount
+import com.byiara.api.discount.domain.DiscountAudience
+import com.byiara.api.discount.domain.DiscountScope
+import com.byiara.api.discount.domain.DiscountStatus
+import com.byiara.api.discount.domain.DiscountValueType
 import com.byiara.api.notification.application.EmailCopy
 import com.byiara.api.notification.application.ReservationEmailService
 import com.byiara.api.reservation.domain.Customer
@@ -181,8 +187,8 @@ class ReservationEmailServiceTests {
         )!!
 
         assertTrue(content.body.contains("Location: $address"))
-        assertTrue(content.body.contains("https://www.google.com/maps/search/?api=1&query=By+Iara%2C+Rua+Vila"))
-        assertTrue(content.body.contains("https://maps.apple.com/?q=By+Iara%2C+Rua+Vila"))
+        assertTrue(content.body.contains("https://www.google.com/maps/search/?api=1&query=Iara+Gouveia%2C+Rua+Vila"))
+        assertTrue(content.body.contains("https://maps.apple.com/?q=Iara+Gouveia%2C+Rua+Vila"))
         assertTrue(content.htmlBody!!.contains("1.º direito"))
         assertTrue(content.htmlBody.contains("Google Maps"))
         assertTrue(content.htmlBody.contains("Apple Maps"))
@@ -211,7 +217,7 @@ class ReservationEmailServiceTests {
         val unfoldedCalendar = calendar.replace("\r\n ", "")
         assertTrue(attachment.contentType.startsWith("text/calendar"), attachment.contentType)
         assertTrue(calendar.contains("BEGIN:VCALENDAR\r\n"))
-        assertTrue(unfoldedCalendar.contains("SUMMARY:Relaxing massage — By Iara"))
+        assertTrue(unfoldedCalendar.contains("SUMMARY:Relaxing massage — Iara Gouveia"))
         assertTrue(unfoldedCalendar.contains("METHOD:REQUEST"))
         assertTrue(unfoldedCalendar.contains("ORGANIZER:mailto:info@iaragouveia.com"))
         assertTrue(unfoldedCalendar.contains("ATTENDEE;ROLE=REQ-PARTICIPANT;RSVP=FALSE:mailto:ana@example.com"))
@@ -236,6 +242,69 @@ class ReservationEmailServiceTests {
         assertTrue(ptConfirmed.htmlBody.contains("Relaxing massage"))
         assertTrue(ptConfirmed.htmlBody.contains("cid:logo"))
         assertTrue(enRejected.htmlBody!!.contains("couldn't confirm"))
+    }
+
+    @Test
+    fun `completion email includes configured Google review link`() {
+        val reviewUrl = "https://g.page/r/example/review"
+        val content = EmailCopy.reservationCompleted(
+            reservation(ReservationStatus.COMPLETED, ReservationLocale.EN),
+            reviewUrl,
+        )
+
+        assertTrue(content.body.contains(reviewUrl))
+        assertTrue(content.htmlBody!!.contains(reviewUrl))
+        assertTrue(content.htmlBody.contains("Leave a Google review"))
+    }
+
+    @Test
+    fun `completion email remains valid when review link is not configured`() {
+        val content = EmailCopy.reservationCompleted(
+            reservation(ReservationStatus.COMPLETED, ReservationLocale.PT),
+            "",
+        )
+
+        assertTrue(content.subject.contains("Obrigada"))
+        assertTrue(!content.htmlBody!!.contains("avaliação no Google"))
+    }
+
+    @Test
+    fun `completion email combines review request and unique personal discount`() {
+        val target = reservation(ReservationStatus.COMPLETED, ReservationLocale.EN)
+        val discount = Discount(
+            id = UUID.randomUUID(),
+            name = "Thank you",
+            audience = DiscountAudience.PERSONAL,
+            scope = DiscountScope.ALL_SERVICES,
+            valueType = DiscountValueType.PERCENTAGE,
+            valueAmount = 1500,
+            currency = null,
+            startsAt = OffsetDateTime.now(),
+            endsAt = OffsetDateTime.now().plusDays(30),
+            maxUniqueClients = null,
+            maxUsesPerCustomer = 1,
+            codeHint = "PERS••••CODE",
+            customerId = target.customer.id,
+            customerEmail = target.customer.email,
+            status = DiscountStatus.ACTIVE,
+            serviceIds = emptySet(),
+        )
+        val code = "PERS-SECURE-UNIQUE-CODE"
+        val reviewUrl = "https://g.page/r/example/review"
+        val content = EmailCopy.reservationCompleted(
+            target,
+            reviewUrl,
+            CreatedDiscount(discount, code),
+            "https://iaragouveia.com",
+        )
+
+        assertTrue(content.body.contains(code))
+        assertTrue(content.body.contains(reviewUrl))
+        assertTrue(content.htmlBody!!.contains(code))
+        assertTrue(content.htmlBody.contains("15%"))
+        assertTrue(content.htmlBody.contains("Leave a Google review"))
+        assertTrue(content.htmlBody.contains("Iara Gouveia"))
+        assertTrue(!content.htmlBody.contains("By Iara"))
     }
 
     @Test

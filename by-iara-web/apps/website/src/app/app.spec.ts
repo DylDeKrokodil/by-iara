@@ -1,3 +1,8 @@
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting,
+} from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { App } from './app';
@@ -5,23 +10,38 @@ import { SOCIAL_LINKS } from './brand/brand';
 import { BUSINESS_DETAILS } from './legal/business-details';
 
 describe('App', () => {
+  async function createApp() {
+    const fixture = TestBed.createComponent(App);
+    TestBed.inject(HttpTestingController)
+      .expectOne('/api/discounts/featured')
+      .flush(null);
+    await fixture.whenStable();
+    return fixture;
+  }
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
     }).compileComponents();
   });
 
+  afterEach(() => {
+    TestBed.inject(HttpTestingController).verify();
+  });
+
   it('should render the router outlet', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    const fixture = await createApp();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 
   it('should expose direct email and phone links in the footer', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    const fixture = await createApp();
     const compiled = fixture.nativeElement as HTMLElement;
 
     const emailLink = compiled.querySelector<HTMLAnchorElement>(
@@ -36,8 +56,7 @@ describe('App', () => {
   });
 
   it('should expose configured social links in the footer', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+    const fixture = await createApp();
     const compiled = fixture.nativeElement as HTMLElement;
 
     for (const social of SOCIAL_LINKS) {

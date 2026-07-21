@@ -33,13 +33,13 @@ object ReservationIcsBuilder {
         organizerEmail: String = "info@iaragouveia.com",
     ): String =
         buildCalendar(
-            calendarName = "By Iara appointment",
+            calendarName = "Iara Gouveia appointment",
             method = "REQUEST",
             events = listOf(
                 eventLines(
                     reservation = reservation,
                     generatedAt = generatedAt,
-                    summaryOverride = "${reservation.serviceName} — By Iara",
+                    summaryOverride = "${reservation.serviceName} — Iara Gouveia",
                     location = location.trim().takeIf(String::isNotBlank),
                     organizerEmail = organizerEmail.trim(),
                     attendeeEmail = reservation.customer.email,

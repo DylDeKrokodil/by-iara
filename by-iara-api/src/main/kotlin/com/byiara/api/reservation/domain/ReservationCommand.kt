@@ -15,6 +15,14 @@ data class CreateReservationCommand(
     val packOfferId: UUID? = null,
     val customerPackId: UUID? = null,
     val customerSessionToken: String? = null,
+    val discountCode: String? = null,
+)
+
+data class PreviewDiscountCommand(
+    val serviceId: UUID,
+    val serviceVariantId: UUID,
+    val customerEmail: String?,
+    val discountCode: String,
 )
 
 /** A customer-facing slot lookup for a selected catalog option. */

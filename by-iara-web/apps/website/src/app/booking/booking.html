@@ -44,7 +44,7 @@
     </section>
     } @else {
     <!-- Booking flow -->
-    <header class="booking-header">
+    <header #bookingStepTop class="booking-header">
       <p class="eyebrow">{{ copy().eyebrow }}</p>
       <h1>{{ copy().pageTitle }}</h1>
     </header>
@@ -385,6 +385,32 @@
           <h2>{{ copy().reviewStep }}</h2>
           <byiara-detail-list [items]="reviewItems()"></byiara-detail-list>
         </div>
+
+        @if (!selectedPackOfferId() && !selectedCustomerPackId()) {
+        <section class="discount-entry" aria-labelledby="discount-title" [formGroup]="form">
+          <div>
+            <h2 id="discount-title">{{ copy().discountCode }}</h2>
+            <p>{{ copy().discountHelp }}</p>
+          </div>
+          @if (discountQuote(); as quote) {
+            <div class="discount-applied" role="status">
+              <div>
+                <strong>{{ copy().discountApplied }}</strong>
+                <span>{{ copy().originalPrice }} {{ formatPrice(quote.originalPrice.amountCents) }} · {{ copy().discount }} −{{ formatPrice(quote.discountAmount.amountCents) }} · {{ copy().totalPrice }} {{ formatPrice(quote.finalPrice.amountCents) }}</span>
+              </div>
+              <button type="button" class="text-button" (click)="removeDiscount()">{{ copy().removeDiscount }}</button>
+            </div>
+          } @else {
+            <div class="discount-controls">
+              <byiara-text-field [label]="copy().discountCode" formControlName="discountCode"></byiara-text-field>
+              <button type="button" class="button button-secondary" [disabled]="discountApplying()" (click)="applyDiscount()">
+                {{ discountApplying() ? copy().applyingDiscount : copy().applyDiscount }}
+              </button>
+            </div>
+          }
+          @if (discountError()) { <p class="field-error" role="alert">{{ discountError() }}</p> }
+        </section>
+        }
 
         <div class="booking-legal-notice">
           <p>{{ copy().paymentNotice }}</p>
