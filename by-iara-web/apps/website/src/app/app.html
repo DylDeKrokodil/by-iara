@@ -1,6 +1,17 @@
 <byiara-site-intro />
 
 <div class="site-frame">
+  @if (featuredDiscount(); as promotion) {
+    @if (!promotionDismissed()) {
+      <byiara-promotion-bar
+        [discount]="promotion"
+        [benefit]="promotionBenefit()"
+        [copy]="promotionCopy()"
+        [bookingLink]="language.localizedLink('book')"
+        (dismissed)="dismissPromotion()"
+      />
+    }
+  }
   <header class="site-header">
     <div class="header-container">
       <button
