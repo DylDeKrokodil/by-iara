@@ -60,6 +60,10 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./packs/packs').then((m) => m.Packs),
       },
       {
+        path: 'discounts',
+        loadComponent: () => import('./discounts/discounts').then((m) => m.Discounts),
+      },
+      {
         path: 'reports',
         loadComponent: () =>
           import('./finance/reports/reports').then((m) => m.Reports),

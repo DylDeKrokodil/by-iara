@@ -106,6 +106,12 @@ export interface RecordPaymentInput {
 
 export interface CompleteReservationInput {
   payment?: RecordPaymentInput;
+  discount?: {
+    valueType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+    valueAmount: number;
+    validityDays: number;
+    sameServiceOnly: boolean;
+  };
 }
 
 export interface ReservationAttention {

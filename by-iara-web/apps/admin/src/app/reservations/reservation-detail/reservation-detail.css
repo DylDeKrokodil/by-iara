@@ -185,6 +185,23 @@
   align-items: start;
 }
 
+.completion-discount {
+  display: grid;
+  gap: var(--byiara-space-md);
+  margin-top: var(--byiara-space-lg);
+  padding: var(--byiara-space-lg);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+}
+
+.completion-discount-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--byiara-space-md);
+  align-items: end;
+}
+
 .decision-actions,
 .decline-form {
   gap: var(--byiara-space-sm);
@@ -209,6 +226,10 @@
 @container (max-width: 36rem) {
   .detail-list,
   .customer-list {
+    grid-template-columns: 1fr;
+  }
+
+  .completion-discount-fields {
     grid-template-columns: 1fr;
   }
 
