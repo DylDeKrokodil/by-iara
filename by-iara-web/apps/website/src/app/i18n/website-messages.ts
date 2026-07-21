@@ -204,6 +204,17 @@ export interface WebsiteMessages {
     readonly submitting: string;
     readonly submitError: string;
     readonly slotTakenError: string;
+    readonly discountCode: string;
+    readonly discountHelp: string;
+    readonly applyDiscount: string;
+    readonly applyingDiscount: string;
+    readonly discountApplied: string;
+    readonly removeDiscount: string;
+    readonly discountUnavailable: string;
+    readonly discountNeedsEmail: string;
+    readonly originalPrice: string;
+    readonly discount: string;
+    readonly totalPrice: string;
     readonly confirmedTitle: string;
     readonly confirmedLede: (name: string) => string;
     readonly confirmedService: string;
@@ -285,7 +296,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       packsExample: (sessions, minutes) =>
         `${sessions} sessões de ${minutes} min`,
       packsPerSession: (price) => `${price} por sessão`,
-      packsSaving: (price) => `Poupa ${price}`,
+      packsSaving: (price) => `Poupe ${price}`,
       packsAction: 'Descobrir os packs',
       expectTitle: 'O que esperar',
       expectSteps: [
@@ -356,7 +367,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'Reserve a primeira sessão agora e pague o valor total do pack depois dessa sessão.',
       packSessions: (sessions, minutes) => `${sessions} × ${minutes} min`,
       packPerSession: (price) => `${price} por sessão`,
-      packSaving: (price) => `Poupa ${price}`,
+      packSaving: (price) => `Poupe ${price}`,
       packValidity: (days) => `Válido durante ${days} dias`,
       packBook: 'Escolher este pack',
       notFoundTitle: 'Serviço não encontrado',
@@ -378,7 +389,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       regularValue: (price) => `Valor em sessões individuais: ${price}`,
       totalPrice: 'Valor do pack',
       perSession: (price) => `${price} por sessão`,
-      saving: (price) => `Poupa ${price}`,
+      saving: (price) => `Poupe ${price}`,
       validity: (days) => `Utilize em até ${days} dias`,
       book: 'Marcar primeira sessão',
       howTitle: 'Como funciona',
@@ -472,6 +483,19 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       submitting: 'A enviar...',
       submitError: 'Ocorreu um erro. Tente novamente.',
       slotTakenError: 'Esse horário já não está disponível. Escolha outro.',
+      discountCode: 'Código de desconto',
+      discountHelp:
+        'Introduza o código para ver o desconto antes de pedir a reserva.',
+      applyDiscount: 'Aplicar',
+      applyingDiscount: 'A aplicar...',
+      discountApplied: 'Desconto aplicado',
+      removeDiscount: 'Remover',
+      discountUnavailable:
+        'Este código de desconto é inválido ou não está disponível.',
+      discountNeedsEmail: 'Introduza um email válido para aplicar o desconto.',
+      originalPrice: 'Preço original',
+      discount: 'Desconto',
+      totalPrice: 'Total',
       confirmedTitle: 'Reserva pedida!',
       confirmedLede: (name) =>
         `Obrigado, ${name}. Confirmaremos a sua marcação por email em breve.`,
@@ -739,6 +763,18 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       submitError: 'Something went wrong. Please try again.',
       slotTakenError:
         'That time is no longer available. Please choose another.',
+      discountCode: 'Discount code',
+      discountHelp:
+        'Enter your code to see the discount before requesting the booking.',
+      applyDiscount: 'Apply',
+      applyingDiscount: 'Applying...',
+      discountApplied: 'Discount applied',
+      removeDiscount: 'Remove',
+      discountUnavailable: 'This discount code is invalid or unavailable.',
+      discountNeedsEmail: 'Enter a valid email address to apply the discount.',
+      originalPrice: 'Original price',
+      discount: 'Discount',
+      totalPrice: 'Total',
       confirmedTitle: 'Booking requested!',
       confirmedLede: (name) =>
         `Thanks, ${name}. We'll confirm your appointment by email shortly.`,

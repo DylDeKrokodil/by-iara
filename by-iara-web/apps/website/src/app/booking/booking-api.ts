@@ -18,6 +18,7 @@ export interface CreateReservationPayload {
   packOfferId?: string | null;
   customerPackId?: string | null;
   customerSessionToken?: string | null;
+  discountCode?: string | null;
 }
 
 export interface ReservationConfirmation {
@@ -45,6 +46,12 @@ export interface CustomerAccess {
   sessionToken: string;
   customer: { name: string; email: string; phone: string | null };
   packs: CustomerPack[];
+}
+
+export interface DiscountQuote {
+  originalPrice: { amountCents: number; currency: string };
+  discountAmount: { amountCents: number; currency: string };
+  finalPrice: { amountCents: number; currency: string };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -76,6 +83,18 @@ export class BookingApi {
     return this.http.post<ReservationConfirmation>(
       apiUrl(this.apiOrigin, '/api/reservations'),
       payload,
+    );
+  }
+
+  previewDiscount(input: {
+    serviceId: string;
+    serviceVariantId: string;
+    customerEmail: string;
+    discountCode: string;
+  }): Observable<DiscountQuote> {
+    return this.http.post<DiscountQuote>(
+      apiUrl(this.apiOrigin, '/api/reservations/discount-preview'),
+      input,
     );
   }
 
