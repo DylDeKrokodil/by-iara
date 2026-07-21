@@ -1,6 +1,7 @@
 package com.byiara.api.notification.application
 
 import com.byiara.api.auth.domain.AdminCredentialsRepository
+import com.byiara.api.discount.domain.CreatedDiscount
 import com.byiara.api.calendar.application.ReservationIcsBuilder
 import com.byiara.api.notification.domain.EmailLogRepository
 import com.byiara.api.notification.domain.EmailStatus
@@ -31,6 +32,10 @@ class ReservationEmailService(
     private val businessAddress: String,
     @Value("\${by-iara.business-email}")
     private val businessEmail: String,
+    @Value("\${by-iara.google-review-url:}")
+    private val googleReviewUrl: String,
+    @Value("\${by-iara.website-url}")
+    private val websiteUrl: String,
 ) {
     private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
 
@@ -86,6 +91,23 @@ class ReservationEmailService(
             }
             sendAndLog(reservation.customer.email, content, reservation.id, type)
         }.onFailure { log.error("Failed to notify customer of decision for reservation {}", reservation.id, it) }
+    }
+
+    fun notifyCustomerOfCompletion(reservation: Reservation, discount: CreatedDiscount? = null) {
+        runCatching {
+            val content = EmailCopy.reservationCompleted(
+                reservation,
+                googleReviewUrl.trim(),
+                discount,
+                websiteUrl.trim(),
+            )
+            sendAndLog(
+                reservation.customer.email,
+                content,
+                reservation.id,
+                EmailType.RESERVATION_COMPLETED,
+            )
+        }.onFailure { log.error("Failed to notify customer of completion for reservation {}", reservation.id, it) }
     }
 
     private fun sendAndLog(recipient: String, content: EmailContent, reservationId: UUID?, type: EmailType) {

@@ -60,6 +60,9 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists reservation_discounts")
+        dsl.execute("drop table if exists discount_services")
+        dsl.execute("drop table if exists discounts")
         dsl.execute("drop table if exists customer_access_tokens")
         dsl.execute("drop table if exists pack_redemptions")
         dsl.execute("drop table if exists customer_packs")
@@ -247,6 +250,64 @@ class ReservationApiTests {
         )
         dsl.execute(
             """
+            create table discounts (
+                id uuid default random_uuid() primary key,
+                name varchar(160) not null,
+                audience varchar(20) not null,
+                scope varchar(30) not null,
+                value_type varchar(20) not null,
+                value_amount bigint not null,
+                currency varchar(3),
+                starts_at timestamp with time zone not null,
+                ends_at timestamp with time zone not null,
+                max_unique_clients integer,
+                max_uses_per_customer integer not null default 1,
+                code_hash varchar(64) not null unique,
+                code_hint varchar(40) not null,
+                customer_id uuid references customers(id),
+                status varchar(20) not null default 'ACTIVE',
+                public_code varchar(100),
+                featured boolean not null default false,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table discount_services (
+                discount_id uuid not null references discounts(id),
+                service_id uuid not null references services(id),
+                primary key (discount_id, service_id)
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table reservation_discounts (
+                id uuid default random_uuid() primary key,
+                reservation_id uuid not null unique references reservations(id),
+                discount_id uuid references discounts(id),
+                customer_id uuid not null references customers(id),
+                customer_identity_key varchar(255) not null,
+                discount_name varchar(160) not null,
+                code_hint varchar(40) not null,
+                value_type varchar(20) not null,
+                value_amount bigint not null,
+                original_price_cents bigint not null,
+                discount_amount_cents bigint not null,
+                final_price_cents bigint not null,
+                currency varchar(3) not null,
+                status varchar(20) not null default 'RESERVED',
+                reserved_at timestamp with time zone not null default now(),
+                consumed_at timestamp with time zone,
+                released_at timestamp with time zone,
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
             create table reservation_payments (
                 id uuid default random_uuid() primary key,
                 reservation_id uuid not null references reservations(id),
@@ -386,6 +447,156 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.durationMinutes").value(60))
             .andExpect(jsonPath("$.price.amountCents").value(7500))
             .andExpect(jsonPath("$.customer.email").value("ana@example.com"))
+    }
+
+    @Test
+    fun `admin creates a service discount and customer sees and reserves the reduced price`() {
+        val startsAt = OffsetDateTime.now(zone).minusHours(1)
+        val endsAt = OffsetDateTime.now(zone).plusDays(30)
+        mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"Summer massage",
+                      "audience":"PUBLIC",
+                      "scope":"SELECTED_SERVICES",
+                      "valueType":"PERCENTAGE",
+                      "valueAmount":2000,
+                      "startsAt":"${iso(startsAt)}",
+                      "endsAt":"${iso(endsAt)}",
+                      "maxUniqueClients":10,
+                      "maxUsesPerCustomer":1,
+                      "serviceIds":["$serviceId"],
+                      "code":"SAVE20",
+                      "featured":true
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.discount.codeHint").value("SAVE20"))
+            .andExpect(jsonPath("$.discount.featured").value(true))
+
+        mockMvc.perform(get("/api/discounts/featured"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.code").value("SAVE20"))
+            .andExpect(jsonPath("$.valueAmount").value(2000))
+
+        mockMvc.perform(
+            post("/api/reservations/discount-preview")
+                .contentType("application/json")
+                .content(
+                    """{"serviceId":"$serviceId","serviceVariantId":"$variantId","customerEmail":"discount@example.com","discountCode":"save20"}""",
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.originalPrice.amountCents").value(7500))
+            .andExpect(jsonPath("$.discountAmount.amountCents").value(1500))
+            .andExpect(jsonPath("$.finalPrice.amountCents").value(6000))
+
+        val result = mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId":"$serviceId",
+                      "serviceVariantId":"$variantId",
+                      "startsAt":"${iso(slotStart)}",
+                      "customer":{"name":"Discount Customer","email":"discount@example.com"},
+                      "discountCode":"SAVE20"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.price.amountCents").value(6000))
+            .andReturn()
+
+        val reservationId = reservationIdFrom(result)
+        assertEquals("RESERVED", dsl.fetchValue("select status from reservation_discounts where reservation_id = ?", UUID.fromString(reservationId)))
+        assertEquals(1500L, dsl.fetchValue("select discount_amount_cents from reservation_discounts where reservation_id = ?", UUID.fromString(reservationId), Long::class.java))
+
+        mockMvc.perform(
+            post("/api/reservations/discount-preview")
+                .contentType("application/json")
+                .content(
+                    """{"serviceId":"$serviceId","serviceVariantId":"$variantId","customerEmail":"discount+again@example.com","discountCode":"SAVE20"}""",
+                ),
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `personal discount code is generated securely and only works for its customer`() {
+        insertReservation(
+            start = OffsetDateTime.now(zone).minusDays(2),
+            status = "COMPLETED",
+            email = "personal@example.com",
+        )
+        val response = mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"Thank you",
+                      "audience":"PERSONAL",
+                      "scope":"ALL_SERVICES",
+                      "valueType":"FIXED_AMOUNT",
+                      "valueAmount":1000,
+                      "currency":"EUR",
+                      "startsAt":"${iso(OffsetDateTime.now(zone).minusHours(1))}",
+                      "endsAt":"${iso(OffsetDateTime.now(zone).plusDays(14))}",
+                      "customerEmail":"personal@example.com",
+                      "sendEmail":true
+                    }
+                    """.trimIndent(),
+                ),
+        ).andExpect(status().isCreated).andReturn().response.contentAsString
+        val code = Regex(""""generatedCode":"([^"]+)"""").find(response)?.groupValues?.get(1)
+            ?: error("Missing generated personal code: $response")
+        assertTrue(code.length >= 25)
+        assertEquals(64L, dsl.fetchValue("select length(code_hash) from discounts", Long::class.java))
+        assertEquals(
+            "SENT",
+            dsl.fetchValue("select status from email_logs where email_type = 'PERSONAL_DISCOUNT'", String::class.java),
+        )
+
+        fun preview(email: String) = mockMvc.perform(
+            post("/api/reservations/discount-preview")
+                .contentType("application/json")
+                .content("""{"serviceId":"$serviceId","serviceVariantId":"$variantId","customerEmail":"$email","discountCode":"$code"}"""),
+        )
+        preview("attacker@example.com").andExpect(status().isBadRequest)
+        preview("personal@example.com")
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.finalPrice.amountCents").value(6500))
+    }
+
+    @Test
+    fun `discount codes cannot be combined with a pack purchase`() {
+        mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId":"$serviceId",
+                      "serviceVariantId":"$variantId",
+                      "startsAt":"${iso(slotStart)}",
+                      "customer":{"name":"Pack Customer","email":"pack-discount@example.com"},
+                      "packOfferId":"${UUID.randomUUID()}",
+                      "discountCode":"NOT-ALLOWED"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Discounts are only available for individual sessions"))
     }
 
     @Test
@@ -565,7 +776,12 @@ class ReservationApiTests {
                 .with(adminJwt())
                 .contentType("application/json")
                 .content(
-                    """{"payment":{"amountCents":7500,"currency":"EUR","method":"CARD","reference":"terminal-42"}}""",
+                    """
+                    {
+                      "payment":{"amountCents":7500,"currency":"EUR","method":"CARD","reference":"terminal-42"},
+                      "discount":{"valueType":"PERCENTAGE","valueAmount":1500,"validityDays":21,"sameServiceOnly":true}
+                    }
+                    """.trimIndent(),
                 ),
         )
             .andExpect(status().isOk)
@@ -578,6 +794,16 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.summary.totalPaidCents").value(7500))
             .andExpect(jsonPath("$.summary.balanceDueCents").value(0))
             .andExpect(jsonPath("$.summary.state").value("PAID"))
+
+        val completionEmail = dsl.fetchOne(
+            "select recipient, status from email_logs where email_type = 'RESERVATION_COMPLETED'",
+        )!!
+        assertEquals("complete@example.com", completionEmail.get("recipient", String::class.java))
+        assertEquals("SENT", completionEmail.get("status", String::class.java))
+        assertEquals("PERSONAL", dsl.fetchValue("select audience from discounts", String::class.java))
+        assertEquals(1, dsl.fetchValue("select max_uses_per_customer from discounts", Int::class.java))
+        assertEquals(1L, dsl.fetchValue("select count(*) from discount_services", Long::class.java))
+        assertEquals(0L, dsl.fetchValue("select count(*) from email_logs where email_type = 'PERSONAL_DISCOUNT'", Long::class.java))
     }
 
     @Test

@@ -1,5 +1,10 @@
 package com.byiara.api.notification.application
 
+import com.byiara.api.discount.domain.Discount
+import com.byiara.api.discount.domain.CreatedDiscount
+import com.byiara.api.discount.domain.DiscountRecipient
+import com.byiara.api.discount.domain.DiscountScope
+import com.byiara.api.discount.domain.DiscountValueType
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationStatus
@@ -38,7 +43,7 @@ object EmailCopy {
         expiresInMinutes: Long,
     ): EmailContent = if (locale == "pt") {
         EmailContent(
-            subject = "Aceda ao seu pack By Iara",
+            subject = "Aceda ao seu pack Iara Gouveia",
             body = """
                 Olá $customerName,
 
@@ -61,7 +66,7 @@ object EmailCopy {
         )
     } else {
         EmailContent(
-            subject = "Access your By Iara pack",
+            subject = "Access your Iara Gouveia pack",
             body = """
                 Hi $customerName,
 
@@ -149,6 +154,197 @@ object EmailCopy {
         }
     }
 
+    fun reservationCompleted(
+        reservation: Reservation,
+        googleReviewUrl: String,
+        personalDiscount: CreatedDiscount? = null,
+        websiteUrl: String = "",
+    ): EmailContent {
+        val portuguese = reservation.locale == ReservationLocale.PT
+        val reviewText = googleReviewUrl.takeIf(String::isNotBlank)?.let {
+            if (portuguese) "\n\nPartilhe a sua experiência: $it" else "\n\nShare your experience: $it"
+        }.orEmpty()
+        val reviewHtml = googleReviewUrl.takeIf(String::isNotBlank)?.let {
+            ctaButton(
+                if (portuguese) "Deixar uma avaliação no Google" else "Leave a Google review",
+                it,
+            )
+        }.orEmpty()
+        val discountSection = personalDiscount?.let { completionDiscountSection(it, portuguese, websiteUrl) }
+        return when (reservation.locale) {
+            ReservationLocale.PT -> EmailContent(
+                subject = "Obrigada pela sua visita à Iara Gouveia",
+                body = """
+                    Olá ${reservation.customer.name},
+
+                    Obrigada por escolher a Iara Gouveia para a sua sessão de ${reservation.serviceName}.
+
+                    Esperamos que tenha gostado da experiência. A sua opinião ajuda outras pessoas a conhecer o nosso trabalho.${discountSection?.first.orEmpty()}$reviewText
+
+                    Até breve,
+                    Iara Gouveia
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "pt",
+                    title = "Obrigada pela sua visita",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Obrigada pela sua visita</h1>
+                        <p style="$paragraphStyle">Olá ${escapeHtml(reservation.customer.name)}, obrigada por escolher a Iara Gouveia para a sua sessão de <strong>${escapeHtml(reservation.serviceName)}</strong>.</p>
+                        <p style="$paragraphStyle">Esperamos que tenha gostado da experiência. A sua opinião ajuda outras pessoas a conhecer o nosso trabalho.</p>
+                        ${discountSection?.second.orEmpty()}
+                        $reviewHtml
+                    """.trimIndent(),
+                ),
+            )
+            ReservationLocale.EN -> EmailContent(
+                subject = "Thank you for visiting Iara Gouveia",
+                body = """
+                    Hi ${reservation.customer.name},
+
+                    Thank you for choosing Iara Gouveia for your ${reservation.serviceName} session.
+
+                    We hope you enjoyed your experience. Your feedback helps others discover our work.${discountSection?.first.orEmpty()}$reviewText
+
+                    See you again soon,
+                    Iara Gouveia
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "en",
+                    title = "Thank you for your visit",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Thank you for your visit</h1>
+                        <p style="$paragraphStyle">Hi ${escapeHtml(reservation.customer.name)}, thank you for choosing Iara Gouveia for your <strong>${escapeHtml(reservation.serviceName)}</strong> session.</p>
+                        <p style="$paragraphStyle">We hope you enjoyed your experience. Your feedback helps others discover our work.</p>
+                        ${discountSection?.second.orEmpty()}
+                        $reviewHtml
+                    """.trimIndent(),
+                ),
+            )
+        }
+    }
+
+    private fun completionDiscountSection(
+        created: CreatedDiscount,
+        portuguese: Boolean,
+        websiteUrl: String,
+    ): Pair<String, String> {
+        val discount = created.discount
+        val code = requireNotNull(created.generatedCode)
+        val benefit = formatDiscountBenefit(discount)
+        val expires = discount.endsAt.format(
+            DateTimeFormatter.ofPattern("dd MMM yyyy", if (portuguese) Locale.forLanguageTag("pt-PT") else Locale.ENGLISH),
+        )
+        val scope = if (discount.scope == DiscountScope.ALL_SERVICES) {
+            if (portuguese) "qualquer sessão individual" else "any individual session"
+        } else if (portuguese) "outra sessão deste serviço" else "another session of this service"
+        val text = if (portuguese) """
+
+            Temos também uma oferta para a sua próxima visita: $benefit de desconto em $scope.
+            Código pessoal: $code
+            Válido até: $expires
+            Utilização única e associado ao seu endereço de email.
+            Marcar: $websiteUrl
+        """.trimIndent() else """
+
+            We also have something for your next visit: $benefit off $scope.
+            Personal code: $code
+            Valid until: $expires
+            One-time use and tied to your email address.
+            Book: $websiteUrl
+        """.trimIndent()
+        val html = if (portuguese) """
+            <h2 style="$subheadingStyle">Uma oferta para a sua próxima visita</h2>
+            <p style="$paragraphStyle">Use o seu desconto pessoal de <strong>${escapeHtml(benefit)}</strong> em ${escapeHtml(scope)}.</p>
+            ${detailsCard(listOf("Código pessoal" to escapeHtml(code), "Validade" to escapeHtml(expires), "Utilização" to "Única"))}
+            ${websiteUrl.takeIf(String::isNotBlank)?.let { ctaButton("Marcar uma sessão", it) }.orEmpty()}
+        """.trimIndent() else """
+            <h2 style="$subheadingStyle">Something for your next visit</h2>
+            <p style="$paragraphStyle">Use your personal <strong>${escapeHtml(benefit)}</strong> discount on ${escapeHtml(scope)}.</p>
+            ${detailsCard(listOf("Personal code" to escapeHtml(code), "Valid until" to escapeHtml(expires), "Usage" to "One time"))}
+            ${websiteUrl.takeIf(String::isNotBlank)?.let { ctaButton("Book a session", it) }.orEmpty()}
+        """.trimIndent()
+        return text to html
+    }
+
+    private fun formatDiscountBenefit(discount: Discount): String = when (discount.valueType) {
+        DiscountValueType.PERCENTAGE -> "${java.math.BigDecimal(discount.valueAmount).movePointLeft(2).stripTrailingZeros().toPlainString()}%"
+        DiscountValueType.FIXED_AMOUNT -> String.format(Locale.US, "€%.2f", discount.valueAmount / 100.0)
+    }
+
+    fun personalDiscount(
+        recipient: DiscountRecipient,
+        discount: Discount,
+        code: String,
+        websiteUrl: String,
+    ): EmailContent {
+        val portuguese = recipient.locale.equals("pt", ignoreCase = true)
+        val benefit = when (discount.valueType) {
+            DiscountValueType.PERCENTAGE -> "${discount.valueAmount / 100.0}%"
+            DiscountValueType.FIXED_AMOUNT -> String.format(Locale.US, "€%.2f", discount.valueAmount / 100.0)
+        }
+        val scope = if (discount.scope == DiscountScope.ALL_SERVICES) {
+            if (portuguese) "qualquer sessão individual" else "any individual session"
+        } else if (portuguese) "sessões individuais selecionadas" else "selected individual sessions"
+        val uses = if (discount.maxUsesPerCustomer == 1) {
+            if (portuguese) "Utilização única" else "One-time use"
+        } else if (portuguese) "Até ${discount.maxUsesPerCustomer} utilizações" else "Up to ${discount.maxUsesPerCustomer} uses"
+        val expires = discount.endsAt.format(DateTimeFormatter.ofPattern("dd MMM yyyy", if (portuguese) Locale.forLanguageTag("pt-PT") else Locale.ENGLISH))
+        val button = websiteUrl.takeIf(String::isNotBlank)?.let {
+            ctaButton(if (portuguese) "Marcar uma sessão" else "Book a session", it)
+        }.orEmpty()
+        return if (portuguese) EmailContent(
+            subject = "Um desconto pessoal para a sua próxima visita",
+            body = """
+                Olá ${recipient.name},
+
+                Preparámos um desconto pessoal de $benefit para $scope.
+
+                Código: $code
+                Validade: até $expires
+                $uses. Este código está associado ao seu endereço de email.
+
+                Marcar: $websiteUrl
+                Iara Gouveia
+            """.trimIndent(),
+            htmlBody = htmlDocument(
+                lang = "pt",
+                title = "O seu desconto pessoal",
+                bodyHtml = """
+                    <h1 style="$headingStyle">Um presente para a sua próxima visita</h1>
+                    <p style="$paragraphStyle">Olá ${escapeHtml(recipient.name)}, preparámos um desconto pessoal de <strong>${escapeHtml(benefit)}</strong> para ${escapeHtml(scope)}.</p>
+                    ${detailsCard(listOf("Código" to escapeHtml(code), "Validade" to escapeHtml(expires), "Utilização" to escapeHtml(uses)))}
+                    <p style="$paragraphStyle">Introduza este código durante a marcação com o endereço de email onde recebeu esta mensagem.</p>
+                    $button
+                """.trimIndent(),
+            ),
+        ) else EmailContent(
+            subject = "A personal discount for your next visit",
+            body = """
+                Hi ${recipient.name},
+
+                We have prepared a personal $benefit discount for $scope.
+
+                Code: $code
+                Valid until: $expires
+                $uses. This code is tied to your email address.
+
+                Book: $websiteUrl
+                Iara Gouveia
+            """.trimIndent(),
+            htmlBody = htmlDocument(
+                lang = "en",
+                title = "Your personal discount",
+                bodyHtml = """
+                    <h1 style="$headingStyle">A little something for your next visit</h1>
+                    <p style="$paragraphStyle">Hi ${escapeHtml(recipient.name)}, we have prepared a personal <strong>${escapeHtml(benefit)}</strong> discount for ${escapeHtml(scope)}.</p>
+                    ${detailsCard(listOf("Code" to escapeHtml(code), "Valid until" to escapeHtml(expires), "Usage" to escapeHtml(uses)))}
+                    <p style="$paragraphStyle">Enter this code during booking using the email address where you received this message.</p>
+                    $button
+                """.trimIndent(),
+            ),
+        )
+    }
+
     private fun cancelled(reservation: Reservation, whenText: String): EmailContent {
         val name = reservation.customer.name
         val message = reservation.cancellationMessage ?: when (reservation.locale) {
@@ -171,7 +367,7 @@ object EmailCopy {
                     Motivo: $message
 
                     Contacte-nos se desejar ajuda a marcar outro horário.
-                    By Iara
+                    Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "pt",
@@ -198,7 +394,7 @@ object EmailCopy {
                     Reason: $message
 
                     Please contact us if you would like help booking another time.
-                    By Iara
+                    Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "en",
@@ -293,7 +489,7 @@ object EmailCopy {
                     "Comunique qualquer cancelamento ou reagendamento com pelo menos 24 horas de antecedência. O primeiro cancelamento tardio não tem penalização; em caso de cancelamentos tardios repetidos, pode ser exigido um sinal de €15, deduzido ao preço da sessão.",
                     "",
                     "Até breve!",
-                    "By Iara",
+                    "Iara Gouveia",
                 )).joinToString("\n"),
                 htmlBody = htmlDocument(
                     lang = "pt",
@@ -334,7 +530,7 @@ object EmailCopy {
                     "Please cancel or reschedule at least 24 hours in advance. The first late cancellation has no penalty; repeated late cancellations may require a €15 deposit, deducted from the session price.",
                     "",
                     "See you soon!",
-                    "By Iara",
+                    "Iara Gouveia",
                 )).joinToString("\n"),
                 htmlBody = htmlDocument(
                     lang = "en",
@@ -376,7 +572,7 @@ object EmailCopy {
                     Motivo: $rejectionMessage
 
                     Por favor visite o site para escolher outro horário.
-                    By Iara
+                    Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "pt",
@@ -403,7 +599,7 @@ object EmailCopy {
                     Reason: $rejectionMessage
 
                     Please visit the site to pick another time.
-                    By Iara
+                    Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "en",
@@ -473,7 +669,7 @@ object EmailCopy {
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#ffffff; border-radius:12px; border:1px solid #ded4d8;">
                   <tr>
                     <td style="padding:28px 40px; text-align:center; border-bottom:1px solid $BORDER_ROSE;">
-                      <img src="cid:logo" width="160" height="77" alt="By Iara" style="display:block; width:160px; max-width:160px; height:auto; margin:0 auto; border:0;" />
+                      <img src="cid:logo" width="200" height="56" alt="Iara Gouveia" style="display:block; width:200px; max-width:200px; height:auto; margin:0 auto; border:0;" />
                     </td>
                   </tr>
                   <tr>
@@ -483,7 +679,7 @@ object EmailCopy {
                   </tr>
                   <tr>
                     <td style="padding:18px 40px; text-align:center; background-color:$PAGE_BACKGROUND; border-radius:0 0 12px 12px;">
-                      <span style="font-size:13px; color:$TEXT_MUTED;">By Iara</span>
+                      <span style="font-size:13px; color:$TEXT_MUTED;">Iara Gouveia</span>
                     </td>
                   </tr>
                 </table>
@@ -562,7 +758,7 @@ object EmailCopy {
     """.trimIndent()
 
     private fun mapsUrl(baseUrl: String, address: String): String =
-        baseUrl + urlEncode("By Iara, $address")
+        baseUrl + urlEncode("Iara Gouveia, $address")
 
     private fun urlEncode(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8)
 

@@ -39,6 +39,7 @@ services:
       # must be the host-published admin port, unlike MAIL_HOST above.
       ADMIN_URL: http://localhost:4201
       WEBSITE_URL: http://localhost:4200
+      GOOGLE_REVIEW_URL: ${GOOGLE_REVIEW_URL:-https://g.page/r/CVzKM_-9IuRxEAE/review}
     ports:
       - "8080:8080"
     volumes:

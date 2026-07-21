@@ -118,6 +118,7 @@ services:
       BUSINESS_EMAIL: ${BUSINESS_EMAIL:?Set BUSINESS_EMAIL in .env.production}
       ADMIN_URL: https://admin.${DOMAIN}
       WEBSITE_URL: https://${DOMAIN}
+      GOOGLE_REVIEW_URL: ${GOOGLE_REVIEW_URL:?Set GOOGLE_REVIEW_URL in .env.production}
       JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError
       SERVER_FORWARD_HEADERS_STRATEGY: framework
     expose:

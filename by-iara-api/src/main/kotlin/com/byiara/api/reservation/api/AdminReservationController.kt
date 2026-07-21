@@ -78,7 +78,11 @@ class AdminReservationController(
     fun complete(
         @PathVariable id: UUID,
         @Valid @RequestBody(required = false) request: CompleteReservationRequest?,
-    ): ReservationResponse = closeoutService.complete(id, request?.payment?.toCommand()).toResponse()
+    ): ReservationResponse = closeoutService.complete(
+        id,
+        request?.payment?.toCommand(),
+        request?.discount?.toCommand(),
+    ).toResponse()
 
     @PatchMapping("/{id}/no-show")
     fun markNoShow(@PathVariable id: UUID): ReservationResponse =

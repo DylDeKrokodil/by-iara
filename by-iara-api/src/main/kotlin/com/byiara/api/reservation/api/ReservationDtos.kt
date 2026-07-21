@@ -2,6 +2,8 @@ package com.byiara.api.reservation.api
 
 import com.byiara.api.reservation.application.ReservationPage
 import com.byiara.api.reservation.application.RecordReservationPaymentCommand
+import com.byiara.api.reservation.application.CompletionDiscountCommand
+import com.byiara.api.discount.domain.DiscountValueType
 import com.byiara.api.reservation.application.ReservationAttentionPage
 import com.byiara.api.reservation.application.ReservationPayments
 import com.byiara.api.reservation.domain.CreateReservationCommand
@@ -14,6 +16,8 @@ import com.byiara.api.reservation.domain.PaymentMethod
 import com.byiara.api.reservation.domain.PaymentSummary
 import com.byiara.api.reservation.domain.ReservationAttention
 import com.byiara.api.reservation.domain.ReservationPayment
+import com.byiara.api.reservation.domain.PreviewDiscountCommand
+import com.byiara.api.discount.domain.DiscountQuote
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
@@ -50,6 +54,8 @@ data class CreateReservationRequest(
     val customerPackId: UUID? = null,
     @field:Size(max = 200)
     val customerSessionToken: String? = null,
+    @field:Size(max = 100)
+    val discountCode: String? = null,
 ) {
     fun toCommand(): CreateReservationCommand =
         CreateReservationCommand(
@@ -62,8 +68,35 @@ data class CreateReservationRequest(
             packOfferId = packOfferId,
             customerPackId = customerPackId,
             customerSessionToken = customerSessionToken,
+            discountCode = discountCode?.trim()?.ifBlank { null },
         )
 }
+
+data class PreviewDiscountRequest(
+    @field:NotNull val serviceId: UUID?,
+    @field:NotNull val serviceVariantId: UUID?,
+    @field:Email @field:Size(max = 255) val customerEmail: String? = null,
+    @field:NotBlank @field:Size(max = 100) val discountCode: String?,
+) {
+    fun toCommand() = PreviewDiscountCommand(
+        serviceId = serviceId!!,
+        serviceVariantId = serviceVariantId!!,
+        customerEmail = customerEmail?.trim()?.ifBlank { null },
+        discountCode = discountCode!!.trim(),
+    )
+}
+
+data class DiscountQuoteResponse(
+    val originalPrice: ReservationMoneyResponse,
+    val discountAmount: ReservationMoneyResponse,
+    val finalPrice: ReservationMoneyResponse,
+)
+
+fun DiscountQuote.toResponse() = DiscountQuoteResponse(
+    originalPrice = ReservationMoneyResponse(originalPrice.amountCents, originalPrice.currency),
+    discountAmount = ReservationMoneyResponse(discountAmount.amountCents, discountAmount.currency),
+    finalPrice = ReservationMoneyResponse(finalPrice.amountCents, finalPrice.currency),
+)
 
 data class CustomerRequest(
     @field:NotBlank
@@ -123,7 +156,27 @@ data class CancelReservationRequest(
 data class CompleteReservationRequest(
     @field:Valid
     val payment: RecordPaymentRequest? = null,
+
+    @field:Valid
+    val discount: CompletionDiscountRequest? = null,
 )
+
+data class CompletionDiscountRequest(
+    @field:NotNull
+    val valueType: DiscountValueType?,
+
+    @field:NotNull
+    @field:Positive
+    val valueAmount: Long?,
+
+    @field:jakarta.validation.constraints.Min(1)
+    @field:jakarta.validation.constraints.Max(3650)
+    val validityDays: Long = 30,
+
+    val sameServiceOnly: Boolean = false,
+) {
+    fun toCommand() = CompletionDiscountCommand(valueType!!, valueAmount!!, validityDays, sameServiceOnly)
+}
 
 data class RecordPaymentRequest(
     @field:NotNull

@@ -8,6 +8,7 @@ import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
 import com.byiara.api.pack.domain.PackNotAvailableException
 import com.byiara.api.pack.domain.CustomerAccessDeniedException
+import com.byiara.api.discount.domain.DiscountUnavailableException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -15,6 +16,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ReservationExceptionHandler {
+    @ExceptionHandler(DiscountUnavailableException::class)
+    fun handleDiscountUnavailable(exception: DiscountUnavailableException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiErrorResponse(message = exception.message!!))
+
     @ExceptionHandler(ReservationNotFoundException::class)
     fun handleNotFound(exception: ReservationNotFoundException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.NOT_FOUND).body(

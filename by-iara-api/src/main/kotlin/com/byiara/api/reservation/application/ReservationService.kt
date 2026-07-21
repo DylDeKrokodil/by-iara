@@ -9,12 +9,15 @@ import com.byiara.api.pack.domain.NewCustomerPack
 import com.byiara.api.pack.domain.PackNotAvailableException
 import com.byiara.api.pack.domain.PackRepository
 import com.byiara.api.catalog.domain.Money
+import com.byiara.api.discount.application.DiscountService
+import com.byiara.api.discount.domain.DiscountQuote
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
 import com.byiara.api.reservation.domain.NewReservation
+import com.byiara.api.reservation.domain.PreviewDiscountCommand
 import com.byiara.api.reservation.domain.Reservation
 import com.byiara.api.reservation.domain.ReservationListQuery
 import com.byiara.api.reservation.domain.ReservationNotFoundException
@@ -37,6 +40,7 @@ class ReservationService(
     private val reservationEmailService: ReservationEmailService,
     private val packRepository: PackRepository,
     private val customerAccessService: CustomerAccessService,
+    private val discountService: DiscountService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
@@ -45,6 +49,9 @@ class ReservationService(
 
         if (command.packOfferId != null && command.customerPackId != null) {
             throw InvalidReservationRequestException("Choose either a new pack or an existing pack")
+        }
+        if (!command.discountCode.isNullOrBlank() && (command.packOfferId != null || command.customerPackId != null)) {
+            throw InvalidReservationRequestException("Discounts are only available for individual sessions")
         }
 
         val endsAt = command.startsAt.plusMinutes(variant.durationMinutes.toLong())
@@ -74,9 +81,16 @@ class ReservationService(
             } ?: throw PackNotAvailableException("This pack offer is no longer available")
         }
 
+        val discountQuote = command.discountCode?.takeIf { it.isNotBlank() }?.let { code ->
+            if (existingPack != null || newPackOffer != null) {
+                throw InvalidReservationRequestException("Discounts are only available for individual sessions")
+            }
+            discountService.prepareForReservation(code, service.id, customer, variant.price)
+        }
         val reservationPrice = when {
             existingPack != null -> Money(0, existingPack.price.currency)
             newPackOffer != null -> newPackOffer.price
+            discountQuote != null -> discountQuote.finalPrice
             else -> variant.price
         }
 
@@ -94,6 +108,9 @@ class ReservationService(
                 locale = command.locale,
             ),
         )
+        if (discountQuote != null) {
+            discountService.reserve(reservation.id, customer, discountQuote)
+        }
         if (newPackOffer != null) {
             packRepository.createPending(
                 NewCustomerPack(
@@ -113,6 +130,18 @@ class ReservationService(
         }
         reservationEmailService.notifyAdminsOfNewReservation(reservation)
         return reservation
+    }
+
+    @Transactional(readOnly = true)
+    fun previewDiscount(command: PreviewDiscountCommand): DiscountQuote {
+        val service = requireActiveService(command.serviceId)
+        val variant = requireActiveVariant(service, command.serviceVariantId)
+        return discountService.preview(
+            command.discountCode,
+            service.id,
+            command.customerEmail,
+            variant.price,
+        )
     }
 
     @Transactional(readOnly = true)
@@ -217,6 +246,7 @@ class ReservationService(
     fun reject(id: UUID, reasonCode: RejectionReasonCode, message: String): Reservation =
         transition(id, ReservationStatus.REJECTED, reasonCode, message).also {
             packRepository.releaseReservation(id)
+            discountService.release(id)
         }
 
     @Transactional
@@ -227,6 +257,7 @@ class ReservationService(
         }
         reservationRepository.updateCancellation(id, reasonCode, message)
         packRepository.releaseReservation(id)
+        discountService.release(id)
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         reservationEmailService.notifyCustomerOfDecision(updated)
         return updated
