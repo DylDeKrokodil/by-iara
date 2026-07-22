@@ -194,6 +194,33 @@
               </button>
             </div>
 
+            @if (!calendarHasAvailability()) {
+            <byiara-empty-state
+              class="calendar-empty"
+              role="status"
+              aria-live="polite"
+              [title]="copy().noAvailabilityInMonth(calendarMonthLabel())"
+              [description]="copy().noAvailabilityInMonthHelp"
+              [dashed]="false"
+            >
+              <div class="calendar-empty-actions">
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="nextCalendarMonth()"
+                >
+                  {{ copy().calendarNextMonth }}
+                  <span aria-hidden="true">&rarr;</span>
+                </button>
+              </div>
+              <div class="calendar-empty-contact">
+                <a [href]="contact.emailHref">{{ copy().contactByEmail }}</a>
+                <a [href]="contact.phoneHref">
+                  {{ copy().contactByPhone(contact.phone) }}
+                </a>
+              </div>
+            </byiara-empty-state>
+            } @else {
             <div class="calendar-weekdays" aria-hidden="true">
               @for (weekday of calendarWeekdays(); track weekday) {
               <span>{{ weekday }}</span>
@@ -228,20 +255,6 @@
               <span aria-hidden="true"></span>
               {{ copy().calendarAvailable }}
             </p>
-
-            @if (availableDates().length === 0) {
-            <div class="calendar-empty" role="status">
-              <p>{{ copy().noAvailabilityInMonth(calendarMonthLabel()) }}</p>
-              <div class="calendar-empty-links">
-                <button type="button" (click)="chooseAnotherTreatment()">
-                  {{ copy().chooseAnotherTreatment }}
-                </button>
-                <a [href]="contact.emailHref">{{ copy().contactByEmail }}</a>
-                <a [href]="contact.phoneHref">
-                  {{ copy().contactByPhone(contact.phone) }}
-                </a>
-              </div>
-            </div>
             }
           </div>
 
