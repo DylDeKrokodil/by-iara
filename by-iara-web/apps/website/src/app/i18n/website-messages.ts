@@ -183,6 +183,7 @@ export interface WebsiteMessages {
     readonly calendarAvailable: string;
     readonly calendarUnavailable: string;
     readonly noAvailabilityInMonth: (month: string) => string;
+    readonly noAvailabilityInMonthHelp: string;
     readonly chooseAnotherTreatment: string;
     readonly contactByEmail: string;
     readonly contactByPhone: (phone: string) => string;
@@ -460,8 +461,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       calendarNext: 'Seguinte',
       calendarAvailable: 'Disponível',
       calendarUnavailable: 'Indisponível',
-      noAvailabilityInMonth: (month) =>
-        `Sem horários disponíveis em ${month}. Consulte outro mês ou contacte a Iara diretamente.`,
+      noAvailabilityInMonth: (month) => `Sem disponibilidade em ${month}`,
+      noAvailabilityInMonthHelp:
+        'Consulte o mês seguinte ou contacte a Iara diretamente.',
       chooseAnotherTreatment: 'Escolher outro tratamento',
       contactByEmail: 'Enviar email',
       contactByPhone: (phone) => `Ligar para ${phone}`,
@@ -739,8 +741,9 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       calendarNext: 'Next',
       calendarAvailable: 'Available',
       calendarUnavailable: 'Unavailable',
-      noAvailabilityInMonth: (month) =>
-        `No times are available in ${month}. Try another month or contact Iara directly.`,
+      noAvailabilityInMonth: (month) => `No availability in ${month}`,
+      noAvailabilityInMonthHelp:
+        'View the next month or contact Iara directly.',
       chooseAnotherTreatment: 'Choose another treatment',
       contactByEmail: 'Send an email',
       contactByPhone: (phone) => `Call ${phone}`,

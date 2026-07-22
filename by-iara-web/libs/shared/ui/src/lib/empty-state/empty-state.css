@@ -8,6 +8,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--byiara-space-xs);
+  min-height: var(--byiara-empty-state-min-height, auto);
   padding: var(--byiara-space-2xl);
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface-muted);

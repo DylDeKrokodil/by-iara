@@ -16,6 +16,7 @@ import {
   ChoiceChip,
   DetailList,
   DetailListItem,
+  EmptyState,
   SelectField,
   SelectFieldOption,
   SelectableTile,
@@ -91,6 +92,7 @@ interface CalendarDay {
     Stepper,
     TextField,
     DetailList,
+    EmptyState,
   ],
   templateUrl: './booking.html',
   styleUrl: './booking.css',
@@ -310,6 +312,10 @@ export class Booking implements OnInit {
       };
     });
   });
+
+  protected readonly calendarHasAvailability = computed(() =>
+    this.calendarDays().some((day) => day.inMonth && day.available),
+  );
 
   protected readonly contact = {
     email: BUSINESS_DETAILS.email,
