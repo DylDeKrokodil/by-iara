@@ -1,5 +1,6 @@
 package com.byiara.api.reservation.api
 
+import com.byiara.api.common.ratelimit.PublicRequestRateLimiter
 import com.byiara.api.reservation.application.ReservationService
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import jakarta.validation.Valid
@@ -20,6 +21,7 @@ import java.util.UUID
 @RequestMapping("/api/reservations")
 class ReservationController(
     private val reservationService: ReservationService,
+    private val rateLimiter: PublicRequestRateLimiter,
 ) {
     @GetMapping("/availability")
     fun getAvailability(
@@ -49,8 +51,10 @@ class ReservationController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: CreateReservationRequest): ReservationResponse =
-        reservationService.create(request.toCommand()).toResponse()
+    fun create(@Valid @RequestBody request: CreateReservationRequest): ReservationResponse {
+        rateLimiter.consumeBookingEmail(request.customer!!.email)
+        return reservationService.create(request.toCommand()).toResponse()
+    }
 
     @PostMapping("/discount-preview")
     fun previewDiscount(@Valid @RequestBody request: PreviewDiscountRequest): DiscountQuoteResponse =

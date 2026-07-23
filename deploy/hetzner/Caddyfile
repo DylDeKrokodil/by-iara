@@ -25,5 +25,7 @@ admin.{$DOMAIN} {
 api.{$DOMAIN} {
 	import security_headers
 	encode zstd gzip
+	@admin_api path /api/admin /api/admin/*
+	respond @admin_api 404
 	reverse_proxy api:8080
 }

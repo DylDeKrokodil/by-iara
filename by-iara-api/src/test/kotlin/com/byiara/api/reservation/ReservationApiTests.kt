@@ -60,6 +60,7 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists public_request_rate_limits")
         dsl.execute("drop table if exists reservation_discounts")
         dsl.execute("drop table if exists discount_services")
         dsl.execute("drop table if exists discounts")
@@ -81,6 +82,18 @@ class ReservationApiTests {
         dsl.execute("drop table if exists services")
         dsl.execute("drop table if exists admin_users")
 
+        dsl.execute(
+            """
+            create table public_request_rate_limits (
+                scope varchar(40) not null,
+                key_hash varchar(64) not null,
+                window_started_at timestamp with time zone not null,
+                request_count integer not null,
+                updated_at timestamp with time zone not null default now(),
+                primary key (scope, key_hash)
+            )
+            """.trimIndent(),
+        )
         dsl.execute(
             """
             create table services (
@@ -447,6 +460,59 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.durationMinutes").value(60))
             .andExpect(jsonPath("$.price.amountCents").value(7500))
             .andExpect(jsonPath("$.customer.email").value("ana@example.com"))
+    }
+
+    @Test
+    fun `booking email is limited to five requests per minute`() {
+        repeat(5) { index ->
+            book(slotStart.plusHours(index.toLong()), email = "limited@example.com")
+                .andExpect(status().isCreated)
+        }
+
+        book(slotStart.plusHours(5), email = "limited@example.com")
+            .andExpect(status().isTooManyRequests)
+            .andExpect(jsonPath("$.message").value("Too many requests. Try again later"))
+            .andExpect { result ->
+                assertTrue(result.response.getHeader("Retry-After")!!.toLong() in 1..60)
+            }
+    }
+
+    @Test
+    fun `customer access email is limited to two requests per minute`() {
+        val request = post("/api/customer-access/request")
+            .contentType("application/json")
+            .content("""{"email":"packs@example.com","locale":"en"}""")
+
+        repeat(2) {
+            mockMvc.perform(request).andExpect(status().isAccepted)
+        }
+
+        mockMvc.perform(request)
+            .andExpect(status().isTooManyRequests)
+            .andExpect { result ->
+                assertTrue(result.response.getHeader("Retry-After")!!.toLong() in 1..60)
+            }
+    }
+
+    @Test
+    fun `unverified booking cannot overwrite an existing customer contact record`() {
+        dsl.execute(
+            """
+            insert into customers (name, email, phone)
+            values ('Existing customer', 'ana@example.com', '+351900000000')
+            """.trimIndent(),
+        )
+
+        book(slotStart, email = "ana@example.com")
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.customer.name").value("Existing customer"))
+            .andExpect(jsonPath("$.customer.phone").value("+351900000000"))
+
+        val customer = dsl.fetchOne(
+            "select name, phone from customers where email = 'ana@example.com'",
+        )!!
+        assertEquals("Existing customer", customer.get("name"))
+        assertEquals("+351900000000", customer.get("phone"))
     }
 
     @Test

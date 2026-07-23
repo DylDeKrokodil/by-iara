@@ -1,5 +1,6 @@
 package com.byiara.api.pack.api
 
+import com.byiara.api.common.ratelimit.PublicRequestRateLimiter
 import com.byiara.api.pack.application.CustomerAccessService
 import com.byiara.api.pack.domain.CustomerAccessDeniedException
 import com.byiara.api.pack.domain.CustomerPack
@@ -44,9 +45,13 @@ data class CustomerPackResponse(
 
 @RestController
 @RequestMapping("/api/customer-access")
-class CustomerAccessController(private val service: CustomerAccessService) {
+class CustomerAccessController(
+    private val service: CustomerAccessService,
+    private val rateLimiter: PublicRequestRateLimiter,
+) {
     @PostMapping("/request")
     fun request(@Valid @RequestBody request: RequestCustomerAccessRequest): ResponseEntity<Void> {
+        rateLimiter.consumeCustomerAccessEmail(request.email)
         service.requestLink(request.email, request.locale)
         return ResponseEntity.accepted().build()
     }
@@ -79,4 +84,3 @@ class CustomerAccessController(private val service: CustomerAccessService) {
 private fun CustomerPack.toResponse() = CustomerPackResponse(
     id, serviceId, serviceName, durationMinutes, totalSessions, remainingSessions, expiresAt,
 )
-

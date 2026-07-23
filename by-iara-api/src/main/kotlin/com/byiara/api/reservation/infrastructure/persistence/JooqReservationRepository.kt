@@ -246,20 +246,21 @@ class JooqReservationRepository(
         val name = details.name.trim()
         val phone = details.phone?.trim()?.ifBlank { null }
 
-        val existingId = dsl
-            .select(cId)
+        val existing = dsl
+            .select(cId, cName, cEmail, cPhone)
             .from(customers)
             .where(cEmail.eq(email))
-            .fetchOne(cId)
+            .fetchOne()
 
-        if (existingId != null) {
-            // Keep the latest contact details for a returning customer.
-            dsl.update(customers)
-                .set(cName, name)
-                .set(cPhone, phone)
-                .where(cId.eq(existingId))
-                .execute()
-            return Customer(id = existingId, name = name, email = email, phone = phone)
+        if (existing != null) {
+            // An email address is not proof of identity. Preserve the canonical contact record;
+            // verified customer sessions or an admin flow must own future profile changes.
+            return Customer(
+                id = existing.get(cId),
+                name = existing.get(cName),
+                email = existing.get(cEmail),
+                phone = existing.get(cPhone),
+            )
         }
 
         val newId = dsl
