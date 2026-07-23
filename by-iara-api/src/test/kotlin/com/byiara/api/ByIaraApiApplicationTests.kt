@@ -1,6 +1,8 @@
 package com.byiara.api
 
+import com.byiara.api.auth.api.ADMIN_REFRESH_COOKIE
 import com.byiara.api.auth.domain.AdminRole
+import jakarta.servlet.http.Cookie
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.jooq.DSLContext
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
@@ -123,44 +126,50 @@ class ByIaraApiApplicationTests {
 		)
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.accessToken").isString)
-			.andExpect(jsonPath("$.refreshToken").isString)
+			.andExpect(jsonPath("$.refreshToken").doesNotExist())
 			.andExpect(jsonPath("$.tokenType").value("Bearer"))
 			.andExpect(jsonPath("$.expiresInSeconds").value(3600))
 			.andExpect(jsonPath("$.admin.email").value("admin@by-iara.local"))
 			.andExpect(jsonPath("$.admin.role").value("ADMIN"))
+			.andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")))
+			.andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("SameSite=Strict")))
+			.andExpect(
+				header().string(
+					"Set-Cookie",
+					org.hamcrest.Matchers.containsString("Path=/api/admin/auth"),
+				),
+			)
 	}
 
 	@Test
 	fun `refresh token issues a new session`() {
-		val refreshToken = refreshTokenFrom(login())
+		val refreshCookie = refreshCookieFrom(login())
 
 		mockMvc.perform(
 			post("/api/admin/auth/refresh")
-				.contentType("application/json")
-				.content("""{"refreshToken":"$refreshToken"}"""),
+				.cookie(refreshCookie),
 		)
 			.andExpect(status().isOk)
 			.andExpect(jsonPath("$.accessToken").isString)
-			.andExpect(jsonPath("$.refreshToken").isString)
+			.andExpect(jsonPath("$.refreshToken").doesNotExist())
 			.andExpect(jsonPath("$.admin.email").value("admin@by-iara.local"))
+			.andExpect(header().exists("Set-Cookie"))
 	}
 
 	@Test
 	fun `reusing a rotated refresh token is rejected`() {
-		val originalToken = refreshTokenFrom(login())
+		val originalCookie = refreshCookieFrom(login())
 
 		// First refresh rotates the token (revoking the original).
 		mockMvc.perform(
 			post("/api/admin/auth/refresh")
-				.contentType("application/json")
-				.content("""{"refreshToken":"$originalToken"}"""),
+				.cookie(originalCookie),
 		).andExpect(status().isOk)
 
 		// Replaying the original (now-revoked) token is treated as reuse.
 		mockMvc.perform(
 			post("/api/admin/auth/refresh")
-				.contentType("application/json")
-				.content("""{"refreshToken":"$originalToken"}"""),
+				.cookie(originalCookie),
 		)
 			.andExpect(status().isUnauthorized)
 			.andExpect(jsonPath("$.message").value("Invalid or expired refresh token"))
@@ -168,27 +177,30 @@ class ByIaraApiApplicationTests {
 
 	@Test
 	fun `logout revokes the refresh token`() {
-		val refreshToken = refreshTokenFrom(login())
+		val refreshCookie = refreshCookieFrom(login())
 
 		mockMvc.perform(
 			post("/api/admin/auth/logout")
-				.contentType("application/json")
-				.content("""{"refreshToken":"$refreshToken"}"""),
-		).andExpect(status().isNoContent)
+				.cookie(refreshCookie),
+		)
+			.andExpect(status().isNoContent)
+			.andExpect(header().string("Set-Cookie", org.hamcrest.Matchers.containsString("Max-Age=0")))
 
 		mockMvc.perform(
 			post("/api/admin/auth/refresh")
-				.contentType("application/json")
-				.content("""{"refreshToken":"$refreshToken"}"""),
+				.cookie(refreshCookie),
 		).andExpect(status().isUnauthorized)
 	}
 
-	private fun refreshTokenFrom(result: MvcResult): String =
-		Regex(""""refreshToken":"([^"]+)"""")
-			.find(result.response.contentAsString)
+	private fun refreshCookieFrom(result: MvcResult): Cookie =
+		Cookie(
+			ADMIN_REFRESH_COOKIE,
+			Regex("""$ADMIN_REFRESH_COOKIE=([^;]+)""")
+				.find(result.response.getHeader("Set-Cookie").orEmpty())
 			?.groupValues
 			?.get(1)
-			?: error("Missing refreshToken")
+				?: error("Missing refresh cookie"),
+		)
 
 	@Test
 	fun `admin login returns a signed JWT that can access protected admin routes`() {

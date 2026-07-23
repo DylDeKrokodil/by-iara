@@ -13,6 +13,7 @@ const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
 
 const app = express();
+app.disable('x-powered-by');
 const angularApp = new AngularNodeAppEngine();
 
 function publicSiteOrigin(req: express.Request): string {
@@ -149,6 +150,10 @@ const CONTENT_SECURITY_POLICY = [
 /**
  * Proxy API requests to the backend API container
  */
+app.use('/api/admin', (_req, res) => {
+  res.sendStatus(404);
+});
+
 app.use('/api/**', (req, res) => {
   const target = process.env['API_PROXY_TARGET'] || 'http://localhost:8080';
   const targetUrl = new URL(req.originalUrl, target);
