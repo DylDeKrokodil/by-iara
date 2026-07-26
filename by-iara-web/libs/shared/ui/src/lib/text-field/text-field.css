@@ -19,6 +19,10 @@
   font-weight: var(--byiara-font-weight-regular);
 }
 
+.required-marker {
+  color: var(--byiara-color-danger);
+}
+
 .field input,
 .field textarea {
   padding: var(--byiara-space-sm);

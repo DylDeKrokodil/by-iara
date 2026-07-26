@@ -37,7 +37,11 @@ import {
   CustomerPack,
   DiscountQuote,
 } from './booking-api';
-import { bookingCalendarMonth } from './booking-calendar';
+import {
+  bookingCalendarMonth,
+  selectedOrFirstAvailableDateKey,
+} from './booking-calendar';
+import { publicEmailValidator } from './email-validator';
 import { slotPeriod, SlotPeriod } from './booking-period';
 import { BUSINESS_DETAILS } from '../legal/business-details';
 
@@ -73,7 +77,9 @@ interface DateSlots {
 
 interface CalendarDay {
   readonly key: string;
+  readonly weekday: string;
   readonly day: string;
+  readonly month: string;
   readonly label: string;
   readonly inMonth: boolean;
   readonly isPast: boolean;
@@ -104,6 +110,8 @@ export class Booking implements OnInit {
   private readonly fb = inject(FormBuilder);
   protected readonly language = inject(LanguageService);
   private readonly bookingStepTop = viewChild<ElementRef<HTMLElement>>('bookingStepTop');
+  private readonly mobileDateStrip =
+    viewChild<ElementRef<HTMLElement>>('mobileDateStrip');
   private readonly timeChoicesSection =
     viewChild<ElementRef<HTMLElement>>('timeChoicesSection');
 
@@ -143,7 +151,7 @@ export class Booking implements OnInit {
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
+    email: ['', [Validators.required, publicEmailValidator]],
     phone: [''],
     notes: [''],
     discountCode: [''],
@@ -295,6 +303,14 @@ export class Booking implements OnInit {
         month: 'long',
       },
     );
+    const weekdayFormatter = new Intl.DateTimeFormat(
+      this.language.current().locale,
+      { weekday: 'short' },
+    );
+    const monthFormatter = new Intl.DateTimeFormat(
+      this.language.current().locale,
+      { month: 'short' },
+    );
 
     return Array.from({ length: month.gridDayCount }, (_, index) => {
       const date = new Date(month.gridStart);
@@ -302,7 +318,9 @@ export class Booking implements OnInit {
       const key = businessDateKey(date);
       return {
         key,
+        weekday: weekdayFormatter.format(date).replace('.', ''),
         day: `${date.getDate()}`,
+        month: monthFormatter.format(date).replace('.', ''),
         label: labelFormatter.format(date),
         inMonth: date.getMonth() === month.firstDay.getMonth(),
         isPast: key < todayKey,
@@ -310,6 +328,10 @@ export class Booking implements OnInit {
       };
     });
   });
+
+  protected readonly mobileCalendarDays = computed(() =>
+    this.calendarDays().filter((day) => day.inMonth && !day.isPast),
+  );
 
   protected readonly calendarHasAvailability = computed(() =>
     this.calendarDays().some((day) => day.inMonth && day.available),
@@ -351,6 +373,19 @@ export class Booking implements OnInit {
   protected readonly currentStepIndex = computed(() =>
     BOOKING_STEPS.indexOf(this.currentStep()),
   );
+
+  protected readonly mobilePrimaryActionLabel = computed(() => {
+    const copy = this.copy();
+
+    switch (this.currentStep()) {
+      case 'details':
+        return copy.reviewBooking;
+      case 'review':
+        return this.submitting() ? copy.submitting : copy.submit;
+      default:
+        return copy.next;
+    }
+  });
 
   private readonly slotCache = new Map<string, string[]>();
   private slotRequestId = 0;
@@ -462,6 +497,7 @@ export class Booking implements OnInit {
     this.selectedDateKey.set(dateKey);
     this.selectedSlot.set(null);
     this.submitError.set(null);
+    this.revealSelectedMobileDate();
     this.revealTimeChoices();
   }
 
@@ -533,6 +569,9 @@ export class Booking implements OnInit {
     );
     this.currentStep.set(step);
     this.scrollToStepTop();
+    if (step === 'time') {
+      this.revealSelectedMobileDate();
+    }
   }
 
   private scrollToStepTop(): void {
@@ -557,6 +596,19 @@ export class Booking implements OnInit {
         return Boolean(this.selectedSlot());
       case 'review':
         return Boolean(this.selectedSlot() && this.form.valid);
+    }
+  }
+
+  protected canContinueCurrentStep(): boolean {
+    switch (this.currentStep()) {
+      case 'service':
+        return this.canOpenStep('time');
+      case 'time':
+        return this.canOpenStep('details');
+      case 'details':
+        return this.canOpenStep('review');
+      case 'review':
+        return true;
     }
   }
 
@@ -736,15 +788,35 @@ export class Booking implements OnInit {
         detail: this.selectedSlotLabel() || copy.notSelected,
       },
     ];
-    const quote = this.discountQuote();
-    if (quote && !packOffer && !customerPack) {
-      items.push(
-        { term: copy.originalPrice, detail: this.formatPrice(quote.originalPrice.amountCents) },
-        { term: copy.discount, detail: `−${this.formatPrice(quote.discountAmount.amountCents)}` },
-        { term: copy.totalPrice, detail: this.formatPrice(quote.finalPrice.amountCents) },
-      );
-    }
+    items.push(...this.discountPriceItems());
     return items;
+  }
+
+  private discountPriceItems(): DetailListItem[] {
+    const quote = this.discountQuote();
+    if (
+      !quote ||
+      this.selectedPackOfferId() ||
+      this.selectedCustomerPackId()
+    ) {
+      return [];
+    }
+
+    const copy = this.copy();
+    return [
+      {
+        term: copy.originalPrice,
+        detail: this.formatPrice(quote.originalPrice.amountCents),
+      },
+      {
+        term: copy.discount,
+        detail: `−${this.formatPrice(quote.discountAmount.amountCents)}`,
+      },
+      {
+        term: copy.totalPrice,
+        detail: this.formatPrice(quote.finalPrice.amountCents),
+      },
+    ];
   }
 
   protected applyDiscount(): void {
@@ -850,6 +922,7 @@ export class Booking implements OnInit {
     if (notes) {
       items.push({ term: copy.notes, detail: notes });
     }
+    items.push(...this.discountPriceItems());
     return items;
   }
 
@@ -992,17 +1065,44 @@ export class Booking implements OnInit {
       });
     }
 
-    return [...dates.values()];
+    return [...dates.values()].sort((a, b) => a.key.localeCompare(b.key));
   }
 
   private ensureSelectedDate(): void {
-    const selectedDateKey = this.selectedDateKey();
-    const dates = this.availableDates();
-    if (selectedDateKey && dates.some((date) => date.key === selectedDateKey)) {
+    const selectedDateKey = selectedOrFirstAvailableDateKey(
+      this.availableDates().map((date) => date.key),
+      this.selectedDateKey(),
+    );
+    this.selectedDateKey.set(selectedDateKey);
+    this.selectedSlot.set(null);
+    this.revealSelectedMobileDate();
+  }
+
+  private revealSelectedMobileDate(): void {
+    if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    this.selectedDateKey.set(null);
+    requestAnimationFrame(() => {
+      const selectedDateKey = this.selectedDateKey();
+      const strip = this.mobileDateStrip()?.nativeElement;
+      if (!selectedDateKey || !strip) {
+        return;
+      }
+
+      const selectedDate = Array.from(strip.children).find(
+        (element) =>
+          element instanceof HTMLElement &&
+          element.dataset['dateKey'] === selectedDateKey,
+      );
+      selectedDate?.scrollIntoView({
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
+          ? 'auto'
+          : 'smooth',
+        block: 'nearest',
+        inline: 'start',
+      });
+    });
   }
 
   private resetTimeSelection(): void {

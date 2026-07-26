@@ -24,3 +24,17 @@ export function bookingCalendarMonth(
 
   return { firstDay, lastDay, gridStart, gridDayCount };
 }
+
+export function selectedOrFirstAvailableDateKey(
+  availableDateKeys: ReadonlyArray<string>,
+  selectedDateKey: string | null,
+): string | null {
+  if (
+    selectedDateKey &&
+    availableDateKeys.some((dateKey) => dateKey === selectedDateKey)
+  ) {
+    return selectedDateKey;
+  }
+
+  return availableDateKeys[0] ?? null;
+}
