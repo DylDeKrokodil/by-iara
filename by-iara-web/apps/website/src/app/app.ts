@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
+import { NgIcon } from '@ng-icons/core';
 import { filter } from 'rxjs';
 import { Button, ToastContainerComponent } from '@by-iara/shared-ui';
 import { LanguageService } from './i18n/language.service';
@@ -14,6 +15,7 @@ import { PromotionBar } from './promotions/promotion-bar';
 @Component({
   imports: [
     RouterModule,
+    NgIcon,
     ToastContainerComponent,
     LanguageSwitcher,
     Button,

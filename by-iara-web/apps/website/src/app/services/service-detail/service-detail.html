@@ -61,8 +61,11 @@
           @for (variant of service.variants; track variant.id) { @if
           (variant.active) {
           <li>
-            <div>
+            <div class="service-option-summary">
               <strong>{{ variant.durationMinutes }} min</strong>
+              <span class="service-option-separator" aria-hidden="true"
+                >&nbsp;·&nbsp;</span
+              >
               <span>{{ formatPrice(variant.price.amountCents) }}</span>
             </div>
             <byiara-button variant="secondary" (click)="onBook(variant.id)">

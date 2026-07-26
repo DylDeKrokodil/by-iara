@@ -360,7 +360,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       optionsTitle: 'Duração e preço',
       locationTitle: 'Onde decorre',
       locationText:
-        'A sessão decorre num estúdio privado em Almada. A morada exata é partilhada na confirmação da marcação.',
+        'A sessão decorre num espaço calmo e relaxante em Almada. A morada exata é partilhada na confirmação da marcação.',
       faqTitle: 'Perguntas frequentes',
       book: 'Marcar',
       packsTitle: 'Transforme esta pausa numa rotina',
@@ -641,7 +641,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       optionsTitle: 'Duration and price',
       locationTitle: 'Where it takes place',
       locationText:
-        'Your session takes place in a private studio in Almada. The exact address is shared with your booking confirmation.',
+        'Your session takes place in a calm and relaxing space in Almada. The exact address is shared with your booking confirmation.',
       faqTitle: 'Frequently asked questions',
       book: 'Book',
       packsTitle: 'Turn this pause into a routine',

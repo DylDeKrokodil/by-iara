@@ -28,6 +28,8 @@ export class TextField implements ControlValueAccessor {
   autocomplete = input<string>('');
   /** Optional suffix rendered after the label (e.g. a localized "optional"). */
   optionalLabel = input<string>('');
+  /** Marks the field as required visually and on the native form control. */
+  required = input(false, { transform: booleanAttribute });
   /** Resolved error message; shown when truthy. */
   error = input<string | null>(null);
   multiline = input(false, { transform: booleanAttribute });

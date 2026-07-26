@@ -221,40 +221,68 @@
               </div>
             </byiara-empty-state>
             } @else {
-            <div class="calendar-weekdays" aria-hidden="true">
-              @for (weekday of calendarWeekdays(); track weekday) {
-              <span>{{ weekday }}</span>
-              }
+            <div class="desktop-calendar">
+              <div class="calendar-weekdays" aria-hidden="true">
+                @for (weekday of calendarWeekdays(); track weekday) {
+                <span>{{ weekday }}</span>
+                }
+              </div>
+
+              <div
+                class="calendar-grid"
+                role="grid"
+                [attr.aria-label]="calendarMonthLabel()"
+              >
+                @for (day of calendarDays(); track day.key) { @if (day.inMonth)
+                {
+                <button
+                  type="button"
+                  class="calendar-day"
+                  role="gridcell"
+                  [class.is-available]="day.available"
+                  [class.is-selected]="day.key === selectedDateKey()"
+                  [disabled]="day.isPast || !day.available"
+                  [attr.aria-label]="day.label + ', ' + (day.available ? copy().calendarAvailable : copy().calendarUnavailable)"
+                  [attr.aria-pressed]="day.key === selectedDateKey()"
+                  (click)="selectDate(day.key)"
+                >
+                  {{ day.day }}
+                </button>
+                } @else {
+                <span class="calendar-day-spacer" aria-hidden="true"></span>
+                } }
+              </div>
+
+              <p class="calendar-legend">
+                <span aria-hidden="true"></span>
+                {{ copy().calendarAvailable }}
+              </p>
             </div>
 
             <div
-              class="calendar-grid"
-              role="grid"
+              #mobileDateStrip
+              class="mobile-date-strip"
+              role="radiogroup"
               [attr.aria-label]="calendarMonthLabel()"
             >
-              @for (day of calendarDays(); track day.key) { @if (day.inMonth) {
+              @for (day of mobileCalendarDays(); track day.key) {
               <button
                 type="button"
-                class="calendar-day"
-                role="gridcell"
-                [class.is-available]="day.available"
+                class="mobile-date-card"
+                role="radio"
                 [class.is-selected]="day.key === selectedDateKey()"
-                [disabled]="day.isPast || !day.available"
+                [attr.data-date-key]="day.key"
+                [disabled]="!day.available"
                 [attr.aria-label]="day.label + ', ' + (day.available ? copy().calendarAvailable : copy().calendarUnavailable)"
-                [attr.aria-pressed]="day.key === selectedDateKey()"
+                [attr.aria-checked]="day.key === selectedDateKey()"
                 (click)="selectDate(day.key)"
               >
-                {{ day.day }}
+                <span>{{ day.weekday }}</span>
+                <strong>{{ day.day }}</strong>
+                <span>{{ day.month }}</span>
               </button>
-              } @else {
-              <span class="calendar-day-spacer" aria-hidden="true"></span>
-              } }
+              }
             </div>
-
-            <p class="calendar-legend">
-              <span aria-hidden="true"></span>
-              {{ copy().calendarAvailable }}
-            </p>
             }
           </div>
 
@@ -324,6 +352,7 @@
 
           <byiara-text-field
             [label]="copy().name"
+            required
             formControlName="name"
             autocomplete="name"
             [error]="form.controls.name.touched && form.controls.name.invalid ? copy().required : null"
@@ -332,9 +361,26 @@
           <byiara-text-field
             [label]="copy().email"
             type="email"
+            required
             formControlName="email"
             autocomplete="email"
             [error]="form.controls.email.touched && form.controls.email.invalid ? copy().invalidEmail : null"
+          ></byiara-text-field>
+
+          <byiara-text-field
+            [label]="copy().phone"
+            type="tel"
+            formControlName="phone"
+            autocomplete="tel"
+            [optionalLabel]="copy().optional"
+          ></byiara-text-field>
+
+          <byiara-text-field
+            [label]="copy().notes"
+            multiline
+            [rows]="3"
+            formControlName="notes"
+            [optionalLabel]="copy().optional"
           ></byiara-text-field>
 
           <section class="pack-access" aria-labelledby="pack-access-title">
@@ -363,22 +409,6 @@
             <p class="field-error" role="alert">{{ copy().packAccessError }}</p>
             }
           </section>
-
-          <byiara-text-field
-            [label]="copy().phone"
-            type="tel"
-            formControlName="phone"
-            autocomplete="tel"
-            [optionalLabel]="copy().optional"
-          ></byiara-text-field>
-
-          <byiara-text-field
-            [label]="copy().notes"
-            multiline
-            [rows]="3"
-            formControlName="notes"
-            [optionalLabel]="copy().optional"
-          ></byiara-text-field>
 
           <div class="step-actions">
             <button
@@ -473,6 +503,34 @@
         <byiara-detail-list [items]="summaryItems()"></byiara-detail-list>
       </aside>
     </div>
+
+    <footer class="mobile-step-actions">
+      <div
+        class="mobile-step-actions-inner"
+        [class.has-previous]="currentStepIndex() > 0"
+      >
+        @if (currentStepIndex() > 0) {
+        <button
+          type="button"
+          class="button button-secondary mobile-previous-action"
+          (click)="previousStep()"
+        >
+          <span aria-hidden="true">&larr;</span>
+          {{ copy().previous }}
+        </button>
+        }
+        <button
+          type="button"
+          class="button button-primary mobile-primary-action"
+          [disabled]="!canContinueCurrentStep() || submitting()"
+          (click)="nextStep()"
+        >
+          {{ mobilePrimaryActionLabel() }} @if (!submitting()) {
+          <span aria-hidden="true">&rarr;</span>
+          }
+        </button>
+      </div>
+    </footer>
     }
   </div>
 </main>

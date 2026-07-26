@@ -1,5 +1,6 @@
 package com.byiara.api.reservation.api
 
+import com.byiara.api.common.validation.PUBLIC_EMAIL_DOMAIN_PATTERN
 import com.byiara.api.reservation.application.ReservationPage
 import com.byiara.api.reservation.application.RecordReservationPaymentCommand
 import com.byiara.api.reservation.application.CompletionDiscountCommand
@@ -75,7 +76,10 @@ data class CreateReservationRequest(
 data class PreviewDiscountRequest(
     @field:NotNull val serviceId: UUID?,
     @field:NotNull val serviceVariantId: UUID?,
-    @field:Email @field:Size(max = 255) val customerEmail: String? = null,
+    @field:Email
+    @field:Pattern(regexp = PUBLIC_EMAIL_DOMAIN_PATTERN)
+    @field:Size(max = 255)
+    val customerEmail: String? = null,
     @field:NotBlank @field:Size(max = 100) val discountCode: String?,
 ) {
     fun toCommand() = PreviewDiscountCommand(
@@ -105,6 +109,7 @@ data class CustomerRequest(
 
     @field:NotBlank
     @field:Email
+    @field:Pattern(regexp = PUBLIC_EMAIL_DOMAIN_PATTERN)
     @field:Size(max = 255)
     val email: String,
 

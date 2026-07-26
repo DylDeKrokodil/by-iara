@@ -114,6 +114,14 @@
   margin-top: auto;
 }
 
+.service-card-content .variant-info {
+  gap: 0;
+}
+
+.service-card-content .variant-separator {
+  color: var(--byiara-color-text-subtle);
+}
+
 .service-card-content .variant-row {
   min-height: 3.5rem;
 }

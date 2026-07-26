@@ -463,6 +463,12 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `public booking rejects an email without a fully qualified domain`() {
+        book(slotStart, email = "dylankoffiemok@gmail")
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
     fun `booking email is limited to five requests per minute`() {
         repeat(5) { index ->
             book(slotStart.plusHours(index.toLong()), email = "limited@example.com")
