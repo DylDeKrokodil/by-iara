@@ -138,14 +138,93 @@
           </button>
         </div>
         } @case ('time') {
-        <div class="booking-section" aria-labelledby="choose-date">
+        <div
+          class="booking-section"
+          aria-labelledby="choose-date"
+          [attr.aria-busy]="slotsLoading()"
+        >
           <h2 id="choose-date">{{ copy().chooseDate }}</h2>
 
           @if (slotsLoading()) {
-          <div class="public-status">
-            <div class="spinner" aria-hidden="true"></div>
-            <span>{{ copy().slotsLoading }}</span>
+          <div class="booking-calendar calendar-skeleton" aria-hidden="true">
+            <div class="calendar-header">
+              <byiara-skeleton
+                width="5.5rem"
+                height="0.875rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                width="7.5rem"
+                height="1.25rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                class="calendar-nav-next"
+                width="5.5rem"
+                height="0.875rem"
+              ></byiara-skeleton>
+            </div>
+
+            <div class="desktop-calendar">
+              <div class="calendar-weekdays">
+                @for (weekday of calendarSkeletonWeekdays; track weekday) {
+                <span>
+                  <byiara-skeleton
+                    width="2rem"
+                    height="0.625rem"
+                  ></byiara-skeleton>
+                </span>
+                }
+              </div>
+              <div class="calendar-grid">
+                @for (day of calendarSkeletonDays; track day) {
+                <byiara-skeleton
+                  class="calendar-day-spacer"
+                  variant="block"
+                  width="100%"
+                  height="100%"
+                ></byiara-skeleton>
+                }
+              </div>
+            </div>
+
+            <div class="mobile-date-strip">
+              @for (day of calendarSkeletonMobileDays; track day) {
+              <byiara-skeleton
+                class="calendar-skeleton-card"
+                variant="block"
+                width="5rem"
+                height="7rem"
+              ></byiara-skeleton>
+              }
+            </div>
           </div>
+
+          <div
+            class="booking-section time-choices-section"
+            aria-hidden="true"
+          >
+            <byiara-skeleton
+              width="8rem"
+              height="1.25rem"
+            ></byiara-skeleton>
+            @for (group of calendarSkeletonSlotGroups; track group) {
+            <div class="slot-group">
+              <byiara-skeleton
+                width="4.5rem"
+                height="0.625rem"
+              ></byiara-skeleton>
+              <div class="slot-grid">
+                @for (slot of calendarSkeletonSlots; track slot) {
+                <byiara-skeleton
+                  variant="block"
+                  width="100%"
+                  height="3rem"
+                ></byiara-skeleton>
+                }
+              </div>
+            </div>
+            }
+          </div>
+          <p class="visually-hidden" role="status">{{ copy().slotsLoading }}</p>
           } @else if (slotsError()) {
           <div class="availability-error" role="alert">
             <div>

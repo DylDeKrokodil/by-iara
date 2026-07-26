@@ -6,7 +6,6 @@
       <span>{{ copy().suffix }}</span>
       <code>{{ discount().code }}</code>
     </p>
-    <a class="promotion-action" [routerLink]="bookingLink()">{{ copy().action }}</a>
   </div>
   <button type="button" class="promotion-close" (click)="dismissed.emit()" [attr.aria-label]="copy().close">×</button>
 </aside>
