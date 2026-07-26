@@ -45,8 +45,8 @@ export class App {
     }).format(discount.valueAmount / 100);
   });
   protected readonly promotionCopy = computed(() => this.language.current().locale === 'pt-PT'
-    ? { prefix: 'Uma oferta para si:', suffix: 'de desconto com o código', action: 'Marcar agora', close: 'Fechar promoção' }
-    : { prefix: 'A little something for you:', suffix: 'off with code', action: 'Book now', close: 'Close promotion' });
+    ? { prefix: 'Uma oferta para si:', suffix: 'de desconto com o código', close: 'Fechar promoção' }
+    : { prefix: 'A little something for you:', suffix: 'off with code', close: 'Close promotion' });
   protected readonly currentYear = new Date().getFullYear();
   protected readonly brand = BRAND;
   protected readonly socialLinks = SOCIAL_LINKS;
