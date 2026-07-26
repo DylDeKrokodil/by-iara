@@ -469,6 +469,10 @@
     display: none;
   }
 
+  .calendar-skeleton-card {
+    flex: 0 0 5rem;
+  }
+
   .mobile-date-card {
     display: grid;
     flex: 0 0 5rem;

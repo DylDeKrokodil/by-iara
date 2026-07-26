@@ -20,6 +20,7 @@ import {
   SelectField,
   SelectFieldOption,
   SelectableTile,
+  Skeleton,
   Stepper,
   TextField,
 } from '@by-iara/shared-ui';
@@ -98,6 +99,7 @@ interface CalendarDay {
     TextField,
     DetailList,
     EmptyState,
+    Skeleton,
   ],
   templateUrl: './booking.html',
   styleUrl: './booking.css',
@@ -134,6 +136,26 @@ export class Booking implements OnInit {
   protected readonly slotsLoading = signal(false);
   protected readonly slotsError = signal(false);
   protected readonly calendarMonthOffset = signal(0);
+  protected readonly calendarSkeletonWeekdays = Array.from(
+    { length: 7 },
+    (_, index) => index,
+  );
+  protected readonly calendarSkeletonDays = Array.from(
+    { length: 42 },
+    (_, index) => index,
+  );
+  protected readonly calendarSkeletonMobileDays = Array.from(
+    { length: 5 },
+    (_, index) => index,
+  );
+  protected readonly calendarSkeletonSlotGroups = Array.from(
+    { length: 2 },
+    (_, index) => index,
+  );
+  protected readonly calendarSkeletonSlots = Array.from(
+    { length: 4 },
+    (_, index) => index,
+  );
   protected readonly selectedDateKey = signal<string | null>(null);
   protected readonly selectedSlot = signal<string | null>(null);
   protected readonly currentStep = signal<BookingStep>('service');
