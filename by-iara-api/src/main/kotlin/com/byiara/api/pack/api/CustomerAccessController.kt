@@ -1,6 +1,7 @@
 package com.byiara.api.pack.api
 
 import com.byiara.api.common.ratelimit.PublicRequestRateLimiter
+import com.byiara.api.common.validation.PUBLIC_EMAIL_DOMAIN_PATTERN
 import com.byiara.api.pack.application.CustomerAccessService
 import com.byiara.api.pack.domain.CustomerAccessDeniedException
 import com.byiara.api.pack.domain.CustomerPack
@@ -23,7 +24,11 @@ import java.time.OffsetDateTime
 import java.util.UUID
 
 data class RequestCustomerAccessRequest(
-    @field:NotBlank @field:Email @field:Size(max = 255) val email: String,
+    @field:NotBlank
+    @field:Email
+    @field:Pattern(regexp = PUBLIC_EMAIL_DOMAIN_PATTERN)
+    @field:Size(max = 255)
+    val email: String,
     @field:Pattern(regexp = "pt|en") val locale: String = "en",
 )
 data class ExchangeCustomerAccessRequest(@field:NotBlank val token: String)
