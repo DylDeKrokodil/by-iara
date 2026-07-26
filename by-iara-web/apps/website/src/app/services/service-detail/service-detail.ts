@@ -2,6 +2,7 @@ import { Component, RESPONSE_INIT, computed, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Button } from '@by-iara/shared-ui';
 import { LanguageService } from '../../i18n/language.service';
+import type { LocalePath } from '../../i18n/supported-locales';
 import type { Service, ServiceTranslation } from '../services-api';
 import { SeoService } from '../../seo/seo.service';
 import {
@@ -41,7 +42,10 @@ export class ServiceDetail {
     if (!this.service && this.responseInit) {
       this.responseInit.status = 404;
     }
-    this.seo.updateService(this.service);
+    const localePath = this.route.parent?.snapshot.data[
+      'localePath'
+    ] as LocalePath;
+    this.seo.updateService(this.service, localePath);
   }
 
   protected formatPrice(cents: number): string {

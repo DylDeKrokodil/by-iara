@@ -5,14 +5,17 @@ import { Router } from '@angular/router';
 import {
   SUPPORTED_LOCALES,
   getLocalizedPagePath,
+  getLocaleByPath,
   getPublicPageKey,
 } from '../i18n/supported-locales';
 import type {
   LocaleCode,
   LocalePath,
   PublicPageKey,
+  SupportedLocale,
 } from '../i18n/supported-locales';
 import { LanguageService } from '../i18n/language.service';
+import { WEBSITE_MESSAGES } from '../i18n/website-messages';
 import type { Service } from '../services/services-api';
 import { SEO_MESSAGES, StaticSeoPage } from './seo-messages';
 import { SITE_ORIGIN } from './site-origin';
@@ -22,6 +25,10 @@ const HREFLANG: Record<LocalePath, string> = { pt: 'pt-PT', en: 'en' };
 const OG_LOCALE: Record<LocaleCode, string> = {
   'pt-PT': 'pt_PT',
   'en-US': 'en_US',
+};
+const SERVICE_TITLE_LOCATION: Record<LocaleCode, string> = {
+  'pt-PT': 'em Almada',
+  'en-US': 'in Almada',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -49,15 +56,20 @@ export class SeoService {
     this.updateNotFound(segments.join('/'));
   }
 
-  updateService(service: Service | null): void {
-    const locale = this.language.current();
-    const translation = service?.translations[locale.locale];
-    if (!service || !translation) {
+  updateService(service: Service | null, localePath: LocalePath): void {
+    const locale = getLocaleByPath(localePath);
+    if (!locale) {
       this.updateNotFound(this.router.url.replace(/^\//, ''));
       return;
     }
 
-    const title = `${translation.name} em Almada | ${BRAND.name}`;
+    const translation = service?.translations[locale.locale];
+    if (!service || !translation) {
+      this.updateNotFound(this.router.url.replace(/^\//, ''), locale);
+      return;
+    }
+
+    const title = `${translation.name} ${SERVICE_TITLE_LOCATION[locale.locale]} | ${BRAND.name}`;
     const description =
       translation.description ??
       SEO_MESSAGES[locale.locale].services.description;
@@ -81,6 +93,7 @@ export class SeoService {
       alternates,
       indexable: true,
       type: 'product',
+      locale,
     });
     const serviceSchema = {
       '@type': 'Service',
@@ -105,7 +118,7 @@ export class SeoService {
           url: `${this.absolute(this.staticPath(locale.path, 'book'))}?service=${encodeURIComponent(service.slug)}&variant=${encodeURIComponent(variant.id)}`,
         })),
     };
-    const breadcrumbCopy = this.language.messages().serviceDetail;
+    const breadcrumbCopy = WEBSITE_MESSAGES[locale.locale].serviceDetail;
     const graph: unknown[] = [
       serviceSchema,
       {
@@ -195,6 +208,7 @@ export class SeoService {
       alternates,
       indexable,
       type: 'website',
+      locale,
     });
 
     if (page === 'home') {
@@ -221,8 +235,10 @@ export class SeoService {
     }
   }
 
-  private updateNotFound(path: string): void {
-    const locale = this.language.current();
+  private updateNotFound(
+    path: string,
+    locale: SupportedLocale = this.language.current(),
+  ): void {
     const seo = SEO_MESSAGES[locale.locale].notFound;
     this.apply({
       title: seo.title,
@@ -231,6 +247,7 @@ export class SeoService {
       alternates: [],
       indexable: false,
       type: 'website',
+      locale,
     });
   }
 
@@ -241,9 +258,9 @@ export class SeoService {
     alternates: ReadonlyArray<{ locale: LocalePath; path: string }>;
     indexable: boolean;
     type: 'website' | 'product';
+    locale: SupportedLocale;
   }): void {
     const canonical = this.absolute(config.canonicalPath);
-    const locale = this.language.current();
     this.title.setTitle(config.title);
     this.meta.updateTag({ name: 'description', content: config.description });
     this.meta.updateTag({
@@ -262,7 +279,7 @@ export class SeoService {
     this.meta.updateTag({ property: 'og:site_name', content: BRAND.name });
     this.meta.updateTag({
       property: 'og:locale',
-      content: OG_LOCALE[locale.locale],
+      content: OG_LOCALE[config.locale.locale],
     });
     this.meta.updateTag({
       property: 'og:image',

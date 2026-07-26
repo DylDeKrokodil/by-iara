@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   OnInit,
   afterNextRender,
@@ -32,8 +33,10 @@ export class Home implements OnInit {
   protected readonly language = inject(LanguageService);
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly copy = computed(() => this.language.messages().home);
+  protected readonly heroVideoPlaying = signal(false);
 
   private readonly services = signal<Service[]>([]);
   /** Admin-controlled selection; the section renders only when this is non-empty. */
@@ -58,24 +61,23 @@ export class Home implements OnInit {
   constructor() {
     // Browser-only: the `muted` content attribute alone doesn't reliably
     // satisfy autoplay policies once Angular re-creates the element, so set
-    // the property and kick playback explicitly. Reduced-motion visitors get
-    // the still photo instead (the video is also hidden via CSS).
+    // the property and kick playback explicitly. The video stays hidden until
+    // playback really starts, preventing Safari's native play overlay from
+    // appearing when autoplay is unavailable.
     afterNextRender(() => {
       const hero = this.heroSection()?.nativeElement;
       const video = this.heroVideo()?.nativeElement;
       const reduceMotion = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
       ).matches;
+      this.heroVideoPlaybackEnabled = !reduceMotion;
 
       if (video) {
         if (reduceMotion) {
           video.removeAttribute('autoplay');
           video.pause();
         } else {
-          video.muted = true;
-          video.play().catch(() => {
-            // Autoplay blocked: the still photo underneath stays visible.
-          });
+          this.playHeroVideo(video);
         }
       }
 
@@ -84,19 +86,73 @@ export class Home implements OnInit {
       }
       // Stop compositing the looping video while it is offscreen. Entries
       // batch on fast scroll reversals, so only the last one is current.
-      new IntersectionObserver((entries) => {
+      const observer = new IntersectionObserver((entries) => {
         const visible = entries[entries.length - 1].isIntersecting;
+        this.heroVideoShouldPlay = visible;
+
         if (!video || reduceMotion) {
           return;
         }
         if (visible) {
-          video.play().catch(() => {
-            // Ignored: the still photo underneath stays visible.
-          });
+          this.playHeroVideo(video);
         } else {
           video.pause();
         }
-      }).observe(hero);
+      });
+      observer.observe(hero);
+
+      const lifecycleEvents = new AbortController();
+      const resumePlayback = () => {
+        if (
+          video &&
+          this.heroVideoPlaybackEnabled &&
+          this.heroVideoShouldPlay &&
+          document.visibilityState === 'visible'
+        ) {
+          this.playHeroVideo(video);
+        }
+      };
+      document.addEventListener('visibilitychange', resumePlayback, {
+        signal: lifecycleEvents.signal,
+      });
+      window.addEventListener('pageshow', resumePlayback, {
+        signal: lifecycleEvents.signal,
+      });
+      this.destroyRef.onDestroy(() => {
+        observer.disconnect();
+        lifecycleEvents.abort();
+      });
+    });
+  }
+
+  private heroVideoPlaybackEnabled = false;
+  private heroVideoShouldPlay = true;
+
+  protected onHeroVideoPlaying(): void {
+    this.heroVideoPlaying.set(true);
+  }
+
+  protected onHeroVideoPause(): void {
+    this.heroVideoPlaying.set(false);
+
+    const video = this.heroVideo()?.nativeElement;
+    if (
+      video &&
+      this.heroVideoPlaybackEnabled &&
+      this.heroVideoShouldPlay &&
+      document.visibilityState === 'visible'
+    ) {
+      this.playHeroVideo(video);
+    }
+  }
+
+  private playHeroVideo(video: HTMLVideoElement): void {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.play().catch(() => {
+      // Browser policy or Low Power Mode blocked autoplay. Keep the matching
+      // still image visible rather than exposing native video controls.
+      this.heroVideoPlaying.set(false);
     });
   }
 

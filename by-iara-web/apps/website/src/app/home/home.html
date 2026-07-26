@@ -18,7 +18,12 @@
         playsinline
         preload="metadata"
         disablepictureinpicture
+        disableremoteplayback
         tabindex="-1"
+        style="pointer-events: none"
+        [style.opacity]="heroVideoPlaying() ? 1 : 0"
+        (playing)="onHeroVideoPlaying()"
+        (pause)="onHeroVideoPause()"
       >
         <source src="hero/hero-treatment-mixkit-4744.mp4" type="video/mp4" />
       </video>
@@ -84,6 +89,9 @@
           </div>
           <p class="home-service-meta">
             <strong>{{ copy().servicesFrom(priceFrom(service)) }}</strong>
+            <span class="home-service-separator" aria-hidden="true"
+              >&nbsp;·&nbsp;</span
+            >
             <span>{{ durationLabel(service) }}</span>
           </p>
           <byiara-button

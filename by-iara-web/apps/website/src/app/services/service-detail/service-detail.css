@@ -143,13 +143,19 @@
   border-top: 1px solid var(--byiara-color-border-subtle);
 }
 
-.service-options li div {
-  display: grid;
-  gap: var(--byiara-space-2xs);
+.service-options .service-option-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0;
 }
 
 .service-options li span {
   color: var(--byiara-color-text-muted);
+}
+
+.service-options .service-option-separator {
+  color: var(--byiara-color-text-subtle);
 }
 
 .service-packs {

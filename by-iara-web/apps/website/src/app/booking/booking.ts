@@ -38,6 +38,7 @@ import {
   DiscountQuote,
 } from './booking-api';
 import { bookingCalendarMonth } from './booking-calendar';
+import { slotPeriod, SlotPeriod } from './booking-period';
 import { BUSINESS_DETAILS } from '../legal/business-details';
 
 type BookingStep = 'service' | 'time' | 'details' | 'review';
@@ -54,8 +55,6 @@ interface SlotView {
   readonly time: string;
   readonly hour: number;
 }
-
-type SlotPeriod = 'morning' | 'afternoon' | 'evening';
 
 interface SlotGroup {
   readonly period: SlotPeriod;
@@ -227,8 +226,7 @@ export class Booking implements OnInit {
       evening: [],
     };
     for (const slot of this.selectedDateSlots()) {
-      const period: SlotPeriod =
-        slot.hour < 12 ? 'morning' : slot.hour < 17 ? 'afternoon' : 'evening';
+      const period = slotPeriod(slot.hour);
       buckets[period].push(slot);
     }
     const labels: Record<SlotPeriod, string> = {
