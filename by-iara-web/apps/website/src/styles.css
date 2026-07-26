@@ -189,6 +189,53 @@ a {
   }
 }
 
+.motion-reveal {
+  opacity: 0;
+  transform: translate3d(0, 1.25rem, 0);
+  transition:
+    opacity 600ms var(--byiara-ease-out),
+    transform 600ms var(--byiara-ease-out);
+}
+
+.motion-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.motion-reveal-sequence > * {
+  opacity: 0;
+  transform: translate3d(0, 1rem, 0);
+  transition:
+    opacity 600ms var(--byiara-ease-out),
+    transform 600ms var(--byiara-ease-out);
+}
+
+.motion-reveal-sequence.is-visible > * {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.motion-reveal-sequence.is-visible > :nth-child(2) {
+  transition-delay: 80ms;
+}
+
+.motion-reveal-sequence.is-visible > :nth-child(3) {
+  transition-delay: 160ms;
+}
+
+.motion-reveal-sequence.is-visible > :nth-child(4) {
+  transition-delay: 240ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal,
+  .motion-reveal-sequence > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 .services-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));

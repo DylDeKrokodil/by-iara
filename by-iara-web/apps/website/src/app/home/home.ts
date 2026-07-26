@@ -22,10 +22,17 @@ import { NextAvailableLink } from './next-available-link/next-available-link';
 import { featuredServices } from './featured-services';
 import { packPresentations } from '../packs/pack-presentation';
 import { HomePack } from './home-pack/home-pack';
+import { RevealOnScroll } from './reveal-on-scroll.directive';
 
 @Component({
   selector: 'byiara-home',
-  imports: [Button, HomePack, NextAvailableLink, RouterLink],
+  imports: [
+    Button,
+    HomePack,
+    NextAvailableLink,
+    RevealOnScroll,
+    RouterLink,
+  ],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
