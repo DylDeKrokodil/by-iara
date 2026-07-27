@@ -1,0 +1,176 @@
+<byiara-page-header admin label="Customer records" title="Customers">
+</byiara-page-header>
+
+<section class="search-panel" aria-labelledby="customer-search-title">
+  <div class="search-copy">
+    <h2 id="customer-search-title">Find a customer by email</h2>
+    <p>
+      Search from the beginning of an email address to review contact and
+      reservation activity.
+    </p>
+  </div>
+
+  <div class="search-controls">
+    <byiara-text-field
+      class="email-search"
+      label="Customer email"
+      type="search"
+      autocomplete="off"
+      [formControl]="searchControl"
+    ></byiara-text-field>
+    @if (searchTerm()) {
+    <byiara-button variant="secondary" (click)="clearSearch()">
+      Clear
+    </byiara-button>
+    }
+  </div>
+</section>
+
+@if (error()) {
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
+}
+
+@if (!searchedEmail() && !loading()) {
+<byiara-empty-state title="Start with an email address">
+  Enter at least two characters. Results appear automatically as you type.
+</byiara-empty-state>
+} @else if (!loading() && customers().length === 0 && !error()) {
+<byiara-empty-state title="No customers found">
+  No customer email starts with “{{ searchedEmail() }}”.
+</byiara-empty-state>
+} @else {
+<div class="results-heading" aria-live="polite">
+  @if (loading()) {
+  <p><strong>Searching…</strong></p>
+  } @else {
+  <p>
+    <strong>{{ total() }}</strong>
+    {{ total() === 1 ? 'customer' : 'customers' }} found
+  </p>
+  }
+  <span>Matching “{{ searchedEmail() }}”</span>
+</div>
+
+<byiara-data-table
+  ariaLabel="Customer search results"
+  [columns]="customerColumns"
+  [rows]="customers()"
+  [loading]="loading()"
+  [skeletonRows]="6"
+  [responsiveStack]="true"
+>
+  <ng-template #rowTemplate let-customer>
+    <tr>
+      <td data-label="Customer">
+        <div class="customer-cell">
+          <strong>{{ customer.name }}</strong>
+          <span>{{ customer.email }}</span>
+        </div>
+      </td>
+      <td data-label="Phone">
+        <span class="contact-value">{{ customer.phone || '—' }}</span>
+      </td>
+      <td data-label="Reservations">
+        <div class="reservation-summary">
+          <strong>{{ customer.reservationCount }}</strong>
+          <span>
+            {{ customer.completedReservationCount }} completed
+            @if (customer.activeReservationCount > 0) {
+            · {{ customer.activeReservationCount }} active
+            }
+          </span>
+        </div>
+      </td>
+      <td data-label="Packs">
+        @if (customer.packs.length === 0) {
+        <span class="empty-value">—</span>
+        } @else {
+        <div class="pack-list">
+          @for (pack of customer.packs; track pack.id) {
+          <div class="pack-summary">
+            <div class="pack-title">
+              <strong>{{ pack.serviceName }}</strong>
+              <byiara-status-chip
+                [label]="packStatusLabel(pack.status)"
+                [tone]="packStatusTone(pack.status)"
+              ></byiara-status-chip>
+            </div>
+            <span>
+              {{ pack.remainingSessions }} of {{ pack.totalSessions }} sessions
+              remaining · {{ pack.durationMinutes }} min
+            </span>
+            <span>
+              {{ formatMoney(pack.priceCents, pack.currency) }} · Expires {{
+              formatDate(pack.expiresAt) }}
+            </span>
+          </div>
+          }
+        </div>
+        }
+      </td>
+      <td data-label="Last completed">
+        <time [attr.datetime]="customer.lastCompletedAt || null">
+          {{ formatDateTime(customer.lastCompletedAt) }}
+        </time>
+      </td>
+      <td data-label="Next booking">
+        <time [attr.datetime]="customer.nextReservationAt || null">
+          {{ formatDateTime(customer.nextReservationAt) }}
+        </time>
+      </td>
+      <td data-label="Actions">
+        <byiara-button
+          variant="danger"
+          size="sm"
+          [loading]="anonymisingCustomerId() === customer.id"
+          [disabled]="anonymisingCustomerId() !== null"
+          (click)="requestAnonymisation(customer)"
+        >
+          Anonymise
+        </byiara-button>
+      </td>
+    </tr>
+  </ng-template>
+
+  @if (total() > 0) {
+  <div data-table-footer class="pagination" aria-label="Customer results pagination">
+    <span>Page {{ page() + 1 }} of {{ totalPages() }}</span>
+    <div class="pagination-actions">
+      <byiara-button
+        variant="secondary"
+        size="sm"
+        [disabled]="!canGoBack()"
+        (click)="previousPage()"
+      >
+        Previous
+      </byiara-button>
+      <byiara-button
+        variant="secondary"
+        size="sm"
+        [disabled]="!canGoForward()"
+        (click)="nextPage()"
+      >
+        Next
+      </byiara-button>
+    </div>
+  </div>
+  }
+</byiara-data-table>
+}
+
+<byiara-confirmation-modal
+  #anonymiseModal
+  title="Anonymise customer"
+  [message]="
+    customerToAnonymise()
+      ? 'Permanently remove the name, email, phone number, reservation notes and other contact traces for ' +
+        customerToAnonymise()?.email +
+        '? Service, reservation and payment facts will be retained. This cannot be undone.'
+      : ''
+  "
+  confirmText="Anonymise permanently"
+  cancelText="Keep customer data"
+  variant="danger"
+  (confirmed)="confirmAnonymisation()"
+  (cancelled)="cancelAnonymisation()"
+></byiara-confirmation-modal>

@@ -6,6 +6,7 @@ import org.hamcrest.Matchers.hasItem
 import org.hamcrest.Matchers.not
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -20,6 +21,7 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.MvcResult
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -69,6 +71,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists customer_packs")
         dsl.execute("drop table if exists reservation_payments")
         dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists customer_anonymization_events")
         dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
@@ -217,6 +220,7 @@ class ReservationApiTests {
                 name varchar(160) not null,
                 email varchar(255) not null unique,
                 phone varchar(40),
+                anonymized_at timestamp with time zone,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
@@ -395,6 +399,17 @@ class ReservationApiTests {
                 status varchar(20) not null,
                 error_message text,
                 created_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table customer_anonymization_events (
+                id uuid default random_uuid() primary key,
+                customer_id uuid not null unique references customers(id),
+                performed_by varchar(255) not null,
+                scope_version integer not null,
+                anonymized_at timestamp with time zone not null
             )
             """.trimIndent(),
         )
@@ -1188,6 +1203,268 @@ class ReservationApiTests {
     fun `admin reservation list requires authentication`() {
         mockMvc.perform(get("/api/admin/reservations"))
             .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `admin can search customers by email case insensitively`() {
+        val completedReservationId = UUID.fromString(
+            insertReservation(
+                start = OffsetDateTime.now(zone).minusDays(3),
+                status = "COMPLETED",
+                email = "customer-search@example.com",
+            ),
+        )
+        val customerId = dsl.fetchOne(
+            "select customer_id from reservations where id = ?",
+            completedReservationId,
+        )!!.get("customer_id", UUID::class.java)
+        val packId = UUID.randomUUID()
+        dsl.query(
+            """
+            insert into customer_packs (
+                id, customer_id, originating_reservation_id, status, service_id,
+                service_name, duration_minutes, total_sessions, validity_days,
+                price_cents, currency, activated_at, expires_at
+            ) values (?, ?, ?, 'ACTIVE', ?, 'Relaxing massage', 60, 5, 180,
+                30000, 'EUR', ?, ?)
+            """.trimIndent(),
+            packId,
+            customerId,
+            completedReservationId,
+            UUID.fromString(serviceId),
+            OffsetDateTime.now(zone).minusDays(3),
+            OffsetDateTime.now(zone).plusDays(177),
+        ).execute()
+        dsl.query(
+            """
+            insert into pack_redemptions (
+                customer_pack_id, reservation_id, status, consumed_at
+            ) values (?, ?, 'CONSUMED', ?)
+            """.trimIndent(),
+            packId,
+            completedReservationId,
+            OffsetDateTime.now(zone).minusDays(3),
+        ).execute()
+        insertReservation(
+            start = slotStart,
+            status = "CONFIRMED",
+            email = "customer-search-secondary@example.com",
+        )
+
+        mockMvc.perform(
+            get("/api/admin/customers")
+                .with(adminJwt())
+                .param("email", "CUSTOMER-SEARCH@EXAMPLE.COM"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(1))
+            .andExpect(jsonPath("$.items[0].name").value("Ana"))
+            .andExpect(jsonPath("$.items[0].email").value("customer-search@example.com"))
+            .andExpect(jsonPath("$.items[0].reservationCount").value(1))
+            .andExpect(jsonPath("$.items[0].completedReservationCount").value(1))
+            .andExpect(jsonPath("$.items[0].activeReservationCount").value(0))
+            .andExpect(jsonPath("$.items[0].lastCompletedAt").isNotEmpty)
+            .andExpect(jsonPath("$.items[0].nextReservationAt").doesNotExist())
+            .andExpect(jsonPath("$.items[0].packs[0].id").value(packId.toString()))
+            .andExpect(jsonPath("$.items[0].packs[0].status").value("ACTIVE"))
+            .andExpect(jsonPath("$.items[0].packs[0].serviceName").value("Relaxing massage"))
+            .andExpect(jsonPath("$.items[0].packs[0].remainingSessions").value(4))
+            .andExpect(jsonPath("$.items[0].packs[0].totalSessions").value(5))
+            .andExpect(jsonPath("$.items[0].packs[0].priceCents").value(30000))
+    }
+
+    @Test
+    fun `admin customer search requires authentication`() {
+        mockMvc.perform(
+            get("/api/admin/customers")
+                .param("email", "customer@example.com"),
+        ).andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `admin can anonymise personal data while retaining financial and service facts`() {
+        val email = "erase-me@example.com"
+        val reservationId = UUID.fromString(
+            insertReservation(
+                start = OffsetDateTime.now(zone).minusDays(3),
+                status = "COMPLETED",
+                email = email,
+            ),
+        )
+        val customerId = dsl.fetchOne(
+            "select customer_id from reservations where id = ?",
+            reservationId,
+        )!!.get("customer_id", UUID::class.java)
+        val discountId = UUID.randomUUID()
+
+        dsl.query(
+            """
+            update reservations
+            set rejection_message = ?, cancellation_message = ?
+            where id = ?
+            """.trimIndent(),
+            "Customer named Ana requested another time",
+            "Ana cancelled by phone",
+            reservationId,
+        ).execute()
+        dsl.query(
+            """
+            insert into email_logs (reservation_id, recipient, email_type, status, error_message)
+            values (?, ?, 'CONFIRMATION', 'FAILED', ?)
+            """.trimIndent(),
+            reservationId,
+            email,
+            "Could not deliver to $email",
+        ).execute()
+        dsl.query(
+            """
+            insert into email_logs (recipient, email_type, status, error_message)
+            values (?, 'CUSTOMER_ACCESS', 'SENT', null)
+            """.trimIndent(),
+            email.uppercase(),
+        ).execute()
+        dsl.query(
+            """
+            insert into reservation_payments (
+                reservation_id, amount_cents, currency, method, status, paid_at, reference
+            ) values (?, 7500, 'EUR', 'CARD', 'PAID', ?, ?)
+            """.trimIndent(),
+            reservationId,
+            OffsetDateTime.now(zone),
+            "Receipt for Ana",
+        ).execute()
+        dsl.query(
+            """
+            insert into discounts (
+                id, name, audience, scope, value_type, value_amount, starts_at, ends_at,
+                max_uses_per_customer, code_hash, code_hint, customer_id, status
+            ) values (?, 'Returning client', 'PERSONAL', 'ALL_SERVICES', 'PERCENTAGE', 10,
+                ?, ?, 1, ?, 'RET…', ?, 'ACTIVE')
+            """.trimIndent(),
+            discountId,
+            OffsetDateTime.now(zone).minusDays(1),
+            OffsetDateTime.now(zone).plusDays(30),
+            UUID.randomUUID().toString(),
+            customerId,
+        ).execute()
+        dsl.query(
+            """
+            insert into reservation_discounts (
+                reservation_id, discount_id, customer_id, customer_identity_key,
+                discount_name, code_hint, value_type, value_amount, original_price_cents,
+                discount_amount_cents, final_price_cents, currency, status
+            ) values (?, ?, ?, ?, 'Returning client', 'RET…', 'PERCENTAGE', 10,
+                7500, 750, 6750, 'EUR', 'CONSUMED')
+            """.trimIndent(),
+            reservationId,
+            discountId,
+            customerId,
+            email,
+        ).execute()
+        dsl.query(
+            """
+            insert into customer_access_tokens (
+                customer_id, token_hash, token_type, expires_at
+            ) values (?, ?, 'SESSION', ?)
+            """.trimIndent(),
+            customerId,
+            UUID.randomUUID().toString(),
+            OffsetDateTime.now(zone).plusDays(1),
+        ).execute()
+
+        mockMvc.perform(
+            delete("/api/admin/customers/$customerId/personal-data")
+                .with(adminJwt()),
+        ).andExpect(status().isNoContent)
+
+        val customer = dsl.fetchOne(
+            "select name, email, phone, anonymized_at from customers where id = ?",
+            customerId,
+        )!!
+        assertEquals("Anonymised customer", customer.get("name"))
+        assertEquals("anonymised+$customerId@customer.invalid", customer.get("email"))
+        assertNull(customer.get("phone"))
+        assertTrue(customer.get("anonymized_at") != null)
+
+        val reservation = dsl.fetchOne(
+            """
+            select service_name, price_cents, status, notes, rejection_message, cancellation_message
+            from reservations where id = ?
+            """.trimIndent(),
+            reservationId,
+        )!!
+        assertEquals("Relaxing massage", reservation.get("service_name"))
+        assertEquals(7500L, reservation.get("price_cents"))
+        assertEquals("COMPLETED", reservation.get("status"))
+        assertNull(reservation.get("notes"))
+        assertNull(reservation.get("rejection_message"))
+        assertNull(reservation.get("cancellation_message"))
+
+        val payment = dsl.fetchOne(
+            """
+            select amount_cents, currency, method, status, reference
+            from reservation_payments where reservation_id = ?
+            """.trimIndent(),
+            reservationId,
+        )!!
+        assertEquals(7500L, payment.get("amount_cents"))
+        assertEquals("EUR", payment.get("currency"))
+        assertEquals("CARD", payment.get("method"))
+        assertEquals("PAID", payment.get("status"))
+        assertNull(payment.get("reference"))
+
+        val emailLog = dsl.fetchOne(
+            "select recipient, email_type, status, error_message from email_logs where reservation_id = ?",
+            reservationId,
+        )!!
+        assertEquals("anonymised+$customerId@customer.invalid", emailLog.get("recipient"))
+        assertEquals("CONFIRMATION", emailLog.get("email_type"))
+        assertEquals("FAILED", emailLog.get("status"))
+        assertNull(emailLog.get("error_message"))
+        assertEquals(
+            2L,
+            dsl.fetchValue(
+                "select count(*) from email_logs where recipient = ?",
+                "anonymised+$customerId@customer.invalid",
+            ),
+        )
+
+        assertEquals(
+            "anonymised:$customerId",
+            dsl.fetchValue(
+                "select customer_identity_key from reservation_discounts where reservation_id = ?",
+                reservationId,
+            ),
+        )
+        assertEquals(
+            0L,
+            dsl.fetchValue(
+                "select count(*) from customer_access_tokens where customer_id = ?",
+                customerId,
+            ),
+        )
+        assertEquals(
+            "admin@by-iara.local",
+            dsl.fetchValue(
+                "select performed_by from customer_anonymization_events where customer_id = ?",
+                customerId,
+            ),
+        )
+
+        mockMvc.perform(
+            get("/api/admin/customers")
+                .with(adminJwt())
+                .param("email", email),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.total").value(0))
+    }
+
+    @Test
+    fun `customer anonymisation requires authentication`() {
+        mockMvc.perform(
+            delete("/api/admin/customers/${UUID.randomUUID()}/personal-data"),
+        ).andExpect(status().isUnauthorized)
     }
 
     private fun seedWideOpenRuleForToday() {
