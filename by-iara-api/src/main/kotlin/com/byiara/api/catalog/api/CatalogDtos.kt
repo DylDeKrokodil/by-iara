@@ -17,6 +17,7 @@ import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 import jakarta.validation.constraints.Size
+import java.time.OffsetDateTime
 import java.util.UUID
 
 data class ServiceRequest(
@@ -176,6 +177,7 @@ data class ServiceResponse(
     val translations: Map<String, ServiceTranslationResponse>,
     val variants: List<ServiceVariantResponse>,
     val packOffers: List<PackOfferResponse>,
+    val updatedAt: OffsetDateTime,
 )
 
 data class ServiceImageResponse(
@@ -243,6 +245,7 @@ fun Service.toResponse(): ServiceResponse =
         translations = translations.mapValues { it.value.toResponse() },
         variants = variants.map { it.toResponse() },
         packOffers = packOffers.map { it.toResponse() },
+        updatedAt = maxOf(updatedAt, image?.updatedAt ?: updatedAt),
     )
 
 fun ServiceTranslation.toResponse(): ServiceTranslationResponse =

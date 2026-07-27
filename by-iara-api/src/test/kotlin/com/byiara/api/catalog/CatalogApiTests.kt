@@ -177,6 +177,7 @@ class CatalogApiTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(1))
             .andExpect(jsonPath("$[0].name").value("Deep tissue"))
+            .andExpect(jsonPath("$[0].updatedAt").isNotEmpty)
             .andExpect(jsonPath("$[0].variants.length()").value(2))
     }
 

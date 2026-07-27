@@ -15,6 +15,7 @@ data class Service(
     val translations: Map<String, ServiceTranslation> = emptyMap(),
     val variants: List<ServiceVariant>,
     val packOffers: List<PackOffer> = emptyList(),
+    val updatedAt: OffsetDateTime,
 )
 
 data class ServiceImageMetadata(

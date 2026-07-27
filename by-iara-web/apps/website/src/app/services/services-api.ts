@@ -54,6 +54,7 @@ export interface Service {
   translations: Record<string, ServiceTranslation>;
   variants: ServiceVariant[];
   packOffers?: PackOffer[];
+  updatedAt?: string;
 }
 
 export interface ServiceImage {
