@@ -110,6 +110,19 @@
   font-weight: 400;
   line-height: 1.08;
 }
+.pack-group-intro h2 a {
+  color: inherit;
+  text-decoration-color: color-mix(
+    in srgb,
+    var(--byiara-color-primary) 45%,
+    transparent
+  );
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+.pack-group-intro h2 a:hover {
+  text-decoration-thickness: 2px;
+}
 .pack-group-intro p {
   margin: 1rem 0 0;
   color: var(--byiara-color-text-muted);

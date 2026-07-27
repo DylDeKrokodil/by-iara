@@ -86,7 +86,7 @@ export interface WebsiteMessages {
     readonly loadError: string;
     readonly loading: string;
     readonly empty: string;
-    readonly variantsTitle: string;
+    readonly priceFrom: (price: string) => string;
     readonly bookAction: string;
     readonly packsAvailable: string;
   };
@@ -344,7 +344,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'Não foi possível carregar o catálogo de serviços. Tente novamente mais tarde.',
       loading: 'A carregar o catálogo...',
       empty: 'Não existem serviços disponíveis para reserva neste momento.',
-      variantsTitle: 'Opções e preços',
+      priceFrom: (price) => `Desde ${price}`,
       bookAction: 'Reservar',
       packsAvailable: 'Packs de sessões disponíveis',
     },
@@ -625,7 +625,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       loadError: 'Could not load the services catalog. Please try again later.',
       loading: 'Loading our catalog...',
       empty: 'No services are currently available for booking.',
-      variantsTitle: 'Options and prices',
+      priceFrom: (price) => `From ${price}`,
       bookAction: 'Book',
       packsAvailable: 'Session packs available',
     },
