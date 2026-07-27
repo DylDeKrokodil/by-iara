@@ -37,26 +37,49 @@ function escapeXml(value: string): string {
 }
 
 interface SitemapService {
+  readonly updatedAt?: string | null;
   readonly translations: Record<string, { readonly slug: string }>;
 }
 
-app.get('/', (req, res) => res.redirect(308, `/pt${querySuffix(req)}`));
-app.get('/pt/services', (req, res) =>
-  res.redirect(308, `/pt/servicos${querySuffix(req)}`),
-);
-app.get('/pt/book', (req, res) =>
-  res.redirect(308, `/pt/marcar${querySuffix(req)}`),
-);
+interface SitemapUrlGroup {
+  readonly pt?: string;
+  readonly en?: string;
+  readonly lastModified?: string;
+}
+
+function sitemapLastModified(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+const PERMANENT_REDIRECTS: Readonly<Record<string, string>> = {
+  '/': '/pt',
+  '/pt/services': '/pt/servicos',
+  '/pt/book': '/pt/marcar',
+  '/pt/privacy': '/pt/privacidade',
+  '/pt/booking-terms': '/pt/termos-de-marcacao',
+  '/pt/legal-information': '/pt/informacao-legal',
+};
+
+Object.entries(PERMANENT_REDIRECTS).forEach(([source, destination]) => {
+  app.get(source, (req, res) =>
+    res.redirect(301, `${destination}${querySuffix(req)}`),
+  );
+});
 
 app.get('/robots.txt', (req, res) => {
   res
+    .set('Cache-Control', 'public, max-age=3600')
     .type('text/plain')
     .send(
       [
         'User-agent: *',
         'Allow: /',
-        'Disallow: /pt/design-system',
-        'Disallow: /en/design-system',
         `Sitemap: ${publicSiteOrigin(req)}/sitemap.xml`,
         '',
       ].join('\n'),
@@ -78,18 +101,19 @@ app.get('/sitemap.xml', async (req, res) => {
     console.error('Sitemap catalog fetch failed:', error);
   }
 
-  const staticGroups = [
+  const staticGroups: SitemapUrlGroup[] = [
     { pt: '/pt', en: '/en' },
     { pt: '/pt/servicos', en: '/en/services' },
     { pt: '/pt/packs', en: '/en/packs' },
   ];
-  const serviceGroups = services.map((service) => ({
+  const serviceGroups: SitemapUrlGroup[] = services.map((service) => ({
     pt: service.translations['pt-PT']?.slug
       ? `/pt/servicos/${encodeURIComponent(service.translations['pt-PT'].slug)}`
       : undefined,
     en: service.translations['en-US']?.slug
       ? `/en/services/${encodeURIComponent(service.translations['en-US'].slug)}`
       : undefined,
+    lastModified: sitemapLastModified(service.updatedAt),
   }));
   const groups = [...staticGroups, ...serviceGroups];
   const urls = groups.flatMap((group) =>
@@ -111,8 +135,11 @@ app.get('/sitemap.xml', async (req, res) => {
       const xDefault = group.pt
         ? `<xhtml:link rel="alternate" hreflang="x-default" href="${escapeXml(origin + group.pt)}" />`
         : '';
+      const lastModified = group.lastModified
+        ? `<lastmod>${group.lastModified}</lastmod>`
+        : '';
       return [
-        `<url><loc>${escapeXml(origin + path)}</loc>${alternates}${xDefault}</url>`,
+        `<url><loc>${escapeXml(origin + path)}</loc>${lastModified}${alternates}${xDefault}</url>`,
       ];
     }),
   );

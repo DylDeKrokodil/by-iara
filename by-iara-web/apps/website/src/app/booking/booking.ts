@@ -413,18 +413,18 @@ export class Booking implements OnInit {
   private slotRequestId = 0;
 
   ngOnInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      this.loading.set(false);
-      return;
-    }
+    const isBrowser = isPlatformBrowser(this.platformId);
+    if (isBrowser) {
+      this.form.controls.email.valueChanges.subscribe(() =>
+        this.clearDiscount(false),
+      );
 
-    this.form.controls.email.valueChanges.subscribe(() => this.clearDiscount(false));
-
-    const accessToken = this.route.snapshot.queryParamMap.get('packAccess');
-    if (accessToken) {
-      this.exchangePackAccess(accessToken);
-    } else {
-      this.restoreCustomerSession();
+      const accessToken = this.route.snapshot.queryParamMap.get('packAccess');
+      if (accessToken) {
+        this.exchangePackAccess(accessToken);
+      } else {
+        this.restoreCustomerSession();
+      }
     }
 
     const slug = this.route.snapshot.queryParamMap.get('service');
@@ -448,7 +448,12 @@ export class Booking implements OnInit {
           return;
         }
         const initial = active.find((s) => s.slug === slug) ?? active[0];
-        this.selectService(initial.id, preselectedVariant, preselectedPack);
+        this.selectService(
+          initial.id,
+          preselectedVariant,
+          preselectedPack,
+          isBrowser,
+        );
       },
       error: () => {
         this.loading.set(false);
@@ -968,6 +973,7 @@ export class Booking implements OnInit {
     serviceId: string,
     preselectedVariant: string | null,
     preselectedPack: string | null = null,
+    loadAvailability = true,
   ): void {
     this.selectedServiceId.set(serviceId);
     this.selectedPackOfferId.set(null);
@@ -983,7 +989,7 @@ export class Booking implements OnInit {
       (offer) => offer.id === preselectedPack,
     );
     this.selectedPackOfferId.set(pack?.id ?? null);
-    if (variant) {
+    if (variant && loadAvailability) {
       this.loadSlots();
     } else {
       this.slots.set([]);

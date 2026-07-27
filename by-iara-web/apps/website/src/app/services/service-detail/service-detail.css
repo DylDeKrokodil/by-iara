@@ -73,6 +73,21 @@
   text-wrap: pretty;
 }
 
+.service-detail-media {
+  overflow: hidden;
+  margin: 0;
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface-muted);
+  aspect-ratio: 4 / 3;
+}
+
+.service-detail-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .service-editorial {
   display: grid;
 }

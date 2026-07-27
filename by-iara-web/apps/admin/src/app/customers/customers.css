@@ -1,0 +1,155 @@
+.search-panel {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--byiara-space-xl);
+  margin-bottom: var(--byiara-space-lg);
+  border-bottom: 1px solid var(--byiara-color-border);
+  padding-bottom: var(--byiara-space-lg);
+}
+
+.search-copy {
+  display: grid;
+  gap: var(--byiara-space-2xs);
+  max-width: 38rem;
+}
+
+.search-copy h2,
+.search-copy p,
+.results-heading p {
+  margin: 0;
+}
+
+.search-copy h2 {
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-xl);
+  line-height: var(--byiara-line-height-title);
+}
+
+.search-copy p,
+.results-heading span,
+.customer-cell span,
+.reservation-summary span {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.search-controls,
+.results-heading,
+.pagination,
+.pagination-actions {
+  display: flex;
+  align-items: end;
+  gap: var(--byiara-space-sm);
+}
+
+.email-search {
+  width: min(28rem, 60vw);
+}
+
+.results-heading {
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--byiara-space-sm);
+}
+
+.results-heading strong {
+  color: var(--byiara-color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.customer-cell,
+.reservation-summary,
+.pack-list,
+.pack-summary {
+  display: grid;
+  gap: var(--byiara-space-3xs, 0.125rem);
+}
+
+.customer-cell strong,
+.reservation-summary strong,
+.contact-value,
+time {
+  color: var(--byiara-color-text);
+}
+
+.customer-cell span {
+  overflow-wrap: anywhere;
+}
+
+.pack-list {
+  gap: var(--byiara-space-sm);
+  min-width: 18rem;
+}
+
+.pack-summary + .pack-summary {
+  border-top: 1px solid var(--byiara-color-border);
+  padding-top: var(--byiara-space-sm);
+}
+
+.pack-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-sm);
+}
+
+.pack-summary > span,
+.empty-value {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.reservation-summary strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.contact-value,
+time {
+  font-size: var(--byiara-font-size-sm);
+  white-space: nowrap;
+}
+
+td[data-label='Actions'] {
+  text-align: right;
+}
+
+.pagination {
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+@media (max-width: 48rem) {
+  .search-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .search-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .email-search {
+    width: 100%;
+  }
+
+  td[data-label='Actions'] {
+    text-align: left;
+  }
+
+  .pack-list {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 32rem) {
+  .results-heading,
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

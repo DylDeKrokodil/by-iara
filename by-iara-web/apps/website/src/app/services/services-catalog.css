@@ -94,36 +94,27 @@
 
 .service-card-content .service-name,
 .service-card-content .service-description,
-.service-card-content .variants-title,
-.service-card-content .duration,
-.service-card-content .price {
+.service-card-content .starting-price {
   color: var(--byiara-color-text);
 }
 
-.service-card-content .service-description,
-.service-card-content .variants-title {
+.service-card-content .service-description {
   color: var(--byiara-color-text-muted);
 }
 
-.service-card-content .variants-container,
-.service-card-content .variant-row {
-  border-color: var(--byiara-color-border);
-}
-
-.service-card-content .variants-container {
+.booking-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
   margin-top: auto;
+  padding-top: var(--byiara-space-lg);
+  border-top: 1px solid var(--byiara-color-border);
 }
 
-.service-card-content .variant-info {
-  gap: 0;
-}
-
-.service-card-content .variant-separator {
-  color: var(--byiara-color-text-subtle);
-}
-
-.service-card-content .variant-row {
-  min-height: 3.5rem;
+.starting-price {
+  font-size: var(--byiara-font-size-md);
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
 .book-btn {
@@ -146,13 +137,13 @@
     padding: var(--byiara-space-lg);
   }
 
-  .service-card-content .variant-row {
+  .booking-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
     justify-content: stretch;
     gap: var(--byiara-space-sm);
-    padding-block: var(--byiara-space-md);
+    padding-top: var(--byiara-space-md);
   }
 
   .book-btn {
@@ -168,8 +159,7 @@
 }
 
 .skeleton-copy,
-.skeleton-variants,
-.skeleton-variant-row > div {
+.skeleton-variants {
   display: grid;
   gap: var(--byiara-space-sm);
 }

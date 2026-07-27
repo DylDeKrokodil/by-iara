@@ -19,7 +19,8 @@ import { WEBSITE_MESSAGES } from '../i18n/website-messages';
 import type { Service } from '../services/services-api';
 import { SEO_MESSAGES, StaticSeoPage } from './seo-messages';
 import { SITE_ORIGIN } from './site-origin';
-import { BRAND } from '../brand/brand';
+import { BRAND, SOCIAL_LINKS } from '../brand/brand';
+import { BUSINESS_DETAILS } from '../legal/business-details';
 
 const HREFLANG: Record<LocalePath, string> = { pt: 'pt-PT', en: 'en' };
 const OG_LOCALE: Record<LocaleCode, string> = {
@@ -29,6 +30,10 @@ const OG_LOCALE: Record<LocaleCode, string> = {
 const SERVICE_TITLE_LOCATION: Record<LocaleCode, string> = {
   'pt-PT': 'em Almada',
   'en-US': 'in Almada',
+};
+const DEFAULT_IMAGE_ALT: Record<LocaleCode, string> = {
+  'pt-PT': `Tratamento de massagem no estúdio ${BRAND.name} em Almada`,
+  'en-US': `Massage treatment at the ${BRAND.name} studio in Almada`,
 };
 
 @Injectable({ providedIn: 'root' })
@@ -74,6 +79,14 @@ export class SeoService {
       translation.description ??
       SEO_MESSAGES[locale.locale].services.description;
     const canonicalPath = this.servicePath(locale.path, translation.slug);
+    const image = service.image
+      ? {
+          url: this.absolute(service.image.url),
+          width: service.image.width,
+          height: service.image.height,
+          alt: translation.name,
+        }
+      : undefined;
     const alternates = SUPPORTED_LOCALES.flatMap((candidate) => {
       const localized = service.translations[candidate.locale];
       return localized
@@ -94,6 +107,7 @@ export class SeoService {
       indexable: true,
       type: 'product',
       locale,
+      image,
     });
     const serviceSchema = {
       '@type': 'Service',
@@ -103,8 +117,19 @@ export class SeoService {
       url: this.absolute(canonicalPath),
       inLanguage: locale.locale,
       areaServed: { '@type': 'City', name: 'Almada' },
+      ...(image
+        ? {
+            image: {
+              '@type': 'ImageObject',
+              url: image.url,
+              width: image.width,
+              height: image.height,
+              caption: image.alt,
+            },
+          }
+        : {}),
       provider: {
-        '@type': 'Organization',
+        '@type': 'LocalBusiness',
         '@id': `${this.siteOrigin}/#organization`,
         name: BRAND.name,
         url: `${this.siteOrigin}/pt`,
@@ -168,21 +193,17 @@ export class SeoService {
 
   updateCatalogStructuredData(services: readonly Service[]): void {
     const locale = this.language.current();
-    const items = services.flatMap((service, index) => {
-      const translation = service.translations[locale.locale];
-      return translation
-        ? [
-            {
-              '@type': 'ListItem',
-              position: index + 1,
-              name: translation.name,
-              url: this.absolute(
-                this.servicePath(locale.path, translation.slug),
-              ),
-            },
-          ]
-        : [];
-    });
+    const items = services
+      .flatMap((service) => {
+        const translation = service.translations[locale.locale];
+        return translation ? [translation] : [];
+      })
+      .map((translation, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        name: translation.name,
+        url: this.absolute(this.servicePath(locale.path, translation.slug)),
+      }));
     this.setStructuredData({
       '@context': 'https://schema.org',
       '@type': 'ItemList',
@@ -216,11 +237,25 @@ export class SeoService {
         '@context': 'https://schema.org',
         '@graph': [
           {
-            '@type': 'Organization',
+            '@type': 'LocalBusiness',
             '@id': `${this.siteOrigin}/#organization`,
             name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
             logo: `${this.siteOrigin}/${BRAND.logoPath}`,
+            image: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
+            email: BUSINESS_DETAILS.email,
+            telephone: BUSINESS_DETAILS.phone,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: BUSINESS_DETAILS.registeredAddress.join(', '),
+              addressLocality: 'Almada',
+              addressCountry: 'PT',
+            },
+            areaServed: {
+              '@type': 'City',
+              name: 'Almada',
+            },
+            sameAs: SOCIAL_LINKS.map((social) => social.url),
           },
           {
             '@type': 'WebSite',
@@ -248,6 +283,7 @@ export class SeoService {
       indexable: false,
       type: 'website',
       locale,
+      follow: false,
     });
   }
 
@@ -259,15 +295,28 @@ export class SeoService {
     indexable: boolean;
     type: 'website' | 'product';
     locale: SupportedLocale;
+    follow?: boolean;
+    image?: {
+      readonly url: string;
+      readonly width: number;
+      readonly height: number;
+      readonly alt: string;
+    };
   }): void {
     const canonical = this.absolute(config.canonicalPath);
+    const image = config.image ?? {
+      url: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
+      width: 1400,
+      height: 933,
+      alt: DEFAULT_IMAGE_ALT[config.locale.locale],
+    };
     this.title.setTitle(config.title);
     this.meta.updateTag({ name: 'description', content: config.description });
     this.meta.updateTag({
       name: 'robots',
       content: config.indexable
         ? 'index, follow, max-image-preview:large'
-        : 'noindex, nofollow',
+        : `noindex, ${config.follow === false ? 'nofollow' : 'follow'}`,
     });
     this.meta.updateTag({ property: 'og:title', content: config.title });
     this.meta.updateTag({
@@ -283,7 +332,19 @@ export class SeoService {
     });
     this.meta.updateTag({
       property: 'og:image',
-      content: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
+      content: image.url,
+    });
+    this.meta.updateTag({
+      property: 'og:image:width',
+      content: `${image.width}`,
+    });
+    this.meta.updateTag({
+      property: 'og:image:height',
+      content: `${image.height}`,
+    });
+    this.meta.updateTag({
+      property: 'og:image:alt',
+      content: image.alt,
     });
     this.meta.updateTag({
       name: 'twitter:card',
@@ -296,7 +357,11 @@ export class SeoService {
     });
     this.meta.updateTag({
       name: 'twitter:image',
-      content: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
+      content: image.url,
+    });
+    this.meta.updateTag({
+      name: 'twitter:image:alt',
+      content: image.alt,
     });
 
     this.document.head

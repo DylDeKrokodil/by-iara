@@ -95,7 +95,7 @@ class JooqServiceRepository(
 
     override fun findPublicByLocalizedSlug(locale: String, slug: String): Service? {
         val record = dsl
-            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured, sUpdatedAt)
             .from(services)
             .where(
                 sActive.isTrue
@@ -125,7 +125,7 @@ class JooqServiceRepository(
 
     override fun findById(id: UUID): Service? {
         val record = dsl
-            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured, sUpdatedAt)
             .from(services)
             .where(sId.eq(id))
             .fetchOne()
@@ -368,7 +368,7 @@ class JooqServiceRepository(
             ?: listOf(sSortOrder.asc(), sName.asc())
 
         val records = dsl
-            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured)
+            .select(sId, sSlug, sName, sDescription, sActive, sSortOrder, sFeatured, sUpdatedAt)
             .from(services)
             .leftJoin(variantStats)
             .on(sId.eq(statsServiceId))
@@ -541,6 +541,7 @@ class JooqServiceRepository(
             translations = translations,
             variants = variants,
             packOffers = packOffers,
+            updatedAt = record.get(sUpdatedAt),
         )
 
     private fun loadPackOffers(serviceIds: List<UUID>, activeOnly: Boolean): List<OwnedPackOffer> {

@@ -20,6 +20,7 @@ export interface LegalPageContent {
   readonly intro: string;
   readonly updatedLabel: string;
   readonly updatedDate: string;
+  readonly updatedIsoDate?: string;
   readonly incompleteTitle: string;
   readonly incompleteText: string;
   readonly missingValue: string;
@@ -91,7 +92,8 @@ export const LEGAL_CONTENT: Record<
       intro:
         'Esta política explica como são tratados os dados pessoais quando visita o website ou pede uma marcação.',
       updatedLabel: 'Última atualização',
-      updatedDate: '17 de julho de 2026',
+      updatedDate: '27 de julho de 2026',
+      updatedIsoDate: '2026-07-27',
       incompleteTitle: 'Informação de privacidade a completar',
       incompleteText:
         'O período operacional de conservação dos dados ainda deve ser definido antes da publicação.',
@@ -171,6 +173,14 @@ export const LEGAL_CONTENT: Record<
               label: 'Contactar a CNPD',
               href: 'https://www.cnpd.pt/cidadaos/participacoes/',
             },
+          ],
+        },
+        {
+          title: 'Como pedir o acesso, correção ou apagamento dos dados',
+          paragraphs: [
+            'Envie um email para o contacto de privacidade indicado nesta página, preferencialmente a partir do endereço utilizado na marcação. Escreva no assunto «Pedido de proteção de dados» e indique o direito que pretende exercer, o nome e o email associados às marcações. Não envie cópia de documento de identificação, salvo se for posteriormente solicitada e estritamente necessária para confirmar a identidade.',
+            'O pedido será respondido sem demora injustificada e, em regra, no prazo de um mês. Se forem necessárias informações adicionais para confirmar a identidade, serão pedidas apenas as informações adequadas a esse fim.',
+            'O apagamento pode ser limitado ou adiado quando os dados ainda sejam necessários para uma marcação confirmada, um pack ativo com sessões por utilizar, o cumprimento de uma obrigação legal, ou o exercício ou defesa de direitos. A resposta explicará os dados apagados ou anonimizados, os dados que tenham de ser conservados e o respetivo motivo.',
           ],
         },
         {
@@ -344,7 +354,8 @@ export const LEGAL_CONTENT: Record<
       intro:
         'This policy explains how personal data is handled when you visit the website or request an appointment.',
       updatedLabel: 'Last updated',
-      updatedDate: UPDATED_DATE,
+      updatedDate: '27 July 2026',
+      updatedIsoDate: '2026-07-27',
       incompleteTitle: 'Privacy information to complete',
       incompleteText:
         'The operational data-retention period must still be defined before publication.',
@@ -424,6 +435,14 @@ export const LEGAL_CONTENT: Record<
               label: 'Contact the CNPD',
               href: 'https://www.cnpd.pt/cidadaos/participacoes/',
             },
+          ],
+        },
+        {
+          title: 'How to request access, correction, or deletion',
+          paragraphs: [
+            'Email the privacy contact shown on this page, preferably from the address used for the booking. Use “Data protection request” as the subject and state which right you wish to exercise, together with the name and email associated with your bookings. Do not send a copy of an identity document unless it is later requested and strictly necessary to confirm your identity.',
+            'The request will be answered without undue delay and normally within one month. If additional information is needed to confirm your identity, only information appropriate for that purpose will be requested.',
+            'Deletion may be limited or deferred while data is still needed for a confirmed booking, an active pack with unused sessions, compliance with a legal obligation, or the establishment, exercise, or defence of legal claims. The response will explain which data was deleted or anonymised, which data must be retained, and why.',
           ],
         },
         {

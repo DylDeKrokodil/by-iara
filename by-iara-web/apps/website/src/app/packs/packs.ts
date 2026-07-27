@@ -61,6 +61,13 @@ export class Packs implements OnInit {
     return localizedService(service, this.language.current().locale);
   }
 
+  protected detailLink(service: Service): string[] {
+    return this.language.localizedLink(
+      'services',
+      this.localized(service).slug,
+    );
+  }
+
   protected formatPrice(cents: number): string {
     return new Intl.NumberFormat(this.language.current().locale, {
       style: 'currency',

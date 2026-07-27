@@ -24,29 +24,17 @@
                 <byiara-skeleton width="82%" height="0.85rem"></byiara-skeleton>
               </div>
               <div class="skeleton-variants">
-                <byiara-skeleton
-                  width="7rem"
-                  height="0.75rem"
-                ></byiara-skeleton>
-                @for (variant of skeletonVariants; track variant) {
                 <div class="skeleton-variant-row">
-                  <div>
-                    <byiara-skeleton
-                      width="3.5rem"
-                      height="0.85rem"
-                    ></byiara-skeleton>
-                    <byiara-skeleton
-                      width="4.5rem"
-                      height="1.1rem"
-                    ></byiara-skeleton>
-                  </div>
+                  <byiara-skeleton
+                    width="7rem"
+                    height="1.1rem"
+                  ></byiara-skeleton>
                   <byiara-skeleton
                     variant="block"
                     width="5rem"
                     height="2.25rem"
                   ></byiara-skeleton>
                 </div>
-                }
               </div>
             </div>
           </div>
@@ -69,7 +57,7 @@
                 [src]="image.url"
                 [width]="image.width"
                 [height]="image.height"
-                alt=""
+                [alt]="localized(service).name"
                 loading="lazy"
                 decoding="async"
               />
@@ -78,11 +66,11 @@
 
             <div class="service-card-content">
               <div class="card-header">
-                <h3 class="service-name">
+                <h2 class="service-name">
                   <a [routerLink]="detailLink(service)">
                     {{ localized(service).name }}
                   </a>
-                </h3>
+                </h2>
                 @if (localized(service).description) {
                 <p class="service-description">
                   {{ localized(service).description }}
@@ -99,33 +87,19 @@
                 }
               </div>
 
-              <div class="variants-container">
-                <span class="variants-title">{{ copy().variantsTitle }}</span>
-                @for (variant of service.variants; track variant.id) { @if
-                (variant.active) {
-                <div class="variant-row">
-                  <div class="variant-info">
-                    <span class="duration"
-                      >{{ variant.durationMinutes }} min</span
-                    >
-                    <span class="variant-separator" aria-hidden="true"
-                      >&nbsp;·&nbsp;</span
-                    >
-                    <span class="price"
-                      >{{ formatPrice(variant.price.amountCents) }}</span
-                    >
-                  </div>
-                  <byiara-button
-                    variant="secondary"
-                    size="sm"
-                    class="book-btn"
-                    (click)="onBook(service, variant)"
-                  >
-                    {{ copy().bookAction }}
-                  </byiara-button>
-                </div>
-                } }
+              @if (startingPrice(service); as price) {
+              <div class="booking-row">
+                <span class="starting-price">{{ price }}</span>
+                <byiara-button
+                  variant="secondary"
+                  size="sm"
+                  class="book-btn"
+                  (click)="onBook(service)"
+                >
+                  {{ copy().bookAction }}
+                </byiara-button>
               </div>
+              }
             </div>
           </div>
         </byiara-card>

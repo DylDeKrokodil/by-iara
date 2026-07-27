@@ -37,6 +37,11 @@ export const appRoutes: Route[] = [
           import('./reservations/reservations').then((m) => m.Reservations),
       },
       {
+        path: 'customers',
+        loadComponent: () =>
+          import('./customers/customers').then((m) => m.Customers),
+      },
+      {
         path: 'services/new',
         loadComponent: () =>
           import('./services/service-form/service-form').then(

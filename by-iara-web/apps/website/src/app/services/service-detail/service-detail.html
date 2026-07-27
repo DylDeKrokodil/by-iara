@@ -33,7 +33,18 @@
         }
       </header>
 
-      @if (localized.treatmentDescription || localized.suitableFor ||
+      @if (service.image; as image) {
+      <figure class="service-detail-media">
+        <img
+          [src]="image.url"
+          [width]="image.width"
+          [height]="image.height"
+          [alt]="localized.name"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+      } @if (localized.treatmentDescription || localized.suitableFor ||
       localized.sessionDescription) {
       <div class="service-editorial">
         @if (localized.treatmentDescription) {

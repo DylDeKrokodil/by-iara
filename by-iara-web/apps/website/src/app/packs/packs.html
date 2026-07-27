@@ -69,7 +69,11 @@
       @for (group of groups(); track group.service.id) {
       <section class="pack-group">
         <div class="pack-group-intro">
-          <h2>{{ localized(group.service).name }}</h2>
+          <h2>
+            <a [routerLink]="detailLink(group.service)">
+              {{ localized(group.service).name }}
+            </a>
+          </h2>
           @if (localized(group.service).description) {
           <p>{{ localized(group.service).description }}</p>
           }

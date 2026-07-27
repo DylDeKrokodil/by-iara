@@ -5,7 +5,6 @@ import {
   ServicesApi,
   Service,
   ServiceTranslation,
-  ServiceVariant,
   localizedService,
 } from './services-api';
 import { LanguageService } from '../i18n/language.service';
@@ -28,7 +27,6 @@ export class ServicesCatalog implements OnInit {
   protected readonly hasError = signal(false);
   protected readonly copy = computed(() => this.language.messages().services);
   protected readonly skeletonCards = [0, 1, 2, 3] as const;
-  protected readonly skeletonVariants = [0, 1] as const;
 
   ngOnInit(): void {
     this.loadCatalog();
@@ -58,7 +56,20 @@ export class ServicesCatalog implements OnInit {
     return new Intl.NumberFormat(this.language.current().locale, {
       style: 'currency',
       currency: 'EUR',
+      minimumFractionDigits: 0,
     }).format(cents / 100);
+  }
+
+  protected startingPrice(service: Service): string | null {
+    const activePrices = service.variants
+      .filter((variant) => variant.active)
+      .map((variant) => variant.price.amountCents);
+
+    if (activePrices.length === 0) {
+      return null;
+    }
+
+    return this.copy().priceFrom(this.formatPrice(Math.min(...activePrices)));
   }
 
   protected localized(service: Service): ServiceTranslation {
@@ -83,9 +94,9 @@ export class ServicesCatalog implements OnInit {
     );
   }
 
-  protected onBook(service: Service, variant: ServiceVariant): void {
+  protected onBook(service: Service): void {
     this.router.navigate(this.language.localizedLink('book'), {
-      queryParams: { service: service.slug, variant: variant.id },
+      queryParams: { service: service.slug },
     });
   }
 }
