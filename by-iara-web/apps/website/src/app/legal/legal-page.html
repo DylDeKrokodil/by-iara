@@ -6,7 +6,9 @@
       <p class="legal-intro">{{ content().intro }}</p>
       <p class="legal-updated">
         {{ content().updatedLabel }}:
-        <time datetime="2026-07-17">{{ content().updatedDate }}</time>
+        <time [attr.datetime]="content().updatedIsoDate ?? '2026-07-17'">
+          {{ content().updatedDate }}
+        </time>
       </p>
     </header>
 
