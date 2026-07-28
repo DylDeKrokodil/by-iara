@@ -29,6 +29,7 @@ import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
@@ -59,7 +60,11 @@ class ReservationService(
         if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
             throw SlotNotAvailableException()
         }
-        if (reservationRepository.hasOverlap(command.startsAt, endsAt)) {
+        if (reservationRepository.hasOverlap(
+                command.startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+            )
+        ) {
             throw SlotAlreadyBookedException()
         }
 
@@ -156,6 +161,18 @@ class ReservationService(
         return excludeOverlappingReservations(slots, variant.durationMinutes)
     }
 
+    @Transactional(readOnly = true)
+    fun findRescheduleSlots(id: UUID, startDate: LocalDate, endDate: LocalDate): List<OffsetDateTime> {
+        val reservation = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        requireReschedulable(reservation)
+        val slots = availabilityService.findAvailableSlots(startDate, endDate, reservation.durationMinutes)
+        return excludeOverlappingReservations(
+            slots,
+            reservation.durationMinutes,
+            excludingReservationId = reservation.id,
+        )
+    }
+
     /**
      * Earliest bookable slot from today onward (falling back to the next open day
      * when today has nothing left), for the shortest active catalog offering (the
@@ -181,19 +198,28 @@ class ReservationService(
     private fun excludeOverlappingReservations(
         slots: List<OffsetDateTime>,
         durationMinutes: Int,
+        excludingReservationId: UUID? = null,
     ): List<OffsetDateTime> {
         if (slots.isEmpty()) {
             return slots
         }
 
-        val queryStart = slots.first()
-        val queryEnd = slots.last().plusMinutes(durationMinutes.toLong())
-        val activeWindows = reservationRepository.findActiveWindowsOverlapping(queryStart, queryEnd)
+        val queryStart = slots.first().minusMinutes(APPOINTMENT_BUFFER_MINUTES)
+        val queryEnd = slots.last()
+            .plusMinutes(durationMinutes.toLong())
+            .plusMinutes(APPOINTMENT_BUFFER_MINUTES)
+        val activeWindows = reservationRepository.findActiveWindowsOverlapping(
+            queryStart,
+            queryEnd,
+            excludingReservationId,
+        )
 
         return slots.filter { slotStart ->
             val slotEnd = slotStart.plusMinutes(durationMinutes.toLong())
+            val bufferedSlotStart = slotStart.minusMinutes(APPOINTMENT_BUFFER_MINUTES)
+            val bufferedSlotEnd = slotEnd.plusMinutes(APPOINTMENT_BUFFER_MINUTES)
             activeWindows.none { window ->
-                slotStart.isBefore(window.endsAt) && slotEnd.isAfter(window.startsAt)
+                bufferedSlotStart.isBefore(window.endsAt) && bufferedSlotEnd.isAfter(window.startsAt)
             }
         }
     }
@@ -263,6 +289,42 @@ class ReservationService(
         return updated
     }
 
+    @Transactional
+    fun reschedule(id: UUID, startsAt: OffsetDateTime): Reservation {
+        val reservation = reservationRepository.findByIdForUpdate(id) ?: throw ReservationNotFoundException(id)
+        requireReschedulable(reservation)
+        if (startsAt.isEqual(reservation.startsAt)) {
+            throw InvalidReservationRequestException("Choose a different day or time")
+        }
+
+        val endsAt = startsAt.plusMinutes(reservation.durationMinutes.toLong())
+        if (!availabilityService.isAvailable(startsAt, reservation.durationMinutes)) {
+            throw SlotNotAvailableException()
+        }
+        if (reservationRepository.hasOverlap(
+                startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                excludingReservationId = id,
+            )
+        ) {
+            throw SlotAlreadyBookedException()
+        }
+
+        if (!reservationRepository.reschedule(
+                id,
+                reservation.startsAt,
+                reservation.endsAt,
+                startsAt,
+                endsAt,
+            )
+        ) {
+            throw InvalidReservationRequestException("The reservation status changed while rescheduling")
+        }
+        val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        reservationEmailService.notifyCustomerOfReschedule(reservation, updated)
+        return updated
+    }
+
     private fun transition(
         id: UUID,
         target: ReservationStatus,
@@ -288,9 +350,16 @@ class ReservationService(
         service.variants.firstOrNull { it.id == variantId && it.active }
             ?: throw InvalidReservationRequestException("Selected option is not available for booking")
 
+    private fun requireReschedulable(reservation: Reservation) {
+        if (reservation.status !in setOf(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)) {
+            throw InvalidReservationRequestException("Only pending or confirmed reservations can be rescheduled")
+        }
+    }
+
     companion object {
         private const val MAX_PAGE_SIZE = 100
         private const val NEXT_AVAILABLE_WINDOW_DAYS = 30L
+        private const val APPOINTMENT_BUFFER_MINUTES = 15L
     }
 }
 

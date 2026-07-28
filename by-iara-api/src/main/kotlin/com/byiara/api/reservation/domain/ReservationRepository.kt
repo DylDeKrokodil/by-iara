@@ -13,11 +13,21 @@ interface ReservationRepository {
 
     fun countAll(query: ReservationListQuery): Int
 
-    /** Active reservations (PENDING/CONFIRMED) that overlap the given half-open interval. */
-    fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime): Boolean
+    /**
+     * Active reservations (PENDING/CONFIRMED) that overlap the given half-open interval.
+     * Callers may expand the interval to enforce spacing around a requested appointment.
+     */
+    fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime, excludingReservationId: UUID? = null): Boolean
 
-    /** Active reservation windows (PENDING/CONFIRMED) that overlap the given half-open interval. */
-    fun findActiveWindowsOverlapping(startsAt: OffsetDateTime, endsAt: OffsetDateTime): List<ReservationWindow>
+    /**
+     * Active reservation windows (PENDING/CONFIRMED) that overlap the given half-open interval.
+     * Callers may expand the interval to include appointment buffers.
+     */
+    fun findActiveWindowsOverlapping(
+        startsAt: OffsetDateTime,
+        endsAt: OffsetDateTime,
+        excludingReservationId: UUID? = null,
+    ): List<ReservationWindow>
 
     fun create(reservation: NewReservation): Reservation
 
@@ -32,6 +42,14 @@ interface ReservationRepository {
         id: UUID,
         cancellationReasonCode: CancellationReasonCode,
         cancellationMessage: String,
+    ): Boolean
+
+    fun reschedule(
+        id: UUID,
+        previousStartsAt: OffsetDateTime,
+        previousEndsAt: OffsetDateTime,
+        newStartsAt: OffsetDateTime,
+        newEndsAt: OffsetDateTime,
     ): Boolean
 
     fun transitionStatus(id: UUID, from: ReservationStatus, to: ReservationStatus): Boolean

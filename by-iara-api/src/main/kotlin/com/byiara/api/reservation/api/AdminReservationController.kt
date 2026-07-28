@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus
 import jakarta.validation.Valid
 import java.util.UUID
 import java.time.OffsetDateTime
+import java.time.LocalDate
+import org.springframework.format.annotation.DateTimeFormat
 
 @RestController
 @RequestMapping("/api/admin/reservations")
@@ -73,6 +75,19 @@ class AdminReservationController(
         @Valid @RequestBody request: CancelReservationRequest,
     ): ReservationResponse =
         reservationService.cancel(id, request.reasonCode!!, request.message!!.trim()).toResponse()
+
+    @GetMapping("/{id}/availability")
+    fun rescheduleAvailability(
+        @PathVariable id: UUID,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+    ): List<OffsetDateTime> = reservationService.findRescheduleSlots(id, startDate, endDate)
+
+    @PatchMapping("/{id}/reschedule")
+    fun reschedule(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: RescheduleReservationRequest,
+    ): ReservationResponse = reservationService.reschedule(id, request.startsAt!!).toResponse()
 
     @PatchMapping("/{id}/complete")
     fun complete(

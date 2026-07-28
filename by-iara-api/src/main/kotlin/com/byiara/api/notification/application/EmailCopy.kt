@@ -154,6 +154,77 @@ object EmailCopy {
         }
     }
 
+    fun reservationRescheduled(
+        previous: Reservation,
+        updated: Reservation,
+        zoneId: ZoneId,
+    ): EmailContent {
+        val locale = when (updated.locale) {
+            ReservationLocale.PT -> Locale.forLanguageTag("pt-PT")
+            ReservationLocale.EN -> Locale.forLanguageTag("en-US")
+        }
+        val previousWhen = formatDateTime(previous, zoneId, locale)
+        val newWhen = formatDateTime(updated, zoneId, locale)
+        val pending = updated.status == ReservationStatus.PENDING
+
+        return when (updated.locale) {
+            ReservationLocale.PT -> EmailContent(
+                subject = "A sua marcação foi reagendada",
+                body = """
+                    Olá ${updated.customer.name},
+
+                    A sua marcação de ${updated.serviceName} foi reagendada.
+
+                    Data anterior: $previousWhen
+                    Nova data: $newWhen
+
+                    ${if (pending) "O pedido continua a aguardar confirmação." else "A sua marcação continua confirmada."}
+
+                    Se esta nova data não for conveniente, contacte-nos.
+                    Iara Gouveia
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "pt",
+                    title = "A sua marcação foi reagendada",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">A sua marcação foi reagendada</h1>
+                        <p style="$paragraphStyle">Olá ${escapeHtml(updated.customer.name)}, alterámos a data da sua sessão de <strong>${escapeHtml(updated.serviceName)}</strong>.</p>
+                        ${detailsCard(listOf("Data anterior" to previousWhen, "Nova data" to newWhen))}
+                        <p style="$paragraphStyle">${if (pending) "O pedido continua a aguardar confirmação." else "A sua marcação continua confirmada."}</p>
+                        <p style="$paragraphStyle; margin:0;">Se esta nova data não for conveniente, contacte-nos.</p>
+                    """.trimIndent(),
+                ),
+            )
+            ReservationLocale.EN -> EmailContent(
+                subject = "Your booking has been rescheduled",
+                body = """
+                    Hi ${updated.customer.name},
+
+                    Your ${updated.serviceName} booking has been rescheduled.
+
+                    Previous time: $previousWhen
+                    New time: $newWhen
+
+                    ${if (pending) "Your request is still awaiting confirmation." else "Your booking remains confirmed."}
+
+                    Please contact us if the new time does not work for you.
+                    Iara Gouveia
+                """.trimIndent(),
+                htmlBody = htmlDocument(
+                    lang = "en",
+                    title = "Your booking has been rescheduled",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Your booking has been rescheduled</h1>
+                        <p style="$paragraphStyle">Hi ${escapeHtml(updated.customer.name)}, we changed the time of your <strong>${escapeHtml(updated.serviceName)}</strong> session.</p>
+                        ${detailsCard(listOf("Previous time" to previousWhen, "New time" to newWhen))}
+                        <p style="$paragraphStyle">${if (pending) "Your request is still awaiting confirmation." else "Your booking remains confirmed."}</p>
+                        <p style="$paragraphStyle; margin:0;">Please contact us if the new time does not work for you.</p>
+                    """.trimIndent(),
+                ),
+            )
+        }
+    }
+
     fun reservationCompleted(
         reservation: Reservation,
         googleReviewUrl: String,

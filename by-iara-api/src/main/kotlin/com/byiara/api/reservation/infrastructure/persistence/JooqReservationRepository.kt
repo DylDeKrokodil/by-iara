@@ -111,21 +111,31 @@ class JooqReservationRepository(
     override fun countAll(query: ReservationListQuery): Int =
         dsl.fetchCount(dsl.selectFrom(reservations).where(listCondition(query)))
 
-    override fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime): Boolean =
+    override fun hasOverlap(
+        startsAt: OffsetDateTime,
+        endsAt: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): Boolean =
         dsl.fetchExists(
             dsl.selectOne()
                 .from(reservations)
                 .where(rStatus.`in`(activeStatuses))
                 .and(rStartsAt.lessThan(endsAt))
-                .and(rEndsAt.greaterThan(startsAt)),
+                .and(rEndsAt.greaterThan(startsAt))
+                .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition()),
         )
 
-    override fun findActiveWindowsOverlapping(startsAt: OffsetDateTime, endsAt: OffsetDateTime): List<ReservationWindow> =
+    override fun findActiveWindowsOverlapping(
+        startsAt: OffsetDateTime,
+        endsAt: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): List<ReservationWindow> =
         dsl.select(rStartsAt, rEndsAt)
             .from(reservations)
             .where(rStatus.`in`(activeStatuses))
             .and(rStartsAt.lessThan(endsAt))
             .and(rEndsAt.greaterThan(startsAt))
+            .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition())
             .fetch { record ->
                 ReservationWindow(
                     startsAt = record.get(rStartsAt),
@@ -189,6 +199,34 @@ class JooqReservationRepository(
             .set(rUpdatedAt, currentOffsetDateTime())
             .where(rId.eq(id))
             .execute() > 0
+
+    override fun reschedule(
+        id: UUID,
+        previousStartsAt: OffsetDateTime,
+        previousEndsAt: OffsetDateTime,
+        newStartsAt: OffsetDateTime,
+        newEndsAt: OffsetDateTime,
+    ): Boolean {
+        val reschedules = table(name("reservation_reschedules"))
+        val reservationId = field(name("reservation_id"), UUID::class.java)
+        val oldStartsAt = field(name("previous_starts_at"), OffsetDateTime::class.java)
+        val oldEndsAt = field(name("previous_ends_at"), OffsetDateTime::class.java)
+        val rescheduledStartsAt = field(name("new_starts_at"), OffsetDateTime::class.java)
+        val rescheduledEndsAt = field(name("new_ends_at"), OffsetDateTime::class.java)
+
+        dsl.insertInto(reschedules)
+            .columns(reservationId, oldStartsAt, oldEndsAt, rescheduledStartsAt, rescheduledEndsAt)
+            .values(id, previousStartsAt, previousEndsAt, newStartsAt, newEndsAt)
+            .execute()
+
+        return dsl.update(reservations)
+            .set(rStartsAt, newStartsAt)
+            .set(rEndsAt, newEndsAt)
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .and(rStatus.`in`(activeStatuses))
+            .execute() > 0
+    }
 
     override fun transitionStatus(id: UUID, from: ReservationStatus, to: ReservationStatus): Boolean =
         dsl.update(reservations)

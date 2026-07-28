@@ -93,6 +93,38 @@ class ReservationEmailService(
         }.onFailure { log.error("Failed to notify customer of decision for reservation {}", reservation.id, it) }
     }
 
+    fun notifyCustomerOfReschedule(previous: Reservation, updated: Reservation) {
+        runCatching {
+            var content = EmailCopy.reservationRescheduled(previous, updated, zoneId)
+            if (updated.status == ReservationStatus.CONFIRMED) {
+                val filename = when (updated.locale) {
+                    ReservationLocale.PT -> "by-iara-marcacao.ics"
+                    ReservationLocale.EN -> "by-iara-appointment.ics"
+                }
+                content = content.copy(
+                    attachments = listOf(
+                        EmailAttachment(
+                            filename = filename,
+                            contentType = "text/calendar; charset=UTF-8; method=REQUEST",
+                            content = ReservationIcsBuilder.buildAppointment(
+                                updated,
+                                OffsetDateTime.now(),
+                                businessAddress,
+                                businessEmail,
+                            ).toByteArray(Charsets.UTF_8),
+                        ),
+                    ),
+                )
+            }
+            sendAndLog(
+                updated.customer.email,
+                content,
+                updated.id,
+                EmailType.RESERVATION_RESCHEDULED,
+            )
+        }.onFailure { log.error("Failed to notify customer of reschedule for reservation {}", updated.id, it) }
+    }
+
     fun notifyCustomerOfCompletion(reservation: Reservation, discount: CreatedDiscount? = null) {
         runCatching {
             val content = EmailCopy.reservationCompleted(
