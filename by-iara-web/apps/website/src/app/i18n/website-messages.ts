@@ -243,7 +243,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     app: {
       nav: {
         home: 'Início',
-        services: 'Serviços',
+        services: 'Massagens',
         packs: 'Packs',
         bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
@@ -255,7 +255,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         navigationLabel: 'Navegação do rodapé',
         explore: 'Explorar',
         home: 'Início',
-        services: 'Serviços',
+        services: 'Massagens',
         packs: 'Packs',
         book: 'Marcar sessão',
         legal: 'Legal',
@@ -286,19 +286,19 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       title: 'Massagem terapêutica em Almada',
       lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
       primaryAction: 'Marcar sessão',
-      secondaryAction: 'Explorar serviços',
+      secondaryAction: 'Explorar massagens',
       actionsLabel: 'Ações da página inicial',
       today: 'hoje',
       nextAvailable: (day, time) => `Próxima vaga: ${day}, ${time}`,
       mediaCredit: 'Vídeo via Mixkit',
-      servicesTitle: 'Tratamentos',
+      servicesTitle: 'Massagens',
       servicesLede:
         'Do alívio profundo ao puro relaxamento, escolha o ritmo do seu corpo.',
       servicesFrom: (price) => `desde ${price}`,
       servicesDuration: (min, max) =>
         min === max ? `${min} min` : `${min} a ${max} min`,
       servicesAction: 'Reservar',
-      servicesViewAll: 'Ver todos os serviços',
+      servicesViewAll: 'Ver todas as massagens',
       packsTitle: 'Mais tempo para cuidar de si',
       packsLede:
         'Escolha um pack para manter a sua rotina de bem-estar e beneficiar de um valor mais leve por sessão.',
@@ -346,7 +346,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
     services: {
       eyebrow: 'O nosso menu',
-      title: 'Serviços e tratamentos',
+      title: 'Massagens',
       lede: 'Descubra a nossa seleção de massagens terapêuticas e relaxantes, pensadas para restaurar equilíbrio e harmonia.',
       loadError:
         'Não foi possível carregar o catálogo de serviços. Tente novamente mais tarde.',
@@ -359,10 +359,10 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     serviceDetail: {
       breadcrumbsLabel: 'Navegação estrutural',
       homeBreadcrumb: 'Início',
-      servicesBreadcrumb: 'Serviços',
-      back: 'Voltar aos serviços',
-      eyebrow: 'Tratamento',
-      treatmentTitle: 'Sobre este tratamento',
+      servicesBreadcrumb: 'Massagens',
+      back: 'Voltar às massagens',
+      eyebrow: 'Massagem',
+      treatmentTitle: 'Sobre esta massagem',
       suitableForTitle: 'Para quem é indicado?',
       sessionTitle: 'O que acontece durante a sessão?',
       optionsTitle: 'Duração e preço',
@@ -388,7 +388,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       title: 'Página não encontrada',
       text: 'Parece que o caminho que procura não está disponível. Deixe-nos guiá-lo de volta à tranquilidade.',
       homeAction: 'Voltar ao início',
-      servicesAction: 'Ver tratamentos',
+      servicesAction: 'Ver massagens',
       contactAction: 'Contactar',
     },
     packs: {
@@ -400,7 +400,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       emptyTitle: 'Ainda não existem packs disponíveis',
       emptyText:
         'Pode continuar a marcar sessões individuais ou voltar mais tarde para conhecer novas opções.',
-      exploreServices: 'Explorar serviços',
+      exploreServices: 'Explorar massagens',
       offerSessions: (sessions, minutes) =>
         `${sessions} sessões · ${minutes} min`,
       regularValue: (price) => `Valor em sessões individuais: ${price}`,
@@ -534,7 +534,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     app: {
       nav: {
         home: 'Home',
-        services: 'Services',
+        services: 'Massages',
         packs: 'Packs',
         bookCta: 'Book now',
         openMenu: 'Open menu',
@@ -546,7 +546,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         navigationLabel: 'Footer navigation',
         explore: 'Explore',
         home: 'Home',
-        services: 'Services',
+        services: 'Massages',
         packs: 'Packs',
         book: 'Book a session',
         legal: 'Legal',
@@ -576,19 +576,19 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       title: 'Therapeutic massage in Almada',
       lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
       primaryAction: 'Book a session',
-      secondaryAction: 'Explore services',
+      secondaryAction: 'Explore massages',
       actionsLabel: 'Home page actions',
       today: 'today',
       nextAvailable: (day, time) => `Next opening: ${day}, ${time}`,
       mediaCredit: 'Video via Mixkit',
-      servicesTitle: 'Treatments',
+      servicesTitle: 'Massages',
       servicesLede:
         "From deep relief to pure relaxation, choose your body's pace.",
       servicesFrom: (price) => `from ${price}`,
       servicesDuration: (min, max) =>
         min === max ? `${min} min` : `${min} to ${max} min`,
       servicesAction: 'Book',
-      servicesViewAll: 'See all services',
+      servicesViewAll: 'See all massages',
       packsTitle: 'More time to care for yourself',
       packsLede:
         'Choose a pack to make wellbeing part of your routine, with a gentler price for each session.',
@@ -636,7 +636,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
     services: {
       eyebrow: 'Our menu',
-      title: 'Services and treatments',
+      title: 'Massages',
       lede: 'Discover our range of therapeutic and relaxing massages designed to restore balance and harmony.',
       loadError: 'Could not load the services catalog. Please try again later.',
       loading: 'Loading our catalog...',
@@ -648,10 +648,10 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     serviceDetail: {
       breadcrumbsLabel: 'Breadcrumbs',
       homeBreadcrumb: 'Home',
-      servicesBreadcrumb: 'Services',
-      back: 'Back to services',
-      eyebrow: 'Treatment',
-      treatmentTitle: 'About this treatment',
+      servicesBreadcrumb: 'Massages',
+      back: 'Back to massages',
+      eyebrow: 'Massage',
+      treatmentTitle: 'About this massage',
       suitableForTitle: 'Who is it suitable for?',
       sessionTitle: 'What happens during the session?',
       optionsTitle: 'Duration and price',
@@ -677,7 +677,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       title: 'Page not found',
       text: 'It seems the path you were looking for is unavailable. Let us guide you back to a calmer place.',
       homeAction: 'Back to home',
-      servicesAction: 'View treatments',
+      servicesAction: 'View massages',
       contactAction: 'Contact us',
     },
     packs: {
@@ -689,7 +689,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       emptyTitle: 'No packs are available yet',
       emptyText:
         'You can still book individual sessions or return later to discover new options.',
-      exploreServices: 'Explore services',
+      exploreServices: 'Explore massages',
       offerSessions: (sessions, minutes) =>
         `${sessions} sessions · ${minutes} min`,
       regularValue: (price) => `Individual session value: ${price}`,

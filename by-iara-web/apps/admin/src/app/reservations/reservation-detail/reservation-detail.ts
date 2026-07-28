@@ -163,7 +163,7 @@ export class ReservationDetail implements OnInit {
     reference: ['', [Validators.maxLength(255)]],
   });
   protected readonly completionDiscountForm = this.fb.nonNullable.group({
-    includeDiscount: [true],
+    includeDiscount: [false],
     value: ['10', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
     validityDays: ['30', [Validators.required, Validators.pattern(/^\d+$/)]],
     sameServiceOnly: [false],
@@ -387,14 +387,14 @@ export class ReservationDetail implements OnInit {
     this.paymentOpen.set(false);
     this.resetPaymentForm();
     this.paymentForm.controls.recordPayment.setValue((this.paymentSummary()?.balanceDueCents ?? 0) > 0);
-    this.completionDiscountForm.reset({ includeDiscount: true, value: '10', validityDays: '30', sameServiceOnly: false });
+    this.completionDiscountForm.reset({ includeDiscount: false, value: '10', validityDays: '30', sameServiceOnly: false });
     this.selectedDiscountType.set('PERCENTAGE');
   }
 
   protected closeCompletionForm(): void {
     this.completionOpen.set(false);
     this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
-    this.completionDiscountForm.reset({ includeDiscount: true, value: '10', validityDays: '30', sameServiceOnly: false });
+    this.completionDiscountForm.reset({ includeDiscount: false, value: '10', validityDays: '30', sameServiceOnly: false });
   }
 
   protected completionRecordsPayment(): boolean {

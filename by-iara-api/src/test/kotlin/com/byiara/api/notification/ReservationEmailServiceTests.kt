@@ -248,13 +248,14 @@ class ReservationEmailServiceTests {
     fun `completion email includes configured Google review link`() {
         val reviewUrl = "https://g.page/r/example/review"
         val content = EmailCopy.reservationCompleted(
-            reservation(ReservationStatus.COMPLETED, ReservationLocale.EN),
+            reservation(ReservationStatus.COMPLETED, ReservationLocale.PT),
             reviewUrl,
         )
 
         assertTrue(content.body.contains(reviewUrl))
+        assertTrue(content.body.contains("ajudar-nos a crescer"))
         assertTrue(content.htmlBody!!.contains(reviewUrl))
-        assertTrue(content.htmlBody.contains("Leave a Google review"))
+        assertTrue(content.htmlBody.contains("Ajudar a Iara Gouveia a crescer"))
     }
 
     @Test
@@ -264,8 +265,8 @@ class ReservationEmailServiceTests {
             "",
         )
 
-        assertTrue(content.subject.contains("Obrigada"))
-        assertTrue(!content.htmlBody!!.contains("avaliação no Google"))
+        assertTrue(content.subject.contains("Ajude-nos a crescer"))
+        assertTrue(!content.htmlBody!!.contains("experiência no Google"))
     }
 
     @Test
@@ -302,7 +303,7 @@ class ReservationEmailServiceTests {
         assertTrue(content.body.contains(reviewUrl))
         assertTrue(content.htmlBody!!.contains(code))
         assertTrue(content.htmlBody.contains("15%"))
-        assertTrue(content.htmlBody.contains("Leave a Google review"))
+        assertTrue(content.htmlBody.contains("Help Iara Gouveia grow"))
         assertTrue(content.htmlBody.contains("Iara Gouveia"))
         assertTrue(!content.htmlBody.contains("By Iara"))
     }

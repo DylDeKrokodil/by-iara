@@ -26,8 +26,8 @@ export const SEO_MESSAGES: Record<
         'Massagens terapêuticas e relaxantes em Almada, num estúdio tranquilo com atendimento individual e marcação online.',
     },
     services: {
-      title: `Massagens e tratamentos em Almada | ${BRAND.name}`,
-      description: `Conheça os tratamentos, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
+      title: `Massagens em Almada | ${BRAND.name}`,
+      description: `Conheça as massagens, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
     },
     packs: {
       title: `Packs de massagem em Almada | ${BRAND.name}`,
@@ -65,8 +65,8 @@ export const SEO_MESSAGES: Record<
         'Therapeutic and relaxing massage in Almada, in a calm private studio with individual care and online booking.',
     },
     services: {
-      title: `Massage treatments in Almada | ${BRAND.name}`,
-      description: `Explore the treatments, durations, and prices available at the ${BRAND.name} studio in Almada.`,
+      title: `Massages in Almada | ${BRAND.name}`,
+      description: `Explore the massages, durations, and prices available at the ${BRAND.name} studio in Almada.`,
     },
     packs: {
       title: `Massage session packs in Almada | ${BRAND.name}`,
