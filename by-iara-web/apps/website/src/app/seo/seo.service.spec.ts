@@ -69,6 +69,20 @@ describe('SeoService', () => {
     });
   });
 
+  it('uses massage-specific metadata for the catalog page', () => {
+    const document = TestBed.inject(DOCUMENT);
+
+    TestBed.inject(SeoService).updateStaticRoute('/pt/servicos');
+
+    expect(document.title).toBe('Massagens em Almada | Iara Gouveia');
+    expect(
+      document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
+        ?.content,
+    ).toBe(
+      'Conheça as massagens, durações e preços disponíveis no estúdio Iara Gouveia em Almada.',
+    );
+  });
+
   it('uses the explicit route locale for service metadata during SSR initialization', () => {
     const document = TestBed.inject(DOCUMENT);
 
@@ -115,7 +129,7 @@ describe('SeoService', () => {
     expect(structuredData['@graph']?.[1]).toMatchObject({
       itemListElement: [
         expect.objectContaining({ name: 'Home' }),
-        expect.objectContaining({ name: 'Services' }),
+        expect.objectContaining({ name: 'Massages' }),
         expect.objectContaining({ name: 'Relaxation massage' }),
       ],
     });

@@ -233,61 +233,76 @@ object EmailCopy {
     ): EmailContent {
         val portuguese = reservation.locale == ReservationLocale.PT
         val reviewText = googleReviewUrl.takeIf(String::isNotBlank)?.let {
-            if (portuguese) "\n\nPartilhe a sua experiência: $it" else "\n\nShare your experience: $it"
+            if (portuguese) {
+                "\n\nSe gostou da sua visita, pode ajudar-nos a crescer partilhando a sua experiência no Google. " +
+                    "O seu apoio faz uma grande diferença para o nosso pequeno negócio e ajuda mais pessoas a conhecer o nosso trabalho." +
+                    "\n\nAjudar a Iara Gouveia a crescer: $it"
+            } else {
+                "\n\nIf you enjoyed your visit, you can help us grow by sharing your experience on Google. " +
+                    "Your support makes a real difference to our small business and helps more people discover our work." +
+                    "\n\nHelp Iara Gouveia grow: $it"
+            }
         }.orEmpty()
         val reviewHtml = googleReviewUrl.takeIf(String::isNotBlank)?.let {
-            ctaButton(
-                if (portuguese) "Deixar uma avaliação no Google" else "Leave a Google review",
-                it,
-            )
+            val message = if (portuguese) {
+                "Se gostou da sua visita, pode ajudar-nos a crescer partilhando a sua experiência no Google. O seu apoio faz uma grande diferença para o nosso pequeno negócio e ajuda mais pessoas a conhecer o nosso trabalho."
+            } else {
+                "If you enjoyed your visit, you can help us grow by sharing your experience on Google. Your support makes a real difference to our small business and helps more people discover our work."
+            }
+            """
+                <p style="$paragraphStyle">$message</p>
+                ${ctaButton(if (portuguese) "Ajudar a Iara Gouveia a crescer" else "Help Iara Gouveia grow", it)}
+            """.trimIndent()
         }.orEmpty()
         val discountSection = personalDiscount?.let { completionDiscountSection(it, portuguese, websiteUrl) }
         return when (reservation.locale) {
             ReservationLocale.PT -> EmailContent(
-                subject = "Obrigada pela sua visita à Iara Gouveia",
+                subject = "Ajude-nos a crescer",
                 body = """
                     Olá ${reservation.customer.name},
 
                     Obrigada por escolher a Iara Gouveia para a sua sessão de ${reservation.serviceName}.
 
-                    Esperamos que tenha gostado da experiência. A sua opinião ajuda outras pessoas a conhecer o nosso trabalho.${discountSection?.first.orEmpty()}$reviewText
+                    Esperamos que tenha desfrutado da experiência.$reviewText${discountSection?.first.orEmpty()}
 
-                    Até breve,
+                    Com carinho,
                     Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "pt",
-                    title = "Obrigada pela sua visita",
+                    title = "Ajude-nos a crescer",
                     bodyHtml = """
-                        <h1 style="$headingStyle">Obrigada pela sua visita</h1>
+                        <h1 style="$headingStyle">Ajude-nos a crescer</h1>
                         <p style="$paragraphStyle">Olá ${escapeHtml(reservation.customer.name)}, obrigada por escolher a Iara Gouveia para a sua sessão de <strong>${escapeHtml(reservation.serviceName)}</strong>.</p>
-                        <p style="$paragraphStyle">Esperamos que tenha gostado da experiência. A sua opinião ajuda outras pessoas a conhecer o nosso trabalho.</p>
-                        ${discountSection?.second.orEmpty()}
+                        <p style="$paragraphStyle">Esperamos que tenha desfrutado da experiência.</p>
                         $reviewHtml
+                        ${discountSection?.second.orEmpty()}
+                        <p style="$paragraphStyle; margin:0;">Com carinho,<br><strong>Iara Gouveia</strong></p>
                     """.trimIndent(),
                 ),
             )
             ReservationLocale.EN -> EmailContent(
-                subject = "Thank you for visiting Iara Gouveia",
+                subject = "Help us grow",
                 body = """
                     Hi ${reservation.customer.name},
 
                     Thank you for choosing Iara Gouveia for your ${reservation.serviceName} session.
 
-                    We hope you enjoyed your experience. Your feedback helps others discover our work.${discountSection?.first.orEmpty()}$reviewText
+                    We hope you enjoyed your experience.$reviewText${discountSection?.first.orEmpty()}
 
-                    See you again soon,
+                    With care,
                     Iara Gouveia
                 """.trimIndent(),
                 htmlBody = htmlDocument(
                     lang = "en",
-                    title = "Thank you for your visit",
+                    title = "Help us grow",
                     bodyHtml = """
-                        <h1 style="$headingStyle">Thank you for your visit</h1>
+                        <h1 style="$headingStyle">Help us grow</h1>
                         <p style="$paragraphStyle">Hi ${escapeHtml(reservation.customer.name)}, thank you for choosing Iara Gouveia for your <strong>${escapeHtml(reservation.serviceName)}</strong> session.</p>
-                        <p style="$paragraphStyle">We hope you enjoyed your experience. Your feedback helps others discover our work.</p>
-                        ${discountSection?.second.orEmpty()}
+                        <p style="$paragraphStyle">We hope you enjoyed your experience.</p>
                         $reviewHtml
+                        ${discountSection?.second.orEmpty()}
+                        <p style="$paragraphStyle; margin:0;">With care,<br><strong>Iara Gouveia</strong></p>
                     """.trimIndent(),
                 ),
             )
