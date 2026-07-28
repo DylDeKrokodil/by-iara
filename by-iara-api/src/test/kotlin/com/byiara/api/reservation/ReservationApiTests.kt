@@ -73,6 +73,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists email_logs")
         dsl.execute("drop table if exists customer_anonymization_events")
         dsl.execute("drop table if exists calendar_feed_tokens")
+        dsl.execute("drop table if exists reservation_reschedules")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")
@@ -404,6 +405,19 @@ class ReservationApiTests {
         )
         dsl.execute(
             """
+            create table reservation_reschedules (
+                id uuid default random_uuid() primary key,
+                reservation_id uuid not null references reservations(id) on delete cascade,
+                previous_starts_at timestamp with time zone not null,
+                previous_ends_at timestamp with time zone not null,
+                new_starts_at timestamp with time zone not null,
+                new_ends_at timestamp with time zone not null,
+                created_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
             create table customer_anonymization_events (
                 id uuid default random_uuid() primary key,
                 customer_id uuid not null unique references customers(id),
@@ -448,6 +462,12 @@ class ReservationApiTests {
                 """{"reasonCode":"SCHEDULE_CHANGE","message":"We need to change our schedule."}""",
             )
 
+    private fun rescheduleRequest(id: String, startsAt: OffsetDateTime) =
+        patch("/api/admin/reservations/$id/reschedule")
+            .with(adminJwt())
+            .contentType("application/json")
+            .content("""{"startsAt":"${iso(startsAt)}"}""")
+
     private fun iso(time: OffsetDateTime): String = time.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
     private fun bookingBody(start: OffsetDateTime, email: String = "ana@example.com"): String =
@@ -486,11 +506,11 @@ class ReservationApiTests {
     @Test
     fun `booking email is limited to five requests per minute`() {
         repeat(5) { index ->
-            book(slotStart.plusHours(index.toLong()), email = "limited@example.com")
+            book(slotStart.plusMinutes(index * 75L), email = "limited@example.com")
                 .andExpect(status().isCreated)
         }
 
-        book(slotStart.plusHours(5), email = "limited@example.com")
+        book(slotStart.plusMinutes(5 * 75L), email = "limited@example.com")
             .andExpect(status().isTooManyRequests)
             .andExpect(jsonPath("$.message").value("Too many requests. Try again later"))
             .andExpect { result ->
@@ -713,6 +733,18 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `booking requires a fifteen minute buffer before and after active reservations`() {
+        book(slotStart, email = "center@example.com").andExpect(status().isCreated)
+
+        book(slotStart.minusHours(1), email = "before@example.com")
+            .andExpect(status().isConflict)
+        book(slotStart.plusHours(1), email = "after@example.com")
+            .andExpect(status().isConflict)
+        book(slotStart.plusMinutes(75), email = "buffered@example.com")
+            .andExpect(status().isCreated)
+    }
+
+    @Test
     fun `public bookable availability excludes active reservations`() {
         book(slotStart, email = "first@example.com").andExpect(status().isCreated)
 
@@ -727,8 +759,9 @@ class ReservationApiTests {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$", not(hasItem(iso(slotStart)))))
-            .andExpect(jsonPath("$", hasItem(iso(slotStart.minusHours(1)))))
-            .andExpect(jsonPath("$", hasItem(iso(slotStart.plusHours(1)))))
+            .andExpect(jsonPath("$", not(hasItem(iso(slotStart.minusHours(1))))))
+            .andExpect(jsonPath("$", not(hasItem(iso(slotStart.plusHours(1))))))
+            .andExpect(jsonPath("$", hasItem(iso(slotStart.plusMinutes(75)))))
     }
 
     @Test
@@ -794,6 +827,68 @@ class ReservationApiTests {
         mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("CONFIRMED"))
+    }
+
+    @Test
+    fun `admin can reschedule a pending reservation and customer is notified`() {
+        val id = reservationIdFrom(book(slotStart, "reschedule@example.com").andExpect(status().isCreated).andReturn())
+        val newStart = slotStart.plusHours(2)
+
+        mockMvc.perform(rescheduleRequest(id, newStart))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("PENDING"))
+            .andExpect(jsonPath("$.startsAt").value(newStart.toInstant().toString()))
+            .andExpect(jsonPath("$.endsAt").value(newStart.plusHours(1).toInstant().toString()))
+
+        val history = dsl.fetchOne(
+            "select previous_starts_at, new_starts_at from reservation_reschedules where reservation_id = ?",
+            UUID.fromString(id),
+        )!!
+        assertEquals(slotStart.toInstant(), history.get("previous_starts_at", OffsetDateTime::class.java).toInstant())
+        assertEquals(newStart.toInstant(), history.get("new_starts_at", OffsetDateTime::class.java).toInstant())
+
+        val log = dsl.fetchOne(
+            "select recipient, status from email_logs where email_type = 'RESERVATION_RESCHEDULED'",
+        )!!
+        assertEquals("reschedule@example.com", log.get("recipient", String::class.java))
+        assertEquals("SENT", log.get("status", String::class.java))
+    }
+
+    @Test
+    fun `admin reschedule availability includes the reservations current slot but excludes other bookings`() {
+        val id = reservationIdFrom(book(slotStart, "moving@example.com").andExpect(status().isCreated).andReturn())
+        book(slotStart.plusHours(2), "occupied@example.com").andExpect(status().isCreated)
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+
+        mockMvc.perform(
+            get("/api/admin/reservations/$id/availability")
+                .with(adminJwt())
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$", hasItem(iso(slotStart))))
+            .andExpect(jsonPath("$", not(hasItem(iso(slotStart.plusHours(2))))))
+    }
+
+    @Test
+    fun `admin cannot reschedule over another active reservation`() {
+        val id = reservationIdFrom(book(slotStart, "moving@example.com").andExpect(status().isCreated).andReturn())
+        book(slotStart.plusHours(2), "occupied@example.com").andExpect(status().isCreated)
+
+        mockMvc.perform(rescheduleRequest(id, slotStart.plusHours(2)))
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("The requested time slot is already booked"))
+    }
+
+    @Test
+    fun `admin cannot reschedule directly adjacent to another active reservation`() {
+        val id = reservationIdFrom(book(slotStart, "moving@example.com").andExpect(status().isCreated).andReturn())
+        book(slotStart.plusHours(2), "occupied@example.com").andExpect(status().isCreated)
+
+        mockMvc.perform(rescheduleRequest(id, slotStart.plusHours(1)))
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("The requested time slot is already booked"))
     }
 
     @Test

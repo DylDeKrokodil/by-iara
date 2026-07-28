@@ -6,6 +6,7 @@ import {
   BUSINESS_DETAILS,
   getBookingRetentionLabel,
   getLegalFormLabel,
+  getWhatsAppHref,
   isBusinessDetailMissing,
   REQUIRED_LEGAL_DETAIL_KEYS,
 } from './business-details';
@@ -16,6 +17,7 @@ interface DetailRow {
   readonly value: string;
   readonly missing: boolean;
   readonly href?: string;
+  readonly opensNewWindow?: boolean;
 }
 
 @Component({
@@ -96,10 +98,11 @@ export class LegalPage {
         this.mailto(BUSINESS_DETAILS.privacyEmail),
       ),
       this.row(
-        portuguese ? 'Telefone' : 'Telephone',
+        'WhatsApp',
         BUSINESS_DETAILS.phone,
         missingValue,
-        this.tel(BUSINESS_DETAILS.phone),
+        getWhatsAppHref(BUSINESS_DETAILS.phone),
+        true,
       ),
     ];
 
@@ -169,6 +172,7 @@ export class LegalPage {
     value: string,
     missingValue: string,
     href?: string,
+    opensNewWindow = false,
   ): DetailRow {
     const missing = value.trim().length === 0;
     return {
@@ -176,15 +180,12 @@ export class LegalPage {
       value: missing ? missingValue : value,
       missing,
       href: missing ? undefined : href,
+      opensNewWindow,
     };
   }
 
   private mailto(value: string): string | undefined {
     return value ? `mailto:${value}` : undefined;
-  }
-
-  private tel(value: string): string | undefined {
-    return value ? `tel:${value.replace(/\s/g, '')}` : undefined;
   }
 
   private formatEuros(cents: number): string {

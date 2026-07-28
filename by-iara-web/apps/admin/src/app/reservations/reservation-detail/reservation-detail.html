@@ -12,12 +12,12 @@
   <byiara-empty-state title="Loading reservation..." [dashed]="false"></byiara-empty-state>
 } @else if (reservation(); as item) {
   <div class="detail-layout">
-    <main class="detail-main">
+    <div class="detail-main">
       <section aria-labelledby="booking-heading">
         <div class="section-heading">
           <div>
             <h2 id="booking-heading">Booking details</h2>
-            <p>The request exactly as the customer submitted it.</p>
+            <p>The customer’s current appointment date, service, and booking details.</p>
           </div>
           <byiara-status-chip [label]="statusLabel()" [tone]="statusTone()"></byiara-status-chip>
         </div>
@@ -117,13 +117,15 @@
           </byiara-card>
         </section>
       }
-    </main>
+    </div>
 
     <section class="decision-panel" aria-labelledby="action-heading">
       <div class="decision-intro">
         <div>
           <h2 id="action-heading">Next step</h2>
-          @if (item.status === 'PENDING') {
+          @if (rescheduleOpen()) {
+            <p>Choose a new date and time for this booking.</p>
+          } @else if (item.status === 'PENDING') {
             <p>Confirm this appointment or explain why the request cannot be accommodated. The customer will be emailed immediately.</p>
           } @else if (item.status === 'CONFIRMED') {
             @if (canCloseOut()) {
@@ -138,48 +140,120 @@
           }
         </div>
 
-        @if (item.status === 'PENDING' && !declineOpen()) {
+        @if (item.status === 'PENDING' && !declineOpen() && !rescheduleOpen()) {
           <div class="decision-actions decision-actions-inline">
             <byiara-button variant="primary" [disabled]="submitting()" (click)="openAcceptConfirmation()">
-              Accept and notify customer
+              Accept booking
             </byiara-button>
-            <byiara-button variant="secondary" [disabled]="submitting()" (click)="openDeclineForm()">
-              Decline with a reason
+            <byiara-button variant="secondary" [disabled]="submitting()" (click)="openRescheduleForm()">
+              Change date or time
             </byiara-button>
+            <details class="more-actions">
+              <summary>More actions</summary>
+              <div class="more-actions-body">
+                <byiara-button variant="ghost" [disabled]="submitting()" (click)="openDeclineForm()">
+                  Decline booking
+                </byiara-button>
+              </div>
+            </details>
           </div>
-        } @else if (item.status === 'CONFIRMED' && !cancellationOpen() && !completionOpen() && !paymentOpen()) {
+        } @else if (item.status === 'CONFIRMED' && !cancellationOpen() && !completionOpen() && !paymentOpen() && !rescheduleOpen()) {
           <div class="decision-actions decision-actions-inline">
             @if (canCloseOut()) {
-            <byiara-button variant="primary" [disabled]="submitting()" (click)="openCompletionForm()">
-              Mark completed
-            </byiara-button>
-            }
-            @if (canMarkNoShow()) {
-            <byiara-button variant="secondary" [disabled]="submitting()" (click)="openNoShowConfirmation()">
-              Mark as no-show
-            </byiara-button>
+              <byiara-button variant="primary" [disabled]="submitting()" (click)="openCompletionForm()">
+                Mark completed
+              </byiara-button>
+            } @else {
+              <byiara-button variant="primary" [disabled]="submitting()" (click)="openRescheduleForm()">
+                Change date or time
+              </byiara-button>
             }
             @if ((paymentSummary()?.balanceDueCents ?? 0) > 0) {
-            <byiara-button variant="secondary" [disabled]="submitting()" (click)="openPaymentForm()">
-              Record payment
-            </byiara-button>
+              <byiara-button variant="secondary" [disabled]="submitting()" (click)="openPaymentForm()">
+                Record payment
+              </byiara-button>
             }
-            <byiara-button variant="danger" [disabled]="submitting()" (click)="openCancellationForm()">
-              Cancel reservation
-            </byiara-button>
-            <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
+            <details class="more-actions">
+              <summary>More actions</summary>
+              <div class="more-actions-body">
+                @if (canCloseOut()) {
+                  <byiara-button variant="secondary" [disabled]="submitting()" (click)="openRescheduleForm()">
+                    Change date or time
+                  </byiara-button>
+                }
+                @if (canMarkNoShow()) {
+                  <byiara-button variant="secondary" [disabled]="submitting()" (click)="openNoShowConfirmation()">
+                    Mark as no-show
+                  </byiara-button>
+                }
+                <byiara-button variant="ghost" [disabled]="submitting()" (click)="openCancellationForm()">
+                  Cancel booking
+                </byiara-button>
+              </div>
+            </details>
           </div>
         } @else if (item.status === 'COMPLETED' && (paymentSummary()?.balanceDueCents ?? 0) > 0 && !paymentOpen()) {
           <div class="decision-actions decision-actions-inline">
             <byiara-button variant="primary" [disabled]="submitting()" (click)="openPaymentForm()">Record payment</byiara-button>
-            <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
           </div>
-        } @else if (item.status !== 'PENDING' && item.status !== 'CONFIRMED' && !paymentOpen()) {
-          <byiara-button variant="secondary" routerLink="/reservations">Return to reservations</byiara-button>
         }
       </div>
 
-      @if (item.status === 'CONFIRMED' && completionOpen()) {
+      @if ((item.status === 'PENDING' || item.status === 'CONFIRMED') && rescheduleOpen()) {
+        <form class="decline-form" [formGroup]="rescheduleForm" (ngSubmit)="submitReschedule()" novalidate>
+          <div class="decline-fields">
+            <byiara-text-field
+              label="New date"
+              type="date"
+              required
+              formControlName="date"
+              [error]="rescheduleForm.controls.date.touched && rescheduleForm.controls.date.invalid ? 'Choose a date.' : null"
+            ></byiara-text-field>
+            @if (rescheduleSlotsLoading()) {
+              <div class="time-picker-loading" role="status">
+                <span class="time-picker-label">Available times</span>
+                <span class="visually-hidden">Finding available times</span>
+                <div class="time-picker-skeletons" aria-hidden="true">
+                  @for (placeholder of [1, 2, 3, 4, 5, 6]; track placeholder) {
+                    <byiara-skeleton variant="block" height="3rem"></byiara-skeleton>
+                  }
+                </div>
+              </div>
+            } @else if (rescheduleSlotOptions().length > 0) {
+              <fieldset class="time-picker">
+                <legend>Available times</legend>
+                <div class="time-slot-grid" role="radiogroup" aria-label="Available times">
+                  @for (option of rescheduleSlotOptions(); track option.value) {
+                    <button
+                      byiara-selectable-tile
+                      shape="rect"
+                      class="time-slot"
+                      [selected]="option.value === selectedRescheduleStart()"
+                      (click)="setRescheduleStart(option.value)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  }
+                </div>
+              </fieldset>
+            } @else if (!rescheduleSlotsLoading() && !rescheduleSlotsError()) {
+              <p class="time-picker-empty" role="status">No other times are available on this date. Try another day.</p>
+            }
+            @if (rescheduleSlotsError()) {
+              <p class="reschedule-error" role="alert">{{ rescheduleSlotsError() }}</p>
+            }
+          </div>
+          <p class="form-note">
+            The customer will receive the new date and time by email.
+          </p>
+          <div class="decision-actions decision-actions-inline">
+            <byiara-button type="submit" variant="primary" [loading]="submitting()" [disabled]="!selectedRescheduleStart()">
+              {{ submitting() ? 'Rescheduling...' : 'Reschedule and notify customer' }}
+            </byiara-button>
+            <byiara-button type="button" variant="secondary" [disabled]="submitting()" (click)="closeRescheduleForm()">Cancel</byiara-button>
+          </div>
+        </form>
+      } @else if (item.status === 'CONFIRMED' && completionOpen()) {
         <form class="decline-form" [formGroup]="paymentForm" (ngSubmit)="submitCompletion()" novalidate>
           <div class="decline-fields">
             <byiara-checkbox label="Record payment at the same time" formControlName="recordPayment"></byiara-checkbox>

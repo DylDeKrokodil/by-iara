@@ -1,13 +1,81 @@
-<main class="public-shell">
+<div class="public-shell">
   <div class="booking-container">
     <a class="text-link" [routerLink]="language.localizedLink()">
       &larr; {{ copy().back }}
     </a>
 
-    @if (loading()) {
-    <div class="public-status">
-      <div class="spinner" aria-hidden="true"></div>
-      <span>{{ copy().loading }}</span>
+    @if (!confirmation()) {
+    <header #bookingStepTop class="booking-header">
+      <p class="eyebrow">{{ copy().eyebrow }}</p>
+      <h1>{{ copy().pageTitle }}</h1>
+    </header>
+    } @if (loading()) {
+    <div class="booking-loading step-panel" aria-busy="true">
+      <byiara-skeleton
+        class="booking-stepper-skeleton"
+        variant="block"
+        width="100%"
+        height="3.75rem"
+      ></byiara-skeleton>
+
+      <div class="booking-flow">
+        <section class="step-panel public-panel" aria-hidden="true">
+          <div class="booking-section">
+            <byiara-skeleton width="7rem" height="0.75rem"></byiara-skeleton>
+            <byiara-skeleton
+              variant="block"
+              width="100%"
+              height="2.5rem"
+            ></byiara-skeleton>
+          </div>
+
+          <div class="booking-section">
+            <byiara-skeleton width="8rem" height="1.25rem"></byiara-skeleton>
+            <div class="option-grid">
+              <byiara-skeleton
+                variant="block"
+                width="6.5rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="7.5rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="6rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+            </div>
+          </div>
+
+          <div class="booking-section">
+            <byiara-skeleton width="11rem" height="1.25rem"></byiara-skeleton>
+            <div class="purchase-options">
+              <byiara-skeleton
+                variant="block"
+                width="100%"
+                height="4.5rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="100%"
+                height="4.5rem"
+              ></byiara-skeleton>
+            </div>
+          </div>
+        </section>
+
+        <aside class="booking-summary public-panel" aria-hidden="true">
+          <byiara-skeleton width="7rem" height="1.25rem"></byiara-skeleton>
+          <byiara-skeleton width="100%" height="0.875rem"></byiara-skeleton>
+          <byiara-skeleton width="82%" height="0.875rem"></byiara-skeleton>
+          <byiara-skeleton width="68%" height="0.875rem"></byiara-skeleton>
+        </aside>
+      </div>
+
+      <p class="visually-hidden" role="status">{{ copy().loading }}</p>
     </div>
     } @else if (loadError()) {
     <div class="public-status error">
@@ -44,11 +112,6 @@
     </section>
     } @else {
     <!-- Booking flow -->
-    <header #bookingStepTop class="booking-header">
-      <p class="eyebrow">{{ copy().eyebrow }}</p>
-      <h1>{{ copy().pageTitle }}</h1>
-    </header>
-
     <byiara-stepper
       [steps]="steps()"
       [current]="currentStep()"
@@ -198,14 +261,8 @@
             </div>
           </div>
 
-          <div
-            class="booking-section time-choices-section"
-            aria-hidden="true"
-          >
-            <byiara-skeleton
-              width="8rem"
-              height="1.25rem"
-            ></byiara-skeleton>
+          <div class="booking-section time-choices-section" aria-hidden="true">
+            <byiara-skeleton width="8rem" height="1.25rem"></byiara-skeleton>
             @for (group of calendarSkeletonSlotGroups; track group) {
             <div class="slot-group">
               <byiara-skeleton
@@ -294,8 +351,12 @@
               </div>
               <div class="calendar-empty-contact">
                 <a [href]="contact.emailHref">{{ copy().contactByEmail }}</a>
-                <a [href]="contact.phoneHref">
-                  {{ copy().contactByPhone(contact.phone) }}
+                <a
+                  [href]="contact.whatsAppHref"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ copy().contactByWhatsApp(contact.phone) }}
                 </a>
               </div>
             </byiara-empty-state>
@@ -509,28 +570,55 @@
         </div>
 
         @if (!selectedPackOfferId() && !selectedCustomerPackId()) {
-        <section class="discount-entry" aria-labelledby="discount-title" [formGroup]="form">
+        <section
+          class="discount-entry"
+          aria-labelledby="discount-title"
+          [formGroup]="form"
+        >
           <div>
             <h2 id="discount-title">{{ copy().discountCode }}</h2>
             <p>{{ copy().discountHelp }}</p>
           </div>
           @if (discountQuote(); as quote) {
-            <div class="discount-applied" role="status">
-              <div>
-                <strong>{{ copy().discountApplied }}</strong>
-                <span>{{ copy().originalPrice }} {{ formatPrice(quote.originalPrice.amountCents) }} · {{ copy().discount }} −{{ formatPrice(quote.discountAmount.amountCents) }} · {{ copy().totalPrice }} {{ formatPrice(quote.finalPrice.amountCents) }}</span>
-              </div>
-              <button type="button" class="text-button" (click)="removeDiscount()">{{ copy().removeDiscount }}</button>
+          <div class="discount-applied" role="status">
+            <div>
+              <strong>{{ copy().discountApplied }}</strong>
+              <span
+                >{{ copy().originalPrice }} {{
+                formatPrice(quote.originalPrice.amountCents) }} · {{
+                copy().discount }} −{{
+                formatPrice(quote.discountAmount.amountCents) }} · {{
+                copy().totalPrice }} {{
+                formatPrice(quote.finalPrice.amountCents) }}</span
+              >
             </div>
+            <button
+              type="button"
+              class="text-button"
+              (click)="removeDiscount()"
+            >
+              {{ copy().removeDiscount }}
+            </button>
+          </div>
           } @else {
-            <div class="discount-controls">
-              <byiara-text-field [label]="copy().discountCode" formControlName="discountCode"></byiara-text-field>
-              <button type="button" class="button button-secondary" [disabled]="discountApplying()" (click)="applyDiscount()">
-                {{ discountApplying() ? copy().applyingDiscount : copy().applyDiscount }}
-              </button>
-            </div>
+          <div class="discount-controls">
+            <byiara-text-field
+              [label]="copy().discountCode"
+              formControlName="discountCode"
+            ></byiara-text-field>
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="discountApplying()"
+              (click)="applyDiscount()"
+            >
+              {{ discountApplying() ? copy().applyingDiscount :
+              copy().applyDiscount }}
+            </button>
+          </div>
+          } @if (discountError()) {
+          <p class="field-error" role="alert">{{ discountError() }}</p>
           }
-          @if (discountError()) { <p class="field-error" role="alert">{{ discountError() }}</p> }
         </section>
         }
 
@@ -612,4 +700,4 @@
     </footer>
     }
   </div>
-</main>
+</div>

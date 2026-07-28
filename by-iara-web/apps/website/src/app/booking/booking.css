@@ -118,7 +118,7 @@
 }
 
 .discount-applied span {
-  margin-top: .15rem;
+  margin-top: 0.15rem;
   font-size: var(--byiara-font-size-sm);
 }
 
@@ -457,8 +457,8 @@
     gap: var(--byiara-space-xs);
     width: calc(100% + 2 * var(--byiara-space-md));
     margin-inline: calc(-1 * var(--byiara-space-md));
-    padding: var(--byiara-space-2xs) calc(100% - 5rem)
-      var(--byiara-space-sm) var(--byiara-space-md);
+    padding: var(--byiara-space-2xs) calc(100% - 5rem) var(--byiara-space-sm)
+      var(--byiara-space-md);
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;

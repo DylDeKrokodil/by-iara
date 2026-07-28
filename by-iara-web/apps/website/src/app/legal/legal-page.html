@@ -61,7 +61,14 @@
             <dt>{{ row.label }}</dt>
             <dd [class.is-missing]="row.missing">
               @if (row.href) {
-              <a [href]="row.href">{{ row.value }}</a>
+              <a
+                [href]="row.href"
+                [attr.target]="row.opensNewWindow ? '_blank' : null"
+                [attr.rel]="
+                  row.opensNewWindow ? 'noopener noreferrer' : null
+                "
+                >{{ row.value }}</a
+              >
               } @else { {{ row.value }} }
             </dd>
           </div>

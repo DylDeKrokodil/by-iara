@@ -68,6 +68,10 @@ export interface CancelReservationInput {
   message: string;
 }
 
+export interface RescheduleReservationInput {
+  startsAt: string;
+}
+
 export const paymentMethods = ['CASH', 'CARD', 'BANK_TRANSFER', 'OTHER'] as const;
 export type PaymentMethod = (typeof paymentMethods)[number];
 export type PaymentState = 'UNPAID' | 'PARTIALLY_PAID' | 'PAID';

@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import {
   Alert,
@@ -13,6 +14,8 @@ import {
   PageHeader,
   SelectField,
   SelectFieldOption,
+  SelectableTile,
+  Skeleton,
   StatusChip,
   TextField,
   ToastService,
@@ -104,6 +107,8 @@ const cancellationMessages: Record<'en' | 'pt', Record<CancellationReasonCode, s
     EmptyState,
     PageHeader,
     SelectField,
+    SelectableTile,
+    Skeleton,
     StatusChip,
     TextField,
   ],
@@ -115,6 +120,8 @@ export class ReservationDetail implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
+  private rescheduleSlotsRequestId = 0;
 
   protected readonly reservation = signal<ReservationResponse | null>(null);
   protected readonly loading = signal(true);
@@ -122,6 +129,11 @@ export class ReservationDetail implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly declineOpen = signal(false);
   protected readonly cancellationOpen = signal(false);
+  protected readonly rescheduleOpen = signal(false);
+  protected readonly rescheduleSlotsLoading = signal(false);
+  protected readonly rescheduleSlotsError = signal<string | null>(null);
+  protected readonly rescheduleSlotOptions = signal<ReadonlyArray<SelectFieldOption>>([]);
+  protected readonly selectedRescheduleStart = signal('');
   protected readonly completionOpen = signal(false);
   protected readonly paymentOpen = signal(false);
   protected readonly paymentSummary = signal<PaymentSummary | null>(null);
@@ -142,6 +154,9 @@ export class ReservationDetail implements OnInit {
   protected readonly cancellationForm = this.fb.nonNullable.group({
     message: ['', [Validators.required, Validators.maxLength(1000)]],
   });
+  protected readonly rescheduleForm = this.fb.nonNullable.group({
+    date: ['', Validators.required],
+  });
   protected readonly paymentForm = this.fb.nonNullable.group({
     recordPayment: [true],
     amount: ['', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
@@ -161,6 +176,15 @@ export class ReservationDetail implements OnInit {
   private confirmNoShowModal!: ConfirmationModal;
 
   ngOnInit(): void {
+    this.rescheduleForm.controls.date.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        if (!this.rescheduleOpen()) return;
+        this.rescheduleSlotsError.set(null);
+        this.rescheduleSlotOptions.set([]);
+        this.selectedRescheduleStart.set('');
+        this.loadRescheduleSlots();
+      });
     this.load();
   }
 
@@ -267,6 +291,84 @@ export class ReservationDetail implements OnInit {
         this.toast.show('Reservation cancelled and customer notified.', 'success');
       },
       error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not cancel the reservation.'),
+    });
+  }
+
+  protected openRescheduleForm(): void {
+    const reservation = this.reservation();
+    if (!reservation) return;
+
+    this.declineOpen.set(false);
+    this.cancellationOpen.set(false);
+    this.completionOpen.set(false);
+    this.paymentOpen.set(false);
+    this.rescheduleOpen.set(true);
+    this.rescheduleForm.controls.date.setValue(this.businessDateKey(reservation.startsAt));
+  }
+
+  protected closeRescheduleForm(): void {
+    this.rescheduleSlotsRequestId += 1;
+    this.rescheduleOpen.set(false);
+    this.rescheduleSlotsError.set(null);
+    this.rescheduleSlotOptions.set([]);
+    this.selectedRescheduleStart.set('');
+  }
+
+  protected loadRescheduleSlots(): void {
+    const reservation = this.reservation();
+    if (!reservation || this.rescheduleForm.invalid) {
+      this.rescheduleForm.markAllAsTouched();
+      return;
+    }
+
+    const requestId = ++this.rescheduleSlotsRequestId;
+    this.rescheduleSlotsLoading.set(true);
+    this.rescheduleSlotsError.set(null);
+    this.rescheduleSlotOptions.set([]);
+    this.selectedRescheduleStart.set('');
+    const date = this.rescheduleForm.getRawValue().date;
+
+    this.api.rescheduleAvailability(reservation.id, date).subscribe({
+      next: (slots) => {
+        if (requestId !== this.rescheduleSlotsRequestId) return;
+        const options = slots
+          .filter((startsAt) => new Date(startsAt).getTime() !== new Date(reservation.startsAt).getTime())
+          .map((startsAt) => ({
+            label: this.formatTime(startsAt),
+            value: startsAt,
+          }));
+        this.rescheduleSlotOptions.set(options);
+        this.selectedRescheduleStart.set(options[0]?.value ?? '');
+        this.rescheduleSlotsLoading.set(false);
+      },
+      error: () => {
+        if (requestId !== this.rescheduleSlotsRequestId) return;
+        this.rescheduleSlotsError.set('Could not load available times for this date.');
+        this.rescheduleSlotsLoading.set(false);
+      },
+    });
+  }
+
+  protected setRescheduleStart(value: string): void {
+    if (this.rescheduleSlotOptions().some((option) => option.value === value)) {
+      this.selectedRescheduleStart.set(value);
+    }
+  }
+
+  protected submitReschedule(): void {
+    const reservation = this.reservation();
+    const startsAt = this.selectedRescheduleStart();
+    if (!reservation || !startsAt || this.submitting()) return;
+
+    this.submitting.set(true);
+    this.api.reschedule(reservation.id, { startsAt }).subscribe({
+      next: (updated) => {
+        this.reservation.set(updated);
+        this.rescheduleOpen.set(false);
+        this.submitting.set(false);
+        this.toast.show('Reservation rescheduled and customer notified.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not reschedule the reservation.'),
     });
   }
 
@@ -446,6 +548,26 @@ export class ReservationDetail implements OnInit {
     }).format(new Date(value));
   }
 
+  private formatTime(value: string): string {
+    return new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/Brussels',
+    }).format(new Date(value));
+  }
+
+  private businessDateKey(value: string): string {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Europe/Brussels',
+    }).formatToParts(new Date(value));
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((item) => item.type === type)?.value ?? '';
+    return `${part('year')}-${part('month')}-${part('day')}`;
+  }
+
   private load(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
@@ -499,9 +621,11 @@ export class ReservationDetail implements OnInit {
   private handleActionError(error: HttpErrorResponse, fallback: string): void {
     this.submitting.set(false);
     const serverMessage = typeof error.error?.message === 'string' ? error.error.message : null;
-    const message = error.status === 409
-      ? 'This reservation was already updated. Refresh the page to see its latest status.'
-      : serverMessage ?? fallback;
+    const message = serverMessage ?? (
+      error.status === 409
+        ? 'This reservation was already updated. Refresh the page to see its latest status.'
+        : fallback
+    );
     this.error.set(message);
     this.toast.show(message, 'error');
   }

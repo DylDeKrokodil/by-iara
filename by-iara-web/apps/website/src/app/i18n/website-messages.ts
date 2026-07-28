@@ -114,6 +114,14 @@ export interface WebsiteMessages {
     readonly notFoundTitle: string;
     readonly notFoundText: string;
   };
+  readonly notFound: {
+    readonly code: string;
+    readonly title: string;
+    readonly text: string;
+    readonly homeAction: string;
+    readonly servicesAction: string;
+    readonly contactAction: string;
+  };
   readonly packs: {
     readonly eyebrow: string;
     readonly title: string;
@@ -186,7 +194,7 @@ export interface WebsiteMessages {
     readonly noAvailabilityInMonthHelp: string;
     readonly chooseAnotherTreatment: string;
     readonly contactByEmail: string;
-    readonly contactByPhone: (phone: string) => string;
+    readonly contactByWhatsApp: (phone: string) => string;
     readonly yourDetails: string;
     readonly name: string;
     readonly email: string;
@@ -261,7 +269,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         availability: 'Atendimento apenas por marcação',
         contact: 'Contacto',
         emailLabel: 'Email',
-        phoneLabel: 'Telemóvel',
+        phoneLabel: 'WhatsApp',
         social: 'Redes sociais',
         socialNavigationLabel: 'Redes sociais',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
@@ -375,6 +383,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       notFoundText:
         'Este serviço não está disponível neste idioma ou deixou de estar publicado.',
     },
+    notFound: {
+      code: 'Erro 404',
+      title: 'Página não encontrada',
+      text: 'Parece que o caminho que procura não está disponível. Deixe-nos guiá-lo de volta à tranquilidade.',
+      homeAction: 'Voltar ao início',
+      servicesAction: 'Ver tratamentos',
+      contactAction: 'Contactar',
+    },
     packs: {
       eyebrow: 'Continuidade e cuidado',
       title: 'Packs para fazer da pausa um hábito',
@@ -466,7 +482,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'Consulte o mês seguinte ou contacte a Iara diretamente.',
       chooseAnotherTreatment: 'Escolher outro tratamento',
       contactByEmail: 'Enviar email',
-      contactByPhone: (phone) => `Ligar para ${phone}`,
+      contactByWhatsApp: (phone) => `Enviar mensagem no WhatsApp para ${phone}`,
       yourDetails: 'Os seus dados',
       name: 'Nome',
       email: 'Email',
@@ -544,7 +560,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         availability: 'By appointment only',
         contact: 'Contact',
         emailLabel: 'Email',
-        phoneLabel: 'Mobile',
+        phoneLabel: 'WhatsApp',
         social: 'Social',
         socialNavigationLabel: 'Social media',
         bookingPrompt: 'Your moment of pause starts here.',
@@ -656,6 +672,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       notFoundText:
         'This service is unavailable in this language or is no longer published.',
     },
+    notFound: {
+      code: 'Error 404',
+      title: 'Page not found',
+      text: 'It seems the path you were looking for is unavailable. Let us guide you back to a calmer place.',
+      homeAction: 'Back to home',
+      servicesAction: 'View treatments',
+      contactAction: 'Contact us',
+    },
     packs: {
       eyebrow: 'Continuity and care',
       title: 'Packs that make pausing a habit',
@@ -746,7 +770,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'View the next month or contact Iara directly.',
       chooseAnotherTreatment: 'Choose another treatment',
       contactByEmail: 'Send an email',
-      contactByPhone: (phone) => `Call ${phone}`,
+      contactByWhatsApp: (phone) => `Message ${phone} on WhatsApp`,
       yourDetails: 'Your details',
       name: 'Name',
       email: 'Email',

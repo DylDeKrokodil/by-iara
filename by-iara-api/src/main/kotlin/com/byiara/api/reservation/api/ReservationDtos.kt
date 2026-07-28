@@ -158,6 +158,11 @@ data class CancelReservationRequest(
     val message: String?,
 )
 
+data class RescheduleReservationRequest(
+    @field:NotNull
+    val startsAt: OffsetDateTime?,
+)
+
 data class CompleteReservationRequest(
     @field:Valid
     val payment: RecordPaymentRequest? = null,

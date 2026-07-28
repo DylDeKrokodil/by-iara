@@ -12,6 +12,7 @@ import {
   ReservationAttentionPage,
   ReservationPayment,
   ReservationPayments,
+  RescheduleReservationInput,
 } from './reservation.models';
 
 @Injectable({ providedIn: 'root' })
@@ -80,6 +81,20 @@ export class ReservationsApi {
   cancel(id: string, input: CancelReservationInput): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/cancel`,
+      input,
+    );
+  }
+
+  rescheduleAvailability(id: string, date: string): Observable<string[]> {
+    const params = new HttpParams()
+      .set('startDate', date)
+      .set('endDate', date);
+    return this.http.get<string[]>(`${this.baseUrl}/${id}/availability`, { params });
+  }
+
+  reschedule(id: string, input: RescheduleReservationInput): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(
+      `${this.baseUrl}/${id}/reschedule`,
       input,
     );
   }

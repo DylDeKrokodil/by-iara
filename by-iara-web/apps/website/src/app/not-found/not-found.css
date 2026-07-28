@@ -1,27 +1,171 @@
-.empty-page {
-  display: grid;
-  gap: var(--byiara-space-md);
-  width: min(100%, 42rem);
-  margin-inline: auto;
-  padding-block: clamp(4rem, 12vw, 8rem);
-  text-align: center;
+:host {
+  display: block;
 }
 
-h1,
-p {
+.not-found {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: clamp(
+    34rem,
+    calc(100svh - var(--byiara-site-header-height)),
+    46rem
+  );
+  overflow: hidden;
+  background: var(--byiara-color-surface-tinted);
+}
+
+.not-found-image,
+.not-found-wash {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.not-found-image {
+  z-index: -2;
+  object-fit: cover;
+  object-position: center 46%;
+  filter: saturate(0.5) contrast(0.82);
+  transform: scale(1.02);
+}
+
+.not-found-wash {
+  z-index: -1;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--byiara-color-white) 76%, transparent),
+      color-mix(in srgb, var(--byiara-color-white) 89%, transparent)
+    ),
+    color-mix(in srgb, var(--byiara-color-rose-50) 34%, transparent);
+}
+
+.not-found-inner {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: min(100%, 52rem);
+  margin-inline: auto;
+  padding: clamp(3.5rem, 9vw, 7rem) clamp(1rem, 4vw, 2rem);
+}
+
+.not-found-code,
+.not-found-copy h1,
+.not-found-copy p {
   margin: 0;
 }
 
-h1 {
+.not-found-code {
+  color: var(--byiara-color-primary-strong);
   font-family: var(--byiara-font-family-display);
-  font-size: clamp(2.4rem, 1.8rem + 2.5vw, 4rem);
+  font-size: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
-p {
+.not-found-panel {
+  display: grid;
+  justify-items: center;
+  gap: clamp(2rem, 5vw, 3rem);
+  width: min(100%, 44rem);
+  padding: clamp(2.25rem, 6vw, 4.5rem) clamp(1.25rem, 6vw, 4rem);
+  border: 1px solid
+    color-mix(in srgb, var(--byiara-color-border) 72%, transparent);
+  border-radius: var(--byiara-radius-lg);
+  background: color-mix(in srgb, var(--byiara-color-surface) 94%, transparent);
+  text-align: center;
+}
+
+.not-found-copy {
+  display: grid;
+  justify-items: center;
+  gap: var(--byiara-space-md);
+}
+
+.not-found-copy h1 {
+  color: var(--byiara-color-text);
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2rem, 1.6rem + 1.8vw, 3rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  line-height: var(--byiara-line-height-display);
+  text-wrap: balance;
+}
+
+.not-found-copy p {
+  max-width: 52ch;
   color: var(--byiara-color-text-muted);
   line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
 }
 
-.text-link {
-  justify-self: center;
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--byiara-space-sm);
+}
+
+.not-found-contact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--byiara-space-xs);
+  min-height: 2.875rem;
+  padding-inline: var(--byiara-space-md);
+  border-radius: var(--byiara-radius-pill);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-decoration: none;
+  transition:
+    background-color var(--byiara-duration-base) var(--byiara-ease-out),
+    color var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.not-found-contact-arrow {
+  font-size: var(--byiara-font-size-lg);
+  line-height: 1;
+  transition: transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .not-found-contact:hover {
+    background: var(--byiara-color-primary-tint);
+    color: var(--byiara-color-primary-strong);
+  }
+
+  .not-found-contact:hover .not-found-contact-arrow {
+    transform: translateX(0.2rem);
+  }
+}
+
+@media (max-width: 35rem) {
+  .not-found {
+    min-height: 38rem;
+  }
+
+  .not-found-inner {
+    align-content: start;
+    padding-top: clamp(3rem, 12vw, 4.5rem);
+  }
+
+  .not-found-panel {
+    gap: var(--byiara-space-xl);
+  }
+
+  .not-found-actions {
+    display: grid;
+    width: 100%;
+  }
+
+  .not-found-actions byiara-button {
+    --byiara-button-width: 100%;
+  }
+
+  .not-found-contact {
+    width: 100%;
+  }
 }

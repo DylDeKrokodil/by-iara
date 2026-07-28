@@ -3,6 +3,7 @@ import {
   BUSINESS_DETAILS,
   getBookingRetentionLabel,
   getLegalFormLabel,
+  getWhatsAppHref,
   isBusinessDetailMissing,
 } from './business-details';
 
@@ -58,5 +59,12 @@ describe('business details', () => {
       getBookingRetentionLabel('en-US', BUSINESS_DETAILS.bookingRetention),
     ).toBe('2 years');
     expect(isBusinessDetailMissing('bookingRetention')).toBe(false);
+  });
+
+  it('creates a WhatsApp link from the formatted business phone number', () => {
+    expect(getWhatsAppHref(BUSINESS_DETAILS.phone)).toBe(
+      'https://wa.me/351934596852',
+    );
+    expect(getWhatsAppHref('')).toBeUndefined();
   });
 });
