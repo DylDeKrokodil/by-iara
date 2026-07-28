@@ -114,6 +114,14 @@ export interface WebsiteMessages {
     readonly notFoundTitle: string;
     readonly notFoundText: string;
   };
+  readonly notFound: {
+    readonly code: string;
+    readonly title: string;
+    readonly text: string;
+    readonly homeAction: string;
+    readonly servicesAction: string;
+    readonly contactAction: string;
+  };
   readonly packs: {
     readonly eyebrow: string;
     readonly title: string;
@@ -374,6 +382,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       notFoundTitle: 'Serviço não encontrado',
       notFoundText:
         'Este serviço não está disponível neste idioma ou deixou de estar publicado.',
+    },
+    notFound: {
+      code: 'Erro 404',
+      title: 'Página não encontrada',
+      text: 'Parece que o caminho que procura não está disponível. Deixe-nos guiá-lo de volta à tranquilidade.',
+      homeAction: 'Voltar ao início',
+      servicesAction: 'Ver tratamentos',
+      contactAction: 'Contactar',
     },
     packs: {
       eyebrow: 'Continuidade e cuidado',
@@ -655,6 +671,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       notFoundTitle: 'Service not found',
       notFoundText:
         'This service is unavailable in this language or is no longer published.',
+    },
+    notFound: {
+      code: 'Error 404',
+      title: 'Page not found',
+      text: 'It seems the path you were looking for is unavailable. Let us guide you back to a calmer place.',
+      homeAction: 'Back to home',
+      servicesAction: 'View treatments',
+      contactAction: 'Contact us',
     },
     packs: {
       eyebrow: 'Continuity and care',

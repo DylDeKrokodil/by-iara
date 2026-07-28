@@ -1,9 +1,36 @@
-<main class="public-shell">
-  <section class="empty-page" aria-labelledby="not-found-title">
-    <h1 id="not-found-title">{{ copy().notFoundTitle }}</h1>
-    <p>{{ copy().notFoundText }}</p>
-    <a class="text-link" [routerLink]="language.localizedLink()">
-      {{ language.messages().booking.back }}
-    </a>
-  </section>
-</main>
+<section class="not-found" aria-labelledby="not-found-title">
+  <img
+    class="not-found-image"
+    src="/hero/hero-treatment-mixkit-4744.jpg"
+    alt=""
+    aria-hidden="true"
+  />
+  <div class="not-found-wash" aria-hidden="true"></div>
+
+  <div class="not-found-inner">
+    <p class="not-found-code">{{ copy().code }}</p>
+
+    <div class="not-found-panel">
+      <div class="not-found-copy">
+        <h1 id="not-found-title">{{ copy().title }}</h1>
+        <p>{{ copy().text }}</p>
+      </div>
+
+      <nav class="not-found-actions" [attr.aria-label]="copy().title">
+        <byiara-button [routerLink]="language.localizedLink()">
+          {{ copy().homeAction }}
+        </byiara-button>
+        <byiara-button
+          variant="secondary"
+          [routerLink]="language.localizedLink('services')"
+        >
+          {{ copy().servicesAction }}
+        </byiara-button>
+        <a class="not-found-contact" [href]="contactHref">
+          <span>{{ copy().contactAction }}</span>
+          <span class="not-found-contact-arrow" aria-hidden="true">→</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+</section>
