@@ -176,7 +176,9 @@
               {{ contact.email }}
             </a>
             <a
-              [href]="contact.phoneHref"
+              [href]="contact.whatsAppHref"
+              target="_blank"
+              rel="noopener noreferrer"
               [attr.aria-label]="copy().footer.phoneLabel + ': ' + contact.phone"
             >
               {{ contact.phone }}

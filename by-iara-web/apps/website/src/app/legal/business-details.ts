@@ -46,6 +46,11 @@ export function getBookingRetentionLabel(
   return retention ? BOOKING_RETENTION_LABELS[locale][retention] : '';
 }
 
+export function getWhatsAppHref(phone: string): string | undefined {
+  const digits = phone.replace(/\D/g, '');
+  return digits ? `https://wa.me/${digits}` : undefined;
+}
+
 export const BOOKING_POLICY = {
   cancellationNoticeHours: 24,
   firstLateCancellationHasPenalty: false,

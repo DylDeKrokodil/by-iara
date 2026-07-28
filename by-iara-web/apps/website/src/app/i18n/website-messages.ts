@@ -186,7 +186,7 @@ export interface WebsiteMessages {
     readonly noAvailabilityInMonthHelp: string;
     readonly chooseAnotherTreatment: string;
     readonly contactByEmail: string;
-    readonly contactByPhone: (phone: string) => string;
+    readonly contactByWhatsApp: (phone: string) => string;
     readonly yourDetails: string;
     readonly name: string;
     readonly email: string;
@@ -261,7 +261,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         availability: 'Atendimento apenas por marcação',
         contact: 'Contacto',
         emailLabel: 'Email',
-        phoneLabel: 'Telemóvel',
+        phoneLabel: 'WhatsApp',
         social: 'Redes sociais',
         socialNavigationLabel: 'Redes sociais',
         bookingPrompt: 'O seu momento de pausa começa aqui.',
@@ -466,7 +466,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'Consulte o mês seguinte ou contacte a Iara diretamente.',
       chooseAnotherTreatment: 'Escolher outro tratamento',
       contactByEmail: 'Enviar email',
-      contactByPhone: (phone) => `Ligar para ${phone}`,
+      contactByWhatsApp: (phone) => `Enviar mensagem no WhatsApp para ${phone}`,
       yourDetails: 'Os seus dados',
       name: 'Nome',
       email: 'Email',
@@ -544,7 +544,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         availability: 'By appointment only',
         contact: 'Contact',
         emailLabel: 'Email',
-        phoneLabel: 'Mobile',
+        phoneLabel: 'WhatsApp',
         social: 'Social',
         socialNavigationLabel: 'Social media',
         bookingPrompt: 'Your moment of pause starts here.',
@@ -746,7 +746,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         'View the next month or contact Iara directly.',
       chooseAnotherTreatment: 'Choose another treatment',
       contactByEmail: 'Send an email',
-      contactByPhone: (phone) => `Call ${phone}`,
+      contactByWhatsApp: (phone) => `Message ${phone} on WhatsApp`,
       yourDetails: 'Your details',
       name: 'Name',
       email: 'Email',

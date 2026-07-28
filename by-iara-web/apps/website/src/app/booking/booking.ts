@@ -44,7 +44,7 @@ import {
 } from './booking-calendar';
 import { publicEmailValidator } from './email-validator';
 import { slotPeriod, SlotPeriod } from './booking-period';
-import { BUSINESS_DETAILS } from '../legal/business-details';
+import { BUSINESS_DETAILS, getWhatsAppHref } from '../legal/business-details';
 
 type BookingStep = 'service' | 'time' | 'details' | 'review';
 const BOOKING_STEPS: readonly BookingStep[] = [
@@ -363,7 +363,7 @@ export class Booking implements OnInit {
     email: BUSINESS_DETAILS.email,
     emailHref: `mailto:${BUSINESS_DETAILS.email}`,
     phone: BUSINESS_DETAILS.phone,
-    phoneHref: `tel:${BUSINESS_DETAILS.phone.replace(/\s/g, '')}`,
+    whatsAppHref: getWhatsAppHref(BUSINESS_DETAILS.phone),
   };
 
   protected readonly steps = computed(() => {

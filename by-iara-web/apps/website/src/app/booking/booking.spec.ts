@@ -68,11 +68,17 @@ describe('Booking SSR', () => {
       ],
     }).compileComponents();
 
-    const fixture: ComponentFixture<Booking> =
-      TestBed.createComponent(Booking);
+    const fixture: ComponentFixture<Booking> = TestBed.createComponent(Booking);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('A carregar...');
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain(
+      'Marcar uma sessão',
+    );
+    expect(fixture.nativeElement.querySelector('.spinner')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('.booking-loading'),
+    ).not.toBeNull();
     expect(fixture.nativeElement.textContent).not.toContain(
       'Não existem serviços disponíveis',
     );
