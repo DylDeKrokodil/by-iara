@@ -56,6 +56,16 @@ Use the results for `POSTGRES_PASSWORD` and `ADMIN_JWT_SECRET`, then replace all
 remaining `CHANGE_ME` values. The mailbox password is not used here: `MAIL_*`
 should contain credentials from the transactional provider such as Resend.
 
+Uploaded media is stored in the `service_media` Docker volume mounted at
+`/app/data/media`. This uses the server's existing disk and requires no separate
+storage product. Keep Hetzner server backups enabled and periodically copy the
+media volume off the server, because losing the server disk would otherwise
+also lose the uploaded images.
+
+The application also supports S3-compatible storage if it is needed later.
+Switch `MEDIA_STORAGE_PROVIDER` to `s3` and configure the `MEDIA_S3_*` variables
+before deploying that change.
+
 Validate the resolved Compose model without exposing its output in logs:
 
 ```bash
@@ -135,5 +145,6 @@ docker compose --env-file .env.production -f docker-compose.production.yml logs 
 
 This layout keeps the edge and database networks separate so services can be
 split later without changing public URLs. The first scaling step should be moving
-PostgreSQL to a managed service with point-in-time recovery. The second is moving
-the API and SSR website to separate instances or a managed container platform.
+PostgreSQL to a managed service with point-in-time recovery. Before scaling the
+API across multiple servers, move media to the existing S3-compatible storage
+adapter so every API instance has access to the same files.
