@@ -109,6 +109,7 @@ export interface WebsiteMessages {
     readonly back: string;
     readonly by: string;
     readonly updated: string;
+    readonly readingTime: (minutes: number) => string;
     readonly faqTitle: string;
     readonly relatedTitle: string;
     readonly relatedAction: string;
@@ -400,6 +401,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       back: 'Voltar aos guias',
       by: 'Por',
       updated: 'Atualizado',
+      readingTime: (minutes) => `${minutes} min de leitura`,
       faqTitle: 'Perguntas frequentes',
       relatedTitle: 'Massagens relacionadas',
       relatedAction: 'Ver massagem',
@@ -715,6 +717,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       back: 'Back to guides',
       by: 'By',
       updated: 'Updated',
+      readingTime: (minutes) => `${minutes} min read`,
       faqTitle: 'Frequently asked questions',
       relatedTitle: 'Related massages',
       relatedAction: 'View massage',

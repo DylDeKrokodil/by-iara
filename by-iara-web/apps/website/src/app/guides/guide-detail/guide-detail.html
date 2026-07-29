@@ -34,6 +34,8 @@
           {{ copy().by }} {{ guide.author }}
           <span aria-hidden="true">·</span>
           {{ copy().updated }} {{ formatDate(guide.updatedAt) }}
+          <span aria-hidden="true">·</span>
+          {{ copy().readingTime(readingMinutes()) }}
         </p>
       </header>
 

@@ -18,6 +18,7 @@ import {
   Service,
   ServicesApi,
 } from '../../services/services-api';
+import { estimateGuideReadingMinutes } from '../guide-reading-time';
 import { Guide, GuideTranslation } from '../guides-api';
 
 @Component({
@@ -45,6 +46,12 @@ export class GuideDetail {
       : null,
   );
   protected readonly relatedServices = signal<Service[]>([]);
+  protected readonly readingMinutes = computed(() => {
+    const translation = this.translation();
+    return translation
+      ? estimateGuideReadingMinutes(translation)
+      : 1;
+  });
 
   constructor() {
     afterNextRender(() => {
