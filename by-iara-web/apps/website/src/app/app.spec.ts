@@ -10,11 +10,11 @@ import { SOCIAL_LINKS } from './brand/brand';
 import { BUSINESS_DETAILS, getWhatsAppHref } from './legal/business-details';
 
 describe('App', () => {
-  async function createApp() {
+  async function createApp(hasGuides = false) {
     const fixture = TestBed.createComponent(App);
-    TestBed.inject(HttpTestingController)
-      .expectOne('/api/discounts/featured')
-      .flush(null);
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/discounts/featured').flush(null);
+    http.expectOne('/api/guides/availability').flush(hasGuides);
     await fixture.whenStable();
     return fixture;
   }
@@ -38,6 +38,30 @@ describe('App', () => {
     const fixture = await createApp();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
+  });
+
+  it('should hide guide links from both navbars when no guides are published', async () => {
+    const fixture = await createApp();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(
+      compiled.querySelector('.header-nav a[href="/pt/guias"]'),
+    ).toBeNull();
+    expect(
+      compiled.querySelector('.mobile-menu-nav a[href="/pt/guias"]'),
+    ).toBeNull();
+  });
+
+  it('should show guide links in both navbars when a guide is published', async () => {
+    const fixture = await createApp(true);
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(
+      compiled.querySelector('.header-nav a[href="/pt/guias"]'),
+    ).not.toBeNull();
+    expect(
+      compiled.querySelector('.mobile-menu-nav a[href="/pt/guias"]'),
+    ).not.toBeNull();
   });
 
   it('should expose direct email and WhatsApp links in the footer', async () => {

@@ -197,6 +197,9 @@ class GuideApiTests {
         mockMvc.perform(get("/api/guides/pt-PT"))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.length()").value(0))
+        mockMvc.perform(get("/api/guides/availability"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").value(false))
 
         mockMvc.perform(
             put("/api/admin/guides/status")
@@ -209,6 +212,9 @@ class GuideApiTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['type']").value("PARAGRAPH"))
             .andExpect(jsonPath("$.publishedAt").isNotEmpty)
+        mockMvc.perform(get("/api/guides/availability"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").value(true))
 
         mockMvc.perform(
             put("/api/admin/guides/status")
@@ -219,6 +225,9 @@ class GuideApiTests {
 
         mockMvc.perform(get("/api/guides/pt-PT/primeira-massagem"))
             .andExpect(status().isNotFound)
+        mockMvc.perform(get("/api/guides/availability"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").value(false))
     }
 
     @Test

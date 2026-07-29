@@ -64,6 +64,10 @@ export class GuidesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = apiUrl(inject(API_ORIGIN), '/api/guides');
 
+  hasPublished(): Observable<boolean> {
+    return this.http.get<boolean>(`${this.baseUrl}/availability`);
+  }
+
   list(locale: LocaleCode): Observable<Guide[]> {
     return this.http.get<Guide[]>(
       `${this.baseUrl}/${encodeURIComponent(locale)}`,

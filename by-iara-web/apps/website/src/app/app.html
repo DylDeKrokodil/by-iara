@@ -46,12 +46,14 @@
         >
           {{ copy().nav.packs }}
         </a>
+        @if (hasGuides()) {
         <a
           [routerLink]="language.localizedLink('guides')"
           routerLinkActive="active"
         >
           {{ copy().nav.guides }}
         </a>
+        }
       </nav>
 
       <a
@@ -99,12 +101,14 @@
           >
             {{ copy().nav.packs }}
           </a>
+          @if (hasGuides()) {
           <a
             [routerLink]="language.localizedLink('guides')"
             routerLinkActive="active"
           >
             {{ copy().nav.guides }}
           </a>
+          }
         </nav>
         <byiara-language-switcher></byiara-language-switcher>
       </div>
