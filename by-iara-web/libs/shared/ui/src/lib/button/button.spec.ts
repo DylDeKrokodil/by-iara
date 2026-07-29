@@ -30,4 +30,17 @@ describe('Button', () => {
     expect(fixture.nativeElement.querySelector('a')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('button')).toBeFalsy();
   });
+
+  it('supports safe external link attributes', () => {
+    fixture.componentRef.setInput('href', 'https://example.com');
+    fixture.componentRef.setInput('target', '_blank');
+    fixture.componentRef.setInput('rel', 'noopener noreferrer');
+    fixture.detectChanges();
+
+    const link = fixture.nativeElement.querySelector(
+      'a',
+    ) as HTMLAnchorElement;
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toBe('noopener noreferrer');
+  });
 });
