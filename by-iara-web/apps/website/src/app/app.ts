@@ -8,6 +8,7 @@ import { LanguageSwitcher } from './i18n/language-switcher/language-switcher';
 import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
 import { BRAND, SOCIAL_LINKS } from './brand/brand';
+import { GuidesApi } from './guides/guides-api';
 import { BUSINESS_DETAILS, getWhatsAppHref } from './legal/business-details';
 import { FeaturedDiscount, FeaturedDiscountApi } from './promotions/featured-discount-api';
 import { PromotionBar } from './promotions/promotion-bar';
@@ -30,10 +31,12 @@ export class App {
   private readonly router = inject(Router);
   private readonly seo = inject(SeoService);
   private readonly featuredDiscountApi = inject(FeaturedDiscountApi);
+  private readonly guidesApi = inject(GuidesApi);
 
   protected readonly language = inject(LanguageService);
   protected readonly copy = computed(() => this.language.messages().app);
   protected readonly menuOpen = signal(false);
+  protected readonly hasGuides = signal(false);
   protected readonly featuredDiscount = signal<FeaturedDiscount | null>(null);
   protected readonly promotionDismissed = signal(false);
   protected readonly promotionBenefit = computed(() => {
@@ -59,6 +62,9 @@ export class App {
 
   constructor() {
     this.featuredDiscountApi.get().subscribe({ next: (discount) => this.featuredDiscount.set(discount) });
+    this.guidesApi.hasPublished().subscribe({
+      next: (hasGuides) => this.hasGuides.set(hasGuides),
+    });
     this.router.events
       .pipe(
         filter(

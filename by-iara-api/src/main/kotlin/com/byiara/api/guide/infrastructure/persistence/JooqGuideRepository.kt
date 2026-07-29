@@ -135,6 +135,13 @@ class JooqGuideRepository(
                 .fetch(),
         ).firstOrNull()
 
+    override fun hasPublished(): Boolean =
+        dsl.fetchExists(
+            dsl.selectOne()
+                .from(guides)
+                .where(gStatus.eq(GuideStatus.PUBLISHED.name)),
+        )
+
     override fun findPublished(locale: String): List<Guide> {
         val records = dsl.select(gId, gStatus, gAuthor, gPublishedAt, gCreatedAt, gUpdatedAt)
             .from(guides)

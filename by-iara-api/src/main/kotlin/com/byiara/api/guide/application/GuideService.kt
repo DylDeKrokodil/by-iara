@@ -36,6 +36,9 @@ class GuideService(
     fun getAdmin(id: UUID): Guide = repository.findById(id) ?: throw GuideNotFoundException(id)
 
     @Transactional(readOnly = true)
+    fun hasPublished(): Boolean = repository.hasPublished()
+
+    @Transactional(readOnly = true)
     fun listPublished(locale: String): List<Guide> = repository.findPublished(normalizeLocale(locale))
 
     @Transactional(readOnly = true)

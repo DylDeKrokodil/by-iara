@@ -17,6 +17,9 @@ import java.util.UUID
 class GuideController(
     private val guideService: GuideService,
 ) {
+    @GetMapping("/availability")
+    fun availability(): Boolean = guideService.hasPublished()
+
     @GetMapping("/{locale}")
     fun list(@PathVariable locale: String): List<GuideResponse> =
         guideService.listPublished(locale).map { it.toResponse() }

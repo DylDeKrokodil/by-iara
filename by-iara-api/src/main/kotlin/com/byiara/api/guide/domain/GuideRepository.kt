@@ -24,6 +24,7 @@ data class GuideListQuery(
 interface GuideRepository {
     fun findAll(query: GuideListQuery): List<Guide>
     fun findById(id: UUID): Guide?
+    fun hasPublished(): Boolean
     fun findPublished(locale: String): List<Guide>
     fun findPublishedBySlug(locale: String, slug: String): Guide?
     fun slugExists(locale: String, slug: String, excludingId: UUID? = null): Boolean
