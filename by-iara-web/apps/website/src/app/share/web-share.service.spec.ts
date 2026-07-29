@@ -110,7 +110,7 @@ describe('WebShareService', () => {
     canonical.rel = 'canonical';
     canonical.href =
       'https://iaragouveia.com/pt/guias/como-preparar-massagem';
-    document.head.append(canonical);
+    document.head.prepend(canonical);
 
     expect(
       service.platformLink('facebook', { title: 'Guide title' }),
