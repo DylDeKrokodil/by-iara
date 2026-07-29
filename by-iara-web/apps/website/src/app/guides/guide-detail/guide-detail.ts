@@ -1,6 +1,9 @@
 import {
   Component,
+  DestroyRef,
+  ElementRef,
   RESPONSE_INIT,
+  afterNextRender,
   computed,
   inject,
   signal,
@@ -24,6 +27,8 @@ import { Guide, GuideTranslation } from '../guides-api';
   styleUrl: './guide-detail.css',
 })
 export class GuideDetail {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly route = inject(ActivatedRoute);
   private readonly responseInit = inject(RESPONSE_INIT);
   private readonly seo = inject(SeoService);
@@ -42,6 +47,9 @@ export class GuideDetail {
   protected readonly relatedServices = signal<Service[]>([]);
 
   constructor() {
+    afterNextRender(() => {
+      this.setupReadingProgress();
+    });
     if (!this.guide && this.responseInit) this.responseInit.status = 404;
     const localePath = this.route.parent?.snapshot.data[
       'localePath'
@@ -60,6 +68,50 @@ export class GuideDetail {
           ),
       });
     }
+  }
+
+  private setupReadingProgress(): void {
+    const document = this.elementRef.nativeElement.ownerDocument;
+    const view = document.defaultView;
+    if (!view) return;
+
+    const progress =
+      this.elementRef.nativeElement.querySelector<HTMLElement>(
+        '.reading-progress',
+      );
+    const scroller = document.scrollingElement;
+    const main = this.elementRef.nativeElement.closest<HTMLElement>('main');
+    if (!progress || !scroller || !main) return;
+
+    let animationFrame: number | null = null;
+    const updateProgress = () => {
+      animationFrame = null;
+      const mainBottom =
+        scroller.scrollTop + main.getBoundingClientRect().bottom;
+      const scrollableDistance = mainBottom - scroller.clientHeight;
+      const ratio =
+        scrollableDistance > 0
+          ? Math.min(1, Math.max(0, scroller.scrollTop / scrollableDistance))
+          : 1;
+      progress.style.setProperty('--reading-progress', String(ratio));
+    };
+    const scheduleUpdate = () => {
+      if (animationFrame === null) {
+        animationFrame = view.requestAnimationFrame(updateProgress);
+      }
+    };
+
+    view.addEventListener('scroll', scheduleUpdate, { passive: true });
+    view.addEventListener('resize', scheduleUpdate);
+    scheduleUpdate();
+
+    this.destroyRef.onDestroy(() => {
+      view.removeEventListener('scroll', scheduleUpdate);
+      view.removeEventListener('resize', scheduleUpdate);
+      if (animationFrame !== null) {
+        view.cancelAnimationFrame(animationFrame);
+      }
+    });
   }
 
   protected serviceName(service: Service): string {
