@@ -9,10 +9,16 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { Button } from '@by-iara/shared-ui';
+import { NgIcon } from '@ng-icons/core';
+import { simpleFacebook } from '@ng-icons/simple-icons';
+import { Button, ToastService } from '@by-iara/shared-ui';
 import { LanguageService } from '../../i18n/language.service';
 import { LocalePath } from '../../i18n/supported-locales';
 import { SeoService } from '../../seo/seo.service';
+import {
+  SharePlatform,
+  WebShareService,
+} from '../../share/web-share.service';
 import {
   localizedService,
   Service,
@@ -23,7 +29,7 @@ import { Guide, GuideTranslation } from '../guides-api';
 
 @Component({
   selector: 'byiara-guide-detail',
-  imports: [Button, RouterLink],
+  imports: [Button, NgIcon, RouterLink],
   templateUrl: './guide-detail.html',
   styleUrl: './guide-detail.css',
 })
@@ -34,6 +40,8 @@ export class GuideDetail {
   private readonly responseInit = inject(RESPONSE_INIT);
   private readonly seo = inject(SeoService);
   private readonly servicesApi = inject(ServicesApi);
+  private readonly toast = inject(ToastService);
+  private readonly webShare = inject(WebShareService);
 
   protected readonly language = inject(LanguageService);
   protected readonly copy = computed(
@@ -52,9 +60,15 @@ export class GuideDetail {
       ? estimateGuideReadingMinutes(translation)
       : 1;
   });
+  protected readonly sharing = signal(false);
+  protected readonly canNativeShare = signal(false);
+  protected readonly platformIcons = {
+    facebook: simpleFacebook,
+  };
 
   constructor() {
     afterNextRender(() => {
+      this.canNativeShare.set(this.webShare.nativeShareAvailable());
       this.setupReadingProgress();
     });
     if (!this.guide && this.responseInit) this.responseInit.status = 404;
@@ -136,5 +150,43 @@ export class GuideDetail {
     return new Intl.DateTimeFormat(this.language.current().locale, {
       dateStyle: 'long',
     }).format(new Date(value));
+  }
+
+  protected async shareGuide(localized: GuideTranslation): Promise<void> {
+    if (this.sharing()) return;
+
+    this.sharing.set(true);
+    try {
+      const result = await this.webShare.share({
+        title: localized.title,
+        text: localized.excerpt,
+      });
+
+      if (result === 'unavailable') {
+        this.toast.show(this.copy().shareUnavailable, 'error');
+      }
+    } finally {
+      this.sharing.set(false);
+    }
+  }
+
+  protected shareLink(
+    platform: SharePlatform,
+    localized: GuideTranslation,
+  ): string {
+    return this.webShare.platformLink(platform, {
+      title: localized.title,
+      text: localized.excerpt,
+    });
+  }
+
+  protected async copyGuideLink(): Promise<void> {
+    const result = await this.webShare.copyLink();
+    this.toast.show(
+      result === 'copied'
+        ? this.copy().shareCopied
+        : this.copy().shareUnavailable,
+      result === 'copied' ? 'success' : 'error',
+    );
   }
 }

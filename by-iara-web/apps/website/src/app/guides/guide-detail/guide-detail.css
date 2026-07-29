@@ -76,6 +76,37 @@
   font-size: var(--byiara-font-size-sm);
 }
 
+.guide-share {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-xs);
+}
+
+.guide-share-label {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.guide-share-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-xs);
+}
+
+.guide-share-options svg,
+.guide-share-options ng-icon {
+  flex: none;
+}
+
+@media (min-width: 48rem) {
+  .native-share-action {
+    display: none;
+  }
+}
+
 .cover {
   margin: clamp(2rem, 6vw, 4rem) 0;
 }
