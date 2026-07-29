@@ -522,7 +522,7 @@ object EmailCopy {
                 "Apple Maps: $appleMapsUrl",
                 "",
                 "Adicionar ao calendário",
-                "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro by-iara-marcacao.ics em anexo.",
+                "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro iara-gouveia-marcacao.ics em anexo.",
             )
         }.orEmpty()
         val englishLocationLines = address?.let {
@@ -533,7 +533,7 @@ object EmailCopy {
                 "Apple Maps: $appleMapsUrl",
                 "",
                 "Add to your calendar",
-                "Your email app may show an option to add or accept this appointment. If it does not, open the attached by-iara-appointment.ics file.",
+                "Your email app may show an option to add or accept this appointment. If it does not, open the attached iara-gouveia-appointment.ics file.",
             )
         }.orEmpty()
         val portugueseLocationHtml = address?.let {
@@ -543,7 +543,7 @@ object EmailCopy {
                 googleMapsUrl = requireNotNull(googleMapsUrl),
                 appleMapsUrl = requireNotNull(appleMapsUrl),
                 calendarHeading = "Adicionar ao calendário",
-                calendarCopy = "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro <strong>by-iara-marcacao.ics</strong> em anexo.",
+                calendarCopy = "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro <strong>iara-gouveia-marcacao.ics</strong> em anexo.",
             )
         }.orEmpty()
         val englishLocationHtml = address?.let {
@@ -553,7 +553,7 @@ object EmailCopy {
                 googleMapsUrl = requireNotNull(googleMapsUrl),
                 appleMapsUrl = requireNotNull(appleMapsUrl),
                 calendarHeading = "Add to your calendar",
-                calendarCopy = "Your email app may show an option to add or accept this appointment. If it does not, open the attached <strong>by-iara-appointment.ics</strong> file.",
+                calendarCopy = "Your email app may show an option to add or accept this appointment. If it does not, open the attached <strong>iara-gouveia-appointment.ics</strong> file.",
             )
         }.orEmpty()
         return when (reservation.locale) {

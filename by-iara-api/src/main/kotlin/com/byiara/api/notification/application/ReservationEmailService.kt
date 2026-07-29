@@ -66,8 +66,8 @@ class ReservationEmailService(
             val type = when (reservation.status) {
                 ReservationStatus.CONFIRMED -> {
                     val filename = when (reservation.locale) {
-                        ReservationLocale.PT -> "by-iara-marcacao.ics"
-                        ReservationLocale.EN -> "by-iara-appointment.ics"
+                        ReservationLocale.PT -> "iara-gouveia-marcacao.ics"
+                        ReservationLocale.EN -> "iara-gouveia-appointment.ics"
                     }
                     content = content.copy(
                         attachments = listOf(
@@ -98,8 +98,8 @@ class ReservationEmailService(
             var content = EmailCopy.reservationRescheduled(previous, updated, zoneId)
             if (updated.status == ReservationStatus.CONFIRMED) {
                 val filename = when (updated.locale) {
-                    ReservationLocale.PT -> "by-iara-marcacao.ics"
-                    ReservationLocale.EN -> "by-iara-appointment.ics"
+                    ReservationLocale.PT -> "iara-gouveia-marcacao.ics"
+                    ReservationLocale.EN -> "iara-gouveia-appointment.ics"
                 }
                 content = content.copy(
                     attachments = listOf(

@@ -1,0 +1,127 @@
+<div class="public-shell guide-detail-shell">
+  <div class="guide-container">
+    <nav class="breadcrumbs" [attr.aria-label]="copy().breadcrumbsLabel">
+      <ol>
+        <li>
+          <a [routerLink]="language.localizedLink('home')"
+            >{{ copy().homeBreadcrumb }}</a
+          >
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a [routerLink]="language.localizedLink('guides')"
+            >{{ copy().guidesBreadcrumb }}</a
+          >
+        </li>
+        @if (translation(); as localized) {
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{{ localized.title }}</li>
+        }
+      </ol>
+    </nav>
+
+    @if (guide && translation(); as localized) {
+    <article>
+      <header class="guide-header">
+        @if (guide.categories.length) {
+        <p class="eyebrow">{{ guide.categories.join(' · ') }}</p>
+        }
+        <h1>{{ localized.title }}</h1>
+        <p class="excerpt">{{ localized.excerpt }}</p>
+        <p class="byline">
+          {{ copy().by }} {{ guide.author }}
+          <span aria-hidden="true">·</span>
+          {{ copy().updated }} {{ formatDate(guide.updatedAt) }}
+        </p>
+      </header>
+
+      @if (guide.images.COVER; as cover) {
+      <figure class="cover">
+        <img
+          [src]="cover.url"
+          [width]="cover.width"
+          [height]="cover.height"
+          [alt]="localized.title"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+      }
+
+      <div class="guide-body">
+        @for (block of localized.blocks; track $index) { @switch (block.type) {
+        @case ('PARAGRAPH') {
+        <p>{{ block.text }}</p>
+        } @case ('HEADING') { @switch (block.headingLevel) { @case (3) {
+        <h3>{{ block.text }}</h3>
+        } @case (4) {
+        <h4>{{ block.text }}</h4>
+        } @default {
+        <h2>{{ block.text }}</h2>
+        } } } @case ('IMAGE') {
+        <figure>
+          <img
+            [src]="block.imageUrl"
+            [alt]="block.imageAlt || ''"
+            loading="lazy"
+            decoding="async"
+          />
+          @if (block.imageAlt) {
+          <figcaption>{{ block.imageAlt }}</figcaption>
+          }
+        </figure>
+        } @case ('LIST') {
+        <ul>
+          @for (item of block.items; track $index) {
+          <li>{{ item }}</li>
+          }
+        </ul>
+        } @case ('QUOTE') {
+        <blockquote>{{ block.text }}</blockquote>
+        } @case ('CALL_TO_ACTION') {
+        <byiara-button [href]="block.actionUrl || null"
+          >{{ block.actionLabel }}</byiara-button
+        >
+        } } }
+      </div>
+
+      @if (localized.faqs.length) {
+      <section class="guide-faq" aria-labelledby="guide-faq-title">
+        <h2 id="guide-faq-title">{{ copy().faqTitle }}</h2>
+        @for (faq of localized.faqs; track faq.question) {
+        <details>
+          <summary>{{ faq.question }}</summary>
+          <p>{{ faq.answer }}</p>
+        </details>
+        }
+      </section>
+      } @if (relatedServices().length) {
+      <section
+        class="related-services"
+        aria-labelledby="related-services-title"
+      >
+        <h2 id="related-services-title">{{ copy().relatedTitle }}</h2>
+        <ul>
+          @for (service of relatedServices(); track service.id) {
+          <li>
+            <strong>{{ serviceName(service) }}</strong>
+            <a class="text-link" [routerLink]="serviceLink(service)"
+              >{{ copy().relatedAction }}</a
+            >
+          </li>
+          }
+        </ul>
+      </section>
+      }
+    </article>
+    } @else {
+    <section class="not-found">
+      <h1>{{ copy().unavailableTitle }}</h1>
+      <p>{{ copy().unavailableText }}</p>
+      <a class="text-link" [routerLink]="language.localizedLink('guides')"
+        >{{ copy().back }}</a
+      >
+    </section>
+    }
+  </div>
+</div>

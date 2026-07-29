@@ -45,6 +45,13 @@ export class ServicesApi {
     return this.http.put<Service>(`${this.baseUrl}/${id}/image`, form);
   }
 
+  useMediaImage(id: string, mediaAssetId: string): Observable<Service> {
+    return this.http.put<Service>(
+      `${this.baseUrl}/${id}/image/media/${mediaAssetId}`,
+      null,
+    );
+  }
+
   removeImage(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}/image`);
   }

@@ -12,7 +12,7 @@ feature/* ──PR──▶ release ──PR──▶ main
 
 | Branch       | Environment | Deploys to                |
 | ------------ | ----------- | ------------------------- |
-| `main`       | production  | by-iara.com / api / admin |
+| `main`       | production  | iaragouveia.com / api / admin |
 | `release`    | testing     | staging                   |
 | `feature/*`  | local dev   | your machine              |
 

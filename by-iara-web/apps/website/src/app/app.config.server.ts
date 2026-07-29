@@ -23,7 +23,7 @@ const serverConfig: ApplicationConfig = {
         const request = inject(REQUEST);
         return (
           process.env['PUBLIC_SITE_URL'] ||
-          (request ? new URL(request.url).origin : 'https://by-iara.com')
+          (request ? new URL(request.url).origin : 'https://iaragouveia.com')
         );
       },
     },

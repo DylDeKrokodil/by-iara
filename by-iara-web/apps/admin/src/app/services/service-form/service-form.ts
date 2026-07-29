@@ -1,4 +1,11 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  OnDestroy,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormArray,
@@ -29,6 +36,10 @@ import {
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../../core/api-error-message';
 import { concatMap, map, Observable, of } from 'rxjs';
+import { MediaPicker } from '../../media/media-picker/media-picker';
+import { MediaImageField } from '../../media/media-image-field/media-image-field';
+import { MediaAsset } from '../../media/media.models';
+import { MediaApi } from '../../media/media-api';
 import {
   optimizeServiceImage,
   OptimizedImage,
@@ -80,6 +91,8 @@ function isContentFormTab(value: string): value is ContentFormTab {
     Switch,
     Tabs,
     TextField,
+    MediaPicker,
+    MediaImageField,
   ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
@@ -90,6 +103,9 @@ export class ServiceForm implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
+  private readonly mediaApi = inject(MediaApi);
+
+  @ViewChild(MediaPicker) private mediaPicker?: MediaPicker;
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -98,6 +114,9 @@ export class ServiceForm implements OnInit, OnDestroy {
   protected readonly imageProcessing = signal(false);
   protected readonly currentImage = signal<ServiceImage | null>(null);
   protected readonly selectedImage = signal<OptimizedImage | null>(null);
+  protected readonly selectedMediaId = signal<string | null>(null);
+  protected readonly selectedMediaAsset = signal<MediaAsset | null>(null);
+  protected readonly mediaPreviewUrl = signal<string | null>(null);
   protected readonly imageMarkedForRemoval = signal(false);
   protected readonly activeLanguageTab = signal<TranslationFormKey>('ptPT');
   protected readonly activeContentTab = signal<ContentFormTab>('basics');
@@ -198,6 +217,7 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.revokeSelectedImagePreview();
+    this.clearMediaPreview();
   }
 
   protected async selectImage(event: Event): Promise<void> {
@@ -210,7 +230,10 @@ export class ServiceForm implements OnInit, OnDestroy {
     try {
       const image = await optimizeServiceImage(file);
       this.revokeSelectedImagePreview();
+      this.clearMediaPreview();
       this.selectedImage.set(image);
+      this.selectedMediaId.set(null);
+      this.selectedMediaAsset.set(null);
       this.imageMarkedForRemoval.set(false);
     } catch (error) {
       this.imageError.set(
@@ -226,22 +249,39 @@ export class ServiceForm implements OnInit, OnDestroy {
 
   protected removeImage(): void {
     this.revokeSelectedImagePreview();
+    this.clearMediaPreview();
     this.selectedImage.set(null);
+    this.selectedMediaId.set(null);
+    this.selectedMediaAsset.set(null);
     this.currentImage.set(null);
     this.imageMarkedForRemoval.set(true);
     this.imageError.set(null);
   }
 
   protected imagePreviewUrl(): string | null {
-    return this.selectedImage()?.previewUrl ?? this.currentImage()?.url ?? null;
+    return (
+      this.selectedImage()?.previewUrl ??
+      this.mediaPreviewUrl() ??
+      this.currentImage()?.url ??
+      null
+    );
   }
 
-  protected imagePreviewWidth(): number {
-    return this.selectedImage()?.width ?? this.currentImage()?.width ?? 1600;
+  protected openMediaPicker(): void {
+    this.mediaPicker?.open();
   }
 
-  protected imagePreviewHeight(): number {
-    return this.selectedImage()?.height ?? this.currentImage()?.height ?? 900;
+  protected chooseMediaImage(image: MediaAsset): void {
+    this.revokeSelectedImagePreview();
+    this.clearMediaPreview();
+    this.selectedImage.set(null);
+    this.selectedMediaId.set(image.id);
+    this.selectedMediaAsset.set(image);
+    this.imageMarkedForRemoval.set(false);
+    this.mediaApi.download(image.url).subscribe({
+      next: (blob) => this.mediaPreviewUrl.set(URL.createObjectURL(blob)),
+      error: () => this.imageError.set('Could not load the selected image.'),
+    });
   }
 
   protected addVariant(): void {
@@ -402,6 +442,10 @@ export class ServiceForm implements OnInit, OnDestroy {
   }
 
   private persistImage(service: Service): Observable<Service> {
+    const mediaId = this.selectedMediaId();
+    if (mediaId) {
+      return this.api.useMediaImage(service.id, mediaId);
+    }
     const selected = this.selectedImage();
     if (selected) {
       return this.api.uploadImage(service.id, selected.blob);
@@ -417,6 +461,12 @@ export class ServiceForm implements OnInit, OnDestroy {
   private revokeSelectedImagePreview(): void {
     const previewUrl = this.selectedImage()?.previewUrl;
     if (previewUrl) URL.revokeObjectURL(previewUrl);
+  }
+
+  private clearMediaPreview(): void {
+    const previewUrl = this.mediaPreviewUrl();
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    this.mediaPreviewUrl.set(null);
   }
 
   protected translationNameInvalid(key: TranslationFormKey): boolean {

@@ -1,0 +1,119 @@
+.guides-shell {
+  width: min(76rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding-block: clamp(3rem, 8vw, 7rem);
+}
+
+.guides-header {
+  width: min(42rem, 100%);
+  margin-bottom: clamp(2.5rem, 6vw, 5rem);
+}
+
+.guides-header h1 {
+  margin: var(--byiara-space-xs) 0 var(--byiara-space-md);
+  font-size: clamp(2.75rem, 8vw, 5.5rem);
+  line-height: 0.98;
+}
+
+.guides-header > p:last-child {
+  color: var(--byiara-color-text-muted);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.7;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(var(--byiara-space-lg), 3vw, 2.5rem);
+}
+
+.guide-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+}
+
+.guide-media {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.guide-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--byiara-duration-slow) var(--byiara-ease-out);
+}
+
+.guide-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--byiara-space-sm);
+  padding: var(--byiara-space-lg);
+}
+
+.guide-card h2 {
+  margin: 0;
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.guide-card h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.guide-category,
+.guide-card-footer {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.guide-category,
+.guide-excerpt {
+  margin: 0;
+}
+
+.guide-excerpt {
+  color: var(--byiara-color-text-muted);
+  line-height: 1.6;
+}
+
+.guide-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-sm);
+  margin-top: auto;
+  padding-top: var(--byiara-space-sm);
+}
+
+.skeleton-card {
+  gap: var(--byiara-space-md);
+  padding: var(--byiara-space-lg);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .guide-card:hover .guide-media img {
+    transform: scale(1.025);
+  }
+}
+
+@media (max-width: 56rem) {
+  .guide-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 38rem) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}

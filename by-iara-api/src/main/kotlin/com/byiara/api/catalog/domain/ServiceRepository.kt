@@ -23,6 +23,7 @@ interface ServiceRepository {
 
     fun saveImage(
         id: UUID,
+        mediaAssetId: UUID,
         storageKey: String,
         contentType: String,
         width: Int,

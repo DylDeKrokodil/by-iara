@@ -6,6 +6,7 @@ export interface WebsiteMessages {
     readonly nav: {
       readonly home: string;
       readonly services: string;
+      readonly guides: string;
       readonly packs: string;
       readonly bookCta: string;
       readonly openMenu: string;
@@ -17,6 +18,7 @@ export interface WebsiteMessages {
       readonly explore: string;
       readonly home: string;
       readonly services: string;
+      readonly guides: string;
       readonly packs: string;
       readonly book: string;
       readonly legal: string;
@@ -89,6 +91,29 @@ export interface WebsiteMessages {
     readonly priceFrom: (price: string) => string;
     readonly bookAction: string;
     readonly packsAvailable: string;
+  };
+  readonly guides: {
+    readonly eyebrow: string;
+    readonly title: string;
+    readonly lede: string;
+    readonly loading: string;
+    readonly loadError: string;
+    readonly empty: string;
+    readonly readGuide: string;
+    readonly updated: string;
+  };
+  readonly guideDetail: {
+    readonly breadcrumbsLabel: string;
+    readonly homeBreadcrumb: string;
+    readonly guidesBreadcrumb: string;
+    readonly back: string;
+    readonly by: string;
+    readonly updated: string;
+    readonly faqTitle: string;
+    readonly relatedTitle: string;
+    readonly relatedAction: string;
+    readonly unavailableTitle: string;
+    readonly unavailableText: string;
   };
   readonly serviceDetail: {
     readonly breadcrumbsLabel: string;
@@ -244,6 +269,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Início',
         services: 'Massagens',
+        guides: 'Guias',
         packs: 'Packs',
         bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
@@ -256,6 +282,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         explore: 'Explorar',
         home: 'Início',
         services: 'Massagens',
+        guides: 'Guias',
         packs: 'Packs',
         book: 'Marcar sessão',
         legal: 'Legal',
@@ -355,6 +382,30 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       priceFrom: (price) => `Desde ${price}`,
       bookAction: 'Reservar',
       packsAvailable: 'Packs de sessões disponíveis',
+    },
+    guides: {
+      eyebrow: 'Conhecimento para cuidar de si',
+      title: 'Guias',
+      lede: 'Orientação simples e cuidada para compreender melhor o seu corpo, preparar cada sessão e prolongar o bem-estar.',
+      loading: 'A carregar os guias...',
+      loadError: 'Não foi possível carregar os guias. Tente novamente.',
+      empty: 'Ainda não existem guias publicados.',
+      readGuide: 'Ler guia',
+      updated: 'Atualizado',
+    },
+    guideDetail: {
+      breadcrumbsLabel: 'Navegação estrutural',
+      homeBreadcrumb: 'Início',
+      guidesBreadcrumb: 'Guias',
+      back: 'Voltar aos guias',
+      by: 'Por',
+      updated: 'Atualizado',
+      faqTitle: 'Perguntas frequentes',
+      relatedTitle: 'Massagens relacionadas',
+      relatedAction: 'Ver massagem',
+      unavailableTitle: 'Guia indisponível',
+      unavailableText:
+        'Este guia não está publicado ou não existe neste idioma.',
     },
     serviceDetail: {
       breadcrumbsLabel: 'Navegação estrutural',
@@ -535,6 +586,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       nav: {
         home: 'Home',
         services: 'Massages',
+        guides: 'Guides',
         packs: 'Packs',
         bookCta: 'Book now',
         openMenu: 'Open menu',
@@ -547,6 +599,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         explore: 'Explore',
         home: 'Home',
         services: 'Massages',
+        guides: 'Guides',
         packs: 'Packs',
         book: 'Book a session',
         legal: 'Legal',
@@ -644,6 +697,30 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       priceFrom: (price) => `From ${price}`,
       bookAction: 'Book',
       packsAvailable: 'Session packs available',
+    },
+    guides: {
+      eyebrow: 'Knowledge for caring for yourself',
+      title: 'Guides',
+      lede: 'Simple, thoughtful guidance to understand your body, prepare for each session, and extend your sense of wellbeing.',
+      loading: 'Loading guides...',
+      loadError: 'We could not load the guides. Please try again.',
+      empty: 'No guides have been published yet.',
+      readGuide: 'Read guide',
+      updated: 'Updated',
+    },
+    guideDetail: {
+      breadcrumbsLabel: 'Breadcrumbs',
+      homeBreadcrumb: 'Home',
+      guidesBreadcrumb: 'Guides',
+      back: 'Back to guides',
+      by: 'By',
+      updated: 'Updated',
+      faqTitle: 'Frequently asked questions',
+      relatedTitle: 'Related massages',
+      relatedAction: 'View massage',
+      unavailableTitle: 'Guide unavailable',
+      unavailableText:
+        'This guide is not published or is unavailable in this language.',
     },
     serviceDetail: {
       breadcrumbsLabel: 'Breadcrumbs',

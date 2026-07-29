@@ -1,0 +1,117 @@
+:host {
+  display: grid;
+  gap: var(--byiara-space-lg);
+}
+
+.guide-preview {
+  width: min(48rem, 100%);
+  margin-inline: auto;
+  padding: clamp(var(--byiara-space-lg), 5vw, 4rem);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+  box-shadow: var(--byiara-shadow-sm);
+}
+
+.guide-header {
+  display: grid;
+  gap: var(--byiara-space-md);
+  margin-bottom: var(--byiara-space-xl);
+}
+
+.guide-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.75rem);
+  line-height: 1.05;
+}
+
+.categories,
+.byline {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.excerpt {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.cover-image,
+.guide-body figure img {
+  display: block;
+  width: 100%;
+  border-radius: var(--byiara-radius-lg);
+}
+
+.cover-image {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.guide-body,
+.faq-section {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
+.guide-body p,
+.guide-body li,
+.faq-section p {
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.guide-body h2,
+.guide-body h3,
+.guide-body h4 {
+  margin: var(--byiara-space-lg) 0 0;
+}
+
+.guide-body blockquote {
+  margin: var(--byiara-space-md) 0;
+  padding-left: var(--byiara-space-lg);
+  border-left: 3px solid var(--byiara-color-primary);
+  color: var(--byiara-color-text-muted);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+
+.guide-body figure {
+  display: grid;
+  gap: var(--byiara-space-xs);
+  margin: var(--byiara-space-md) 0;
+}
+
+.guide-body figcaption {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.guide-cta {
+  justify-self: start;
+  padding: var(--byiara-space-sm) var(--byiara-space-lg);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-primary);
+  color: white;
+  font-weight: var(--byiara-font-weight-semibold);
+  text-decoration: none;
+}
+
+.faq-section {
+  margin-top: var(--byiara-space-xl);
+  padding-top: var(--byiara-space-xl);
+  border-top: 1px solid var(--byiara-color-border);
+}
+
+.faq-section details {
+  padding-block: var(--byiara-space-sm);
+  border-bottom: 1px solid var(--byiara-color-border);
+}
+
+.faq-section summary {
+  font-weight: var(--byiara-font-weight-semibold);
+  cursor: pointer;
+}

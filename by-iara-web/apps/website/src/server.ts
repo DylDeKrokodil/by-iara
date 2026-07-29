@@ -41,6 +41,11 @@ interface SitemapService {
   readonly translations: Record<string, { readonly slug: string }>;
 }
 
+interface SitemapGuide {
+  readonly updatedAt?: string | null;
+  readonly translations: Record<string, { readonly slug: string }>;
+}
+
 interface SitemapUrlGroup {
   readonly pt?: string;
   readonly en?: string;
@@ -107,6 +112,7 @@ app.get('/sitemap.xml', async (req, res) => {
   const origin = publicSiteOrigin(req);
   const apiOrigin = process.env['API_PROXY_TARGET'] || 'http://localhost:8080';
   let services: SitemapService[] = [];
+  let guides: SitemapGuide[] = [];
   try {
     const response = await fetch(
       `${apiOrigin.replace(/\/$/, '')}/api/services`,
@@ -117,10 +123,21 @@ app.get('/sitemap.xml', async (req, res) => {
   } catch (error) {
     console.error('Sitemap catalog fetch failed:', error);
   }
+  try {
+    const response = await fetch(
+      `${apiOrigin.replace(/\/$/, '')}/api/guides/pt-PT`,
+    );
+    if (response.ok) {
+      guides = (await response.json()) as SitemapGuide[];
+    }
+  } catch (error) {
+    console.error('Sitemap guide fetch failed:', error);
+  }
 
   const staticGroups: SitemapUrlGroup[] = [
     { pt: '/pt', en: '/en' },
     { pt: '/pt/massagens', en: '/en/massages' },
+    { pt: '/pt/guias', en: '/en/guides' },
     { pt: '/pt/packs', en: '/en/packs' },
   ];
   const serviceGroups: SitemapUrlGroup[] = services.map((service) => ({
@@ -132,7 +149,16 @@ app.get('/sitemap.xml', async (req, res) => {
       : undefined,
     lastModified: sitemapLastModified(service.updatedAt),
   }));
-  const groups = [...staticGroups, ...serviceGroups];
+  const guideGroups: SitemapUrlGroup[] = guides.map((guide) => ({
+    pt: guide.translations['pt-PT']?.slug
+      ? `/pt/guias/${encodeURIComponent(guide.translations['pt-PT'].slug)}`
+      : undefined,
+    en: guide.translations['en-US']?.slug
+      ? `/en/guides/${encodeURIComponent(guide.translations['en-US'].slug)}`
+      : undefined,
+    lastModified: sitemapLastModified(guide.updatedAt),
+  }));
+  const groups = [...staticGroups, ...serviceGroups, ...guideGroups];
   const urls = groups.flatMap((group) =>
     (['pt', 'en'] as const).flatMap((locale) => {
       const path = group[locale];
