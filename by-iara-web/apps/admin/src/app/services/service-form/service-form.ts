@@ -37,6 +37,7 @@ import {
 import { apiErrorMessage } from '../../core/api-error-message';
 import { concatMap, map, Observable, of } from 'rxjs';
 import { MediaPicker } from '../../media/media-picker/media-picker';
+import { MediaImageField } from '../../media/media-image-field/media-image-field';
 import { MediaAsset } from '../../media/media.models';
 import { MediaApi } from '../../media/media-api';
 import {
@@ -91,6 +92,7 @@ function isContentFormTab(value: string): value is ContentFormTab {
     Tabs,
     TextField,
     MediaPicker,
+    MediaImageField,
   ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
@@ -265,15 +267,6 @@ export class ServiceForm implements OnInit, OnDestroy {
     );
   }
 
-  protected imagePreviewWidth(): number {
-    return (
-      this.selectedImage()?.width ??
-      this.selectedMediaAsset()?.width ??
-      this.currentImage()?.width ??
-      1600
-    );
-  }
-
   protected openMediaPicker(): void {
     this.mediaPicker?.open();
   }
@@ -289,15 +282,6 @@ export class ServiceForm implements OnInit, OnDestroy {
       next: (blob) => this.mediaPreviewUrl.set(URL.createObjectURL(blob)),
       error: () => this.imageError.set('Could not load the selected image.'),
     });
-  }
-
-  protected imagePreviewHeight(): number {
-    return (
-      this.selectedImage()?.height ??
-      this.selectedMediaAsset()?.height ??
-      this.currentImage()?.height ??
-      900
-    );
   }
 
   protected addVariant(): void {

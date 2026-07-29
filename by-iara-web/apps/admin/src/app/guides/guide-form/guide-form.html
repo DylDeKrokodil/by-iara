@@ -102,25 +102,39 @@
                   </label>
                   <div class="block-actions">
                     <byiara-button
-                      variant="ghost"
-                      size="sm"
+                      variant="secondary"
+                      iconOnly
+                      ariaLabel="Move block up"
                       [disabled]="index === 0"
                       (click)="moveBlock(index, -1)"
-                      >Move up</byiara-button
                     >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m18 15-6-6-6 6" />
+                      </svg>
+                    </byiara-button>
                     <byiara-button
-                      variant="ghost"
-                      size="sm"
+                      variant="secondary"
+                      iconOnly
+                      ariaLabel="Move block down"
                       [disabled]="index === blocks.length - 1"
                       (click)="moveBlock(index, 1)"
-                      >Move down</byiara-button
                     >
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </byiara-button>
                     <byiara-button
                       variant="ghost"
-                      size="sm"
+                      iconOnly
+                      ariaLabel="Remove block"
                       (click)="removeBlock(index)"
                     >
-                      Remove
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v5M14 11v5" />
+                      </svg>
                     </byiara-button>
                   </div>
                 </header>
@@ -149,39 +163,17 @@
                 </div>
                 } @case ('IMAGE') {
                 <div class="block-image-editor">
-                  @if (blockImagePreviewUrl(index); as previewUrl) {
-                  <img
-                    class="block-image-preview"
-                    [src]="previewUrl"
-                    [alt]="block.get('imageAlt')?.value || 'Guide image preview'"
+                  <byiara-media-image-field
+                    label="Content image"
+                    metaLabel="Guide block"
+                    helperText="New photos are optimized and uploaded when you save the guide."
+                    [imageUrl]="blockImagePreviewUrl(index)"
+                    [imageAlt]="block.get('imageAlt')?.value || 'Guide image preview'"
+                    [inputId]="'guide-block-image-' + blockClientId(block)"
+                    (libraryRequested)="openBlockMediaPicker(index)"
+                    (fileSelected)="chooseBlockImage(index, $event)"
+                    (removeRequested)="removeBlockImage(index)"
                   />
-                  }
-                  <div class="image-actions">
-                    <byiara-button
-                      variant="secondary"
-                      size="sm"
-                      (click)="openBlockMediaPicker(index)"
-                    >
-                      Choose from library
-                    </byiara-button>
-                    <label class="file-picker">
-                      Upload new photo
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png"
-                        (change)="chooseBlockImage(index, $event)"
-                      />
-                    </label>
-                    @if (blockImagePreviewUrl(index)) {
-                    <byiara-button
-                      variant="ghost"
-                      size="sm"
-                      (click)="removeBlockImage(index)"
-                    >
-                      Remove photo
-                    </byiara-button>
-                    }
-                  </div>
                   <byiara-text-field
                     label="Image URL"
                     optionalLabel="or choose a photo above"
@@ -191,9 +183,6 @@
                     label="Image alt text"
                     formControlName="imageAlt"
                   ></byiara-text-field>
-                  <p class="upload-note">
-                    New photos are optimized and uploaded when you save the guide.
-                  </p>
                 </div>
                 } @case ('LIST') {
                 <byiara-text-field
@@ -351,44 +340,16 @@
       <section class="panel">
         <h2>Images</h2>
         @for (type of ['COVER', 'SOCIAL']; track type) {
-        <div class="image-field">
-          <strong
-            >{{ type === 'COVER' ? 'Cover image' : 'Social sharing image'
-            }}</strong
-          >
-          @if (imageUrl($any(type)); as url) {
-          <img
-            [src]="url"
-            [alt]="type === 'COVER' ? 'Guide cover preview' : 'Social image preview'"
-          />
-          }
-          <div class="image-actions">
-            <byiara-button
-              variant="secondary"
-              size="sm"
-              (click)="openImageMediaPicker($any(type))"
-            >
-              Choose from library
-            </byiara-button>
-            <label class="file-picker">
-              Upload new image
-              <input
-                type="file"
-                accept="image/jpeg,image/png"
-                (change)="chooseImage($any(type), $event)"
-              />
-            </label>
-            @if (imageUrl($any(type))) {
-            <byiara-button
-              variant="ghost"
-              size="sm"
-              (click)="removeImage($any(type))"
-            >
-              Remove
-            </byiara-button>
-            }
-          </div>
-        </div>
+        <byiara-media-image-field
+          [label]="type === 'COVER' ? 'Cover image' : 'Social sharing image'"
+          [metaLabel]="type === 'COVER' ? '16:9' : 'Social preview'"
+          [imageUrl]="imageUrl($any(type))"
+          [imageAlt]="type === 'COVER' ? 'Guide cover preview' : 'Social image preview'"
+          [inputId]="type === 'COVER' ? 'guide-cover-image' : 'guide-social-image'"
+          (libraryRequested)="openImageMediaPicker($any(type))"
+          (fileSelected)="chooseImage($any(type), $event)"
+          (removeRequested)="removeImage($any(type))"
+        />
         }
       </section>
 

@@ -32,6 +32,7 @@ import { ServicesApi } from '../../services/services-api';
 import { MediaApi } from '../../media/media-api';
 import { MediaAsset } from '../../media/media.models';
 import { MediaPicker } from '../../media/media-picker/media-picker';
+import { MediaImageField } from '../../media/media-image-field/media-image-field';
 import { GuidesApi } from '../guides-api';
 import {
   Guide,
@@ -78,6 +79,7 @@ const blockTypeOptions: ReadonlyArray<{
     Tabs,
     TextField,
     MediaPicker,
+    MediaImageField,
   ],
   templateUrl: './guide-form.html',
   styleUrl: './guide-form.css',
@@ -176,6 +178,7 @@ export class GuideForm implements OnInit, OnDestroy {
         this.selectedServiceIds.set(new Set(guide.relatedServiceIds));
         this.patchTranslation('ptPT', guide.translations['pt-PT']);
         this.patchTranslation('enUS', guide.translations['en-US']);
+        this.loadStoredBlockPreviews();
         this.form.patchValue({
           status: guide.status,
           author: guide.author,
@@ -247,7 +250,10 @@ export class GuideForm implements OnInit, OnDestroy {
     const block = this.blocks.at(index);
     const clientId = this.blockClientId(block);
     this.clearPendingBlockImage(clientId);
-    this.pendingBlockImages.update((images) => ({ ...images, [clientId]: file }));
+    this.pendingBlockImages.update((images) => ({
+      ...images,
+      [clientId]: file,
+    }));
     this.blockImagePreviews.update((previews) => ({
       ...previews,
       [clientId]: URL.createObjectURL(file),
@@ -272,12 +278,8 @@ export class GuideForm implements OnInit, OnDestroy {
     if (pending) return pending;
     const url = String(block.get('imageUrl')?.value ?? '').trim();
     if (!url) return null;
-    const storedImage = url.match(
-      /^\/api\/guides\/images\/content\/([^/]+)\/([^/?]+)/,
-    );
-    return storedImage
-      ? `/api/admin/guides/${storedImage[1]}/content-images/${storedImage[2]}`
-      : url;
+    if (!this.storedBlockImageAdminUrl(url)) return url;
+    return this.currentGuide()?.status === 'PUBLISHED' ? url : null;
   }
 
   protected addFaq(): void {
@@ -420,25 +422,27 @@ export class GuideForm implements OnInit, OnDestroy {
 
     this.submitting.set(true);
     this.error.set(null);
-    this.persistGuide().pipe(switchMap((guide) => this.syncImages(guide))).subscribe({
-      next: (guide) => {
-        this.submitting.set(false);
-        this.toast.show('Guide saved successfully.', 'success');
-        if (!this.editing) {
-          this.router.navigate(['/guides', guide.id]);
-        } else {
-          this.currentGuide.set(guide);
-          this.pendingImages.set({});
-          this.pendingMediaImages.set({});
-          this.removedImages.set(new Set());
-          this.clearAllPendingBlockImages();
-        }
-      },
-      error: (error: HttpErrorResponse) => {
-        this.submitting.set(false);
-        this.error.set(apiErrorMessage(error, 'Could not save the guide.'));
-      },
-    });
+    this.persistGuide()
+      .pipe(switchMap((guide) => this.syncImages(guide)))
+      .subscribe({
+        next: (guide) => {
+          this.submitting.set(false);
+          this.toast.show('Guide saved successfully.', 'success');
+          if (!this.editing) {
+            this.router.navigate(['/guides', guide.id]);
+          } else {
+            this.currentGuide.set(guide);
+            this.pendingImages.set({});
+            this.pendingMediaImages.set({});
+            this.removedImages.set(new Set());
+            this.clearAllPendingBlockImages();
+          }
+        },
+        error: (error: HttpErrorResponse) => {
+          this.submitting.set(false);
+          this.error.set(apiErrorMessage(error, 'Could not save the guide.'));
+        },
+      });
   }
 
   protected archive(): void {
@@ -593,8 +597,7 @@ export class GuideForm implements OnInit, OnDestroy {
       if (pending) jobs.push(this.api.uploadImage(guide.id, type, pending));
       else if (mediaId) {
         jobs.push(this.api.useMediaImage(guide.id, type, mediaId));
-      }
-      else if (this.removedImages().has(type) && guide.images[type]) {
+      } else if (this.removedImages().has(type) && guide.images[type]) {
         jobs.push(this.api.removeImage(guide.id, type));
       }
     }
@@ -618,13 +621,15 @@ export class GuideForm implements OnInit, OnDestroy {
       return this.api.create(desired);
     }
 
-    return this.api.create(this.bootstrapInput(desired)).pipe(
-      switchMap((guide) =>
-        this.uploadPendingBlockImages(guide.id).pipe(
-          switchMap(() => this.api.update(guide.id, this.toInput())),
+    return this.api
+      .create(this.bootstrapInput(desired))
+      .pipe(
+        switchMap((guide) =>
+          this.uploadPendingBlockImages(guide.id).pipe(
+            switchMap(() => this.api.update(guide.id, this.toInput())),
+          ),
         ),
-      ),
-    );
+      );
   }
 
   private uploadPendingBlockImages(guideId: string): Observable<void> {
@@ -654,7 +659,9 @@ export class GuideForm implements OnInit, OnDestroy {
   }
 
   private bootstrapInput(input: GuideInput): GuideInput {
-    const withoutPendingImages = (translation: GuideTranslation): GuideTranslation => ({
+    const withoutPendingImages = (
+      translation: GuideTranslation,
+    ): GuideTranslation => ({
       ...translation,
       blocks: translation.blocks.filter(
         (block) => block.type !== 'IMAGE' || Boolean(block.imageUrl),
@@ -684,8 +691,48 @@ export class GuideForm implements OnInit, OnDestroy {
     );
   }
 
-  private blockClientId(block: { get(name: string): { value: unknown } | null }): string {
+  protected blockClientId(block: {
+    get(name: string): { value: unknown } | null;
+  }): string {
     return String(block.get('clientId')?.value ?? '');
+  }
+
+  private loadStoredBlockPreviews(): void {
+    const referencesByUrl = new Map<string, string[]>();
+    (['ptPT', 'enUS'] as const).forEach((language) => {
+      this.blocksFor(language).controls.forEach((block) => {
+        const imageUrl = String(block.get('imageUrl')?.value ?? '').trim();
+        const adminUrl = this.storedBlockImageAdminUrl(imageUrl);
+        if (!adminUrl) return;
+        const clientIds = referencesByUrl.get(adminUrl) ?? [];
+        clientIds.push(this.blockClientId(block));
+        referencesByUrl.set(adminUrl, clientIds);
+      });
+    });
+
+    referencesByUrl.forEach((clientIds, adminUrl) => {
+      this.mediaApi.download(adminUrl).subscribe({
+        next: (blob) =>
+          this.blockImagePreviews.update((previews) => ({
+            ...previews,
+            ...Object.fromEntries(
+              clientIds.map((clientId) => [
+                clientId,
+                URL.createObjectURL(blob),
+              ]),
+            ),
+          })),
+      });
+    });
+  }
+
+  private storedBlockImageAdminUrl(url: string): string | null {
+    const storedImage = url.match(
+      /^\/api\/guides\/images\/content\/([^/]+)\/([^/?]+)/,
+    );
+    return storedImage
+      ? `/api/admin/guides/${storedImage[1]}/content-images/${storedImage[2]}`
+      : null;
   }
 
   private clearPendingBlockImage(clientId: string): void {

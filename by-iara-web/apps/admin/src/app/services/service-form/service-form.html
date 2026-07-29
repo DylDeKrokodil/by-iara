@@ -213,58 +213,22 @@
         }
       </div>
 
-      <fieldset class="service-image-editor">
-        <legend class="section-title">Service image</legend>
-        <p class="section-subtitle" id="service-image-help">
-          Optional. JPEG or PNG, up to 15 MB. The image is resized to a maximum
-          of 1600 × 1200 pixels and compressed before upload. For accessibility,
-          it is decorative beside the service name on the public catalogue.
-        </p>
-
-        @if (imagePreviewUrl(); as previewUrl) {
-        <div class="service-image-preview">
-          <img
-            [src]="previewUrl"
-            [width]="imagePreviewWidth()"
-            [height]="imagePreviewHeight()"
-            alt="Service image preview"
-          />
-        </div>
-        }
-
-        <div class="service-image-actions">
-          <byiara-button variant="secondary" (click)="openMediaPicker()">
-            Choose from library
-          </byiara-button>
-          <label class="file-picker" for="service-image">
-            Upload new image
-          </label>
-          <input
-            class="visually-hidden-file"
-            id="service-image"
-            type="file"
-            accept="image/jpeg,image/png"
-            [disabled]="imageProcessing() || submitting()"
-            aria-describedby="service-image-help service-image-error"
-            (change)="selectImage($event)"
-          />
-          @if (imagePreviewUrl()) {
-          <byiara-button variant="ghost" (click)="removeImage()">
-            Remove image
-          </byiara-button>
-          }
-        </div>
-
-        @if (imageProcessing()) {
-        <p class="image-status" role="status">Optimizing image…</p>
-        } @if (imageError()) {
-        <p class="error-message" id="service-image-error" role="alert">
-          {{ imageError() }}
-        </p>
-        } @else {
-        <span id="service-image-error"></span>
-        }
-      </fieldset>
+      <section class="service-image-editor">
+        <byiara-media-image-field
+          label="Service image"
+          metaLabel="16:9"
+          helperText="Optional. JPEG or PNG, up to 15 MB. Images are resized to a maximum of 1600 × 1200 pixels and compressed before upload."
+          [imageUrl]="imagePreviewUrl()"
+          imageAlt="Service image preview"
+          inputId="service-image"
+          [processing]="imageProcessing()"
+          [error]="imageError()"
+          [disabled]="imageProcessing() || submitting()"
+          (libraryRequested)="openMediaPicker()"
+          (fileSelected)="selectImage($event)"
+          (removeRequested)="removeImage()"
+        />
+      </section>
 
       <byiara-switch
         labelPosition="stacked"
