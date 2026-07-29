@@ -1,3 +1,29 @@
+:host {
+  display: block;
+}
+
+.reading-progress {
+  position: sticky;
+  inset-block-start: var(--byiara-site-header-height);
+  inset-inline-start: 0;
+  z-index: var(--byiara-z-index-raised);
+  display: block;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  background: var(--byiara-color-primary-soft);
+  pointer-events: none;
+}
+
+.reading-progress::after {
+  position: absolute;
+  inset: 0;
+  background: var(--byiara-color-primary);
+  content: '';
+  transform: scaleX(var(--reading-progress, 0));
+  transform-origin: left center;
+}
+
 .guide-detail-shell {
   padding-block: clamp(2rem, 7vw, 6rem);
 }
@@ -48,6 +74,37 @@
   margin: 0;
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
+}
+
+.guide-share {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-xs);
+}
+
+.guide-share-label {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.guide-share-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-xs);
+}
+
+.guide-share-options svg,
+.guide-share-options ng-icon {
+  flex: none;
+}
+
+@media (min-width: 48rem) {
+  .native-share-action {
+    display: none;
+  }
 }
 
 .cover {

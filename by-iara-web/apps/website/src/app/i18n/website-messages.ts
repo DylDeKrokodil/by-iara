@@ -109,6 +109,13 @@ export interface WebsiteMessages {
     readonly back: string;
     readonly by: string;
     readonly updated: string;
+    readonly readingTime: (minutes: number) => string;
+    readonly shareLabel: string;
+    readonly shareFacebook: string;
+    readonly shareCopy: string;
+    readonly shareAction: string;
+    readonly shareCopied: string;
+    readonly shareUnavailable: string;
     readonly faqTitle: string;
     readonly relatedTitle: string;
     readonly relatedAction: string;
@@ -400,6 +407,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       back: 'Voltar aos guias',
       by: 'Por',
       updated: 'Atualizado',
+      readingTime: (minutes) => `${minutes} min de leitura`,
+      shareLabel: 'Partilhar este guia',
+      shareFacebook: 'Facebook',
+      shareCopy: 'Copiar ligação',
+      shareAction: 'Mais opções',
+      shareCopied: 'Ligação do guia copiada.',
+      shareUnavailable:
+        'Não foi possível partilhar este guia. Tente copiar a ligação do navegador.',
       faqTitle: 'Perguntas frequentes',
       relatedTitle: 'Massagens relacionadas',
       relatedAction: 'Ver massagem',
@@ -715,6 +730,14 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       back: 'Back to guides',
       by: 'By',
       updated: 'Updated',
+      readingTime: (minutes) => `${minutes} min read`,
+      shareLabel: 'Share this guide',
+      shareFacebook: 'Facebook',
+      shareCopy: 'Copy link',
+      shareAction: 'More options',
+      shareCopied: 'Guide link copied.',
+      shareUnavailable:
+        'This guide could not be shared. Try copying the link from your browser.',
       faqTitle: 'Frequently asked questions',
       relatedTitle: 'Related massages',
       relatedAction: 'View massage',

@@ -26,6 +26,8 @@ export class Button {
   iconOnly = input(false, { transform: booleanAttribute });
   href = input<string | null>(null);
   routerLink = input<string | ReadonlyArray<string | number> | null>(null);
+  target = input<'_blank' | '_self' | '_parent' | '_top' | null>(null);
+  rel = input<string | null>(null);
   /** Required for iconOnly buttons. Also mirrored to `title` for a mouse-hover tooltip. */
   ariaLabel = input<string | null>(null);
 
