@@ -1,0 +1,441 @@
+<byiara-page-header
+  admin
+  label="Content"
+  [title]="editing ? 'Edit guide' : 'New guide'"
+>
+  <byiara-button page-header-action variant="secondary" routerLink="/guides">
+    Back to guides
+  </byiara-button>
+  @if (editing) {
+  <byiara-button
+    page-header-action
+    variant="secondary"
+    [routerLink]="['/guides', guideId!, 'preview']"
+  >
+    Preview
+  </byiara-button>
+  }
+</byiara-page-header>
+
+@if (error()) {
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
+} @if (loading()) {
+<p class="loading-copy">Loading guide…</p>
+} @else {
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="editor-layout">
+    <main class="editor-main">
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Bilingual content</p>
+            <h2>Guide content</h2>
+          </div>
+          <span class="required-note">Both languages are required</span>
+        </div>
+
+        <byiara-tabs
+          ariaLabel="Guide language"
+          [tabs]="languageTabs"
+          [activeValue]="activeLanguage()"
+          (activeValueChange)="selectLanguage($event)"
+        ></byiara-tabs>
+
+        <byiara-tabs
+          ariaLabel="Guide editor section"
+          [tabs]="editorTabs"
+          [activeValue]="activeEditorTab()"
+          (activeValueChange)="selectEditorTab($event)"
+        ></byiara-tabs>
+
+        <div formGroupName="translations" class="translation-shell">
+          <div [formGroupName]="activeLanguage()">
+            @if (activeEditorTab() === 'content') {
+            <div class="field-stack">
+              <byiara-text-field
+                label="Title"
+                required
+                formControlName="title"
+              ></byiara-text-field>
+              <byiara-text-field
+                label="URL slug"
+                optionalLabel="generated from the title when blank"
+                formControlName="slug"
+              ></byiara-text-field>
+              <byiara-text-field
+                label="Summary"
+                required
+                multiline
+                [rows]="4"
+                formControlName="excerpt"
+              ></byiara-text-field>
+            </div>
+
+            <div class="block-editor" formArrayName="blocks">
+              <div class="section-heading compact">
+                <div>
+                  <h3>Content blocks</h3>
+                  <p>Build the guide from reusable, structured sections.</p>
+                </div>
+                <byiara-button
+                  variant="secondary"
+                  size="sm"
+                  (click)="addBlock()"
+                >
+                  Add block
+                </byiara-button>
+              </div>
+
+              @for (block of blocks.controls; track block; let index = $index) {
+              <article class="block-card" [formGroupName]="index">
+                <header class="block-header">
+                  <label>
+                    <span>Block type</span>
+                    <select
+                      formControlName="type"
+                      (change)="setBlockType(index, $any($event.target).value)"
+                    >
+                      @for (option of blockTypeOptions; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </label>
+                  <div class="block-actions">
+                    <byiara-button
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="index === 0"
+                      (click)="moveBlock(index, -1)"
+                      >Move up</byiara-button
+                    >
+                    <byiara-button
+                      variant="ghost"
+                      size="sm"
+                      [disabled]="index === blocks.length - 1"
+                      (click)="moveBlock(index, 1)"
+                      >Move down</byiara-button
+                    >
+                    <byiara-button
+                      variant="ghost"
+                      size="sm"
+                      (click)="removeBlock(index)"
+                    >
+                      Remove
+                    </byiara-button>
+                  </div>
+                </header>
+
+                @switch (block.get('type')?.value) { @case ('PARAGRAPH') {
+                <byiara-text-field
+                  label="Paragraph"
+                  multiline
+                  [rows]="6"
+                  formControlName="text"
+                ></byiara-text-field>
+                } @case ('HEADING') {
+                <div class="two-column-fields">
+                  <byiara-text-field
+                    label="Heading"
+                    formControlName="text"
+                  ></byiara-text-field>
+                  <label class="native-field">
+                    <span>Heading level</span>
+                    <select formControlName="headingLevel">
+                      <option [value]="2">H2</option>
+                      <option [value]="3">H3</option>
+                      <option [value]="4">H4</option>
+                    </select>
+                  </label>
+                </div>
+                } @case ('IMAGE') {
+                <div class="block-image-editor">
+                  @if (blockImagePreviewUrl(index); as previewUrl) {
+                  <img
+                    class="block-image-preview"
+                    [src]="previewUrl"
+                    [alt]="block.get('imageAlt')?.value || 'Guide image preview'"
+                  />
+                  }
+                  <div class="image-actions">
+                    <byiara-button
+                      variant="secondary"
+                      size="sm"
+                      (click)="openBlockMediaPicker(index)"
+                    >
+                      Choose from library
+                    </byiara-button>
+                    <label class="file-picker">
+                      Upload new photo
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        (change)="chooseBlockImage(index, $event)"
+                      />
+                    </label>
+                    @if (blockImagePreviewUrl(index)) {
+                    <byiara-button
+                      variant="ghost"
+                      size="sm"
+                      (click)="removeBlockImage(index)"
+                    >
+                      Remove photo
+                    </byiara-button>
+                    }
+                  </div>
+                  <byiara-text-field
+                    label="Image URL"
+                    optionalLabel="or choose a photo above"
+                    formControlName="imageUrl"
+                  ></byiara-text-field>
+                  <byiara-text-field
+                    label="Image alt text"
+                    formControlName="imageAlt"
+                  ></byiara-text-field>
+                  <p class="upload-note">
+                    New photos are optimized and uploaded when you save the guide.
+                  </p>
+                </div>
+                } @case ('LIST') {
+                <byiara-text-field
+                  label="List items"
+                  optionalLabel="one item per line"
+                  multiline
+                  [rows]="6"
+                  formControlName="items"
+                ></byiara-text-field>
+                } @case ('QUOTE') {
+                <byiara-text-field
+                  label="Quote"
+                  multiline
+                  [rows]="4"
+                  formControlName="text"
+                ></byiara-text-field>
+                } @case ('CALL_TO_ACTION') {
+                <div class="two-column-fields">
+                  <byiara-text-field
+                    label="Button label"
+                    formControlName="actionLabel"
+                  ></byiara-text-field>
+                  <byiara-text-field
+                    label="Destination URL"
+                    formControlName="actionUrl"
+                  ></byiara-text-field>
+                </div>
+                } }
+              </article>
+              }
+            </div>
+            } @else if (activeEditorTab() === 'seo') {
+            <div class="field-stack">
+              <byiara-text-field
+                label="SEO title"
+                required
+                formControlName="seoTitle"
+              ></byiara-text-field>
+              <byiara-text-field
+                label="Meta description"
+                required
+                multiline
+                [rows]="4"
+                formControlName="metaDescription"
+              ></byiara-text-field>
+              <div class="search-preview">
+                <p class="preview-url">
+                  iaragouveia.com/{{ activeLanguage() === 'ptPT' ? 'pt/guias' :
+                  'en/guides' }}/{{ translation.get('slug')?.value ||
+                  'guide-slug' }}
+                </p>
+                <h3>
+                  {{ translation.get('seoTitle')?.value ||
+                  translation.get('title')?.value || 'Guide title' }}
+                </h3>
+                <p>
+                  {{ translation.get('metaDescription')?.value || 'The guide’s
+                  search description will appear here.' }}
+                </p>
+              </div>
+            </div>
+            } @else {
+            <div class="faq-editor" formArrayName="faqs">
+              <div class="section-heading compact">
+                <div>
+                  <h3>Frequently asked questions</h3>
+                  <p>
+                    These can also appear as structured data on the public
+                    guide.
+                  </p>
+                </div>
+                <byiara-button variant="secondary" size="sm" (click)="addFaq()">
+                  Add FAQ
+                </byiara-button>
+              </div>
+              @for (faq of faqs.controls; track faq; let index = $index) {
+              <article class="faq-card" [formGroupName]="index">
+                <byiara-text-field
+                  label="Question"
+                  formControlName="question"
+                ></byiara-text-field>
+                <byiara-text-field
+                  label="Answer"
+                  multiline
+                  [rows]="4"
+                  formControlName="answer"
+                ></byiara-text-field>
+                <byiara-button
+                  variant="ghost"
+                  size="sm"
+                  (click)="removeFaq(index)"
+                  >Remove FAQ</byiara-button
+                >
+              </article>
+              } @if (!faqs.length) {
+              <p class="empty-note">No FAQs in this language yet.</p>
+              }
+            </div>
+            }
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="editor-sidebar">
+      <section class="panel">
+        <h2>Publishing</h2>
+        <label class="native-field">
+          <span>Status</span>
+          <select formControlName="status">
+            <option value="DRAFT">Draft</option>
+            <option value="PUBLISHED">Published</option>
+            <option value="ARCHIVED">Archived</option>
+          </select>
+        </label>
+        <byiara-text-field
+          label="Published date"
+          optionalLabel="set automatically when publishing"
+          type="datetime-local"
+          formControlName="publishedAt"
+        ></byiara-text-field>
+        @if (currentGuide(); as guide) {
+        <dl class="metadata">
+          <div>
+            <dt>Created</dt>
+            <dd>{{ guide.createdAt | date:'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Updated</dt>
+            <dd>{{ guide.updatedAt | date:'medium' }}</dd>
+          </div>
+        </dl>
+        }
+      </section>
+
+      <section class="panel">
+        <h2>Ownership and discovery</h2>
+        <byiara-text-field
+          label="Author"
+          required
+          formControlName="author"
+        ></byiara-text-field>
+        <byiara-text-field
+          label="Categories"
+          optionalLabel="comma separated"
+          formControlName="categories"
+        ></byiara-text-field>
+        <byiara-text-field
+          label="Tags"
+          optionalLabel="comma separated"
+          formControlName="tags"
+        ></byiara-text-field>
+      </section>
+
+      <section class="panel">
+        <h2>Images</h2>
+        @for (type of ['COVER', 'SOCIAL']; track type) {
+        <div class="image-field">
+          <strong
+            >{{ type === 'COVER' ? 'Cover image' : 'Social sharing image'
+            }}</strong
+          >
+          @if (imageUrl($any(type)); as url) {
+          <img
+            [src]="url"
+            [alt]="type === 'COVER' ? 'Guide cover preview' : 'Social image preview'"
+          />
+          }
+          <div class="image-actions">
+            <byiara-button
+              variant="secondary"
+              size="sm"
+              (click)="openImageMediaPicker($any(type))"
+            >
+              Choose from library
+            </byiara-button>
+            <label class="file-picker">
+              Upload new image
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                (change)="chooseImage($any(type), $event)"
+              />
+            </label>
+            @if (imageUrl($any(type))) {
+            <byiara-button
+              variant="ghost"
+              size="sm"
+              (click)="removeImage($any(type))"
+            >
+              Remove
+            </byiara-button>
+            }
+          </div>
+        </div>
+        }
+      </section>
+
+      <section class="panel">
+        <h2>Related services</h2>
+        @if (services().length) {
+        <div class="service-options">
+          @for (service of services(); track service.id) {
+          <label>
+            <input
+              type="checkbox"
+              [checked]="selectedServiceIds().has(service.id)"
+              (change)="toggleRelatedService(service.id, $any($event.target).checked)"
+            />
+            <span>{{ service.name }}</span>
+          </label>
+          }
+        </div>
+        } @else {
+        <p class="empty-note">No active services available.</p>
+        }
+      </section>
+    </aside>
+  </div>
+
+  <div class="form-actions">
+    <div>
+      @if (editing) {
+      <byiara-button variant="ghost" (click)="archive()">Archive</byiara-button>
+      }
+    </div>
+    <div class="primary-actions">
+      <byiara-button variant="secondary" type="submit" [loading]="submitting()">
+        Save
+      </byiara-button>
+      <byiara-button
+        variant="primary"
+        [loading]="submitting()"
+        (click)="save('PUBLISHED')"
+      >
+        Save and publish
+      </byiara-button>
+    </div>
+  </div>
+</form>
+
+<byiara-media-picker
+  (selected)="chooseMediaImage($event)"
+></byiara-media-picker>
+}

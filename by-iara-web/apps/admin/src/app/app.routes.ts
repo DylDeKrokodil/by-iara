@@ -25,6 +25,36 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'guides',
+        loadComponent: () =>
+          import('./guides/guides-list/guides-list').then((m) => m.GuidesList),
+      },
+      {
+        path: 'guides/new',
+        loadComponent: () =>
+          import('./guides/guide-form/guide-form').then((m) => m.GuideForm),
+      },
+      {
+        path: 'images',
+        loadComponent: () =>
+          import('./media/media-library/media-library').then(
+            (m) => m.MediaLibrary,
+          ),
+      },
+      { path: 'guides/images', redirectTo: 'images', pathMatch: 'full' },
+      {
+        path: 'guides/:id/preview',
+        loadComponent: () =>
+          import('./guides/guide-preview/guide-preview').then(
+            (m) => m.GuidePreview,
+          ),
+      },
+      {
+        path: 'guides/:id',
+        loadComponent: () =>
+          import('./guides/guide-form/guide-form').then((m) => m.GuideForm),
+      },
+      {
         path: 'reservations/:id',
         loadComponent: () =>
           import('./reservations/reservation-detail/reservation-detail').then(
@@ -66,7 +96,8 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'discounts',
-        loadComponent: () => import('./discounts/discounts').then((m) => m.Discounts),
+        loadComponent: () =>
+          import('./discounts/discounts').then((m) => m.Discounts),
       },
       {
         path: 'reports',

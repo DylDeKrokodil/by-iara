@@ -1,0 +1,79 @@
+<byiara-page-header admin label="Content" title="Guide preview">
+  @if (guide(); as current) {
+  <byiara-button
+    page-header-action
+    variant="secondary"
+    [routerLink]="['/guides', current.id]"
+  >
+    Back to editor
+  </byiara-button>
+  }
+</byiara-page-header>
+
+@if (error()) {
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
+} @if (guide(); as current) {
+<byiara-tabs
+  ariaLabel="Preview language"
+  [tabs]="tabs"
+  [activeValue]="locale()"
+  (activeValueChange)="setLocale($event)"
+></byiara-tabs>
+
+@if (current.translations[locale()]; as translation) {
+<article class="guide-preview">
+  <header class="guide-header">
+    @if (current.categories.length) {
+    <p class="categories">{{ current.categories.join(' · ') }}</p>
+    }
+    <h1>{{ translation.title }}</h1>
+    <p class="excerpt">{{ translation.excerpt }}</p>
+    <p class="byline">By {{ current.author }}</p>
+    @if (imageUrl('COVER'); as coverUrl) {
+    <img class="cover-image" [src]="coverUrl" [alt]="translation.title" />
+    }
+  </header>
+
+  <div class="guide-body">
+    @for (block of translation.blocks; track $index) { @switch (block.type) {
+    @case ('PARAGRAPH') {
+    <p>{{ block.text }}</p>
+    } @case ('HEADING') { @switch (block.headingLevel) { @case (3) {
+    <h3>{{ block.text }}</h3>
+    } @case (4) {
+    <h4>{{ block.text }}</h4>
+    } @default {
+    <h2>{{ block.text }}</h2>
+    } } } @case ('IMAGE') {
+    <figure>
+      <img [src]="block.imageUrl" [alt]="block.imageAlt || ''" />
+      @if (block.imageAlt) {
+      <figcaption>{{ block.imageAlt }}</figcaption>
+      }
+    </figure>
+    } @case ('LIST') {
+    <ul>
+      @for (item of block.items; track $index) {
+      <li>{{ item }}</li>
+      }
+    </ul>
+    } @case ('QUOTE') {
+    <blockquote>{{ block.text }}</blockquote>
+    } @case ('CALL_TO_ACTION') {
+    <a class="guide-cta" [href]="block.actionUrl">{{ block.actionLabel }}</a>
+    } } }
+  </div>
+
+  @if (translation.faqs.length) {
+  <section class="faq-section">
+    <h2>Frequently asked questions</h2>
+    @for (faq of translation.faqs; track faq.question) {
+    <details>
+      <summary>{{ faq.question }}</summary>
+      <p>{{ faq.answer }}</p>
+    </details>
+    }
+  </section>
+  }
+</article>
+} }

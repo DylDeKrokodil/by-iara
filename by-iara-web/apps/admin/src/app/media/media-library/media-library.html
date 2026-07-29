@@ -1,0 +1,64 @@
+<byiara-page-header admin label="Content" title="Images">
+  <label page-header-action class="upload-button">
+    {{ uploading() ? 'Uploading…' : 'Upload image' }}
+    <input
+      type="file"
+      accept="image/jpeg,image/png"
+      [disabled]="uploading()"
+      (change)="upload($event)"
+    />
+  </label>
+</byiara-page-header>
+
+<p class="overview-copy">
+  Shared image library for services, guide covers, social images, and guide content.
+  Upload once and reuse it anywhere.
+</p>
+
+@if (error()) {
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
+}
+
+@if (loading()) {
+<div class="image-grid" aria-label="Loading images" aria-busy="true">
+  @for (item of [1, 2, 3, 4, 5, 6]; track item) {
+  <div class="image-skeleton" aria-hidden="true"><span></span><i></i><i></i></div>
+  }
+</div>
+} @else if (!images().length) {
+<byiara-empty-state title="No images in the library yet.">
+  <span>Upload an image here or while editing a service or guide.</span>
+</byiara-empty-state>
+} @else {
+<p class="image-count">
+  {{ images().length }} unique {{ images().length === 1 ? 'image' : 'images' }}.
+  Duplicate uploads reuse the same stored file.
+</p>
+
+<ul class="image-grid" aria-label="Shared image library">
+  @for (image of images(); track image.id) {
+  <li class="image-item">
+    <div class="image-preview">
+      @if (image.previewUrl) {
+      <img
+        [src]="image.previewUrl"
+        [alt]="'Uploaded image, ' + image.width + ' by ' + image.height + ' pixels'"
+      />
+      } @else {
+      <span>Preview unavailable</span>
+      }
+    </div>
+    <div class="image-details">
+      <strong>{{ image.width }} × {{ image.height }}</strong>
+      <span>{{ formatBytes(image.byteSize) }} · {{ usageLabel(image.usageTypes) }}</span>
+      <span>
+        Used {{ image.usageCount }} {{ image.usageCount === 1 ? 'time' : 'times' }}
+      </span>
+      <time [attr.datetime]="image.createdAt">
+        Added {{ image.createdAt | date:'mediumDate' }}
+      </time>
+    </div>
+  </li>
+  }
+</ul>
+}

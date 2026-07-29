@@ -1,0 +1,57 @@
+<dialog #dialog class="media-dialog" aria-labelledby="media-picker-title">
+  <div class="dialog-header">
+    <div>
+      <h2 id="media-picker-title">Choose from image library</h2>
+      <p>Reuse an existing image or upload a new one.</p>
+    </div>
+    <byiara-button variant="ghost" size="sm" (click)="close()">Close</byiara-button>
+  </div>
+
+  <div class="dialog-toolbar">
+    <label class="upload-button">
+      {{ uploading() ? 'Uploading…' : 'Upload new image' }}
+      <input
+        type="file"
+        accept="image/jpeg,image/png"
+        [disabled]="uploading()"
+        (change)="upload($event)"
+      />
+    </label>
+  </div>
+
+  @if (error()) {
+  <p class="picker-error" role="alert">{{ error() }}</p>
+  }
+
+  @if (loading()) {
+  <p class="picker-status" role="status">Loading image library…</p>
+  } @else if (!images().length) {
+  <div class="picker-empty">
+    <strong>No images yet</strong>
+    <span>Upload the first image to add it to the shared library.</span>
+  </div>
+  } @else {
+  <ul class="picker-grid" aria-label="Available images">
+    @for (image of images(); track image.id) {
+    <li>
+      <button type="button" class="image-option" (click)="choose(image)">
+        <span class="option-preview">
+          @if (image.previewUrl) {
+          <img
+            [src]="image.previewUrl"
+            [alt]="'Image, ' + image.width + ' by ' + image.height + ' pixels'"
+          />
+          } @else {
+          <span>Preview unavailable</span>
+          }
+        </span>
+        <span class="option-meta">
+          <strong>{{ image.width }} × {{ image.height }}</strong>
+          <span>{{ formatBytes(image.byteSize) }}</span>
+        </span>
+      </button>
+    </li>
+    }
+  </ul>
+  }
+</dialog>

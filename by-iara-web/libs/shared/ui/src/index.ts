@@ -1,4 +1,5 @@
 export * from './lib/status-chip/status-chip';
+export * from './lib/action-menu/action-menu';
 
 export * from './lib/choice-chip/choice-chip';
 export * from './lib/data-table/data-table';

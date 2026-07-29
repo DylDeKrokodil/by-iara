@@ -233,8 +233,11 @@
         }
 
         <div class="service-image-actions">
+          <byiara-button variant="secondary" (click)="openMediaPicker()">
+            Choose from library
+          </byiara-button>
           <label class="file-picker" for="service-image">
-            {{ imagePreviewUrl() ? 'Replace image' : 'Choose image' }}
+            Upload new image
           </label>
           <input
             class="visually-hidden-file"
@@ -564,3 +567,7 @@
     </div>
   </div>
 </form>
+
+<byiara-media-picker
+  (selected)="chooseMediaImage($event)"
+></byiara-media-picker>
