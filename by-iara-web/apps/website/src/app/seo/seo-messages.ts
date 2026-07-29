@@ -4,6 +4,7 @@ import { BRAND } from '../brand/brand';
 export type StaticSeoPage =
   | 'home'
   | 'services'
+  | 'guides'
   | 'packs'
   | 'book'
   | 'privacy'
@@ -28,6 +29,11 @@ export const SEO_MESSAGES: Record<
     services: {
       title: `Massagens em Almada | ${BRAND.name}`,
       description: `Conheça as massagens, durações e preços disponíveis no estúdio ${BRAND.name} em Almada.`,
+    },
+    guides: {
+      title: `Guias de massagem e bem-estar | ${BRAND.name}`,
+      description:
+        'Guias práticos sobre massagem, recuperação e bem-estar, escritos para ajudar a cuidar do corpo com mais confiança.',
     },
     packs: {
       title: `Packs de massagem em Almada | ${BRAND.name}`,
@@ -67,6 +73,11 @@ export const SEO_MESSAGES: Record<
     services: {
       title: `Massages in Almada | ${BRAND.name}`,
       description: `Explore the massages, durations, and prices available at the ${BRAND.name} studio in Almada.`,
+    },
+    guides: {
+      title: `Massage and wellbeing guides | ${BRAND.name}`,
+      description:
+        'Practical guides about massage, recovery, and wellbeing to help you care for your body with greater confidence.',
     },
     packs: {
       title: `Massage session packs in Almada | ${BRAND.name}`,

@@ -1,16 +1,14 @@
 <byiara-site-intro />
 
 <div class="site-frame">
-  @if (featuredDiscount(); as promotion) {
-    @if (!promotionDismissed()) {
-      <byiara-promotion-bar
-        [discount]="promotion"
-        [benefit]="promotionBenefit()"
-        [copy]="promotionCopy()"
-        (dismissed)="dismissPromotion()"
-      />
-    }
-  }
+  @if (featuredDiscount(); as promotion) { @if (!promotionDismissed()) {
+  <byiara-promotion-bar
+    [discount]="promotion"
+    [benefit]="promotionBenefit()"
+    [copy]="promotionCopy()"
+    (dismissed)="dismissPromotion()"
+  />
+  } }
   <header class="site-header">
     <div class="header-container">
       <button
@@ -47,6 +45,12 @@
           routerLinkActive="active"
         >
           {{ copy().nav.packs }}
+        </a>
+        <a
+          [routerLink]="language.localizedLink('guides')"
+          routerLinkActive="active"
+        >
+          {{ copy().nav.guides }}
         </a>
       </nav>
 
@@ -95,6 +99,12 @@
           >
             {{ copy().nav.packs }}
           </a>
+          <a
+            [routerLink]="language.localizedLink('guides')"
+            routerLinkActive="active"
+          >
+            {{ copy().nav.guides }}
+          </a>
         </nav>
         <byiara-language-switcher></byiara-language-switcher>
       </div>
@@ -136,6 +146,9 @@
           >
           <a [routerLink]="language.localizedLink('packs')"
             >{{ copy().footer.packs }}</a
+          >
+          <a [routerLink]="language.localizedLink('guides')"
+            >{{ copy().footer.guides }}</a
           >
           <a [routerLink]="language.localizedLink('book')"
             >{{ copy().footer.book }}</a

@@ -65,7 +65,8 @@ export class LanguageService {
     if (currentSegments.length > 1) {
       const targetLocale = getLocaleByPath(path);
       const targetSlug = targetLocale
-        ? this.currentResolvedService()?.translations[targetLocale.locale]?.slug
+        ? this.currentResolvedResource()?.translations[targetLocale.locale]
+            ?.slug
         : undefined;
       return targetSlug
         ? ['/', path, localizedSegments[0], targetSlug]
@@ -75,13 +76,15 @@ export class LanguageService {
     return ['/', path, ...localizedSegments];
   }
 
-  private currentResolvedService(): ResolvedLocalizedService | null {
+  private currentResolvedResource(): ResolvedLocalizedService | null {
     let snapshot = this.router.routerState.snapshot.root;
     while (snapshot.firstChild) {
       snapshot = snapshot.firstChild;
     }
     return (
-      (snapshot.data['service'] as ResolvedLocalizedService | null) ?? null
+      (snapshot.data['service'] as ResolvedLocalizedService | null) ??
+      (snapshot.data['guide'] as ResolvedLocalizedService | null) ??
+      null
     );
   }
 

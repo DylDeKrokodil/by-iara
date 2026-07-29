@@ -17,6 +17,7 @@ import type {
 import { LanguageService } from '../i18n/language.service';
 import { WEBSITE_MESSAGES } from '../i18n/website-messages';
 import type { Service } from '../services/services-api';
+import type { Guide } from '../guides/guides-api';
 import { SEO_MESSAGES, StaticSeoPage } from './seo-messages';
 import { SITE_ORIGIN } from './site-origin';
 import { BRAND, SOCIAL_LINKS } from '../brand/brand';
@@ -211,11 +212,143 @@ export class SeoService {
     });
   }
 
+  updateGuidesStructuredData(guides: readonly Guide[]): void {
+    const locale = this.language.current();
+    this.setStructuredData({
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      itemListElement: guides.flatMap((guide, index) => {
+        const translation = guide.translations[locale.locale];
+        return translation
+          ? [
+              {
+                '@type': 'ListItem',
+                position: index + 1,
+                name: translation.title,
+                url: this.absolute(
+                  this.guidePath(locale.path, translation.slug),
+                ),
+              },
+            ]
+          : [];
+      }),
+    });
+  }
+
+  updateGuide(guide: Guide | null, localePath: LocalePath): void {
+    const locale = getLocaleByPath(localePath);
+    if (!locale) {
+      this.updateNotFound(this.router.url.replace(/^\//, ''));
+      return;
+    }
+    const translation = guide?.translations[locale.locale];
+    if (!guide || !translation) {
+      this.updateNotFound(this.router.url.replace(/^\//, ''), locale);
+      return;
+    }
+
+    const canonicalPath = this.guidePath(locale.path, translation.slug);
+    const selectedImage = guide.images.SOCIAL ?? guide.images.COVER;
+    const image = selectedImage
+      ? {
+          url: this.absolute(selectedImage.url),
+          width: selectedImage.width,
+          height: selectedImage.height,
+          alt: translation.title,
+        }
+      : undefined;
+    const alternates = SUPPORTED_LOCALES.flatMap((candidate) => {
+      const localized = guide.translations[candidate.locale];
+      return localized
+        ? [
+            {
+              locale: candidate.path,
+              path: this.guidePath(candidate.path, localized.slug),
+            },
+          ]
+        : [];
+    });
+
+    this.apply({
+      title: translation.seoTitle,
+      description: translation.metaDescription,
+      canonicalPath,
+      alternates,
+      indexable: true,
+      type: 'article',
+      locale,
+      image,
+    });
+
+    const graph: unknown[] = [
+      {
+        '@type': 'Article',
+        '@id': `${this.absolute(canonicalPath)}#article`,
+        headline: translation.title,
+        description: translation.metaDescription,
+        url: this.absolute(canonicalPath),
+        inLanguage: locale.locale,
+        datePublished: guide.publishedAt,
+        dateModified: guide.updatedAt,
+        author: { '@type': 'Person', name: guide.author },
+        publisher: {
+          '@type': 'Organization',
+          '@id': `${this.siteOrigin}/#organization`,
+          name: BRAND.name,
+          url: `${this.siteOrigin}/pt`,
+        },
+        ...(image ? { image: image.url } : {}),
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${this.absolute(canonicalPath)}#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: this.language.messages().guideDetail.homeBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'home')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: this.language.messages().guideDetail.guidesBreadcrumb,
+            item: this.absolute(this.staticPath(locale.path, 'guides')),
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: translation.title,
+            item: this.absolute(canonicalPath),
+          },
+        ],
+      },
+    ];
+    if (translation.faqs.length) {
+      graph.push({
+        '@type': 'FAQPage',
+        '@id': `${this.absolute(canonicalPath)}#faq`,
+        mainEntity: translation.faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+        })),
+      });
+    }
+    this.setStructuredData({
+      '@context': 'https://schema.org',
+      '@graph': graph,
+    });
+  }
+
   private updateStatic(page: PublicPageKey): void {
     const locale = this.language.current();
     const seo = SEO_MESSAGES[locale.locale][page as StaticSeoPage];
     const indexable =
-      page === 'home' || page === 'services' || page === 'packs';
+      page === 'home' ||
+      page === 'services' ||
+      page === 'guides' ||
+      page === 'packs';
     const canonicalPath = this.staticPath(locale.path, page);
     const alternates = SUPPORTED_LOCALES.map((candidate) => ({
       locale: candidate.path,
@@ -293,7 +426,7 @@ export class SeoService {
     canonicalPath: string;
     alternates: ReadonlyArray<{ locale: LocalePath; path: string }>;
     indexable: boolean;
-    type: 'website' | 'product';
+    type: 'website' | 'product' | 'article';
     locale: SupportedLocale;
     follow?: boolean;
     image?: {
@@ -420,6 +553,10 @@ export class SeoService {
 
   private servicePath(locale: LocalePath, slug: string): string {
     return `${this.staticPath(locale, 'services')}/${encodeURIComponent(slug)}`;
+  }
+
+  private guidePath(locale: LocalePath, slug: string): string {
+    return `${this.staticPath(locale, 'guides')}/${encodeURIComponent(slug)}`;
   }
 
   private absolute(path: string): string {

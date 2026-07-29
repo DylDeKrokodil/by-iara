@@ -6,9 +6,11 @@ import {
 } from './i18n/supported-locales';
 import type { LocalePath } from './i18n/supported-locales';
 import { serviceResolver } from './services/service.resolver';
+import { guideResolver } from './guides/guide.resolver';
 
 function localizedRoutes(locale: LocalePath): Route[] {
   const massagesPath = getLocalizedPagePath(locale, 'services');
+  const guidesPath = getLocalizedPagePath(locale, 'guides');
   const routes: Route[] = [
     {
       path: getLocalizedPagePath(locale, 'home'),
@@ -25,6 +27,18 @@ function localizedRoutes(locale: LocalePath): Route[] {
       path: getLocalizedPagePath(locale, 'packs'),
       pathMatch: 'full',
       loadComponent: () => import('./packs/packs').then((m) => m.Packs),
+    },
+    {
+      path: guidesPath,
+      pathMatch: 'full',
+      loadComponent: () =>
+        import('./guides/guides-index/guides-index').then((m) => m.GuidesIndex),
+    },
+    {
+      path: `${guidesPath}/:slug`,
+      resolve: { guide: guideResolver },
+      loadComponent: () =>
+        import('./guides/guide-detail/guide-detail').then((m) => m.GuideDetail),
     },
     {
       path: `${massagesPath}/:slug`,
