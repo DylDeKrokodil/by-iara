@@ -72,7 +72,7 @@ describe('SeoService', () => {
   it('uses massage-specific metadata for the catalog page', () => {
     const document = TestBed.inject(DOCUMENT);
 
-    TestBed.inject(SeoService).updateStaticRoute('/pt/servicos');
+    TestBed.inject(SeoService).updateStaticRoute('/pt/massagens');
 
     expect(document.title).toBe('Massagens em Almada | Iara Gouveia');
     expect(
@@ -100,7 +100,7 @@ describe('SeoService', () => {
     expect(
       document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
         ?.href,
-    ).toBe('https://iaragouveia.com/en/services/relaxation-massage');
+    ).toBe('https://iaragouveia.com/en/massages/relaxation-massage');
     expect(
       document.head.querySelector<HTMLMetaElement>('meta[property="og:image"]')
         ?.content,
@@ -120,7 +120,7 @@ describe('SeoService', () => {
       name: 'Relaxation massage',
       description: 'English description.',
       inLanguage: 'en-US',
-      url: 'https://iaragouveia.com/en/services/relaxation-massage',
+      url: 'https://iaragouveia.com/en/massages/relaxation-massage',
       image: expect.objectContaining({
         url: 'https://iaragouveia.com/api/services/service-1/image?v=1',
         caption: 'Relaxation massage',

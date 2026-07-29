@@ -24,7 +24,7 @@ describe('NotFound', () => {
           useValue: {
             messages: () => WEBSITE_MESSAGES[DEFAULT_LOCALE.locale],
             localizedLink: (page = 'home') =>
-              page === 'services' ? ['/pt/servicos'] : ['/pt'],
+              page === 'services' ? ['/pt/massagens'] : ['/pt'],
           },
         },
       ],
@@ -49,7 +49,7 @@ describe('NotFound', () => {
       element.querySelector<HTMLAnchorElement>('a[href="/pt"]'),
     ).not.toBeNull();
     expect(
-      element.querySelector<HTMLAnchorElement>('a[href="/pt/servicos"]'),
+      element.querySelector<HTMLAnchorElement>('a[href="/pt/massagens"]'),
     ).not.toBeNull();
     expect(
       element.querySelector<HTMLAnchorElement>(

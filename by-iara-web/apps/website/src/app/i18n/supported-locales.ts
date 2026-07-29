@@ -37,7 +37,7 @@ export const DEFAULT_LOCALE = SUPPORTED_LOCALES[0];
 export const LOCALIZED_PAGE_PATHS = {
   pt: {
     home: '',
-    services: 'servicos',
+    services: 'massagens',
     packs: 'packs',
     book: 'marcar',
     privacy: 'privacidade',
@@ -46,7 +46,7 @@ export const LOCALIZED_PAGE_PATHS = {
   },
   en: {
     home: '',
-    services: 'services',
+    services: 'massages',
     packs: 'packs',
     book: 'book',
     privacy: 'privacy',

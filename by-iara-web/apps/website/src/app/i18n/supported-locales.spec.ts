@@ -6,7 +6,7 @@ import {
 
 describe('localized public routes', () => {
   it('uses Portuguese paths below /pt', () => {
-    expect(getLocalizedPagePath('pt', 'services')).toBe('servicos');
+    expect(getLocalizedPagePath('pt', 'services')).toBe('massagens');
     expect(getLocalizedPagePath('pt', 'book')).toBe('marcar');
     expect(getLocalizedPagePath('pt', 'privacy')).toBe('privacidade');
     expect(getLocalizedPagePath('pt', 'bookingTerms')).toBe(
@@ -15,21 +15,21 @@ describe('localized public routes', () => {
   });
 
   it('uses English paths below /en', () => {
-    expect(getLocalizedPagePath('en', 'services')).toBe('services');
+    expect(getLocalizedPagePath('en', 'services')).toBe('massages');
     expect(getLocalizedPagePath('en', 'book')).toBe('book');
     expect(getLocalizedPagePath('en', 'legalNotice')).toBe('legal-information');
   });
 
   it('resolves localized paths back to stable page keys', () => {
-    expect(getPublicPageKey('pt', 'servicos')).toBe('services');
-    expect(getPublicPageKey('en', 'services')).toBe('services');
+    expect(getPublicPageKey('pt', 'massagens')).toBe('services');
+    expect(getPublicPageKey('en', 'massages')).toBe('services');
     expect(getPublicPageKey('pt', undefined)).toBe('home');
     expect(getPublicPageKey('en', 'privacy')).toBe('privacy');
   });
 
   it('translates known paths while switching locale', () => {
-    expect(localizePublicPageSegments('pt', 'en', ['servicos'])).toEqual([
-      'services',
+    expect(localizePublicPageSegments('pt', 'en', ['massagens'])).toEqual([
+      'massages',
     ]);
     expect(localizePublicPageSegments('en', 'pt', ['book'])).toEqual([
       'marcar',

@@ -59,7 +59,6 @@ function sitemapLastModified(
 
 const PERMANENT_REDIRECTS: Readonly<Record<string, string>> = {
   '/': '/pt',
-  '/pt/services': '/pt/servicos',
   '/pt/book': '/pt/marcar',
   '/pt/privacy': '/pt/privacidade',
   '/pt/booking-terms': '/pt/termos-de-marcacao',
@@ -69,6 +68,24 @@ const PERMANENT_REDIRECTS: Readonly<Record<string, string>> = {
 Object.entries(PERMANENT_REDIRECTS).forEach(([source, destination]) => {
   app.get(source, (req, res) =>
     res.redirect(301, `${destination}${querySuffix(req)}`),
+  );
+});
+
+const LEGACY_MASSAGE_PATHS: Readonly<Record<string, string>> = {
+  '/pt/servicos': '/pt/massagens',
+  '/pt/services': '/pt/massagens',
+  '/en/services': '/en/massages',
+};
+
+Object.entries(LEGACY_MASSAGE_PATHS).forEach(([source, destination]) => {
+  app.get(source, (req, res) =>
+    res.redirect(301, `${destination}${querySuffix(req)}`),
+  );
+  app.get(`${source}/:slug`, (req, res) =>
+    res.redirect(
+      301,
+      `${destination}/${encodeURIComponent(req.params['slug'])}${querySuffix(req)}`,
+    ),
   );
 });
 
@@ -103,15 +120,15 @@ app.get('/sitemap.xml', async (req, res) => {
 
   const staticGroups: SitemapUrlGroup[] = [
     { pt: '/pt', en: '/en' },
-    { pt: '/pt/servicos', en: '/en/services' },
+    { pt: '/pt/massagens', en: '/en/massages' },
     { pt: '/pt/packs', en: '/en/packs' },
   ];
   const serviceGroups: SitemapUrlGroup[] = services.map((service) => ({
     pt: service.translations['pt-PT']?.slug
-      ? `/pt/servicos/${encodeURIComponent(service.translations['pt-PT'].slug)}`
+      ? `/pt/massagens/${encodeURIComponent(service.translations['pt-PT'].slug)}`
       : undefined,
     en: service.translations['en-US']?.slug
-      ? `/en/services/${encodeURIComponent(service.translations['en-US'].slug)}`
+      ? `/en/massages/${encodeURIComponent(service.translations['en-US'].slug)}`
       : undefined,
     lastModified: sitemapLastModified(service.updatedAt),
   }));
