@@ -37,6 +37,74 @@
           <span aria-hidden="true">·</span>
           {{ copy().readingTime(readingMinutes()) }}
         </p>
+        <div
+          class="guide-share"
+          role="group"
+          [attr.aria-label]="copy().shareLabel"
+        >
+          <span class="guide-share-label">{{ copy().shareLabel }}</span>
+          <div class="guide-share-options">
+            <byiara-button
+              variant="secondary"
+              [href]="shareLink('facebook', localized)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ng-icon
+                [svg]="platformIcons.facebook"
+                size="18px"
+                aria-hidden="true"
+              />
+              {{ copy().shareFacebook }}
+            </byiara-button>
+            <byiara-button
+              variant="secondary"
+              (click)="copyGuideLink()"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+              </svg>
+              {{ copy().shareCopy }}
+            </byiara-button>
+            @if (canNativeShare()) {
+            <byiara-button
+              class="native-share-action"
+              variant="secondary"
+              [loading]="sharing()"
+              (click)="shareGuide(localized)"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <path d="m8.7 10.7 6.6-4.1M8.7 13.3l6.6 4.1"></path>
+              </svg>
+              {{ copy().shareAction }}
+            </byiara-button>
+            }
+          </div>
+        </div>
       </header>
 
       @if (guide.images.COVER; as cover) {
