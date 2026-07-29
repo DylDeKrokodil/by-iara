@@ -1,12 +1,12 @@
-# By Iara Project Plan
+# Iara Gouveia Project Plan
 
 ## 1. Goal
 
-Build a scalable booking platform for By Iara with:
+Build a scalable booking platform for Iara Gouveia with:
 
-- Public website at `by-iara.com`
-- Admin dashboard at `admin.by-iara.com`
-- Spring Boot Kotlin API at `api.by-iara.com`
+- Public website at `iaragouveia.com`
+- Admin dashboard at `admin.iaragouveia.com`
+- Spring Boot Kotlin API at `api.iaragouveia.com`
 - PostgreSQL as the primary database
 
 The first version should support browsing massage services, checking availability, submitting reservation requests, and allowing admins to manage reservations and core business settings.
@@ -35,13 +35,13 @@ PostgreSQL
   application database
 
 Domains
-  by-iara.com
+  iaragouveia.com
     public website
 
-  admin.by-iara.com
+  admin.iaragouveia.com
     admin dashboard
 
-  api.by-iara.com
+  api.iaragouveia.com
     backend API
 ```
 
@@ -483,7 +483,7 @@ Deliverables:
 - Production environment variables.
 - Database backup plan.
 - HTTPS and domain setup.
-- CORS configuration for `by-iara.com` and `admin.by-iara.com`.
+- CORS configuration for `iaragouveia.com` and `admin.iaragouveia.com`.
 - Logging baseline.
 - Error monitoring.
 - Basic uptime checks.

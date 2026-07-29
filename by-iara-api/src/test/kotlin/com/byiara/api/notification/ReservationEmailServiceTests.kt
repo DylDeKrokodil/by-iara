@@ -195,7 +195,7 @@ class ReservationEmailServiceTests {
         assertTrue(content.htmlBody.contains("colspan=\"2\""))
         assertTrue(content.htmlBody.contains("text-align:left;\">$address"))
         assertTrue(content.body.contains("email app may show an option to add or accept"))
-        assertTrue(content.htmlBody.contains("by-iara-appointment.ics"))
+        assertTrue(content.htmlBody.contains("iara-gouveia-appointment.ics"))
     }
 
     @Test
@@ -212,7 +212,7 @@ class ReservationEmailServiceTests {
 
         requireNotNull(sentMessage).saveChanges()
         val attachment = flattenParts(requireNotNull(sentMessage))
-            .first { it.fileName == "by-iara-appointment.ics" }
+            .first { it.fileName == "iara-gouveia-appointment.ics" }
         val calendar = attachment.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
         val unfoldedCalendar = calendar.replace("\r\n ", "")
         assertTrue(attachment.contentType.startsWith("text/calendar"), attachment.contentType)
