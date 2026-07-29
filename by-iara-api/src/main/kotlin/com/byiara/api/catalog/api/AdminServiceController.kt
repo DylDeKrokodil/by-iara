@@ -64,6 +64,12 @@ class AdminServiceController(
         @RequestPart("image") image: MultipartFile,
     ): ServiceResponse = catalogService.saveImage(id, image.bytes).toResponse()
 
+    @PutMapping("/{id}/image/media/{mediaAssetId}")
+    fun useMediaImage(
+        @PathVariable id: UUID,
+        @PathVariable mediaAssetId: UUID,
+    ): ServiceResponse = catalogService.useImage(id, mediaAssetId).toResponse()
+
     @DeleteMapping("/{id}/image")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun deleteImage(@PathVariable id: UUID) = catalogService.deleteImage(id)

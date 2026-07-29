@@ -45,6 +45,7 @@ class CatalogApiTests {
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists service_faqs")
         dsl.execute("drop table if exists service_images")
+        dsl.execute("drop table if exists media_assets")
         dsl.execute("drop table if exists service_translations")
         dsl.execute("drop table if exists pack_offers")
         dsl.execute("drop table if exists service_variants")
@@ -66,13 +67,28 @@ class CatalogApiTests {
         )
         dsl.execute(
             """
-            create table service_images (
-                service_id uuid primary key references services(id) on delete cascade,
+            create table media_assets (
+                id uuid primary key,
+                content_hash varchar(64) not null unique,
                 content_type varchar(32) not null,
                 width integer not null,
                 height integer not null,
                 byte_size integer not null,
                 storage_key varchar(500) not null unique,
+                created_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table service_images (
+                service_id uuid primary key references services(id) on delete cascade,
+                media_asset_id uuid not null references media_assets(id),
+                content_type varchar(32) not null,
+                width integer not null,
+                height integer not null,
+                byte_size integer not null,
+                storage_key varchar(500) not null,
                 updated_at timestamp with time zone not null default now()
             )
             """.trimIndent(),

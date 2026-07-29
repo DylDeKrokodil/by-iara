@@ -27,6 +27,7 @@ class SecurityConfig {
                     HttpMethod.GET,
                     "/api/services",
                     "/api/services/**",
+                    "/api/guides/**",
                     "/api/availability",
                     "/api/availability/**",
                     "/api/reservations/availability",

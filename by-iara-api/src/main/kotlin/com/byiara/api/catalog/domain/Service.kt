@@ -34,6 +34,7 @@ data class StoredServiceImage(
 )
 
 data class ServiceImageAsset(
+    val mediaAssetId: UUID,
     val storageKey: String,
     val contentType: String,
     val width: Int,

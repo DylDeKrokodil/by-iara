@@ -47,6 +47,7 @@ class JooqServiceRepository(
 
     private val serviceImages = table(name("service_images"))
     private val siServiceId = field(name("service_images", "service_id"), UUID::class.java)
+    private val siMediaAssetId = field(name("service_images", "media_asset_id"), UUID::class.java)
     private val siContentType = field(name("service_images", "content_type"), String::class.java)
     private val siWidth = field(name("service_images", "width"), Int::class.java)
     private val siHeight = field(name("service_images", "height"), Int::class.java)
@@ -196,6 +197,7 @@ class JooqServiceRepository(
 
     override fun saveImage(
         id: UUID,
+        mediaAssetId: UUID,
         storageKey: String,
         contentType: String,
         width: Int,
@@ -203,10 +205,11 @@ class JooqServiceRepository(
         byteSize: Int,
     ) {
         dsl.insertInto(serviceImages)
-            .columns(siServiceId, siStorageKey, siContentType, siWidth, siHeight, siByteSize)
-            .values(id, storageKey, contentType, width, height, byteSize)
+            .columns(siServiceId, siMediaAssetId, siStorageKey, siContentType, siWidth, siHeight, siByteSize)
+            .values(id, mediaAssetId, storageKey, contentType, width, height, byteSize)
             .onConflict(siServiceId)
             .doUpdate()
+            .set(siMediaAssetId, mediaAssetId)
             .set(siContentType, contentType)
             .set(siWidth, width)
             .set(siHeight, height)
@@ -217,11 +220,12 @@ class JooqServiceRepository(
     }
 
     override fun findImageAsset(id: UUID): ServiceImageAsset? =
-        dsl.select(siStorageKey, siContentType, siWidth, siHeight, siByteSize, siUpdatedAt)
+        dsl.select(siMediaAssetId, siStorageKey, siContentType, siWidth, siHeight, siByteSize, siUpdatedAt)
             .from(serviceImages)
             .where(siServiceId.eq(id))
             .fetchOne { record ->
                 ServiceImageAsset(
+                    mediaAssetId = record.get(siMediaAssetId),
                     storageKey = record.get(siStorageKey),
                     contentType = record.get(siContentType),
                     width = record.get(siWidth),

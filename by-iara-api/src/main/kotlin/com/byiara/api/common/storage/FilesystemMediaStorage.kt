@@ -1,7 +1,7 @@
-package com.byiara.api.catalog.infrastructure.storage
+package com.byiara.api.common.storage
 
-import com.byiara.api.catalog.domain.ServiceImageStorage
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
@@ -9,9 +9,15 @@ import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 
 @Component
-class FilesystemServiceImageStorage(
+@ConditionalOnProperty(
+    prefix = "by-iara.media",
+    name = ["provider"],
+    havingValue = "filesystem",
+    matchIfMissing = true,
+)
+class FilesystemMediaStorage(
     @Value("\${by-iara.media.storage-root}") storageRoot: String,
-) : ServiceImageStorage {
+) : MediaStorage {
     private val root = Path.of(storageRoot).toAbsolutePath().normalize()
 
     override fun write(key: String, data: ByteArray) {
@@ -21,12 +27,7 @@ class FilesystemServiceImageStorage(
         try {
             Files.write(temporary, data)
             try {
-                Files.move(
-                    temporary,
-                    target,
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING,
-                )
+                Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             } catch (_: AtomicMoveNotSupportedException) {
                 Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING)
             }
@@ -35,10 +36,8 @@ class FilesystemServiceImageStorage(
         }
     }
 
-    override fun read(key: String): ByteArray? {
-        val path = resolve(key)
-        return if (Files.isRegularFile(path)) Files.readAllBytes(path) else null
-    }
+    override fun read(key: String): ByteArray? =
+        resolve(key).takeIf(Files::isRegularFile)?.let(Files::readAllBytes)
 
     override fun delete(key: String) {
         Files.deleteIfExists(resolve(key))
@@ -46,7 +45,7 @@ class FilesystemServiceImageStorage(
 
     private fun resolve(key: String): Path {
         val path = root.resolve(key).normalize()
-        require(path.startsWith(root)) { "Invalid service image storage key" }
+        require(path.startsWith(root)) { "Invalid media storage key" }
         return path
     }
 }
