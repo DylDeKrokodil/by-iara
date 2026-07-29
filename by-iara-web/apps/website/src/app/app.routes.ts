@@ -8,6 +8,7 @@ import type { LocalePath } from './i18n/supported-locales';
 import { serviceResolver } from './services/service.resolver';
 
 function localizedRoutes(locale: LocalePath): Route[] {
+  const massagesPath = getLocalizedPagePath(locale, 'services');
   const routes: Route[] = [
     {
       path: getLocalizedPagePath(locale, 'home'),
@@ -15,7 +16,7 @@ function localizedRoutes(locale: LocalePath): Route[] {
       loadComponent: () => import('./home/home').then((m) => m.Home),
     },
     {
-      path: getLocalizedPagePath(locale, 'services'),
+      path: massagesPath,
       pathMatch: 'full',
       loadComponent: () =>
         import('./services/services-catalog').then((m) => m.ServicesCatalog),
@@ -26,7 +27,7 @@ function localizedRoutes(locale: LocalePath): Route[] {
       loadComponent: () => import('./packs/packs').then((m) => m.Packs),
     },
     {
-      path: `${getLocalizedPagePath(locale, 'services')}/:slug`,
+      path: `${massagesPath}/:slug`,
       resolve: { service: serviceResolver },
       loadComponent: () =>
         import('./services/service-detail/service-detail').then(
@@ -62,9 +63,20 @@ function localizedRoutes(locale: LocalePath): Route[] {
     },
   ];
 
+  const legacyMassagePaths =
+    locale === 'pt' ? ['servicos', 'services'] : ['services'];
+  for (const legacyPath of legacyMassagePaths) {
+    routes.push(
+      { path: legacyPath, pathMatch: 'full', redirectTo: massagesPath },
+      {
+        path: `${legacyPath}/:slug`,
+        redirectTo: `${massagesPath}/:slug`,
+      },
+    );
+  }
+
   if (locale === 'pt') {
     routes.push(
-      { path: 'services', pathMatch: 'full', redirectTo: 'servicos' },
       { path: 'book', pathMatch: 'full', redirectTo: 'marcar' },
       { path: 'privacy', pathMatch: 'full', redirectTo: 'privacidade' },
       {
