@@ -4,26 +4,24 @@
       <h2 id="media-picker-title">Choose from image library</h2>
       <p>Reuse an existing image or upload a new one.</p>
     </div>
-    <byiara-button variant="ghost" size="sm" (click)="close()">Close</byiara-button>
+    <byiara-button variant="ghost" size="sm" (click)="close()"
+      >Close</byiara-button
+    >
   </div>
 
   <div class="dialog-toolbar">
-    <label class="upload-button">
+    <byiara-file-upload-button
+      accept="image/jpeg,image/png"
+      [loading]="uploading()"
+      (fileSelected)="upload($event)"
+    >
       {{ uploading() ? 'Uploading…' : 'Upload new image' }}
-      <input
-        type="file"
-        accept="image/jpeg,image/png"
-        [disabled]="uploading()"
-        (change)="upload($event)"
-      />
-    </label>
+    </byiara-file-upload-button>
   </div>
 
   @if (error()) {
   <p class="picker-error" role="alert">{{ error() }}</p>
-  }
-
-  @if (loading()) {
+  } @if (loading()) {
   <p class="picker-status" role="status">Loading image library…</p>
   } @else if (!images().length) {
   <div class="picker-empty">

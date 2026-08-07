@@ -111,7 +111,8 @@ export class Booking implements OnInit {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly fb = inject(FormBuilder);
   protected readonly language = inject(LanguageService);
-  private readonly bookingStepTop = viewChild<ElementRef<HTMLElement>>('bookingStepTop');
+  private readonly bookingStepTop =
+    viewChild<ElementRef<HTMLElement>>('bookingStepTop');
   private readonly mobileDateStrip =
     viewChild<ElementRef<HTMLElement>>('mobileDateStrip');
   private readonly timeChoicesSection =
@@ -731,15 +732,6 @@ export class Booking implements OnInit {
       });
   }
 
-  protected resetForAnother(): void {
-    this.confirmation.set(null);
-    this.goToStep('service');
-    this.selectedSlot.set(null);
-    this.form.reset();
-    this.clearDiscount();
-    this.loadSlots({ forceRefresh: true });
-  }
-
   protected localizedName(service: Service): string {
     return localizedService(service, this.language.current().locale).name;
   }
@@ -821,11 +813,7 @@ export class Booking implements OnInit {
 
   private discountPriceItems(): DetailListItem[] {
     const quote = this.discountQuote();
-    if (
-      !quote ||
-      this.selectedPackOfferId() ||
-      this.selectedCustomerPackId()
-    ) {
+    if (!quote || this.selectedPackOfferId() || this.selectedCustomerPackId()) {
       return [];
     }
 
@@ -851,7 +839,14 @@ export class Booking implements OnInit {
     const variant = this.selectedVariant();
     const email = this.form.controls.email.value.trim();
     const code = this.form.controls.discountCode.value.trim();
-    if (!service || !variant || !code || this.selectedPackOfferId() || this.selectedCustomerPackId()) return;
+    if (
+      !service ||
+      !variant ||
+      !code ||
+      this.selectedPackOfferId() ||
+      this.selectedCustomerPackId()
+    )
+      return;
     if (this.form.controls.email.invalid) {
       this.form.controls.email.markAsTouched();
       this.discountError.set(this.copy().discountNeedsEmail);
@@ -859,23 +854,25 @@ export class Booking implements OnInit {
     }
     this.discountApplying.set(true);
     this.discountError.set(null);
-    this.bookingApi.previewDiscount({
-      serviceId: service.id,
-      serviceVariantId: variant.id,
-      customerEmail: email,
-      discountCode: code,
-    }).subscribe({
-      next: (quote) => {
-        this.discountQuote.set(quote);
-        this.appliedDiscountCode.set(code);
-        this.discountApplying.set(false);
-      },
-      error: () => {
-        this.clearDiscount(false);
-        this.discountApplying.set(false);
-        this.discountError.set(this.copy().discountUnavailable);
-      },
-    });
+    this.bookingApi
+      .previewDiscount({
+        serviceId: service.id,
+        serviceVariantId: variant.id,
+        customerEmail: email,
+        discountCode: code,
+      })
+      .subscribe({
+        next: (quote) => {
+          this.discountQuote.set(quote);
+          this.appliedDiscountCode.set(code);
+          this.discountApplying.set(false);
+        },
+        error: () => {
+          this.clearDiscount(false);
+          this.discountApplying.set(false);
+          this.discountError.set(this.copy().discountUnavailable);
+        },
+      });
   }
 
   protected removeDiscount(): void {
@@ -887,7 +884,8 @@ export class Booking implements OnInit {
     this.discountQuote.set(null);
     this.appliedDiscountCode.set(null);
     this.discountError.set(null);
-    if (clearCode) this.form.controls.discountCode.setValue('', { emitEvent: false });
+    if (clearCode)
+      this.form.controls.discountCode.setValue('', { emitEvent: false });
   }
 
   private exchangePackAccess(token: string): void {
@@ -965,6 +963,10 @@ export class Booking implements OnInit {
       {
         term: copy.confirmedWhen,
         detail: this.formatDateTime(confirmed.startsAt),
+      },
+      {
+        term: copy.confirmedNext,
+        detail: copy.pendingNote,
       },
     ];
   }

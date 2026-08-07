@@ -260,8 +260,8 @@ export interface WebsiteMessages {
     readonly confirmedLede: (name: string) => string;
     readonly confirmedService: string;
     readonly confirmedWhen: string;
+    readonly confirmedNext: string;
     readonly pendingNote: string;
-    readonly bookAnother: string;
     readonly paymentNotice: string;
     readonly dataUseNotice: string;
     readonly privacyLink: string;
@@ -380,7 +380,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
     services: {
       eyebrow: 'O nosso menu',
-      title: 'Massagens',
+      title: 'Massagens em Almada',
       lede: 'Descubra a nossa seleção de massagens terapêuticas e relaxantes, pensadas para restaurar equilíbrio e harmonia.',
       loadError:
         'Não foi possível carregar o catálogo de serviços. Tente novamente mais tarde.',
@@ -580,13 +580,13 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       originalPrice: 'Preço original',
       discount: 'Desconto',
       totalPrice: 'Total',
-      confirmedTitle: 'Reserva pedida!',
+      confirmedTitle: 'Pedido recebido',
       confirmedLede: (name) =>
-        `Obrigado, ${name}. Confirmaremos a sua marcação por email em breve.`,
+        `Obrigado, ${name}. Recebemos o seu pedido de marcação.`,
       confirmedService: 'Serviço',
       confirmedWhen: 'Quando',
-      pendingNote: 'O seu pedido está pendente de confirmação.',
-      bookAnother: 'Fazer outra reserva',
+      confirmedNext: 'Próximo passo',
+      pendingNote: 'Enviaremos a confirmação por email em breve.',
       paymentNotice:
         'Não é feito qualquer pagamento online. O pagamento é presencial por numerário, MB WAY ou transferência bancária.',
       dataUseNotice:
@@ -902,13 +902,13 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       originalPrice: 'Original price',
       discount: 'Discount',
       totalPrice: 'Total',
-      confirmedTitle: 'Booking requested!',
+      confirmedTitle: 'Request received',
       confirmedLede: (name) =>
-        `Thanks, ${name}. We'll confirm your appointment by email shortly.`,
+        `Thank you, ${name}. We’ve received your appointment request.`,
       confirmedService: 'Service',
       confirmedWhen: 'When',
-      pendingNote: 'Your request is pending confirmation.',
-      bookAnother: 'Book another',
+      confirmedNext: 'Next step',
+      pendingNote: 'We’ll send your confirmation by email shortly.',
       paymentNotice:
         'No payment is taken online. Payment is made in person by cash, MB WAY, or bank transfer.',
       dataUseNotice:

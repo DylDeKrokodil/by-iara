@@ -1,28 +1,27 @@
 <byiara-page-header admin label="Content" title="Images">
-  <label page-header-action class="upload-button">
+  <byiara-file-upload-button
+    page-header-action
+    accept="image/jpeg,image/png"
+    [loading]="uploading()"
+    (fileSelected)="upload($event)"
+  >
     {{ uploading() ? 'Uploading…' : 'Upload image' }}
-    <input
-      type="file"
-      accept="image/jpeg,image/png"
-      [disabled]="uploading()"
-      (change)="upload($event)"
-    />
-  </label>
+  </byiara-file-upload-button>
 </byiara-page-header>
 
 <p class="overview-copy">
-  Shared image library for services, guide covers, social images, and guide content.
-  Upload once and reuse it anywhere.
+  Shared image library for services, guide covers, social images, and guide
+  content. Upload once and reuse it anywhere.
 </p>
 
 @if (error()) {
 <byiara-alert tone="danger">{{ error() }}</byiara-alert>
-}
-
-@if (loading()) {
+} @if (loading()) {
 <div class="image-grid" aria-label="Loading images" aria-busy="true">
   @for (item of [1, 2, 3, 4, 5, 6]; track item) {
-  <div class="image-skeleton" aria-hidden="true"><span></span><i></i><i></i></div>
+  <div class="image-skeleton" aria-hidden="true">
+    <span></span><i></i><i></i>
+  </div>
   }
 </div>
 } @else if (!images().length) {
@@ -50,9 +49,13 @@
     </div>
     <div class="image-details">
       <strong>{{ image.width }} × {{ image.height }}</strong>
-      <span>{{ formatBytes(image.byteSize) }} · {{ usageLabel(image.usageTypes) }}</span>
+      <span
+        >{{ formatBytes(image.byteSize) }} · {{ usageLabel(image.usageTypes)
+        }}</span
+      >
       <span>
-        Used {{ image.usageCount }} {{ image.usageCount === 1 ? 'time' : 'times' }}
+        Used {{ image.usageCount }} {{ image.usageCount === 1 ? 'time' : 'times'
+        }}
       </span>
       <time [attr.datetime]="image.createdAt">
         Added {{ image.createdAt | date:'mediumDate' }}

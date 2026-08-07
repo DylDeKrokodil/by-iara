@@ -88,27 +88,22 @@
     } @else if (confirmation(); as confirmed) {
     <!-- Confirmation -->
     <section class="confirmation" aria-live="polite">
-      <div class="confirmation-badge" aria-hidden="true">
-        <svg viewBox="0 0 52 52">
-          <circle class="confirmation-badge-circle" cx="26" cy="26" r="24" />
-          <path class="confirmation-badge-check" d="M15 27l8 8 14-16" />
-        </svg>
-      </div>
-      <p class="eyebrow">{{ copy().confirmedTitle }}</p>
-      <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
+      <header class="confirmation-heading">
+        <p class="confirmation-status">
+          {{ copy().confirmedTitle }}
+        </p>
+        <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
+      </header>
+
       <byiara-detail-list
         boxed
         class="confirmation-details"
         [items]="confirmationItems(confirmed)"
       ></byiara-detail-list>
-      <p class="pending-note">{{ copy().pendingNote }}</p>
-      <button
-        type="button"
-        class="button button-secondary"
-        (click)="resetForAnother()"
-      >
-        {{ copy().bookAnother }}
-      </button>
+
+      <a [routerLink]="language.localizedLink()" class="button button-primary">
+        {{ copy().back }}
+      </a>
     </section>
     } @else {
     <!-- Booking flow -->

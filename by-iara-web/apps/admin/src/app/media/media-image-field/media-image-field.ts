@@ -5,11 +5,11 @@ import {
   input,
   output,
 } from '@angular/core';
-import { Button } from '@by-iara/shared-ui';
+import { Button, FileUploadButton } from '@by-iara/shared-ui';
 
 @Component({
   selector: 'byiara-media-image-field',
-  imports: [Button],
+  imports: [Button, FileUploadButton],
   templateUrl: './media-image-field.html',
   styleUrl: './media-image-field.css',
 })

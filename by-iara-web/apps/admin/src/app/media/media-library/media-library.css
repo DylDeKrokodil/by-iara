@@ -10,31 +10,6 @@
   font-size: var(--byiara-font-size-sm);
 }
 
-.upload-button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.75rem;
-  padding: 0 var(--byiara-space-md);
-  border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-primary);
-  color: white;
-  font-weight: 650;
-  cursor: pointer;
-}
-
-.upload-button:focus-within {
-  outline: 3px solid color-mix(in srgb, var(--byiara-color-primary) 30%, transparent);
-  outline-offset: 2px;
-}
-
-.upload-button input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));

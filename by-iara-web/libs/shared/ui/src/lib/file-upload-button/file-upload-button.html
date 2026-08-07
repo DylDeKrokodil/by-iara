@@ -1,0 +1,15 @@
+<label [class]="classes()" [attr.aria-busy]="loading() ? 'true' : null">
+  @if (loading()) {
+  <byiara-spinner size="sm" />
+  }
+  <ng-content></ng-content>
+  <input
+    class="file-input"
+    [id]="inputId()"
+    type="file"
+    [accept]="accept()"
+    [disabled]="disabled() || loading()"
+    [attr.aria-describedby]="ariaDescribedBy()"
+    (change)="fileSelected.emit($event)"
+  />
+</label>
