@@ -1,14 +1,19 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { Alert, EmptyState, PageHeader } from '@by-iara/shared-ui';
+import {
+  Alert,
+  EmptyState,
+  FileUploadButton,
+  PageHeader,
+} from '@by-iara/shared-ui';
 import { MediaApi } from '../media-api';
 import { formatMediaBytes, mediaUsageLabel } from '../media-format';
 import { MediaAssetView } from '../media.models';
 
 @Component({
   selector: 'byiara-media-library',
-  imports: [Alert, DatePipe, EmptyState, PageHeader],
+  imports: [Alert, DatePipe, EmptyState, FileUploadButton, PageHeader],
   templateUrl: './media-library.html',
   styleUrl: './media-library.css',
 })
@@ -62,7 +67,10 @@ export class MediaLibrary implements OnInit, OnDestroy {
         forkJoin(
           images.map((image) =>
             this.api.download(image.url).pipe(
-              map((blob) => ({ ...image, previewUrl: URL.createObjectURL(blob) })),
+              map((blob) => ({
+                ...image,
+                previewUrl: URL.createObjectURL(blob),
+              })),
               catchError(() => of({ ...image, previewUrl: null })),
             ),
           ),

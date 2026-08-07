@@ -1,13 +1,22 @@
-import { Component, ElementRef, EventEmitter, OnDestroy, Output, ViewChild, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  OnDestroy,
+  Output,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { catchError, forkJoin, map, of } from 'rxjs';
-import { Button } from '@by-iara/shared-ui';
+import { Button, FileUploadButton } from '@by-iara/shared-ui';
 import { MediaApi } from '../media-api';
 import { formatMediaBytes } from '../media-format';
 import { MediaAsset, MediaAssetView } from '../media.models';
 
 @Component({
   selector: 'byiara-media-picker',
-  imports: [Button],
+  imports: [Button, FileUploadButton],
   templateUrl: './media-picker.html',
   styleUrl: './media-picker.css',
 })
@@ -74,7 +83,10 @@ export class MediaPicker implements OnDestroy {
         forkJoin(
           images.map((image) =>
             this.api.download(image.url).pipe(
-              map((blob) => ({ ...image, previewUrl: URL.createObjectURL(blob) })),
+              map((blob) => ({
+                ...image,
+                previewUrl: URL.createObjectURL(blob),
+              })),
               catchError(() => of({ ...image, previewUrl: null })),
             ),
           ),

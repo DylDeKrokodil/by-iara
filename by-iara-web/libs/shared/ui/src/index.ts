@@ -15,6 +15,7 @@ export * from './lib/toast/toast-container/toast-container.component';
 export * from './lib/spinner/spinner';
 export * from './lib/skeleton/skeleton';
 export * from './lib/button/button';
+export * from './lib/file-upload-button/file-upload-button';
 export * from './lib/card/card';
 export * from './lib/switch/switch';
 export * from './lib/checkbox/checkbox';

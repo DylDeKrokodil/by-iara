@@ -97,7 +97,7 @@
 }
 
 .image-actions byiara-button:not([iconOnly]),
-.image-actions .file-picker {
+.image-actions byiara-file-upload-button {
   --byiara-button-width: 100%;
 }
 
@@ -110,53 +110,4 @@
   height: 1rem;
   flex: none;
   stroke-width: 1.8;
-}
-
-.file-picker {
-  display: inline-flex;
-  min-width: 0;
-  min-height: 2.875rem;
-  align-items: center;
-  justify-content: center;
-  gap: var(--byiara-space-xs);
-  padding: 0 var(--byiara-space-sm);
-  border: 1px solid var(--byiara-color-border-strong);
-  border-radius: var(--byiara-radius-pill);
-  background: var(--byiara-color-surface);
-  color: var(--byiara-color-text);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-semibold);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background-color var(--byiara-duration-base) var(--byiara-ease-out),
-    border-color var(--byiara-duration-base) var(--byiara-ease-out),
-    color var(--byiara-duration-base) var(--byiara-ease-out);
-}
-
-.file-picker input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
-.file-picker.is-disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .file-picker:not(.is-disabled):hover {
-    border-color: var(--byiara-color-primary);
-    background: var(--byiara-color-primary-tint);
-    color: var(--byiara-color-primary-strong);
-  }
-}
-
-.file-picker:focus-within {
-  outline: var(--byiara-focus-ring-width) solid var(--byiara-color-focus);
-  outline-offset: var(--byiara-focus-ring-offset);
 }
