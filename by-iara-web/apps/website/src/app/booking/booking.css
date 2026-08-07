@@ -376,8 +376,20 @@
 .confirmation {
   display: grid;
   justify-items: start;
-  gap: var(--byiara-space-md);
+  gap: var(--byiara-space-lg);
   max-width: 44rem;
+}
+
+.confirmation-heading {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.confirmation-status {
+  margin: 0;
+  color: var(--byiara-color-primary-strong);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
 }
 
 .confirmation h1 {
@@ -391,34 +403,6 @@
 
 .confirmation-details {
   width: 100%;
-}
-
-.pending-note {
-  margin: 0;
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-sm);
-}
-
-.confirmation-badge {
-  width: 4rem;
-  height: 4rem;
-}
-
-.confirmation-badge svg {
-  width: 100%;
-  height: 100%;
-}
-
-.confirmation-badge-circle,
-.confirmation-badge-check {
-  fill: none;
-  stroke: var(--byiara-color-success);
-  stroke-width: 3;
-}
-
-.confirmation-badge-check {
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 @media (max-width: 56rem) {
