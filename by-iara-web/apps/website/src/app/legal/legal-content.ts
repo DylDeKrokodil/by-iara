@@ -219,7 +219,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Pedido e confirmação',
           paragraphs: [
-            'As sessões realizam-se apenas por marcação. Os pedidos podem ser feitos através do website, WhatsApp ou redes sociais.',
+            'As sessões realizam-se apenas por marcação. Os pedidos podem ser feitos através do website ou das redes sociais.',
             'A escolha de um serviço e horário e o envio do formulário constituem apenas um pedido. Não existe confirmação automática nem é recebido qualquer pagamento no website.',
             'A marcação só fica confirmada após confirmação da terapeuta, enviada por email quando o pedido é feito no website. Se o horário já não estiver disponível, o pedido pode ser recusado ou pode ser proposta uma alternativa.',
           ],
@@ -481,7 +481,7 @@ export const LEGAL_CONTENT: Record<
         {
           title: 'Request and confirmation',
           paragraphs: [
-            'Sessions are available by appointment only. Requests may be made through the website, WhatsApp, or social media.',
+            'Sessions are available by appointment only. Requests may be made through the website or social media.',
             'Selecting a service and time and submitting the form only creates a request. There is no automatic confirmation and no payment is taken on the website.',
             'A booking is only confirmed after confirmation from the therapist, sent by email for requests made on the website. If the time is no longer available, the request may be declined or an alternative may be offered.',
           ],

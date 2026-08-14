@@ -346,13 +346,6 @@
               </div>
               <div class="calendar-empty-contact">
                 <a [href]="contact.emailHref">{{ copy().contactByEmail }}</a>
-                <a
-                  [href]="contact.whatsAppHref"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {{ copy().contactByWhatsApp(contact.phone) }}
-                </a>
               </div>
             </byiara-empty-state>
             } @else {

@@ -3,7 +3,6 @@ import {
   BUSINESS_DETAILS,
   getBookingRetentionLabel,
   getLegalFormLabel,
-  getWhatsAppHref,
   isBusinessDetailMissing,
 } from './business-details';
 
@@ -33,7 +32,6 @@ describe('business details', () => {
       registeredAddress: ['Rua Vila do Seixal 5'],
       email: 'info@iaragouveia.com',
       privacyEmail: 'info@iaragouveia.com',
-      phone: '+351 934 596 852',
       adrEntityName:
         'Centro de Arbitragem de Conflitos de Consumo de Lisboa',
       adrEntityUrl: 'https://www.centroarbitragemlisboa.pt/',
@@ -59,12 +57,5 @@ describe('business details', () => {
       getBookingRetentionLabel('en-US', BUSINESS_DETAILS.bookingRetention),
     ).toBe('2 years');
     expect(isBusinessDetailMissing('bookingRetention')).toBe(false);
-  });
-
-  it('creates a WhatsApp link from the formatted business phone number', () => {
-    expect(getWhatsAppHref(BUSINESS_DETAILS.phone)).toBe(
-      'https://wa.me/351934596852',
-    );
-    expect(getWhatsAppHref('')).toBeUndefined();
   });
 });
