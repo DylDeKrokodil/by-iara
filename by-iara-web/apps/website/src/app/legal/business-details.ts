@@ -10,7 +10,6 @@ export interface BusinessDetails {
   readonly registeredAddress: readonly string[];
   readonly email: string;
   readonly privacyEmail: string;
-  readonly phone: string;
   readonly inPersonPaymentMethods: readonly InPersonPaymentMethod[];
   readonly bookingRetention: BookingRetention | '';
   readonly adrEntityName: string;
@@ -46,11 +45,6 @@ export function getBookingRetentionLabel(
   return retention ? BOOKING_RETENTION_LABELS[locale][retention] : '';
 }
 
-export function getWhatsAppHref(phone: string): string | undefined {
-  const digits = phone.replace(/\D/g, '');
-  return digits ? `https://wa.me/${digits}` : undefined;
-}
-
 export const BOOKING_POLICY = {
   cancellationNoticeHours: 24,
   firstLateCancellationHasPenalty: false,
@@ -71,7 +65,6 @@ export const BUSINESS_DETAILS: BusinessDetails = {
   registeredAddress: ['Rua Vila do Seixal 5'],
   email: 'info@iaragouveia.com',
   privacyEmail: 'info@iaragouveia.com',
-  phone: '+351 934 596 852',
   inPersonPaymentMethods: ['cash', 'mbWay', 'bankTransfer'],
   bookingRetention: 'twoYears',
   adrEntityName: 'Centro de Arbitragem de Conflitos de Consumo de Lisboa',
@@ -88,7 +81,6 @@ export const REQUIRED_LEGAL_DETAIL_KEYS = [
   'taxId',
   'registeredAddress',
   'email',
-  'phone',
   'inPersonPaymentMethods',
 ] as const satisfies readonly BusinessDetailKey[];
 

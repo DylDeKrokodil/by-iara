@@ -171,12 +171,12 @@ describe('SeoService', () => {
       '@type': 'LocalBusiness',
       name: 'Iara Gouveia',
       email: 'info@iaragouveia.com',
-      telephone: '+351 934 596 852',
       address: expect.objectContaining({
         addressLocality: 'Almada',
         addressCountry: 'PT',
       }),
     });
+    expect(structuredData['@graph']?.[0]).not.toHaveProperty('telephone');
   });
 
   it('keeps catalogue list positions consecutive when a translation is unavailable', () => {

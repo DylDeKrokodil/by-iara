@@ -9,7 +9,7 @@ import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
 import { BRAND, SOCIAL_LINKS } from './brand/brand';
 import { GuidesApi } from './guides/guides-api';
-import { BUSINESS_DETAILS, getWhatsAppHref } from './legal/business-details';
+import { BUSINESS_DETAILS } from './legal/business-details';
 import { FeaturedDiscount, FeaturedDiscountApi } from './promotions/featured-discount-api';
 import { PromotionBar } from './promotions/promotion-bar';
 
@@ -56,8 +56,6 @@ export class App {
   protected readonly contact = {
     email: BUSINESS_DETAILS.email,
     emailHref: `mailto:${BUSINESS_DETAILS.email}`,
-    phone: BUSINESS_DETAILS.phone,
-    whatsAppHref: getWhatsAppHref(BUSINESS_DETAILS.phone),
   };
 
   constructor() {

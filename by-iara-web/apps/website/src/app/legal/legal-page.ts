@@ -6,7 +6,6 @@ import {
   BUSINESS_DETAILS,
   getBookingRetentionLabel,
   getLegalFormLabel,
-  getWhatsAppHref,
   isBusinessDetailMissing,
   REQUIRED_LEGAL_DETAIL_KEYS,
 } from './business-details';
@@ -96,13 +95,6 @@ export class LegalPage {
         BUSINESS_DETAILS.privacyEmail,
         missingValue,
         this.mailto(BUSINESS_DETAILS.privacyEmail),
-      ),
-      this.row(
-        'WhatsApp',
-        BUSINESS_DETAILS.phone,
-        missingValue,
-        getWhatsAppHref(BUSINESS_DETAILS.phone),
-        true,
       ),
     ];
 

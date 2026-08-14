@@ -377,7 +377,6 @@ export class SeoService {
             logo: `${this.siteOrigin}/${BRAND.logoPath}`,
             image: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
             email: BUSINESS_DETAILS.email,
-            telephone: BUSINESS_DETAILS.phone,
             address: {
               '@type': 'PostalAddress',
               streetAddress: BUSINESS_DETAILS.registeredAddress.join(', '),
