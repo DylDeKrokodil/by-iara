@@ -10,6 +10,7 @@ import {
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { Router } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import {
   formatMoney,
@@ -18,6 +19,8 @@ import {
   SortDirection,
 } from '../service.models';
 import {
+  ActionMenu,
+  ActionMenuItem,
   Alert,
   Button,
   ConfirmationModal,
@@ -31,6 +34,20 @@ import {
   TextField,
   ToastService,
 } from '@by-iara/shared-ui';
+
+const serviceActions: ReadonlyArray<ActionMenuItem> = [
+  { id: 'edit', label: 'Edit service', icon: 'edit' },
+  {
+    id: 'deactivate',
+    label: 'Deactivate service',
+    icon: 'void',
+    tone: 'danger',
+  },
+];
+
+const inactiveServiceActions: ReadonlyArray<ActionMenuItem> = [
+  serviceActions[0],
+];
 
 const serviceStatusFilterValues = ['all', 'active', 'inactive'] as const;
 
@@ -66,6 +83,7 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 @Component({
   selector: 'byiara-services-list',
   imports: [
+    ActionMenu,
     Alert,
     Button,
     EmptyState,
@@ -82,6 +100,7 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 })
 export class ServicesList implements OnInit {
   private readonly api = inject(ServicesApi);
+  private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private requestId = 0;
@@ -186,6 +205,21 @@ export class ServicesList implements OnInit {
   protected deactivate(service: Service): void {
     this.serviceToDeactivate.set(service);
     this.confirmDeactivateModal.open();
+  }
+
+  protected actionsFor(service: Service): ReadonlyArray<ActionMenuItem> {
+    return service.active ? serviceActions : inactiveServiceActions;
+  }
+
+  protected handleAction(service: Service, action: string): void {
+    switch (action) {
+      case 'edit':
+        void this.router.navigate(['/services', service.id]);
+        break;
+      case 'deactivate':
+        this.deactivate(service);
+        break;
+    }
   }
 
   protected onConfirmDeactivate(): void {

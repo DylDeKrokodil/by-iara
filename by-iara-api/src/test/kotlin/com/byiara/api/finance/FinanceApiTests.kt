@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
@@ -172,6 +173,26 @@ class FinanceApiTests {
             .find(response.response.contentAsString)!!.groupValues[1]
 
         mockMvc.perform(
+            put("/api/admin/finance/expenses/$expenseId")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{
+                        "category":"SOFTWARE",
+                        "amountCents":1550,
+                        "currency":"EUR",
+                        "incurredAt":"${now.minusHours(1)}",
+                        "vendor":"Booking Tools",
+                        "description":"Corrected booking software"
+                    }""".trimIndent(),
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.category").value("SOFTWARE"))
+            .andExpect(jsonPath("$.amountCents").value(1_550))
+            .andExpect(jsonPath("$.description").value("Corrected booking software"))
+
+        mockMvc.perform(
             get("/api/admin/finance/expenses")
                 .with(adminJwt())
                 .param("from", from.toString())
@@ -179,11 +200,28 @@ class FinanceApiTests {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.total").value(1))
-            .andExpect(jsonPath("$.items[0].description").value("Massage oil"))
+            .andExpect(jsonPath("$.items[0].description").value("Corrected booking software"))
 
         mockMvc.perform(patch("/api/admin/finance/expenses/$expenseId/void").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("VOIDED"))
+
+        mockMvc.perform(
+            put("/api/admin/finance/expenses/$expenseId")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{
+                        "category":"OTHER",
+                        "amountCents":100,
+                        "currency":"EUR",
+                        "incurredAt":"${now.minusHours(1)}",
+                        "description":"Must not change"
+                    }""".trimIndent(),
+                ),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Voided expenses cannot be edited"))
 
         mockMvc.perform(
             get("/api/admin/finance/report")

@@ -17,7 +17,7 @@ import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
-data class CreateExpenseCommand(
+data class ExpenseInputCommand(
     val category: ExpenseCategory,
     val amountCents: Long,
     val currency: String,
@@ -121,7 +121,26 @@ class FinanceService(
     }
 
     @Transactional
-    fun createExpense(command: CreateExpenseCommand): Expense {
+    fun createExpense(command: ExpenseInputCommand): Expense =
+        repository.createExpense(normalizeExpense(command))
+
+    @Transactional
+    fun updateExpense(id: UUID, command: ExpenseInputCommand): Expense {
+        val existing = repository.findExpenseById(id) ?: throw ExpenseNotFoundException(id)
+        if (existing.status == ExpenseStatus.VOIDED) {
+            throw InvalidFinanceRequestException("Voided expenses cannot be edited")
+        }
+        if (!repository.updateExpense(id, normalizeExpense(command))) {
+            val current = repository.findExpenseById(id) ?: throw ExpenseNotFoundException(id)
+            if (current.status == ExpenseStatus.VOIDED) {
+                throw InvalidFinanceRequestException("Voided expenses cannot be edited")
+            }
+            throw ExpenseNotFoundException(id)
+        }
+        return repository.findExpenseById(id) ?: throw ExpenseNotFoundException(id)
+    }
+
+    private fun normalizeExpense(command: ExpenseInputCommand): NewExpense {
         if (command.amountCents <= 0) throw InvalidFinanceRequestException("Expense amount must be greater than zero")
         if (command.incurredAt.isAfter(OffsetDateTime.now().plusMinutes(5))) {
             throw InvalidFinanceRequestException("Expense date cannot be in the future")
@@ -129,15 +148,13 @@ class FinanceService(
         val description = command.description.trim()
         if (description.isBlank()) throw InvalidFinanceRequestException("Expense description is required")
 
-        return repository.createExpense(
-            NewExpense(
-                category = command.category,
-                amountCents = command.amountCents,
-                currency = normalizeCurrency(command.currency),
-                incurredAt = command.incurredAt,
-                vendor = command.vendor?.trim()?.ifBlank { null },
-                description = description,
-            ),
+        return NewExpense(
+            category = command.category,
+            amountCents = command.amountCents,
+            currency = normalizeCurrency(command.currency),
+            incurredAt = command.incurredAt,
+            vendor = command.vendor?.trim()?.ifBlank { null },
+            description = description,
         )
     }
 

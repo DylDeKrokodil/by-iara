@@ -107,7 +107,7 @@
       @if (expenseFormOpen()) {
         <byiara-card padding="lg">
           <form class="expense-form" [formGroup]="expenseForm" (ngSubmit)="submitExpense()" novalidate>
-            <div class="section-heading"><div><h2>Record an expense</h2><p>Keep the description specific enough to recognise later.</p></div></div>
+            <div class="section-heading"><div><h2>{{ editingExpense() ? 'Edit expense' : 'Record an expense' }}</h2><p>{{ editingExpense() ? 'Correct the expense details, then save your changes.' : 'Keep the description specific enough to recognise later.' }}</p></div></div>
             <div class="expense-fields">
               <byiara-text-field label="Date" type="date" formControlName="date" [error]="expenseForm.controls.date.touched && expenseForm.controls.date.invalid ? 'Choose an expense date.' : null"></byiara-text-field>
               <byiara-select-field label="Category" [options]="categoryOptions" [value]="selectedCategory()" (valueChange)="setExpenseCategory($event)"></byiara-select-field>
@@ -117,7 +117,7 @@
             </div>
             <p class="form-note">Expenses reduce operating profit. Taxes are not calculated by this report.</p>
             <div class="form-actions">
-              <byiara-button type="submit" variant="primary" [loading]="submitting()">{{ submitting() ? 'Recording…' : 'Record expense' }}</byiara-button>
+              <byiara-button type="submit" variant="primary" [loading]="submitting()">{{ submitting() ? (editingExpense() ? 'Saving…' : 'Recording…') : (editingExpense() ? 'Save changes' : 'Record expense') }}</byiara-button>
               <byiara-button variant="secondary" [disabled]="submitting()" (click)="closeExpenseForm()">Cancel</byiara-button>
             </div>
           </form>
@@ -142,7 +142,7 @@
                 <td data-label="Category">{{ expenseCategoryLabel(expense.category) }}</td>
                 <td data-label="Amount" class="money-cell">{{ formatAmount(expense.amountCents, expense.currency) }}</td>
                 <td data-label="Status"><byiara-status-chip [label]="expense.status === 'ACTIVE' ? 'Active' : 'Voided'" [tone]="expense.status === 'ACTIVE' ? 'muted' : 'danger'"></byiara-status-chip></td>
-                <td data-label="Action">@if (expense.status === 'ACTIVE') { <byiara-button variant="ghost" size="sm" (click)="requestVoid(expense)">Void</byiara-button> }</td>
+                <td data-label="Actions" class="actions-cell">@if (expense.status === 'ACTIVE') { <byiara-action-menu [items]="expenseActions" [ariaLabel]="'Actions for ' + expense.description" (actionSelected)="handleExpenseAction(expense, $event)"></byiara-action-menu> }</td>
               </tr>
             </ng-template>
             <div data-table-footer class="pagination">

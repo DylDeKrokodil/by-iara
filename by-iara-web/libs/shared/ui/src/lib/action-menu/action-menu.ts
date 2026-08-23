@@ -14,7 +14,8 @@ export type ActionMenuIcon =
   | 'edit'
   | 'preview'
   | 'publish'
-  | 'unpublish';
+  | 'unpublish'
+  | 'void';
 
 export interface ActionMenuItem {
   id: string;
@@ -32,6 +33,7 @@ export interface ActionMenuItem {
 export class ActionMenu {
   items = input.required<ReadonlyArray<ActionMenuItem>>();
   ariaLabel = input('Actions');
+  triggerTooltip = input('More actions');
   actionSelected = output<string>();
 
   protected readonly open = signal(false);
@@ -46,7 +48,7 @@ export class ActionMenu {
     if (this.open()) {
       this.close();
     } else {
-      this.openMenu();
+      this.openMenu(event.detail === 0);
     }
   }
 
@@ -70,9 +72,9 @@ export class ActionMenu {
     }
 
     let nextIndex: number | null = null;
-    if (event.key === 'ArrowDown')
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight')
       nextIndex = (currentIndex + 1) % buttons.length;
-    if (event.key === 'ArrowUp') {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
       nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
     }
     if (event.key === 'Home') nextIndex = 0;
@@ -100,7 +102,7 @@ export class ActionMenu {
     this.close();
   }
 
-  private openMenu(): void {
+  private openMenu(focusFirstItem: boolean): void {
     const menu = this.menu?.nativeElement;
     const trigger = this.trigger?.nativeElement;
     if (!menu || !trigger) return;
@@ -125,6 +127,7 @@ export class ActionMenu {
 
     this.menuLeft.set(left);
     this.menuTop.set(top);
+    if (focusFirstItem) this.menuButtons()[0]?.focus();
   }
 
   private close(restoreFocus = false): void {

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -54,8 +55,14 @@ class AdminFinanceController(
     @PostMapping("/expenses")
     @ResponseStatus(HttpStatus.CREATED)
     fun createExpense(
-        @Valid @RequestBody request: CreateExpenseRequest,
+        @Valid @RequestBody request: ExpenseInputRequest,
     ): ExpenseResponse = service.createExpense(request.toCommand()).toResponse()
+
+    @PutMapping("/expenses/{id}")
+    fun updateExpense(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: ExpenseInputRequest,
+    ): ExpenseResponse = service.updateExpense(id, request.toCommand()).toResponse()
 
     @PatchMapping("/expenses/{id}/void")
     fun voidExpense(@PathVariable id: UUID): ExpenseResponse = service.voidExpense(id).toResponse()

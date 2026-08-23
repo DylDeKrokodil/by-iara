@@ -36,6 +36,10 @@ export class FinanceApi {
     return this.http.post<Expense>(`${this.baseUrl}/expenses`, input);
   }
 
+  updateExpense(id: string, input: ExpenseInput): Observable<Expense> {
+    return this.http.put<Expense>(`${this.baseUrl}/expenses/${id}`, input);
+  }
+
   voidExpense(id: string): Observable<Expense> {
     return this.http.patch<Expense>(`${this.baseUrl}/expenses/${id}/void`, {});
   }
