@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ToastService } from '@by-iara/shared-ui';
 import { of, throwError } from 'rxjs';
 import { FinanceApi } from '../finance-api';
-import { ExpensePage, FinancialReport, IncomePaymentPage } from '../finance.models';
+import { Expense, ExpensePage, FinancialReport, IncomePaymentPage } from '../finance.models';
 import { Reports } from './reports';
 
 const report: FinancialReport = {
@@ -62,6 +62,7 @@ describe('Reports', () => {
     expenses: ReturnType<typeof vi.fn>;
     payments: ReturnType<typeof vi.fn>;
     createExpense: ReturnType<typeof vi.fn>;
+    updateExpense: ReturnType<typeof vi.fn>;
     voidExpense: ReturnType<typeof vi.fn>;
   };
 
@@ -71,6 +72,7 @@ describe('Reports', () => {
       expenses: vi.fn(() => of(expenses)),
       payments: vi.fn(() => of(payments)),
       createExpense: vi.fn(),
+      updateExpense: vi.fn(),
       voidExpense: vi.fn(),
     };
 
@@ -104,5 +106,30 @@ describe('Reports', () => {
 
     expect(fixture.nativeElement.textContent).toContain('Could not load the financial report.');
     expect(fixture.nativeElement.textContent).toContain('Try again');
+  });
+
+  it('prefills and updates an active expense', () => {
+    const expense = expenses.items[0];
+    api.updateExpense.mockReturnValue(of({ ...expense, description: 'Corrected massage oil' }));
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance as unknown as {
+      setActiveTab(value: string): void;
+      editExpense(value: Expense): void;
+      expenseForm: { patchValue(value: { description: string }): void };
+      submitExpense(): void;
+    };
+    component.setActiveTab('profit');
+    component.editExpense(expense);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Edit expense');
+    component.expenseForm.patchValue({ description: 'Corrected massage oil' });
+    component.submitExpense();
+
+    expect(api.updateExpense).toHaveBeenCalledWith('expense-1', {
+      category: 'SUPPLIES', amountCents: 4_000, currency: 'EUR', incurredAt: expect.any(String),
+      vendor: 'Wellness Supply', description: 'Corrected massage oil',
+    });
   });
 });

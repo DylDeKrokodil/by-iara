@@ -63,13 +63,6 @@
   width: 1%;
 }
 
-.actions-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: var(--byiara-space-xs);
-}
-
 @media (max-width: 40rem) {
   .list-toolbar {
     align-items: stretch;

@@ -2,6 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
+  ActionMenu,
+  ActionMenuItem,
   Alert,
   Button,
   Card,
@@ -46,7 +48,12 @@ const expenseColumns: ReadonlyArray<DataTableColumn> = [
   { key: 'category', label: 'Category', width: '13rem' },
   { key: 'amount', label: 'Amount', width: '8rem' },
   { key: 'status', label: 'Status', fit: true },
-  { key: 'action', label: 'Action', fit: true },
+  { key: 'actions', label: 'Actions', fit: true },
+];
+
+const expenseActions: ReadonlyArray<ActionMenuItem> = [
+  { id: 'edit', label: 'Edit expense', icon: 'edit' },
+  { id: 'void', label: 'Void expense', icon: 'void', tone: 'danger' },
 ];
 
 const paymentColumns: ReadonlyArray<DataTableColumn> = [
@@ -66,6 +73,7 @@ const reportTabs: ReadonlyArray<TabOption> = [
   selector: 'byiara-reports',
   imports: [
     ReactiveFormsModule,
+    ActionMenu,
     Alert,
     Button,
     Card,
@@ -100,12 +108,14 @@ export class Reports implements OnInit {
   protected readonly expenseTotal = signal(0);
   protected readonly expensePage = signal(0);
   protected readonly expenseFormOpen = signal(false);
+  protected readonly editingExpense = signal<Expense | null>(null);
   protected readonly expenseToVoid = signal<Expense | null>(null);
   protected readonly activePreset = signal<PeriodPreset>('THIS_MONTH');
   protected readonly activeTab = signal<'income' | 'profit'>('income');
   protected readonly selectedCategory = signal<ExpenseCategory>('SUPPLIES');
   protected readonly categoryOptions = categoryOptions;
   protected readonly expenseColumns = expenseColumns;
+  protected readonly expenseActions = expenseActions;
   protected readonly paymentColumns = paymentColumns;
   protected readonly reportTabs = reportTabs;
   protected readonly Math = Math;
@@ -189,6 +199,7 @@ export class Reports implements OnInit {
   }
 
   protected openExpenseForm(): void {
+    this.editingExpense.set(null);
     this.expenseFormOpen.set(true);
     this.expenseForm.reset({ date: this.todayKey(), amount: '', vendor: '', description: '' });
     this.selectedCategory.set('SUPPLIES');
@@ -196,6 +207,25 @@ export class Reports implements OnInit {
 
   protected closeExpenseForm(): void {
     this.expenseFormOpen.set(false);
+    this.editingExpense.set(null);
+  }
+
+  protected editExpense(expense: Expense): void {
+    if (expense.status !== 'ACTIVE') return;
+    this.editingExpense.set(expense);
+    this.selectedCategory.set(expense.category);
+    this.expenseForm.setValue({
+      date: this.dateKey(expense.incurredAt),
+      amount: (expense.amountCents / 100).toFixed(2),
+      vendor: expense.vendor ?? '',
+      description: expense.description,
+    });
+    this.expenseFormOpen.set(true);
+  }
+
+  protected handleExpenseAction(expense: Expense, action: string): void {
+    if (action === 'edit') this.editExpense(expense);
+    if (action === 'void') this.requestVoid(expense);
   }
 
   protected setExpenseCategory(value: string): void {
@@ -209,24 +239,28 @@ export class Reports implements OnInit {
     }
     const form = this.expenseForm.getRawValue();
     this.submitting.set(true);
-    this.api.createExpense({
+    const input = {
       category: this.selectedCategory(),
       amountCents: Math.round(Number(form.amount.replace(',', '.')) * 100),
       currency,
       incurredAt: this.zonedDateTimeIso(form.date, 12),
       vendor: form.vendor.trim() || undefined,
       description: form.description.trim(),
-    }).subscribe({
+    };
+    const editing = this.editingExpense();
+    const request = editing ? this.api.updateExpense(editing.id, input) : this.api.createExpense(input);
+    request.subscribe({
       next: () => {
         this.submitting.set(false);
         this.expenseFormOpen.set(false);
+        this.editingExpense.set(null);
         this.expensePage.set(0);
         this.loadReport();
-        this.toast.show('Expense recorded.', 'success');
+        this.toast.show(editing ? 'Expense updated.' : 'Expense recorded.', 'success');
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
-        this.toast.show(this.apiError(error, 'Could not record the expense.'), 'error');
+        this.toast.show(this.apiError(error, editing ? 'Could not update the expense.' : 'Could not record the expense.'), 'error');
       },
     });
   }
@@ -403,9 +437,13 @@ export class Reports implements OnInit {
   }
 
   private todayKey(): string {
+    return this.dateKey(new Date());
+  }
+
+  private dateKey(input: string | Date): string {
     const parts = new Intl.DateTimeFormat('en-CA', {
       year: 'numeric', month: '2-digit', day: '2-digit', timeZone: businessTimeZone,
-    }).formatToParts(new Date());
+    }).formatToParts(new Date(input));
     const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value;
     return `${value('year')}-${value('month')}-${value('day')}`;
   }

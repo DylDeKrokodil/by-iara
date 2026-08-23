@@ -23,6 +23,8 @@ data class DailyFinancialTotals(
 interface FinanceRepository {
     fun createExpense(expense: NewExpense): Expense
 
+    fun updateExpense(id: UUID, expense: NewExpense): Boolean
+
     fun findExpenseById(id: UUID): Expense?
 
     fun listExpenses(from: OffsetDateTime, to: OffsetDateTime, limit: Int, offset: Int): List<Expense>

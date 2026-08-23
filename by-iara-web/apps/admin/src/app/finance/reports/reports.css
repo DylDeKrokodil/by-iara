@@ -125,6 +125,7 @@ byiara-tabs { display: block; margin-bottom: var(--byiara-space-2xl); }
 .expense-primary { display: grid; gap: var(--byiara-space-2xs); min-width: 0; }
 .expense-primary strong, .expense-primary span { overflow-wrap: anywhere; }
 .expense-primary span { color: var(--byiara-color-text-muted); font-size: var(--byiara-font-size-xs); }
+.actions-cell { text-align: right; }
 .voided-row { opacity: .62; }
 .voided-row .money-cell { text-decoration: line-through; }
 .pagination { justify-content: space-between; width: 100%; color: var(--byiara-color-text-muted); font-size: var(--byiara-font-size-sm); }

@@ -75,52 +75,11 @@
         <byiara-status-chip [active]="service.active"></byiara-status-chip>
       </td>
       <td class="actions-col">
-        <div class="actions-wrapper">
-          <byiara-button
-            variant="secondary"
-            iconOnly
-            [routerLink]="['/services', service.id]"
-            ariaLabel="Edit service"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M12 20h9" />
-              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-            </svg>
-          </byiara-button>
-          @if (service.active) {
-          <byiara-button
-            variant="ghost"
-            iconOnly
-            (click)="deactivate(service)"
-            ariaLabel="Deactivate service"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="m4.9 4.9 14.2 14.2" />
-            </svg>
-          </byiara-button>
-          }
-        </div>
+        <byiara-action-menu
+          [items]="actionsFor(service)"
+          [ariaLabel]="'Actions for ' + service.name"
+          (actionSelected)="handleAction(service, $event)"
+        ></byiara-action-menu>
       </td>
     </tr>
   </ng-template>

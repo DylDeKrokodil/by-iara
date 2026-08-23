@@ -1,6 +1,6 @@
 package com.byiara.api.finance.api
 
-import com.byiara.api.finance.application.CreateExpenseCommand
+import com.byiara.api.finance.application.ExpenseInputCommand
 import com.byiara.api.finance.application.ExpensePage
 import com.byiara.api.finance.application.IncomePaymentPage
 import com.byiara.api.finance.domain.Expense
@@ -16,7 +16,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.util.UUID
 
-data class CreateExpenseRequest(
+data class ExpenseInputRequest(
     @field:NotNull
     val category: ExpenseCategory?,
 
@@ -38,7 +38,7 @@ data class CreateExpenseRequest(
     @field:Size(max = 500)
     val description: String?,
 ) {
-    fun toCommand(): CreateExpenseCommand = CreateExpenseCommand(
+    fun toCommand(): ExpenseInputCommand = ExpenseInputCommand(
         category = category!!,
         amountCents = amountCents!!,
         currency = currency!!,

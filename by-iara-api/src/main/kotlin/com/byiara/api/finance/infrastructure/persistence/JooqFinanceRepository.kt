@@ -83,6 +83,18 @@ class JooqFinanceRepository(
         return findExpenseById(id)!!
     }
 
+    override fun updateExpense(id: UUID, expense: NewExpense): Boolean =
+        dsl.update(expenses)
+            .set(eCategory, expense.category.name)
+            .set(eAmountCents, expense.amountCents)
+            .set(eCurrency, expense.currency)
+            .set(eIncurredAt, expense.incurredAt)
+            .set(eVendor, expense.vendor)
+            .set(eDescription, expense.description)
+            .set(eUpdatedAt, currentOffsetDateTime())
+            .where(eId.eq(id).and(eStatus.eq(ExpenseStatus.ACTIVE.name)))
+            .execute() == 1
+
     override fun findExpenseById(id: UUID): Expense? =
         expenseSelect()
             .where(eId.eq(id))

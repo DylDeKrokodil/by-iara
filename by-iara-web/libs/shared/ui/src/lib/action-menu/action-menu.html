@@ -3,7 +3,7 @@
   type="button"
   class="action-menu-trigger"
   [attr.aria-label]="ariaLabel()"
-  [attr.title]="ariaLabel()"
+  [attr.data-tooltip]="triggerTooltip()"
   aria-haspopup="menu"
   [attr.aria-expanded]="open()"
   (click)="toggle($event)"
@@ -38,7 +38,7 @@
     [class.danger]="item.tone === 'danger'"
     [disabled]="item.disabled"
     [attr.aria-label]="item.label"
-    [attr.title]="item.label"
+    [attr.data-tooltip]="item.label"
     (click)="select(item)"
   >
     @switch (item.icon) { @case ('edit') {
@@ -74,6 +74,11 @@
       <path d="M5 6v14h14V6" />
       <path d="M9 10h6" />
       <path d="M4 3h16v3H4z" />
+    </svg>
+    } @case ('void') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m6.4 6.4 11.2 11.2" />
     </svg>
     } }
     <span class="visually-hidden">{{ item.label }}</span>
