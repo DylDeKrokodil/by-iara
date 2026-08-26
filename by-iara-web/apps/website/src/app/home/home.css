@@ -94,11 +94,11 @@
 }
 
 h1 {
-  max-width: 9ch;
+  max-width: 11ch;
   margin: 0;
   color: var(--byiara-color-white);
   font-family: var(--byiara-font-family-display);
-  font-size: clamp(3.35rem, 2.1rem + 5.4vw, 5.7rem);
+  font-size: clamp(3.1rem, 2rem + 4.8vw, 5.7rem);
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 0.96;

@@ -282,7 +282,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       },
       footer: {
         tagline:
-          'Massagem terapêutica e relaxante, com tempo, cuidado e atenção inteira.',
+          'Um espaço de bem-estar dedicado às mulheres, com tempo, cuidado e atenção inteira.',
         navigationLabel: 'Navegação do rodapé',
         explore: 'Explorar',
         home: 'Início',
@@ -298,7 +298,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         opensNewWindow: 'abre numa nova janela',
         visit: 'Visitar',
         location: 'Almada, Portugal',
-        availability: 'Atendimento apenas por marcação',
+        availability: 'Atendimento exclusivo a mulheres, apenas por marcação',
         contact: 'Contacto',
         emailLabel: 'Email',
         social: 'Redes sociais',
@@ -314,8 +314,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
     home: {
       location: BRAND.name,
-      title: 'Massagem terapêutica em Almada',
-      lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
+      title: 'Massagens femininas em Almada',
+      lede: 'Um espaço calmo e acolhedor, dedicado ao bem-estar feminino e ao cuidado de si.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar massagens',
       actionsLabel: 'Ações da página inicial',
@@ -360,8 +360,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       aboutTitle: 'Olá, sou a Iara!',
       aboutParagraphs: [
         'Sou estudante do quarto ano de Fisioterapia, com um forte interesse pela saúde, pelo bem-estar e pela reabilitação física.',
-        'Acredito que todas as pessoas merecem um momento para cuidar de si. É por isso que ofereço tratamentos de massagem personalizados num ambiente calmo e acolhedor, onde cada cliente pode relaxar, aliviar tensões e sentir-se no seu melhor.',
-        'Estou constantemente a aprender e a desenvolver as minhas competências para prestar um serviço de alta qualidade, com dedicação, cuidado e atenção aos detalhes. Espero proporcionar a cada cliente um momento de bem-estar em cada sessão.',
+        'Acredito que cada mulher merece um momento para cuidar de si. É por isso que ofereço tratamentos de massagem personalizados num ambiente calmo e acolhedor, onde pode relaxar, aliviar tensões e sentir-se no seu melhor.',
+        'Estou constantemente a aprender e a desenvolver as minhas competências para prestar um serviço de alta qualidade, com dedicação, cuidado e atenção aos detalhes. Espero proporcionar a cada mulher um momento de bem-estar em cada sessão.',
       ],
       visitTitle: 'Em Almada, à sua espera',
       visitAddressTitle: 'Onde',
@@ -495,7 +495,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ],
     },
     booking: {
-      eyebrow: 'Reserva',
+      eyebrow: 'Atendimento exclusivo a mulheres',
       back: 'Voltar ao início',
       loading: 'A carregar...',
       loadError: 'Não foi possível carregar os serviços. Tente novamente.',
@@ -605,7 +605,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       },
       footer: {
         tagline:
-          'Therapeutic and relaxing massage, with time, care, and full attention.',
+          "A space dedicated to women's well-being, with time, care, and full attention.",
         navigationLabel: 'Footer navigation',
         explore: 'Explore',
         home: 'Home',
@@ -621,7 +621,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         opensNewWindow: 'opens in a new window',
         visit: 'Visit',
         location: 'Almada, Portugal',
-        availability: 'By appointment only',
+        availability: 'Exclusively for women, by appointment only',
         contact: 'Contact',
         emailLabel: 'Email',
         social: 'Social',
@@ -636,8 +636,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
     home: {
       location: BRAND.name,
-      title: 'Therapeutic massage in Almada',
-      lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
+      title: 'Massage for women in Almada',
+      lede: "A calm, welcoming space dedicated to women's well-being and self-care.",
       primaryAction: 'Book a session',
       secondaryAction: 'Explore massages',
       actionsLabel: 'Home page actions',
@@ -682,8 +682,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       aboutTitle: "Hi, I'm Iara!",
       aboutParagraphs: [
         "I'm a fourth-year Physical Therapy student with a strong interest in health, well-being, and physical rehabilitation.",
-        "I believe everyone deserves a moment to take care of themselves. That's why I offer personalised massage treatments in a calm and welcoming environment, where every client can relax, relieve tension, and feel their best.",
-        "I'm constantly learning and developing my skills to provide a high-quality service with dedication, care, and attention to detail. I hope to provide every client with a moment of well-being during each session.",
+        "I believe every woman deserves a moment to care for herself. That's why I offer personalised massage treatments in a calm and welcoming environment where you can relax, relieve tension, and feel your best.",
+        "I'm constantly learning and developing my skills to provide a high-quality service with dedication, care, and attention to detail. I hope to give every woman a moment of well-being in each session.",
       ],
       visitTitle: 'In Almada, waiting for you',
       visitAddressTitle: 'Where',
@@ -816,7 +816,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       ],
     },
     booking: {
-      eyebrow: 'Booking',
+      eyebrow: 'Appointments exclusively for women',
       back: 'Back to home',
       loading: 'Loading...',
       loadError: 'Could not load services. Please try again.',
