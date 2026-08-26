@@ -22,9 +22,9 @@ export const SEO_MESSAGES: Record<
 > = {
   'pt-PT': {
     home: {
-      title: `Massagem terapêutica em Almada | ${BRAND.name}`,
+      title: `Massagens femininas em Almada | ${BRAND.name}`,
       description:
-        'Massagens terapêuticas e relaxantes em Almada, num estúdio tranquilo com atendimento individual e marcação online.',
+        'Massagens terapêuticas e relaxantes para mulheres em Almada, num espaço calmo e acolhedor com marcação online.',
     },
     services: {
       title: `Massagens em Almada | ${BRAND.name}`,
@@ -42,7 +42,7 @@ export const SEO_MESSAGES: Record<
     },
     book: {
       title: `Marcar uma sessão | ${BRAND.name}`,
-      description: `Escolha o tratamento e marque a sua sessão de massagem no estúdio ${BRAND.name} em Almada.`,
+      description: `Escolha o tratamento e marque a sua sessão de massagem para mulheres no estúdio ${BRAND.name} em Almada.`,
     },
     privacy: {
       title: `Política de privacidade | ${BRAND.name}`,
@@ -66,9 +66,9 @@ export const SEO_MESSAGES: Record<
   },
   'en-US': {
     home: {
-      title: `Therapeutic massage in Almada | ${BRAND.name}`,
+      title: `Massage for women in Almada | ${BRAND.name}`,
       description:
-        'Therapeutic and relaxing massage in Almada, in a calm private studio with individual care and online booking.',
+        'Therapeutic and relaxing massage for women in Almada, in a calm and welcoming space with online booking.',
     },
     services: {
       title: `Massages in Almada | ${BRAND.name}`,
@@ -86,7 +86,7 @@ export const SEO_MESSAGES: Record<
     },
     book: {
       title: `Book a massage session | ${BRAND.name}`,
-      description: `Choose a treatment and book your massage session at the ${BRAND.name} studio in Almada.`,
+      description: `Choose a treatment and book your massage session for women at the ${BRAND.name} studio in Almada.`,
     },
     privacy: {
       title: `Privacy policy | ${BRAND.name}`,

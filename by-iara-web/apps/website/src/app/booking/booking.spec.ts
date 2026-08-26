@@ -75,6 +75,9 @@ describe('Booking SSR', () => {
     expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain(
       'Marcar uma sessão',
     );
+    expect(
+      fixture.nativeElement.querySelector('.eyebrow')?.textContent,
+    ).toContain('Atendimento exclusivo a mulheres');
     expect(fixture.nativeElement.querySelector('.spinner')).toBeNull();
     expect(
       fixture.nativeElement.querySelector('.booking-loading'),
