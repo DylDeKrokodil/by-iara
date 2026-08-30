@@ -143,7 +143,7 @@ class AvailabilityService(
 
             for (rule in dayRules) {
                 var candidateTime = rule.startTime
-                // Generate slots in 15-minute increments. LocalTime arithmetic wraps at
+                // Generate slots in five-minute increments. LocalTime arithmetic wraps at
                 // midnight, so a candidate whose end wraps past 00:00 reads as "before"
                 // rule.endTime again — without this check that wraparound spins forever.
                 while (true) {
@@ -163,7 +163,7 @@ class AvailabilityService(
                         candidates.add(Slot(offsetStart, offsetEnd))
                     }
 
-                    candidateTime = candidateTime.plusMinutes(15)
+                    candidateTime = candidateTime.plusMinutes(SLOT_INTERVAL_MINUTES)
                 }
             }
             currentDate = currentDate.plusDays(1)
@@ -187,4 +187,8 @@ class AvailabilityService(
         val start: OffsetDateTime,
         val end: OffsetDateTime,
     )
+
+    private companion object {
+        const val SLOT_INTERVAL_MINUTES = 5L
+    }
 }

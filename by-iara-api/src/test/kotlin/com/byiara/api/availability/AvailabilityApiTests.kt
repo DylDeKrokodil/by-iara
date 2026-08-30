@@ -146,16 +146,7 @@ class AvailabilityApiTests {
         ).andExpect(status().isCreated)
 
         // Query public slots for that Monday (duration 60 minutes)
-        // Expected slots (assuming 15 minute start increments):
-        // Slot 1: 09:00 - 10:00
-        // Slot 2: 09:15 - 10:15
-        // Slot 3: 09:30 - 10:30
-        // Slot 4: 09:45 - 10:45
-        // Slot 5: 10:00 - 11:00
-        // Slot 6: 10:15 - 11:15
-        // Slot 7: 10:30 - 11:30
-        // Slot 8: 10:45 - 11:45
-        // Slot 9: 11:00 - 12:00
+        // Five-minute starts from 09:00 through 11:00 produce 25 one-hour slots.
         mockMvc.perform(
             get("/api/availability")
                 .param("startDate", nextMonday.toString())
@@ -163,9 +154,9 @@ class AvailabilityApiTests {
                 .param("durationMinutes", "60")
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(9))
+            .andExpect(jsonPath("$.length()").value(25))
             .andExpect(jsonPath("$[0]").value(org.hamcrest.Matchers.containsString("09:00")))
-            .andExpect(jsonPath("$[8]").value(org.hamcrest.Matchers.containsString("11:00")))
+            .andExpect(jsonPath("$[24]").value(org.hamcrest.Matchers.containsString("11:00")))
 
         // Add a block on Monday from 10:00 to 11:00
         // Blocks:
@@ -233,8 +224,8 @@ class AvailabilityApiTests {
                 .param("durationMinutes", "60"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.length()").value(4))
-            .andExpect(jsonPath("$[3]").value(org.hamcrest.Matchers.containsString("22:45")))
+            .andExpect(jsonPath("$.length()").value(10))
+            .andExpect(jsonPath("$[9]").value(org.hamcrest.Matchers.containsString("22:45")))
     }
 
     @Test

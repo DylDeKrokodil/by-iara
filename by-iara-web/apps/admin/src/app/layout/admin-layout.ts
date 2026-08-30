@@ -30,6 +30,7 @@ const navigationItems: ReadonlyArray<NavigationItem> = [
   { id: 'packs', label: 'Packs', route: '/packs' },
   { id: 'discounts', label: 'Discounts', route: '/discounts' },
   { id: 'availability', label: 'Availability', route: '/availability' },
+  { id: 'settings', label: 'Settings', route: '/settings' },
 ];
 
 @Component({

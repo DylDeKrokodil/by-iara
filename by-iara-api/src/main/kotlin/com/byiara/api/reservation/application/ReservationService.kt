@@ -27,6 +27,7 @@ import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
+import com.byiara.api.settings.application.OperationalSettingsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -42,6 +43,7 @@ class ReservationService(
     private val packRepository: PackRepository,
     private val customerAccessService: CustomerAccessService,
     private val discountService: DiscountService,
+    private val settingsService: OperationalSettingsService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
@@ -60,9 +62,10 @@ class ReservationService(
         if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
-                command.startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
-                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                command.startsAt.minusMinutes(appointmentBufferMinutes),
+                endsAt.plusMinutes(appointmentBufferMinutes),
             )
         ) {
             throw SlotAlreadyBookedException()
@@ -158,7 +161,11 @@ class ReservationService(
             command.endDate,
             variant.durationMinutes,
         )
-        return excludeOverlappingReservations(slots, variant.durationMinutes)
+        return excludeOverlappingReservations(
+            slots,
+            variant.durationMinutes,
+            settingsService.appointmentBufferMinutes().toLong(),
+        )
     }
 
     @Transactional(readOnly = true)
@@ -169,6 +176,7 @@ class ReservationService(
         return excludeOverlappingReservations(
             slots,
             reservation.durationMinutes,
+            settingsService.appointmentBufferMinutes().toLong(),
             excludingReservationId = reservation.id,
         )
     }
@@ -192,22 +200,27 @@ class ReservationService(
             today.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
             shortestDuration,
         )
-        return excludeOverlappingReservations(slots, shortestDuration).firstOrNull()
+        return excludeOverlappingReservations(
+            slots,
+            shortestDuration,
+            settingsService.appointmentBufferMinutes().toLong(),
+        ).firstOrNull()
     }
 
     private fun excludeOverlappingReservations(
         slots: List<OffsetDateTime>,
         durationMinutes: Int,
+        appointmentBufferMinutes: Long,
         excludingReservationId: UUID? = null,
     ): List<OffsetDateTime> {
         if (slots.isEmpty()) {
             return slots
         }
 
-        val queryStart = slots.first().minusMinutes(APPOINTMENT_BUFFER_MINUTES)
+        val queryStart = slots.first().minusMinutes(appointmentBufferMinutes)
         val queryEnd = slots.last()
             .plusMinutes(durationMinutes.toLong())
-            .plusMinutes(APPOINTMENT_BUFFER_MINUTES)
+            .plusMinutes(appointmentBufferMinutes)
         val activeWindows = reservationRepository.findActiveWindowsOverlapping(
             queryStart,
             queryEnd,
@@ -216,8 +229,8 @@ class ReservationService(
 
         return slots.filter { slotStart ->
             val slotEnd = slotStart.plusMinutes(durationMinutes.toLong())
-            val bufferedSlotStart = slotStart.minusMinutes(APPOINTMENT_BUFFER_MINUTES)
-            val bufferedSlotEnd = slotEnd.plusMinutes(APPOINTMENT_BUFFER_MINUTES)
+            val bufferedSlotStart = slotStart.minusMinutes(appointmentBufferMinutes)
+            val bufferedSlotEnd = slotEnd.plusMinutes(appointmentBufferMinutes)
             activeWindows.none { window ->
                 bufferedSlotStart.isBefore(window.endsAt) && bufferedSlotEnd.isAfter(window.startsAt)
             }
@@ -301,9 +314,10 @@ class ReservationService(
         if (!availabilityService.isAvailable(startsAt, reservation.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
-                startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
-                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                startsAt.minusMinutes(appointmentBufferMinutes),
+                endsAt.plusMinutes(appointmentBufferMinutes),
                 excludingReservationId = id,
             )
         ) {
@@ -359,7 +373,6 @@ class ReservationService(
     companion object {
         private const val MAX_PAGE_SIZE = 100
         private const val NEXT_AVAILABLE_WINDOW_DAYS = 30L
-        private const val APPOINTMENT_BUFFER_MINUTES = 15L
     }
 }
 

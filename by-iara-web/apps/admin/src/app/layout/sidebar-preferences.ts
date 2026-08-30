@@ -11,6 +11,7 @@ export const sidebarItemIds = [
   'packs',
   'discounts',
   'availability',
+  'settings',
 ] as const;
 
 export type SidebarItemId = (typeof sidebarItemIds)[number];

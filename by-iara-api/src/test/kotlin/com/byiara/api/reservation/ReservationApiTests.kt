@@ -62,6 +62,7 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("drop table if exists application_settings")
         dsl.execute("drop table if exists public_request_rate_limits")
         dsl.execute("drop table if exists reservation_discounts")
         dsl.execute("drop table if exists discount_services")
@@ -86,6 +87,15 @@ class ReservationApiTests {
         dsl.execute("drop table if exists services")
         dsl.execute("drop table if exists admin_users")
 
+        dsl.execute(
+            """
+            create table application_settings (
+                setting_key varchar(120) primary key,
+                setting_value varchar(500) not null,
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
         dsl.execute(
             """
             create table public_request_rate_limits (
@@ -429,6 +439,7 @@ class ReservationApiTests {
         )
 
         dsl.execute("insert into admin_users (email, password_hash, role, active) values ('admin@by-iara.local', 'x', 'ADMIN', true)")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('appointment_buffer_minutes', '15')")
         dsl.execute("insert into services (id, slug, name, active) values ('$serviceId', 'relax', 'Relaxing massage', true)")
         dsl.execute(
             "insert into service_variants (id, service_id, duration_minutes, price_cents, currency, active) " +
@@ -741,6 +752,24 @@ class ReservationApiTests {
         book(slotStart.plusHours(1), email = "after@example.com")
             .andExpect(status().isConflict)
         book(slotStart.plusMinutes(75), email = "buffered@example.com")
+            .andExpect(status().isCreated)
+    }
+
+    @Test
+    fun `booking uses the appointment buffer saved by an admin`() {
+        mockMvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"appointmentBufferMinutes":30}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.appointmentBufferMinutes").value(30))
+
+        book(slotStart, email = "center@example.com").andExpect(status().isCreated)
+        book(slotStart.plusMinutes(75), email = "too-close@example.com")
+            .andExpect(status().isConflict)
+        book(slotStart.plusMinutes(90), email = "buffered@example.com")
             .andExpect(status().isCreated)
     }
 
