@@ -1,11 +1,11 @@
-# By Iara — Project Overview
+# Iara Gouveia — Project Overview
 
 > AI-oriented reference for the structure, stack, and conventions of this repository.
 > For the product roadmap and domain plan, see [`PROJECT_PLAN.md`](../PROJECT_PLAN.md).
 
 ## 1. What this is
 
-By Iara is a **booking platform for a massage business**. The MVP supports
+Iara Gouveia is a **booking platform for a massage business**. The MVP supports
 browsing massage services, checking service area / availability, submitting
 reservation requests, and letting admins manage reservations and business
 settings.
@@ -14,9 +14,9 @@ It targets three deployment domains:
 
 | Domain               | Surface          | Lives in        |
 | -------------------- | ---------------- | --------------- |
-| `by-iara.com`        | Public website   | `by-iara-web`   |
-| `admin.by-iara.com`  | Admin dashboard  | `by-iara-web`   |
-| `api.by-iara.com`    | Backend REST API | `by-iara-api`   |
+| `iaragouveia.com`       | Public website   | `by-iara-web`   |
+| `admin.iaragouveia.com` | Admin dashboard  | `by-iara-web`   |
+| `api.iaragouveia.com`   | Backend REST API | `by-iara-api`   |
 
 ## 2. Repository layout
 

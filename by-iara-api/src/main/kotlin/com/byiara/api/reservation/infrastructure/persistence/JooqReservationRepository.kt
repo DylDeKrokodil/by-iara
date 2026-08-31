@@ -3,20 +3,31 @@ package com.byiara.api.reservation.infrastructure.persistence
 import com.byiara.api.catalog.domain.Money
 import com.byiara.api.reservation.domain.Customer
 import com.byiara.api.reservation.domain.CustomerDetails
+import com.byiara.api.reservation.domain.CancellationReasonCode
+import com.byiara.api.reservation.domain.AttentionReason
 import com.byiara.api.reservation.domain.NewReservation
+import com.byiara.api.reservation.domain.PaymentState
+import com.byiara.api.reservation.domain.PaymentSummary
 import com.byiara.api.reservation.domain.Reservation
+import com.byiara.api.reservation.domain.ReservationAttention
 import com.byiara.api.reservation.domain.ReservationListQuery
+import com.byiara.api.reservation.domain.ReservationLocale
 import com.byiara.api.reservation.domain.ReservationRepository
+import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.ReservationSort
 import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.ReservationWindow
 import org.jooq.Condition
 import org.jooq.DSLContext
+import org.jooq.Field
 import org.jooq.Record
 import org.jooq.impl.DSL.currentOffsetDateTime
+import org.jooq.impl.DSL.coalesce
 import org.jooq.impl.DSL.field
+import org.jooq.impl.DSL.inline
 import org.jooq.impl.DSL.name
 import org.jooq.impl.DSL.noCondition
+import org.jooq.impl.DSL.sum
 import org.jooq.impl.DSL.table
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
@@ -40,7 +51,25 @@ class JooqReservationRepository(
     private val rEndsAt = field(name("ends_at"), OffsetDateTime::class.java)
     private val rStatus = field(name("status"), String::class.java)
     private val rNotes = field(name("notes"), String::class.java)
+    private val rLocale = field(name("locale"), String::class.java)
+    private val rRejectionReasonCode = field(name("rejection_reason_code"), String::class.java)
+    private val rRejectionMessage = field(name("rejection_message"), String::class.java)
+    private val rDecidedAt = field(name("decided_at"), OffsetDateTime::class.java)
+    private val rCancellationReasonCode = field(name("cancellation_reason_code"), String::class.java)
+    private val rCancellationMessage = field(name("cancellation_message"), String::class.java)
     private val rUpdatedAt = field(name("updated_at"), OffsetDateTime::class.java)
+
+    private val payments = table(name("reservation_payments"))
+    private val pReservationId = field(name("reservation_payments", "reservation_id"), UUID::class.java)
+    private val pAmountCents = field(name("reservation_payments", "amount_cents"), Long::class.java)
+    private val pStatus = field(name("reservation_payments", "status"), String::class.java)
+    private val totalPaidExpression: Field<Long> = field(
+        dsl.select(coalesce(sum(pAmountCents), inline(java.math.BigDecimal.ZERO)).cast(Long::class.java))
+            .from(payments)
+            .where(pReservationId.eq(rId))
+            .and(pStatus.eq("PAID")),
+    )
+    private val totalPaid = totalPaidExpression.`as`("total_paid_cents")
 
     private val customers = table(name("customers"))
     private val cId = field(name("customers", "id"), UUID::class.java)
@@ -54,6 +83,16 @@ class JooqReservationRepository(
         baseSelect()
             .where(rId.eq(id))
             .fetchOne { mapReservation(it) }
+
+    override fun findByIdForUpdate(id: UUID): Reservation? {
+        val locked = dsl.select(rId)
+            .from(reservations)
+            .where(rId.eq(id))
+            .forUpdate()
+            .fetchOne() ?: return null
+
+        return findById(locked.get(rId))
+    }
 
     override fun findAll(query: ReservationListQuery, limit: Int, offset: Int): List<Reservation> =
         baseSelect()
@@ -72,21 +111,31 @@ class JooqReservationRepository(
     override fun countAll(query: ReservationListQuery): Int =
         dsl.fetchCount(dsl.selectFrom(reservations).where(listCondition(query)))
 
-    override fun hasOverlap(startsAt: OffsetDateTime, endsAt: OffsetDateTime): Boolean =
+    override fun hasOverlap(
+        startsAt: OffsetDateTime,
+        endsAt: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): Boolean =
         dsl.fetchExists(
             dsl.selectOne()
                 .from(reservations)
                 .where(rStatus.`in`(activeStatuses))
                 .and(rStartsAt.lessThan(endsAt))
-                .and(rEndsAt.greaterThan(startsAt)),
+                .and(rEndsAt.greaterThan(startsAt))
+                .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition()),
         )
 
-    override fun findActiveWindowsOverlapping(startsAt: OffsetDateTime, endsAt: OffsetDateTime): List<ReservationWindow> =
+    override fun findActiveWindowsOverlapping(
+        startsAt: OffsetDateTime,
+        endsAt: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): List<ReservationWindow> =
         dsl.select(rStartsAt, rEndsAt)
             .from(reservations)
             .where(rStatus.`in`(activeStatuses))
             .and(rStartsAt.lessThan(endsAt))
             .and(rEndsAt.greaterThan(startsAt))
+            .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition())
             .fetch { record ->
                 ReservationWindow(
                     startsAt = record.get(rStartsAt),
@@ -99,7 +148,7 @@ class JooqReservationRepository(
             .insertInto(reservations)
             .columns(
                 rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             )
             .values(
                 reservation.customerId,
@@ -113,6 +162,7 @@ class JooqReservationRepository(
                 reservation.endsAt,
                 ReservationStatus.PENDING.name,
                 reservation.notes,
+                reservation.locale.name.lowercase(),
             )
             .returning(rId)
             .fetchOne()!!
@@ -121,32 +171,134 @@ class JooqReservationRepository(
         return findById(newId)!!
     }
 
-    override fun updateStatus(id: UUID, status: ReservationStatus): Boolean =
+    override fun updateDecision(
+        id: UUID,
+        status: ReservationStatus,
+        rejectionReasonCode: RejectionReasonCode?,
+        rejectionMessage: String?,
+    ): Boolean =
         dsl.update(reservations)
             .set(rStatus, status.name)
+            .set(rRejectionReasonCode, rejectionReasonCode?.name)
+            .set(rRejectionMessage, rejectionMessage)
+            .set(rDecidedAt, currentOffsetDateTime())
             .set(rUpdatedAt, currentOffsetDateTime())
             .where(rId.eq(id))
             .execute() > 0
+
+    override fun updateCancellation(
+        id: UUID,
+        cancellationReasonCode: CancellationReasonCode,
+        cancellationMessage: String,
+    ): Boolean =
+        dsl.update(reservations)
+            .set(rStatus, ReservationStatus.CANCELLED.name)
+            .set(rCancellationReasonCode, cancellationReasonCode.name)
+            .set(rCancellationMessage, cancellationMessage)
+            .set(rDecidedAt, currentOffsetDateTime())
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .execute() > 0
+
+    override fun reschedule(
+        id: UUID,
+        previousStartsAt: OffsetDateTime,
+        previousEndsAt: OffsetDateTime,
+        newStartsAt: OffsetDateTime,
+        newEndsAt: OffsetDateTime,
+    ): Boolean {
+        val reschedules = table(name("reservation_reschedules"))
+        val reservationId = field(name("reservation_id"), UUID::class.java)
+        val oldStartsAt = field(name("previous_starts_at"), OffsetDateTime::class.java)
+        val oldEndsAt = field(name("previous_ends_at"), OffsetDateTime::class.java)
+        val rescheduledStartsAt = field(name("new_starts_at"), OffsetDateTime::class.java)
+        val rescheduledEndsAt = field(name("new_ends_at"), OffsetDateTime::class.java)
+
+        dsl.insertInto(reschedules)
+            .columns(reservationId, oldStartsAt, oldEndsAt, rescheduledStartsAt, rescheduledEndsAt)
+            .values(id, previousStartsAt, previousEndsAt, newStartsAt, newEndsAt)
+            .execute()
+
+        return dsl.update(reservations)
+            .set(rStartsAt, newStartsAt)
+            .set(rEndsAt, newEndsAt)
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .and(rStatus.`in`(activeStatuses))
+            .execute() > 0
+    }
+
+    override fun transitionStatus(id: UUID, from: ReservationStatus, to: ReservationStatus): Boolean =
+        dsl.update(reservations)
+            .set(rStatus, to.name)
+            .set(rDecidedAt, currentOffsetDateTime())
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .and(rStatus.eq(from.name))
+            .execute() > 0
+
+    override fun findAttention(now: OffsetDateTime, limit: Int, offset: Int): List<ReservationAttention> =
+        dsl.select(
+            rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
+            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rRejectionReasonCode, rRejectionMessage, rDecidedAt,
+            rCancellationReasonCode, rCancellationMessage,
+            cName, cEmail, cPhone, totalPaid,
+        )
+            .from(reservations)
+            .join(customers).on(rCustomerId.eq(cId))
+            .where(attentionCondition(now))
+            .orderBy(
+                field(
+                    "case when {0} = {1} then 0 when {0} = {2} then 1 else 2 end",
+                    Int::class.java,
+                    rStatus,
+                    inline(ReservationStatus.CONFIRMED.name),
+                    inline(ReservationStatus.PENDING.name),
+                ).asc(),
+                rStartsAt.asc(),
+                rId.asc(),
+            )
+            .limit(limit)
+            .offset(offset)
+            .fetch { record ->
+                val reservation = mapReservation(record)
+                val paid = record.get(totalPaid) ?: 0L
+                ReservationAttention(
+                    reservation = reservation,
+                    reason = when (reservation.status) {
+                        ReservationStatus.PENDING -> AttentionReason.APPROVAL_REQUIRED
+                        ReservationStatus.CONFIRMED -> AttentionReason.OUTCOME_REQUIRED
+                        ReservationStatus.COMPLETED -> AttentionReason.PAYMENT_DUE
+                        else -> error("Unexpected attention status ${reservation.status}")
+                    },
+                    paymentSummary = paymentSummary(reservation, paid),
+                )
+            }
+
+    override fun countAttention(now: OffsetDateTime): Int =
+        dsl.fetchCount(dsl.selectFrom(reservations).where(attentionCondition(now)))
 
     override fun findOrCreateCustomer(details: CustomerDetails): Customer {
         val email = details.email.trim().lowercase()
         val name = details.name.trim()
         val phone = details.phone?.trim()?.ifBlank { null }
 
-        val existingId = dsl
-            .select(cId)
+        val existing = dsl
+            .select(cId, cName, cEmail, cPhone)
             .from(customers)
             .where(cEmail.eq(email))
-            .fetchOne(cId)
+            .fetchOne()
 
-        if (existingId != null) {
-            // Keep the latest contact details for a returning customer.
-            dsl.update(customers)
-                .set(cName, name)
-                .set(cPhone, phone)
-                .where(cId.eq(existingId))
-                .execute()
-            return Customer(id = existingId, name = name, email = email, phone = phone)
+        if (existing != null) {
+            // An email address is not proof of identity. Preserve the canonical contact record;
+            // verified customer sessions or an admin flow must own future profile changes.
+            return Customer(
+                id = existing.get(cId),
+                name = existing.get(cName),
+                email = existing.get(cEmail),
+                phone = existing.get(cPhone),
+            )
         }
 
         val newId = dsl
@@ -163,7 +315,9 @@ class JooqReservationRepository(
     private fun baseSelect() =
         dsl.select(
             rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes,
+            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rRejectionReasonCode, rRejectionMessage, rDecidedAt,
+            rCancellationReasonCode, rCancellationMessage,
             cName, cEmail, cPhone,
         )
             .from(reservations)
@@ -189,6 +343,7 @@ class JooqReservationRepository(
                 ReservationStatus.REJECTED.name,
                 ReservationStatus.CANCELLED.name,
                 ReservationStatus.COMPLETED.name,
+                ReservationStatus.NO_SHOW.name,
             )
             condition = condition.and(
                 rStatus.`in`(closedStatuses)
@@ -197,6 +352,21 @@ class JooqReservationRepository(
         }
 
         return condition
+    }
+
+    private fun attentionCondition(now: OffsetDateTime): Condition =
+        rStatus.eq(ReservationStatus.PENDING.name)
+            .or(rStatus.eq(ReservationStatus.CONFIRMED.name).and(rEndsAt.lessOrEqual(now)))
+            .or(rStatus.eq(ReservationStatus.COMPLETED.name).and(totalPaidExpression.lessThan(rPriceCents)))
+
+    private fun paymentSummary(reservation: Reservation, totalPaidCents: Long): PaymentSummary {
+        val balance = (reservation.price.amountCents - totalPaidCents).coerceAtLeast(0L)
+        val state = when {
+            totalPaidCents <= 0L -> PaymentState.UNPAID
+            balance > 0L -> PaymentState.PARTIALLY_PAID
+            else -> PaymentState.PAID
+        }
+        return PaymentSummary(totalPaidCents, balance, reservation.price.currency, state)
     }
 
     private fun mapReservation(record: Record): Reservation =
@@ -217,5 +387,11 @@ class JooqReservationRepository(
             endsAt = record.get(rEndsAt),
             status = ReservationStatus.valueOf(record.get(rStatus)),
             notes = record.get(rNotes),
+            locale = ReservationLocale.fromCode(record.get(rLocale)),
+            rejectionReasonCode = record.get(rRejectionReasonCode)?.let(RejectionReasonCode::valueOf),
+            rejectionMessage = record.get(rRejectionMessage),
+            decidedAt = record.get(rDecidedAt),
+            cancellationReasonCode = record.get(rCancellationReasonCode)?.let(CancellationReasonCode::valueOf),
+            cancellationMessage = record.get(rCancellationMessage),
         )
 }

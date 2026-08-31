@@ -1,112 +1,273 @@
 <div class="admin-shell byiara-theme-admin" [class.collapsed]="isCollapsed()">
-  
   <!-- Mobile Header Bar -->
   <header class="mobile-header">
-    <button type="button" class="hamburger-btn" (click)="toggleMobileMenu()" aria-label="Toggle navigation">
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <button
+      type="button"
+      class="hamburger-btn"
+      (click)="toggleMobileMenu()"
+      aria-label="Toggle navigation"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
         <line x1="4" x2="20" y1="12" y2="12"></line>
         <line x1="4" x2="20" y1="6" y2="6"></line>
         <line x1="4" x2="20" y1="18" y2="18"></line>
       </svg>
     </button>
-    <img class="mobile-brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
+    <img
+      class="mobile-brand-logo"
+      src="brand/iara-gouveia-lockup-v3.svg"
+      alt="Iara Gouveia"
+    />
   </header>
 
   <!-- Backdrop overlay for mobile menu -->
   @if (isMobileMenuOpen()) {
-    <div class="sidebar-backdrop" (click)="closeMobileMenu()" aria-hidden="true"></div>
+  <div
+    class="sidebar-backdrop"
+    (click)="closeMobileMenu()"
+    aria-hidden="true"
+  ></div>
   }
 
   <!-- Sidebar -->
-  <aside class="sidebar" [class.collapsed]="isCollapsed()" [class.mobile-open]="isMobileMenuOpen()" aria-label="Admin navigation">
+  <aside
+    class="sidebar"
+    [class.collapsed]="isCollapsed()"
+    [class.mobile-open]="isMobileMenuOpen()"
+    aria-label="Admin navigation"
+  >
     <div class="brand-container">
       <p class="brand" routerLink="/dashboard">
         @if (isCollapsed()) {
-          <img class="brand-logo-mark" src="brand/by-iara-monogram.svg" alt="By Iara" />
+        <img
+          class="brand-logo-mark"
+          src="brand/iara-gouveia-mark.svg"
+          alt="Iara Gouveia"
+        />
         } @else {
-          <img class="brand-logo" src="brand/by-iara-logo.svg" alt="By Iara" />
+        <img
+          class="brand-logo"
+          src="brand/iara-gouveia-lockup-v3.svg"
+          alt="Iara Gouveia"
+        />
         }
       </p>
-      
-      <!-- Collapse toggle button (desktop only) -->
-      <button type="button" class="collapse-btn" (click)="toggleCollapse()" [attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+
+      <button
+        type="button"
+        class="collapse-btn"
+        (click)="toggleCollapse()"
+        [attr.aria-label]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+        [title]="isCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           @if (isCollapsed()) {
-            <!-- chevron right -->
-            <path d="m9 18 6-6-6-6"/>
+          <path d="m9 18 6-6-6-6" />
           } @else {
-            <!-- chevron left -->
-            <path d="m15 18-6-6 6-6"/>
+          <path d="m15 18-6-6 6-6" />
           }
         </svg>
       </button>
     </div>
 
-    <nav>
-      <!-- Dashboard -->
-      <a routerLink="/dashboard" routerLinkActive="active" [title]="isCollapsed() ? 'Dashboard' : ''" (click)="closeMobileMenu()">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="7" height="9" x="3" y="3" rx="1"/>
-          <rect width="7" height="5" x="14" y="3" rx="1"/>
-          <rect width="7" height="9" x="14" y="12" rx="1"/>
-          <rect width="7" height="5" x="3" y="16" rx="1"/>
-        </svg>
-        <span class="nav-label">Dashboard</span>
-      </a>
+    <nav class="sidebar-navigation" aria-label="Primary">
+      <div class="navigation-heading">
+        <span>Favorites</span>
+        <button
+          type="button"
+          class="edit-favorites"
+          [attr.aria-pressed]="customizingFavorites()"
+          (click)="toggleFavoriteCustomization()"
+        >
+          {{ customizingFavorites() ? 'Done' : 'Edit' }}
+        </button>
+      </div>
 
-      <!-- Services -->
-      <a routerLink="/services" routerLinkActive="active" [title]="isCollapsed() ? 'Services' : ''" (click)="closeMobileMenu()">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m12 3-1.912 5.886a1 1 0 0 1-.95.684H2.949l4.98 3.618a1 1 0 0 1 .364 1.118L6.38 20.19l4.982-3.618a1 1 0 0 1 1.175 0l4.982 3.618-1.913-5.886a1 1 0 0 1 .364-1.118l4.98-3.618h-6.188a1 1 0 0 1-.95-.684z"/>
-        </svg>
-        <span class="nav-label">Services</span>
-      </a>
+      <div class="navigation-list">
+        @for (item of favoriteItems(); track item.id) {
+        <ng-container
+          *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
+        ></ng-container>
+        } @empty {
+        <p class="favorites-empty">Choose favorites from More.</p>
+        }
+      </div>
 
-      <!-- Reservations -->
-      <a routerLink="/reservations" routerLinkActive="active" [title]="isCollapsed() ? 'Reservations' : ''" (click)="closeMobileMenu()">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M8 2v4"/>
-          <path d="M16 2v4"/>
-          <rect width="18" height="18" x="3" y="4" rx="2"/>
-          <path d="M3 10h18"/>
-          <path d="m9 16 2 2 4-4"/>
+      <button
+        type="button"
+        class="more-toggle"
+        [attr.aria-expanded]="isMoreOpen()"
+        [attr.aria-label]="isCollapsed() ? 'Show all navigation' : null"
+        [title]="isCollapsed() ? 'Show all navigation' : ''"
+        aria-controls="more-navigation"
+        (click)="toggleMore()"
+      >
+        <span>More</span>
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          [class.is-open]="isMoreOpen()"
+        >
+          <path d="m9 18 6-6-6-6" />
         </svg>
-        <span class="nav-label">Reservations</span>
-      </a>
+      </button>
 
-      <!-- Availability -->
-      <a routerLink="/availability" routerLinkActive="active" [title]="isCollapsed() ? 'Availability' : ''" (click)="closeMobileMenu()">
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-          <line x1="16" x2="16" y1="2" y2="6"/>
-          <line x1="8" x2="8" y1="2" y2="6"/>
-          <line x1="3" x2="21" y1="10" y2="10"/>
-        </svg>
-        <span class="nav-label">Availability</span>
-      </a>
+      @if (isMoreOpen()) {
+      <div id="more-navigation" class="navigation-list more-navigation">
+        @for (item of moreItems(); track item.id) {
+        <ng-container
+          *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
+        ></ng-container>
+        } @empty {
+        <p class="favorites-empty">All pages are favorites.</p>
+        }
+      </div>
+      }
     </nav>
+
+    <ng-template #navigationItem let-item>
+      <div class="navigation-item">
+        <a
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [attr.aria-label]="isCollapsed() ? item.label : null"
+          [title]="isCollapsed() ? item.label : ''"
+          (click)="closeMobileMenu()"
+        >
+          <svg
+            class="nav-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            @switch (item.id) { @case ('dashboard') {
+            <rect width="7" height="9" x="3" y="3" rx="1" />
+            <rect width="7" height="5" x="14" y="3" rx="1" />
+            <rect width="7" height="9" x="14" y="12" rx="1" />
+            <rect width="7" height="5" x="3" y="16" rx="1" />
+            } @case ('reservations') {
+            <path d="M8 2v4M16 2v4" />
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M3 10h18m-12 6 2 2 4-4" />
+            } @case ('reports') {
+            <path d="M3 3v18h18M7 16l4-5 4 3 5-7" />
+            } @case ('services') {
+            <path
+              d="m12 3-1.912 5.886a1 1 0 0 1-.95.684H2.949l4.98 3.618a1 1 0 0 1 .364 1.118L6.38 20.19l4.982-3.618a1 1 0 0 1 1.175 0l4.982 3.618-1.913-5.886a1 1 0 0 1 .364-1.118l4.98-3.618h-6.188a1 1 0 0 1-.95-.684z"
+            />
+            } @case ('guides') {
+            <path
+              d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2ZM8 7h8M8 11h6"
+            />
+            } @case ('images') {
+            <rect width="18" height="18" x="3" y="3" rx="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-5-5L5 21" />
+            } @case ('customers') {
+            <path
+              d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+            />
+            } @case ('packs') {
+            <rect x="3" y="5" width="18" height="14" rx="2" />
+            <path d="M3 10h18M8 5v14" />
+            } @case ('discounts') {
+            <path
+              d="M20.59 13.41 11 3.83V3H4v7h.83l9.58 9.59a2 2 0 0 0 2.82 0l3.36-3.36a2 2 0 0 0 0-2.82Z"
+            />
+            <circle cx="7.5" cy="6.5" r=".5" fill="currentColor" />
+            } @case ('availability') {
+            <rect width="18" height="18" x="3" y="4" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18" />
+            } }
+          </svg>
+          <span class="nav-label">{{ item.label }}</span>
+        </a>
+
+        @if (customizingFavorites()) {
+        <button
+          type="button"
+          class="favorite-toggle"
+          [class.is-favorite]="isFavorite(item.id)"
+          [attr.aria-pressed]="isFavorite(item.id)"
+          [attr.aria-label]="
+            (isFavorite(item.id) ? 'Remove ' : 'Add ') +
+            item.label +
+            (isFavorite(item.id) ? ' from favorites' : ' to favorites')
+          "
+          (click)="toggleFavorite(item.id)"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="m12 3 2.25 5.35 5.75.5-4.36 3.77 1.31 5.63L12 15.26l-4.95 2.99 1.31-5.63L4 8.85l5.75-.5L12 3Z"
+            />
+          </svg>
+        </button>
+        }
+      </div>
+    </ng-template>
 
     <div class="sidebar-footer">
       @if (admin(); as currentAdmin) {
-        <div class="signed-in" [title]="currentAdmin.email">
-          <div class="profile-avatar">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </div>
-          <div class="user-info">
-            <span>Signed in as</span>
-            <strong>{{ currentAdmin.email }}</strong>
-          </div>
+      <div class="signed-in" [title]="currentAdmin.email">
+        <div class="profile-avatar">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
         </div>
+        <div class="user-info">
+          <span>Signed in as</span>
+          <strong>{{ currentAdmin.email }}</strong>
+        </div>
+      </div>
       }
-      
-      <button type="button" class="logout" (click)="logout()" [title]="isCollapsed() ? 'Sign out' : ''">
-        <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" x2="9" y1="12" y2="12"/>
+
+      <button
+        type="button"
+        class="logout"
+        (click)="logout()"
+        [attr.aria-label]="isCollapsed() ? 'Sign out' : null"
+        [title]="isCollapsed() ? 'Sign out' : ''"
+      >
+        <svg
+          class="logout-icon"
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" x2="9" y1="12" y2="12" />
         </svg>
         <span class="logout-label">Sign out</span>
       </button>

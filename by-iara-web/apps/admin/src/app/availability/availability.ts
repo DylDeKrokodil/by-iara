@@ -9,12 +9,18 @@ import {
   CreateRuleInput,
 } from './availability.models';
 import {
+  Alert,
+  Button,
+  Card,
   ConfirmationModal,
   DataTable,
   DataTableColumn,
+  EmptyState,
+  PageHeader,
   SelectField,
   TabOption,
   Tabs,
+  TextField,
   ToastService,
 } from '@by-iara/shared-ui';
 
@@ -34,10 +40,16 @@ function isAvailabilityTab(value: string): value is AvailabilityTab {
   selector: 'byiara-availability',
   imports: [
     ReactiveFormsModule,
+    Alert,
+    Button,
+    Card,
     DataTable,
     ConfirmationModal,
+    EmptyState,
+    PageHeader,
     SelectField,
     Tabs,
+    TextField,
   ],
   templateUrl: './availability.html',
   styleUrl: './availability.css',

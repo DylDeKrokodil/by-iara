@@ -1,35 +1,33 @@
 <main class="login-shell">
-  <form class="login-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <p class="brand">By Iara</p>
-    <h1>Admin sign in</h1>
-    <p class="subtitle">Sign in to manage reservations and availability.</p>
+  <div class="login-card-wrap">
+    <byiara-card padding="lg">
+      <form class="login-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <p class="brand">Iara Gouveia</p>
+        <h1>Admin sign in</h1>
+        <p class="subtitle">Sign in to manage reservations and availability.</p>
 
-    @if (error()) {
-      <p class="alert" role="alert">{{ error() }}</p>
-    }
+        @if (error()) {
+          <byiara-alert tone="danger">{{ error() }}</byiara-alert>
+        }
 
-    <label class="field">
-      <span>Email</span>
-      <input
-        type="email"
-        formControlName="email"
-        autocomplete="username"
-        placeholder="admin@by-iara.local"
-      />
-    </label>
+        <byiara-text-field
+          label="Email"
+          type="email"
+          formControlName="email"
+          autocomplete="username"
+        ></byiara-text-field>
 
-    <label class="field">
-      <span>Password</span>
-      <input
-        type="password"
-        formControlName="password"
-        autocomplete="current-password"
-        placeholder="••••••••"
-      />
-    </label>
+        <byiara-text-field
+          label="Password"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        ></byiara-text-field>
 
-    <button type="submit" [disabled]="submitting()">
-      {{ submitting() ? 'Signing in…' : 'Sign in' }}
-    </button>
-  </form>
+        <byiara-button type="submit" [loading]="submitting()">
+          {{ submitting() ? 'Signing in…' : 'Sign in' }}
+        </byiara-button>
+      </form>
+    </byiara-card>
+  </div>
 </main>

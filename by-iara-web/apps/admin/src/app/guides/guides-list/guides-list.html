@@ -1,0 +1,129 @@
+<byiara-page-header admin label="Content" title="Guides">
+  <byiara-button page-header-action variant="primary" routerLink="/guides/new">
+    New guide
+  </byiara-button>
+</byiara-page-header>
+
+@if (error()) {
+<byiara-alert tone="danger">{{ error() }}</byiara-alert>
+}
+
+<div class="list-toolbar" aria-label="Guide list filters">
+  <byiara-text-field
+    class="search-filter"
+    label="Search guides"
+    type="search"
+    autocomplete="off"
+    [formControl]="searchControl"
+  ></byiara-text-field>
+  <byiara-select-field
+    label="Status"
+    [options]="statusFilters"
+    [value]="status()"
+    (valueChange)="setStatus($event)"
+  ></byiara-select-field>
+  @if (guides().length) {
+  <byiara-button
+    variant="ghost"
+    size="sm"
+    (click)="toggleAll(!allVisibleSelected())"
+  >
+    {{ allVisibleSelected() ? 'Clear selection' : 'Select all' }}
+  </byiara-button>
+  }
+</div>
+
+@if (selectedCount()) {
+<div class="bulk-toolbar" aria-live="polite">
+  <strong>{{ selectedCount() }} selected</strong>
+  <div class="bulk-actions">
+    <byiara-button
+      variant="secondary"
+      size="sm"
+      (click)="updateSelectedStatus('PUBLISHED')"
+    >
+      Publish
+    </byiara-button>
+    <byiara-button
+      variant="secondary"
+      size="sm"
+      (click)="updateSelectedStatus('DRAFT')"
+    >
+      Unpublish
+    </byiara-button>
+    <byiara-button variant="ghost" size="sm" (click)="requestArchiveSelected()">
+      Archive
+    </byiara-button>
+  </div>
+</div>
+} @if (!loading() && guides().length === 0) {
+<byiara-empty-state
+  [title]="hasFilters() ? 'No guides match your filters.' : 'No guides yet.'"
+>
+  @if (hasFilters()) {
+  <byiara-button variant="secondary" (click)="clearFilters()"
+    >Clear filters</byiara-button
+  >
+  } @else {
+  <byiara-button variant="primary" routerLink="/guides/new"
+    >Create your first guide</byiara-button
+  >
+  }
+</byiara-empty-state>
+} @else {
+<byiara-data-table
+  ariaLabel="Guides"
+  [columns]="columns"
+  [rows]="guides()"
+  [loading]="loading()"
+  [skeletonRows]="5"
+  [sortKey]="sort()"
+  [sortDirection]="direction() === 'ASC' ? 'asc' : 'desc'"
+  (sortChange)="onSortChange($event)"
+>
+  <ng-template #rowTemplate let-guide>
+    <tr [class.archived]="guide.status === 'ARCHIVED'">
+      <td>
+        <input
+          type="checkbox"
+          [checked]="selectedIds().has(guide.id)"
+          [attr.aria-label]="'Select ' + guide.translations['pt-PT'].title"
+          (change)="toggleGuide(guide.id, $any($event.target).checked)"
+        />
+      </td>
+      <td>
+        <div class="guide-title">
+          <strong>{{ guide.translations['pt-PT'].title }}</strong>
+          <span>/pt/guias/{{ guide.translations['pt-PT'].slug }}</span>
+        </div>
+      </td>
+      <td>
+        <byiara-status-chip
+          [label]="guideStatusLabel(guide.status)"
+          [tone]="statusTone(guide.status)"
+        ></byiara-status-chip>
+      </td>
+      <td class="date-cell">{{ formatDate(guide.publishedAt) }}</td>
+      <td class="date-cell">{{ formatDate(guide.updatedAt) }}</td>
+      <td class="actions-col">
+        <byiara-action-menu
+          [items]="actionsFor(guide)"
+          [ariaLabel]="'Actions for ' + guide.translations['pt-PT'].title"
+          (actionSelected)="handleAction(guide, $event)"
+        ></byiara-action-menu>
+      </td>
+    </tr>
+  </ng-template>
+</byiara-data-table>
+}
+
+<byiara-confirmation-modal
+  #archiveModal
+  title="Archive guides"
+  [message]="'Archive ' + archiveTargets().length + ' selected guide' + (archiveTargets().length === 1 ? '' : 's') + '? Archived guides stay recoverable and are removed from the public site.'"
+  confirmText="Archive"
+  cancelText="Cancel"
+  variant="primary"
+  (confirmed)="confirmArchive()"
+  (cancelled)="archiveTargets.set([])"
+></byiara-confirmation-modal>

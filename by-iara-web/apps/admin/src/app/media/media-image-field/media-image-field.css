@@ -1,0 +1,113 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.media-field {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  min-width: 0;
+}
+
+.media-field-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--byiara-space-sm);
+}
+
+.media-field-heading strong {
+  min-width: 0;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.media-field-heading span {
+  flex: none;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.helper-text,
+.image-status,
+.error-message {
+  margin: 0;
+  font-size: var(--byiara-font-size-xs);
+  line-height: var(--byiara-line-height-body);
+}
+
+.helper-text,
+.image-status {
+  color: var(--byiara-color-text-muted);
+}
+
+.error-message {
+  color: var(--byiara-color-danger);
+}
+
+.image-preview {
+  overflow: hidden;
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+}
+
+.image-preview img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  display: grid;
+  min-height: 7.5rem;
+  place-items: center;
+  align-content: center;
+  gap: var(--byiara-space-xs);
+  border: 1px dashed var(--byiara-color-border-strong);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.image-placeholder svg,
+.action-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.image-placeholder svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 1.75;
+}
+
+.image-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: var(--byiara-space-xs);
+}
+
+.image-actions.has-remove {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+}
+
+.image-actions byiara-button:not([iconOnly]),
+.image-actions byiara-file-upload-button {
+  --byiara-button-width: 100%;
+}
+
+.image-actions byiara-button[iconOnly] {
+  --byiara-size-icon-button-md: 2.875rem;
+}
+
+.action-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
+  stroke-width: 1.8;
+}

@@ -11,12 +11,44 @@ export interface ServiceVariant {
   sortOrder: number;
 }
 
+export interface PackOffer {
+  id: string;
+  durationMinutes: number;
+  sessionCount: number;
+  price: Money;
+  validityDays: number | null;
+  active: boolean;
+  sortOrder: number;
+}
+
 export type ServiceLocale = 'pt-PT' | 'en-US';
 
+export interface ServiceFaq {
+  question: string;
+  answer: string;
+}
+
 export interface ServiceTranslation {
+  slug: string;
   name: string;
   description: string | null;
+  treatmentDescription: string | null;
+  suitableFor: string | null;
+  sessionDescription: string | null;
+  faqs: ServiceFaq[];
 }
+
+export type ServiceTranslationInput = Pick<
+  ServiceTranslation,
+  | 'name'
+  | 'description'
+  | 'treatmentDescription'
+  | 'suitableFor'
+  | 'sessionDescription'
+  | 'faqs'
+> & {
+  slug?: string;
+};
 
 export interface Service {
   id: string;
@@ -26,13 +58,31 @@ export interface Service {
   active: boolean;
   sortOrder: number;
   featured: boolean;
+  image: ServiceImage | null;
   translations?: Partial<Record<ServiceLocale, ServiceTranslation>>;
   variants: ServiceVariant[];
+  packOffers: PackOffer[];
+}
+
+export interface ServiceImage {
+  url: string;
+  width: number;
+  height: number;
+  byteSize: number;
 }
 
 export interface VariantInput {
   durationMinutes: number;
   priceCents: number;
+  active?: boolean;
+  sortOrder?: number;
+}
+
+export interface PackOfferInput {
+  durationMinutes: number;
+  sessionCount: number;
+  priceCents: number;
+  validityDays?: number | null;
   active?: boolean;
   sortOrder?: number;
 }
@@ -43,8 +93,22 @@ export interface ServiceInput {
   active?: boolean;
   sortOrder?: number;
   featured?: boolean;
-  translations: Record<ServiceLocale, ServiceTranslation>;
+  translations: {
+    'pt-PT': ServiceTranslationInput;
+    'en-US'?: ServiceTranslationInput;
+  };
   variants: VariantInput[];
+  packOffers: PackOfferInput[];
+}
+
+export type ServiceSort = 'DISPLAY_ORDER' | 'NAME' | 'DURATION' | 'PRICE';
+export type SortDirection = 'ASC' | 'DESC';
+
+export interface ServiceListParams {
+  active?: boolean;
+  query?: string;
+  sort?: ServiceSort;
+  direction?: SortDirection;
 }
 
 export function formatMoney(money: Money): string {

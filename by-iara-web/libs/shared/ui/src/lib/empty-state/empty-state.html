@@ -1,0 +1,13 @@
+<div
+  class="empty-state"
+  [class.is-compact]="compact()"
+  [class.is-dashed]="dashed()"
+>
+  @if (title()) {
+    <p class="empty-state-title">{{ title() }}</p>
+  }
+  @if (description()) {
+    <p class="empty-state-description">{{ description() }}</p>
+  }
+  <ng-content></ng-content>
+</div>

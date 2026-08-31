@@ -1,16 +1,53 @@
-import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { ServicesApi } from '../services-api';
-import { formatMoney, Service, ServiceVariant } from '../service.models';
 import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { Router } from '@angular/router';
+import { ServicesApi } from '../services-api';
+import {
+  formatMoney,
+  Service,
+  ServiceSort,
+  SortDirection,
+} from '../service.models';
+import {
+  ActionMenu,
+  ActionMenuItem,
+  Alert,
+  Button,
   ConfirmationModal,
   DataTable,
   DataTableColumn,
-  DurationChip,
+  DataTableSort,
+  EmptyState,
+  PageHeader,
   SelectField,
   StatusChip,
+  TextField,
   ToastService,
 } from '@by-iara/shared-ui';
+
+const serviceActions: ReadonlyArray<ActionMenuItem> = [
+  { id: 'edit', label: 'Edit service', icon: 'edit' },
+  {
+    id: 'deactivate',
+    label: 'Deactivate service',
+    icon: 'void',
+    tone: 'danger',
+  },
+];
+
+const inactiveServiceActions: ReadonlyArray<ActionMenuItem> = [
+  serviceActions[0],
+];
 
 const serviceStatusFilterValues = ['all', 'active', 'inactive'] as const;
 
@@ -26,8 +63,15 @@ const statusFilters: ReadonlyArray<{
 ];
 
 const serviceTableColumns: ReadonlyArray<DataTableColumn> = [
-  { key: 'name', label: 'Name' },
-  { key: 'durations', label: 'Durations' },
+  { key: 'NAME', label: 'Name', sortable: true },
+  { key: 'DURATION', label: 'Duration', sortable: true, fit: true },
+  { key: 'PRICE', label: 'Price', sortable: true, fit: true },
+  {
+    key: 'DISPLAY_ORDER',
+    label: 'Display order',
+    sortable: true,
+    fit: true,
+  },
   { key: 'status', label: 'Status' },
   { key: 'actions', label: 'Actions', fit: true },
 ];
@@ -39,30 +83,55 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 @Component({
   selector: 'byiara-services-list',
   imports: [
-    RouterLink,
+    ActionMenu,
+    Alert,
+    Button,
+    EmptyState,
+    PageHeader,
     StatusChip,
-    DurationChip,
     ConfirmationModal,
     SelectField,
     DataTable,
+    TextField,
+    ReactiveFormsModule,
   ],
   templateUrl: './services-list.html',
   styleUrl: './services-list.css',
 })
 export class ServicesList implements OnInit {
   private readonly api = inject(ServicesApi);
+  private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
+  private requestId = 0;
 
   protected readonly services = signal<Service[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly selectedStatus = signal<ServiceStatusFilter>('all');
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
+  protected readonly searchQuery = signal('');
+  protected readonly sortKey = signal<ServiceSort>('DISPLAY_ORDER');
+  protected readonly sortDirection = signal<SortDirection>('ASC');
+  protected readonly hasFilters = computed(
+    () => this.selectedStatus() !== 'all' || Boolean(this.searchQuery()),
+  );
   protected readonly statusFilters = statusFilters;
   protected readonly serviceTableColumns = serviceTableColumns;
 
   protected readonly formatMoney = formatMoney;
 
   ngOnInit(): void {
+    this.searchControl.valueChanges
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((value) => {
+        this.searchQuery.set(value.trim());
+        this.reload();
+      });
     this.reload();
   }
 
@@ -71,18 +140,32 @@ export class ServicesList implements OnInit {
   protected serviceToDeactivate = signal<Service | null>(null);
 
   protected reload(): void {
+    const requestId = ++this.requestId;
     this.loading.set(true);
     this.error.set(null);
-    this.api.list(this.activeFilter()).subscribe({
-      next: (services) => {
-        this.services.set(services);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set('Could not load services.');
-        this.loading.set(false);
-      },
-    });
+    this.api
+      .list({
+        active: this.activeFilter(),
+        query: this.searchQuery() || undefined,
+        sort: this.sortKey(),
+        direction: this.sortDirection(),
+      })
+      .subscribe({
+        next: (services) => {
+          if (requestId !== this.requestId) {
+            return;
+          }
+          this.services.set(services);
+          this.loading.set(false);
+        },
+        error: () => {
+          if (requestId !== this.requestId) {
+            return;
+          }
+          this.error.set('Could not load services.');
+          this.loading.set(false);
+        },
+      });
   }
 
   protected setStatusFilter(filter: ServiceStatusFilter): void {
@@ -102,9 +185,41 @@ export class ServicesList implements OnInit {
     this.setStatusFilter(filter);
   }
 
+  protected onSortChange(sort: DataTableSort): void {
+    if (!isServiceSort(sort.key)) {
+      return;
+    }
+
+    this.sortKey.set(sort.key);
+    this.sortDirection.set(sort.direction === 'asc' ? 'ASC' : 'DESC');
+    this.reload();
+  }
+
+  protected clearFilters(): void {
+    this.searchControl.setValue('', { emitEvent: false });
+    this.searchQuery.set('');
+    this.selectedStatus.set('all');
+    this.reload();
+  }
+
   protected deactivate(service: Service): void {
     this.serviceToDeactivate.set(service);
     this.confirmDeactivateModal.open();
+  }
+
+  protected actionsFor(service: Service): ReadonlyArray<ActionMenuItem> {
+    return service.active ? serviceActions : inactiveServiceActions;
+  }
+
+  protected handleAction(service: Service, action: string): void {
+    switch (action) {
+      case 'edit':
+        void this.router.navigate(['/services', service.id]);
+        break;
+      case 'deactivate':
+        this.deactivate(service);
+        break;
+    }
   }
 
   protected onConfirmDeactivate(): void {
@@ -131,8 +246,36 @@ export class ServicesList implements OnInit {
     this.serviceToDeactivate.set(null);
   }
 
-  protected variantLabel(variant: ServiceVariant): string {
-    return `${variant.durationMinutes} min · ${this.formatMoney(variant.price)}`;
+  protected durationSummary(service: Service): string {
+    const durations = service.variants
+      .filter((variant) => variant.active)
+      .map((variant) => variant.durationMinutes);
+    if (durations.length === 0) {
+      return 'No active options';
+    }
+
+    const shortest = Math.min(...durations);
+    const longest = Math.max(...durations);
+    return shortest === longest
+      ? `${shortest} min`
+      : `${shortest}–${longest} min`;
+  }
+
+  protected priceSummary(service: Service): string {
+    const variants = service.variants.filter((variant) => variant.active);
+    if (variants.length === 0) {
+      return '—';
+    }
+
+    const prices = variants.map((variant) => variant.price.amountCents);
+    const lowest = Math.min(...prices);
+    const highest = Math.max(...prices);
+    const currency = variants[0].price.currency;
+    const format = (amountCents: number) =>
+      this.formatMoney({ amountCents, currency });
+    return lowest === highest
+      ? format(lowest)
+      : `${format(lowest)}–${format(highest)}`;
   }
 
   private activeFilter(): boolean | undefined {
@@ -145,4 +288,8 @@ export class ServicesList implements OnInit {
         return undefined;
     }
   }
+}
+
+function isServiceSort(value: string): value is ServiceSort {
+  return ['DISPLAY_ORDER', 'NAME', 'DURATION', 'PRICE'].includes(value);
 }

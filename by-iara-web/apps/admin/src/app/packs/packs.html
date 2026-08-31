@@ -1,0 +1,168 @@
+<byiara-page-header admin label="Sales & catalogue" title="Packs">
+  <byiara-button page-header-action variant="primary" routerLink="/services">
+    Manage services
+  </byiara-button>
+</byiara-page-header>
+
+<byiara-tabs
+  ariaLabel="Pack views"
+  [tabs]="packTabs"
+  [activeValue]="activeTab()"
+  (activeValueChange)="setActiveTab($event)"
+></byiara-tabs>
+
+@if (activeTab() === 'offers') {
+<section class="pack-section" role="tabpanel" aria-label="Pack offers">
+  <header class="section-header">
+    <div>
+      <h2 id="pack-offers-title">Pack offers</h2>
+      <p>These are the packs currently configured inside your services.</p>
+    </div>
+    @if (!offersLoading() && !offersError()) {
+    <p class="section-count">
+      {{ configuredOffers().length }} {{ configuredOffers().length === 1 ?
+      'offer' : 'offers' }} across {{ servicesWithOffers() }} {{
+      servicesWithOffers() === 1 ? 'service' : 'services' }}
+    </p>
+    }
+  </header>
+
+  @if (offersError()) {
+  <byiara-alert tone="danger"
+    >Could not load configured pack offers.</byiara-alert
+  >
+  } @else if (!offersLoading() && configuredOffers().length === 0) {
+  <byiara-empty-state title="No pack offers configured.">
+    Add a session pack while editing a service.
+    <byiara-button variant="primary" routerLink="/services">
+      Choose a service
+    </byiara-button>
+  </byiara-empty-state>
+  } @else {
+  <div class="packs-card" [attr.aria-busy]="offersLoading()">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Pack</th>
+            <th>Pack price</th>
+            <th>Per session</th>
+            <th>Validity</th>
+            <th>Status</th>
+            <th><span class="visually-hidden">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of configuredOffers(); track item.offer.id) {
+          <tr [class.inactive]="!item.offer.active">
+            <td>
+              <strong>{{ item.service.name }}</strong>
+              <span
+                >{{ item.service.active ? 'Published' : 'Service inactive'
+                }}</span
+              >
+            </td>
+            <td>
+              <strong>{{ item.offer.sessionCount }} sessions</strong>
+              <span>{{ item.offer.durationMinutes }} min each</span>
+            </td>
+            <td class="numeric">
+              {{ money(item.offer.price.amountCents, item.offer.price.currency)
+              }}
+            </td>
+            <td class="numeric">
+              {{ money(item.perSessionCents, item.offer.price.currency) }}
+            </td>
+            <td>
+              {{ item.offer.validityDays ? item.offer.validityDays + ' days' :
+              'No expiry' }}
+            </td>
+            <td>
+              <byiara-status-chip
+                [active]="item.offer.active"
+              ></byiara-status-chip>
+            </td>
+            <td class="actions-cell">
+              <a [routerLink]="['/services', item.service.id]">Edit</a>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+</section>
+} @else {
+
+<section class="pack-section" role="tabpanel" aria-label="Customer packs">
+  <header class="section-header">
+    <div>
+      <h2 id="customer-packs-title">Customer packs</h2>
+      <p>Packs purchased through a customer's first booking.</p>
+    </div>
+    @if (!loading() && !error()) {
+    <p class="section-count">
+      {{ packs().length }} {{ packs().length === 1 ? 'customer pack' : 'customer
+      packs' }}
+    </p>
+    }
+  </header>
+
+  @if (error()) {
+  <byiara-alert tone="danger">Could not load customer packs.</byiara-alert>
+  } @else if (!loading() && packs().length === 0) {
+  <byiara-empty-state title="No customer packs yet.">
+    Packs will appear here after a customer books their first pack session.
+  </byiara-empty-state>
+  } @else {
+  <div class="packs-card" [attr.aria-busy]="loading()">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Pack</th>
+            <th>Sessions</th>
+            <th>Status</th>
+            <th>Pack value</th>
+            <th>Expires</th>
+            <th>First booking</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (pack of packs(); track pack.id) {
+          <tr>
+            <td>
+              <strong>{{ pack.customerName }}</strong
+              ><span>{{ pack.customerEmail }}</span>
+            </td>
+            <td>
+              <strong>{{ pack.serviceName }}</strong
+              ><span>{{ pack.durationMinutes }} min</span>
+            </td>
+            <td>
+              {{ pack.remainingSessions }} of {{ pack.totalSessions }} remaining
+            </td>
+            <td>
+              <span class="status" [attr.data-status]="pack.status"
+                >{{ statusLabel(pack.status) }}</span
+              >
+            </td>
+            <td class="numeric">{{ money(pack.priceCents, pack.currency) }}</td>
+            <td>{{ date(pack.expiresAt) }}</td>
+            <td>
+              <a [routerLink]="['/reservations', pack.originatingReservationId]"
+                >Open</a
+              >
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+</section>
+}

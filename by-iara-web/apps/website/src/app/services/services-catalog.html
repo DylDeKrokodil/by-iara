@@ -1,62 +1,111 @@
-<main class="public-shell">
-  <div class="catalog-container">
+<div class="public-shell">
+  <div class="catalog-container" [attr.aria-busy]="loading()">
     <header class="catalog-header">
       <p class="eyebrow">{{ copy().eyebrow }}</p>
-      <h2>{{ copy().title }}</h2>
+      <h1>{{ copy().title }}</h1>
       <p>{{ copy().lede }}</p>
     </header>
 
     @if (hasError()) {
-      <div class="error-catalog">
-        <p>{{ copy().loadError }}</p>
-      </div>
-    }
-
-    @if (loading()) {
-      <div class="loading-catalog">
-        <div class="spinner" aria-hidden="true"></div>
-        <span>{{ copy().loading }}</span>
-      </div>
-    }
-
-    @if (!loading() && !hasError() && services().length === 0) {
-      <div class="empty-catalog">
-        <p>{{ copy().empty }}</p>
-      </div>
-    }
-
-    @if (!loading() && !hasError() && services().length > 0) {
-      <div class="services-grid">
-        @for (service of services(); track service.id) {
-          <article class="service-card">
-            <div class="card-header">
-              <h3 class="service-name">{{ localized(service).name }}</h3>
-              @if (localized(service).description) {
-                <p class="service-description">{{ localized(service).description }}</p>
-              }
+    <byiara-alert tone="danger">{{ copy().loadError }}</byiara-alert>
+    } @if (loading()) {
+    <div class="services-grid" aria-hidden="true">
+      @for (card of skeletonCards; track card) {
+      <div class="service-card-shell">
+        <byiara-card padding="none">
+          <div class="service-card service-card-skeleton">
+            <div class="service-skeleton">
+              <div class="skeleton-copy">
+                <byiara-skeleton width="58%" height="1.8rem"></byiara-skeleton>
+                <byiara-skeleton
+                  width="100%"
+                  height="0.85rem"
+                ></byiara-skeleton>
+                <byiara-skeleton width="82%" height="0.85rem"></byiara-skeleton>
+              </div>
+              <div class="skeleton-variants">
+                <div class="skeleton-variant-row">
+                  <byiara-skeleton
+                    width="7rem"
+                    height="1.1rem"
+                  ></byiara-skeleton>
+                  <byiara-skeleton
+                    variant="block"
+                    width="5rem"
+                    height="2.25rem"
+                  ></byiara-skeleton>
+                </div>
+              </div>
             </div>
+          </div>
+        </byiara-card>
+      </div>
+      }
+    </div>
+    <p class="visually-hidden" role="status">{{ copy().loading }}</p>
+    } @if (!loading() && !hasError() && services().length === 0) {
+    <byiara-empty-state [title]="copy().empty"></byiara-empty-state>
+    } @if (!loading() && !hasError() && services().length > 0) {
+    <div class="services-grid">
+      @for (service of services(); track service.id) {
+      <div class="service-card-shell">
+        <byiara-card padding="none">
+          <div class="service-card">
+            @if (service.image; as image) {
+            <div class="service-card-media">
+              <img
+                [src]="image.url"
+                [width]="image.width"
+                [height]="image.height"
+                [alt]="localized(service).name"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            }
 
-            <div class="variants-container">
-              <span class="variants-title">{{ copy().variantsTitle }}</span>
-              @for (variant of service.variants; track variant.id) {
-                @if (variant.active) {
-                  <div class="variant-row">
-                    <div class="variant-info">
-                      <span class="duration">{{ variant.durationMinutes }} min</span>
-                      <span class="price">{{ formatPrice(variant.price.amountCents) }}</span>
-                    </div>
-                    <button type="button" class="book-btn" (click)="onBook(service, variant)">
-                      {{ copy().bookAction }}
-                    </button>
-                  </div>
+            <div class="service-card-content">
+              <div class="card-header">
+                <h2 class="service-name">
+                  <a [routerLink]="detailLink(service)">
+                    {{ localized(service).name }}
+                  </a>
+                </h2>
+                @if (localized(service).description) {
+                <p class="service-description">
+                  {{ localized(service).description }}
+                </p>
+                } @if (hasPackOffers(service)) {
+                <a
+                  class="pack-availability"
+                  [routerLink]="detailLink(service)"
+                  fragment="session-packs"
+                >
+                  <span aria-hidden="true"></span>
+                  {{ copy().packsAvailable }}
+                </a>
                 }
+              </div>
+
+              @if (startingPrice(service); as price) {
+              <div class="booking-row">
+                <span class="starting-price">{{ price }}</span>
+                <byiara-button
+                  variant="secondary"
+                  size="sm"
+                  class="book-btn"
+                  (click)="onBook(service)"
+                >
+                  {{ copy().bookAction }}
+                </byiara-button>
+              </div>
               }
             </div>
-
-          </article>
-        }
+          </div>
+        </byiara-card>
       </div>
+      }
+    </div>
     }
-
   </div>
-</main>
+</div>

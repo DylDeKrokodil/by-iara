@@ -1,0 +1,15 @@
+@import '../button/button.css';
+
+.file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.btn:focus-within {
+  outline: var(--byiara-focus-ring-width) solid var(--byiara-color-focus);
+  outline-offset: var(--byiara-focus-ring-offset);
+}

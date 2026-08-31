@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { catchError, map, Observable, of, tap } from 'rxjs';
 
 export interface AdminIdentity {
   email: string;
@@ -9,21 +9,17 @@ export interface AdminIdentity {
 
 interface SessionResponse {
   accessToken: string;
-  refreshToken: string;
   tokenType: string;
   expiresInSeconds: number;
   admin: AdminIdentity;
 }
 
-const TOKEN_KEY = 'byiara.admin.token';
-const REFRESH_KEY = 'byiara.admin.refresh';
-const ADMIN_KEY = 'byiara.admin.identity';
-
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private accessToken: string | null = null;
 
-  private readonly _admin = signal<AdminIdentity | null>(this.readStoredAdmin());
+  private readonly _admin = signal<AdminIdentity | null>(null);
   readonly admin = this._admin.asReadonly();
   readonly isAuthenticated = computed(() => this._admin() !== null);
 
@@ -39,56 +35,42 @@ export class AuthService {
    */
   refresh(): Observable<SessionResponse> {
     return this.http
-      .post<SessionResponse>('/api/admin/auth/refresh', {
-        refreshToken: this.refreshToken(),
-      })
+      .post<SessionResponse>('/api/admin/auth/refresh', {})
       .pipe(tap((response) => this.storeSession(response)));
   }
 
-  logout(): void {
-    const refreshToken = this.refreshToken();
-    if (refreshToken) {
-      // Best-effort server-side revocation; local state is cleared regardless.
-      this.http
-        .post('/api/admin/auth/logout', { refreshToken })
-        .subscribe({ error: () => undefined });
+  restoreSession(): Observable<boolean> {
+    if (this.accessToken && this._admin()) {
+      return of(true);
     }
+    return this.refresh().pipe(
+      map(() => true),
+      catchError(() => {
+        this.clearSession();
+        return of(false);
+      }),
+    );
+  }
+
+  logout(): void {
+    // Best-effort server-side revocation; local state is cleared regardless.
+    this.http
+      .post('/api/admin/auth/logout', {})
+      .subscribe({ error: () => undefined });
     this.clearSession();
   }
 
   token(): string | null {
-    return localStorage.getItem(TOKEN_KEY);
-  }
-
-  refreshToken(): string | null {
-    return localStorage.getItem(REFRESH_KEY);
+    return this.accessToken;
   }
 
   private storeSession(response: SessionResponse): void {
-    localStorage.setItem(TOKEN_KEY, response.accessToken);
-    localStorage.setItem(REFRESH_KEY, response.refreshToken);
-    localStorage.setItem(ADMIN_KEY, JSON.stringify(response.admin));
+    this.accessToken = response.accessToken;
     this._admin.set(response.admin);
   }
 
   private clearSession(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
-    localStorage.removeItem(ADMIN_KEY);
+    this.accessToken = null;
     this._admin.set(null);
-  }
-
-  private readStoredAdmin(): AdminIdentity | null {
-    const raw = localStorage.getItem(ADMIN_KEY);
-    if (!raw) {
-      return null;
-    }
-
-    try {
-      return JSON.parse(raw) as AdminIdentity;
-    } catch {
-      localStorage.removeItem(ADMIN_KEY);
-      return null;
-    }
   }
 }

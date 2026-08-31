@@ -1,0 +1,161 @@
+<div class="public-shell service-detail-shell">
+  <div class="service-detail-container">
+    <nav
+      class="service-breadcrumbs"
+      [attr.aria-label]="copy().breadcrumbsLabel"
+    >
+      <ol>
+        <li>
+          <a [routerLink]="language.localizedLink('home')">
+            {{ copy().homeBreadcrumb }}
+          </a>
+        </li>
+        <li aria-hidden="true">/</li>
+        <li>
+          <a [routerLink]="language.localizedLink('services')">
+            {{ copy().servicesBreadcrumb }}
+          </a>
+        </li>
+        @if (translation(); as localized) {
+        <li aria-hidden="true">/</li>
+        <li aria-current="page">{{ localized.name }}</li>
+        }
+      </ol>
+    </nav>
+
+    @if (service && translation(); as localized) {
+    <article class="service-detail">
+      <header class="service-detail-header">
+        <p class="eyebrow">{{ copy().eyebrow }}</p>
+        <h1>{{ localized.name }}</h1>
+        @if (localized.description) {
+        <p class="service-detail-description">{{ localized.description }}</p>
+        }
+      </header>
+
+      @if (service.image; as image) {
+      <figure class="service-detail-media">
+        <img
+          [src]="image.url"
+          [width]="image.width"
+          [height]="image.height"
+          [alt]="localized.name"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </figure>
+      } @if (localized.treatmentDescription || localized.suitableFor ||
+      localized.sessionDescription) {
+      <div class="service-editorial">
+        @if (localized.treatmentDescription) {
+        <section aria-labelledby="treatment-description-title">
+          <h2 id="treatment-description-title">{{ copy().treatmentTitle }}</h2>
+          <p>{{ localized.treatmentDescription }}</p>
+        </section>
+        } @if (localized.suitableFor) {
+        <section aria-labelledby="suitable-for-title">
+          <h2 id="suitable-for-title">{{ copy().suitableForTitle }}</h2>
+          <p>{{ localized.suitableFor }}</p>
+        </section>
+        } @if (localized.sessionDescription) {
+        <section aria-labelledby="session-description-title">
+          <h2 id="session-description-title">{{ copy().sessionTitle }}</h2>
+          <p>{{ localized.sessionDescription }}</p>
+        </section>
+        }
+      </div>
+      }
+
+      <section class="service-options" [attr.aria-label]="copy().optionsTitle">
+        <h2>{{ copy().optionsTitle }}</h2>
+        <ul>
+          @for (variant of service.variants; track variant.id) { @if
+          (variant.active) {
+          <li>
+            <div class="service-option-summary">
+              <strong>{{ variant.durationMinutes }} min</strong>
+              <span class="service-option-separator" aria-hidden="true"
+                >&nbsp;·&nbsp;</span
+              >
+              <span>{{ formatPrice(variant.price.amountCents) }}</span>
+            </div>
+            <byiara-button variant="secondary" (click)="onBook(variant.id)">
+              {{ copy().book }}
+            </byiara-button>
+          </li>
+          } }
+        </ul>
+      </section>
+
+      @if (packOffers().length) {
+      <section
+        class="service-packs"
+        id="session-packs"
+        aria-labelledby="service-packs-title"
+      >
+        <header>
+          <h2 id="service-packs-title">{{ copy().packsTitle }}</h2>
+          <p>{{ copy().packsLede }}</p>
+        </header>
+        <ul>
+          @for (item of packOffers(); track item.offer.id) {
+          <li>
+            <div class="service-pack-name">
+              <strong
+                >{{ copy().packSessions(item.offer.sessionCount,
+                item.offer.durationMinutes) }}</strong
+              >
+              @if (item.offer.validityDays; as validityDays) {
+              <span>{{ copy().packValidity(validityDays) }}</span>
+              }
+            </div>
+            <div class="service-pack-price">
+              <strong>{{ formatPrice(item.offer.price.amountCents) }}</strong>
+              <span
+                >{{ copy().packPerSession(formatPrice(item.perSessionCents))
+                }}</span
+              >
+              @if (item.savingCents > 0) {
+              <em>{{ copy().packSaving(formatPrice(item.savingCents)) }}</em>
+              }
+            </div>
+            <byiara-button variant="secondary" (click)="onBookPack(item)">
+              {{ copy().packBook }}
+            </byiara-button>
+          </li>
+          }
+        </ul>
+      </section>
+      }
+
+      <section
+        class="service-location"
+        aria-labelledby="service-location-title"
+      >
+        <p class="eyebrow">Almada</p>
+        <h2 id="service-location-title">{{ copy().locationTitle }}</h2>
+        <p>{{ copy().locationText }}</p>
+      </section>
+
+      @if (localized.faqs.length) {
+      <section class="service-faq" aria-labelledby="service-faq-title">
+        <h2 id="service-faq-title">{{ copy().faqTitle }}</h2>
+        <div class="service-faq-list">
+          @for (faq of localized.faqs; track faq.question) {
+          <details>
+            <summary>{{ faq.question }}</summary>
+            <p>{{ faq.answer }}</p>
+          </details>
+          }
+        </div>
+      </section>
+      }
+    </article>
+    } @else {
+    <section class="service-not-found">
+      <h1>{{ copy().notFoundTitle }}</h1>
+      <p>{{ copy().notFoundText }}</p>
+    </section>
+    }
+  </div>
+</div>

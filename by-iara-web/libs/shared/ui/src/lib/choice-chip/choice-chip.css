@@ -27,10 +27,11 @@
 }
 
 :host(.selected) {
-  background: var(--byiara-color-primary);
-  border-color: var(--byiara-color-primary);
-  color: var(--byiara-color-white);
-  box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
+  background: var(--byiara-color-primary-action);
+  border-color: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
+  box-shadow: 0 0.5rem 1.5rem
+    color-mix(in srgb, var(--byiara-color-primary) 16%, transparent);
 }
 
 :host(:disabled) {

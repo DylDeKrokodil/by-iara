@@ -6,7 +6,7 @@ product
 
 ## Users
 
-By Iara admins managing a small massage-booking operation. They use the admin app to review reservation requests, keep the upcoming agenda current, and maintain business settings without losing track of customer context.
+Iara Gouveia admins managing a small massage-booking operation. They use the admin app to review reservation requests, keep the upcoming agenda current, and maintain business settings without losing track of customer context.
 
 ## Product Purpose
 

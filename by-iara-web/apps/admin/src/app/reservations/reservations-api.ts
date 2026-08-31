@@ -5,6 +5,14 @@ import {
   ReservationListParams,
   ReservationPage,
   ReservationResponse,
+  RejectReservationInput,
+  CancelReservationInput,
+  CompleteReservationInput,
+  RecordPaymentInput,
+  ReservationAttentionPage,
+  ReservationPayment,
+  ReservationPayments,
+  RescheduleReservationInput,
 } from './reservation.models';
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +54,16 @@ export class ReservationsApi {
     return this.http.get<ReservationPage>(this.baseUrl, { params });
   }
 
+  get(id: string): Observable<ReservationResponse> {
+    return this.http.get<ReservationResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  attention(page = 0, size = 20): Observable<ReservationAttentionPage> {
+    return this.http.get<ReservationAttentionPage>(`${this.baseUrl}/attention`, {
+      params: { page, size },
+    });
+  }
+
   confirm(id: string): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/confirm`,
@@ -53,10 +71,47 @@ export class ReservationsApi {
     );
   }
 
-  reject(id: string): Observable<ReservationResponse> {
+  reject(id: string, input: RejectReservationInput): Observable<ReservationResponse> {
     return this.http.patch<ReservationResponse>(
       `${this.baseUrl}/${id}/reject`,
-      {},
+      input,
     );
+  }
+
+  cancel(id: string, input: CancelReservationInput): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(
+      `${this.baseUrl}/${id}/cancel`,
+      input,
+    );
+  }
+
+  rescheduleAvailability(id: string, date: string): Observable<string[]> {
+    const params = new HttpParams()
+      .set('startDate', date)
+      .set('endDate', date);
+    return this.http.get<string[]>(`${this.baseUrl}/${id}/availability`, { params });
+  }
+
+  reschedule(id: string, input: RescheduleReservationInput): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(
+      `${this.baseUrl}/${id}/reschedule`,
+      input,
+    );
+  }
+
+  complete(id: string, input: CompleteReservationInput = {}): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(`${this.baseUrl}/${id}/complete`, input);
+  }
+
+  markNoShow(id: string): Observable<ReservationResponse> {
+    return this.http.patch<ReservationResponse>(`${this.baseUrl}/${id}/no-show`, {});
+  }
+
+  payments(id: string): Observable<ReservationPayments> {
+    return this.http.get<ReservationPayments>(`${this.baseUrl}/${id}/payments`);
+  }
+
+  recordPayment(id: string, input: RecordPaymentInput): Observable<ReservationPayment> {
+    return this.http.post<ReservationPayment>(`${this.baseUrl}/${id}/payments`, input);
   }
 }

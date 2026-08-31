@@ -1,11 +1,87 @@
+<byiara-site-intro />
+
 <div class="site-frame">
+  @if (featuredDiscount(); as promotion) { @if (!promotionDismissed()) {
+  <byiara-promotion-bar
+    [discount]="promotion"
+    [benefit]="promotionBenefit()"
+    [copy]="promotionCopy()"
+    (dismissed)="dismissPromotion()"
+  />
+  } }
   <header class="site-header">
     <div class="header-container">
-      <a class="logo-link" [routerLink]="language.localizedLink()" aria-label="By Iara">
-        <img class="logo-img" src="brand/by-iara-logo.svg" alt="By Iara" />
+      <button
+        type="button"
+        class="menu-toggle"
+        [class.is-open]="menuOpen()"
+        (click)="toggleMenu()"
+        (keydown.escape)="closeMenu()"
+        aria-controls="mobile-menu"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="menuOpen() ? copy().nav.closeMenu : copy().nav.openMenu"
+      >
+        <span class="menu-toggle-bar"></span>
+        <span class="menu-toggle-bar"></span>
+        <span class="menu-toggle-bar"></span>
+      </button>
+
+      <nav class="header-nav">
+        <a
+          [routerLink]="language.localizedLink()"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ copy().nav.home }}
+        </a>
+        <a
+          [routerLink]="language.localizedLink('services')"
+          routerLinkActive="active"
+        >
+          {{ copy().nav.services }}
+        </a>
+        <a
+          [routerLink]="language.localizedLink('packs')"
+          routerLinkActive="active"
+        >
+          {{ copy().nav.packs }}
+        </a>
+        @if (hasGuides()) {
+        <a
+          [routerLink]="language.localizedLink('guides')"
+          routerLinkActive="active"
+        >
+          {{ copy().nav.guides }}
+        </a>
+        }
+      </nav>
+
+      <a
+        class="logo-link"
+        [routerLink]="language.localizedLink()"
+        [attr.aria-label]="brand.name"
+      >
+        <span class="logo-img" aria-hidden="true"></span>
       </a>
+
       <div class="header-actions">
-        <nav class="header-nav">
+        <byiara-language-switcher
+          class="header-language"
+        ></byiara-language-switcher>
+        <byiara-button size="sm" [routerLink]="language.localizedLink('book')">
+          {{ copy().nav.bookCta }}
+        </byiara-button>
+      </div>
+    </div>
+
+    <div
+      class="mobile-menu"
+      [class.is-open]="menuOpen()"
+      [inert]="!menuOpen()"
+      id="mobile-menu"
+    >
+      <div class="mobile-menu-content">
+        <nav class="mobile-menu-nav">
           <a
             [routerLink]="language.localizedLink()"
             routerLinkActive="active"
@@ -13,12 +89,26 @@
           >
             {{ copy().nav.home }}
           </a>
-          <a [routerLink]="language.localizedLink('services')" routerLinkActive="active">
+          <a
+            [routerLink]="language.localizedLink('services')"
+            routerLinkActive="active"
+          >
             {{ copy().nav.services }}
           </a>
-          <a [routerLink]="language.localizedLink('book')" routerLinkActive="active">
-            {{ copy().nav.book }}
+          <a
+            [routerLink]="language.localizedLink('packs')"
+            routerLinkActive="active"
+          >
+            {{ copy().nav.packs }}
           </a>
+          @if (hasGuides()) {
+          <a
+            [routerLink]="language.localizedLink('guides')"
+            routerLinkActive="active"
+          >
+            {{ copy().nav.guides }}
+          </a>
+          }
         </nav>
         <byiara-language-switcher></byiara-language-switcher>
       </div>
@@ -31,7 +121,128 @@
 
   <footer class="site-footer">
     <div class="footer-container">
-      <p class="footer-text">{{ copy().footer }}</p>
+      <div class="footer-main">
+        <div class="footer-brand">
+          <a
+            class="footer-logo-link"
+            [routerLink]="language.localizedLink()"
+            [attr.aria-label]="brand.name"
+          >
+            <img
+              class="footer-logo"
+              [src]="brand.logoPath"
+              [alt]="brand.name"
+            />
+          </a>
+          <p>{{ copy().footer.tagline }}</p>
+        </div>
+
+        <nav
+          class="footer-nav"
+          [attr.aria-label]="copy().footer.navigationLabel"
+        >
+          <h2>{{ copy().footer.explore }}</h2>
+          <a [routerLink]="language.localizedLink()"
+            >{{ copy().footer.home }}</a
+          >
+          <a [routerLink]="language.localizedLink('services')"
+            >{{ copy().footer.services }}</a
+          >
+          <a [routerLink]="language.localizedLink('packs')"
+            >{{ copy().footer.packs }}</a
+          >
+          <a [routerLink]="language.localizedLink('guides')"
+            >{{ copy().footer.guides }}</a
+          >
+          <a [routerLink]="language.localizedLink('book')"
+            >{{ copy().footer.book }}</a
+          >
+          <h2 class="footer-legal-heading">{{ copy().footer.legal }}</h2>
+          <a [routerLink]="language.localizedLink('privacy')">
+            {{ copy().footer.privacy }}
+          </a>
+          <a [routerLink]="language.localizedLink('bookingTerms')">
+            {{ copy().footer.bookingTerms }}
+          </a>
+          <a [routerLink]="language.localizedLink('legalNotice')">
+            {{ copy().footer.legalNotice }}
+          </a>
+          <a
+            href="https://www.livroreclamacoes.pt/Inicio/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ copy().footer.complaintsBook }}
+            <span class="visually-hidden"
+              >({{ copy().footer.opensNewWindow }})</span
+            >
+          </a>
+        </nav>
+
+        <div class="footer-visit">
+          <h2>{{ copy().footer.visit }}</h2>
+          <p>{{ copy().footer.location }}</p>
+          <p>{{ copy().footer.availability }}</p>
+
+          <h2 class="footer-section-heading">{{ copy().footer.contact }}</h2>
+          <address class="footer-contact footer-link-list">
+            <a
+              [href]="contact.emailHref"
+              [attr.aria-label]="copy().footer.emailLabel + ': ' + contact.email"
+            >
+              {{ contact.email }}
+            </a>
+          </address>
+
+          <h2 class="footer-section-heading">{{ copy().footer.social }}</h2>
+          <nav
+            class="footer-socials footer-link-list"
+            [attr.aria-label]="copy().footer.socialNavigationLabel"
+          >
+            @for (social of socialLinks; track social.url) {
+            <a
+              [href]="social.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              [attr.aria-label]="
+                  social.platform +
+                  ': ' +
+                  social.handle +
+                  ' (' +
+                  copy().footer.opensNewWindow +
+                  ')'
+                "
+            >
+              <ng-icon
+                [svg]="social.icon"
+                size="18px"
+                aria-hidden="true"
+                style="
+                  flex: 0 0 auto;
+                  margin-inline-end: var(--byiara-space-xs);
+                "
+              />
+              {{ social.handle }}
+            </a>
+            }
+          </nav>
+        </div>
+
+        <div class="footer-booking">
+          <p>{{ copy().footer.bookingPrompt }}</p>
+          <byiara-button
+            variant="secondary"
+            [routerLink]="language.localizedLink('book')"
+          >
+            {{ copy().footer.bookingAction }}
+          </byiara-button>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>{{ copy().footer.copyright(currentYear) }}</p>
+        <span aria-hidden="true">Almada · 38.6765° N</span>
+      </div>
     </div>
   </footer>
 </div>

@@ -1,12 +1,12 @@
-# By Iara Project Plan
+# Iara Gouveia Project Plan
 
 ## 1. Goal
 
-Build a scalable booking platform for By Iara with:
+Build a scalable booking platform for Iara Gouveia with:
 
-- Public website at `by-iara.com`
-- Admin dashboard at `admin.by-iara.com`
-- Spring Boot Kotlin API at `api.by-iara.com`
+- Public website at `iaragouveia.com`
+- Admin dashboard at `admin.iaragouveia.com`
+- Spring Boot Kotlin API at `api.iaragouveia.com`
 - PostgreSQL as the primary database
 
 The first version should support browsing massage services, checking availability, submitting reservation requests, and allowing admins to manage reservations and core business settings.
@@ -35,13 +35,13 @@ PostgreSQL
   application database
 
 Domains
-  by-iara.com
+  iaragouveia.com
     public website
 
-  admin.by-iara.com
+  admin.iaragouveia.com
     admin dashboard
 
-  api.by-iara.com
+  api.iaragouveia.com
     backend API
 ```
 
@@ -209,6 +209,8 @@ Suggested table responsibilities:
 | `massage_prices` | Price by massage type, duration, and optional date range |
 | `discounts` | Promotional or manual discounts |
 | `reservations` | Customer booking requests and lifecycle status |
+| `reservation_payments` | Append-only reservation payment records, including method, amount, status, and payment time |
+| `expenses` | Auditable operating-expense ledger with category, amount, vendor, incurred date, and void status |
 | `availability_rules` | Recurring working schedule rules |
 | `availability_blocks` | One-off unavailable periods or overrides |
 | `email_logs` | Outbound email audit trail and delivery status |
@@ -221,7 +223,8 @@ enum class ReservationStatus {
     CONFIRMED,
     REJECTED,
     CANCELLED,
-    COMPLETED
+    COMPLETED,
+    NO_SHOW
 }
 ```
 
@@ -233,9 +236,11 @@ PENDING -> REJECTED
 PENDING -> CANCELLED
 CONFIRMED -> CANCELLED
 CONFIRMED -> COMPLETED
+CONFIRMED -> NO_SHOW
 ```
 
-Keep status transitions in `ReservationService`, not in the controller.
+`REJECTED`, `CANCELLED`, `COMPLETED`, and `NO_SHOW` are terminal reservation states.
+Keep status transitions in the application service layer, not in the controller. Completion and any payment recorded at completion must share one transaction so a partially applied closeout cannot occur.
 
 ## 9. Public API
 
@@ -478,7 +483,7 @@ Deliverables:
 - Production environment variables.
 - Database backup plan.
 - HTTPS and domain setup.
-- CORS configuration for `by-iara.com` and `admin.by-iara.com`.
+- CORS configuration for `iaragouveia.com` and `admin.iaragouveia.com`.
 - Logging baseline.
 - Error monitoring.
 - Basic uptime checks.
@@ -571,4 +576,3 @@ These should be decided before implementation starts:
 6. Build availability before accepting reservations.
 7. Add reservation request flow.
 8. Add admin login and reservation management.
-

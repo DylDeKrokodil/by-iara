@@ -1,4 +1,19 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import {
+  Alert,
+  Button,
+  ButtonVariant,
+  Card,
+  Checkbox,
+  ChoiceChip,
+  EmptyState,
+  PageHeader,
+  Radio,
+  SelectableTile,
+  StatusChip,
+  Switch,
+} from '@by-iara/shared-ui';
 
 interface Swatch {
   readonly name: string;
@@ -16,99 +31,206 @@ interface ContrastPair {
   readonly result: string;
 }
 
+interface Rule {
+  readonly title: string;
+  readonly value: string;
+  readonly detail: string;
+}
+
+interface ButtonExample {
+  readonly label: string;
+  readonly variant: ButtonVariant;
+  readonly note: string;
+  readonly disabled?: boolean;
+  readonly loading?: boolean;
+}
+
 @Component({
   selector: 'byiara-design-system',
+  imports: [
+    Alert,
+    Button,
+    Card,
+    Checkbox,
+    ChoiceChip,
+    EmptyState,
+    FormsModule,
+    PageHeader,
+    Radio,
+    SelectableTile,
+    StatusChip,
+    Switch,
+  ],
   templateUrl: './design-system.html',
   styleUrl: './design-system.css',
 })
 export class DesignSystem {
   protected readonly swatches: readonly Swatch[] = [
     {
-      name: 'Brand rose',
-      token: '--byiara-color-primary',
-      value: '#E73D6D',
-      role: 'Primary buttons, active states, brand fills',
-      textTone: 'light',
-    },
-    {
-      name: 'Rose hover',
-      token: '--byiara-color-primary-hover',
-      value: '#D0115F',
-      role: 'Hover and pressed state on primary fills',
-      textTone: 'light',
-    },
-    {
-      name: 'Rose text',
-      token: '--byiara-color-primary-strong',
-      value: '#A7074B',
-      role: 'Pink text, links and icons on light surfaces',
-      textTone: 'light',
-    },
-    {
-      name: 'Rose soft',
-      token: '--byiara-color-primary-soft',
-      value: '#FCE4E8',
-      role: 'Selected rows, chips, quiet brand fills',
+      name: 'True white',
+      token: '--byiara-color-background',
+      value: '#FFFFFF',
+      role: 'Primary page background and the default surface for brand clarity.',
       textTone: 'dark',
+    },
+    {
+      name: 'Soft rose pink',
+      token: '--byiara-color-primary',
+      value: '#C04D68',
+      role: 'Brand primary for buttons, active choices, key accents, and visual anchors.',
+      textTone: 'light',
+    },
+    {
+      name: 'Rose action',
+      token: '--byiara-color-primary-action',
+      value: '#C04D68',
+      role: 'Filled controls and selected states using the accessible brand primary.',
+      textTone: 'light',
+    },
+    {
+      name: 'Rose strong',
+      token: '--byiara-color-primary-strong',
+      value: '#8F2E47',
+      role: 'Accessible rose text on white and high-emphasis links.',
+      textTone: 'light',
     },
     {
       name: 'Rose tint',
-      token: '--byiara-color-surface-tinted',
-      value: '#FDF4F5',
-      role: 'Section washes and hover tints',
+      token: '--byiara-color-primary-tint',
+      value: '#FFF3F6',
+      role: 'Quiet brand panels, selected low-emphasis states, and callouts.',
       textTone: 'dark',
     },
     {
-      name: 'Ink',
+      name: 'Plum ink',
       token: '--byiara-color-text',
-      value: '#1E1616',
-      role: 'Body text and headings',
+      value: '#281219',
+      role: 'Body text, headings, primary button labels, and durable contrast.',
       textTone: 'light',
     },
     {
-      name: 'Muted ink',
+      name: 'Muted mauve',
       token: '--byiara-color-text-muted',
-      value: '#6A6161',
-      role: 'Secondary text and metadata',
+      value: '#574149',
+      role: 'Secondary copy, metadata, helper text, and less prominent UI labels.',
       textTone: 'light',
     },
     {
-      name: 'Eucalyptus',
-      token: '--byiara-color-accent',
-      value: '#126646',
-      role: 'Botanical accent — used sparingly, never a CTA',
-      textTone: 'light',
+      name: 'Border mauve',
+      token: '--byiara-color-border',
+      value: '#DED4D8',
+      role: 'Dividers, card boundaries, inputs, and low-emphasis component edges.',
+      textTone: 'dark',
     },
   ];
 
   protected readonly contrastPairs: readonly ContrastPair[] = [
     {
-      label: 'Body text on canvas',
-      foreground: '#1E1616',
+      label: 'Body text on white',
+      foreground: '#281219',
       background: '#FFFFFF',
-      ratio: '17.8:1',
+      ratio: '17.64:1',
       result: 'AAA',
     },
     {
-      label: 'Pink text on canvas',
-      foreground: '#A7074B',
+      label: 'Muted text on white',
+      foreground: '#574149',
       background: '#FFFFFF',
-      ratio: '7.57:1',
+      ratio: '9.30:1',
       result: 'AAA',
     },
     {
-      label: 'White on primary button',
-      foreground: '#FFFFFF',
-      background: '#E73D6D',
-      ratio: '3.97:1',
-      result: 'Bold labels ≥14px',
+      label: 'Rose strong on white',
+      foreground: '#8F2E47',
+      background: '#FFFFFF',
+      ratio: '7.93:1',
+      result: 'AAA',
     },
     {
-      label: 'White on accent',
+      label: 'White on primary rose',
       foreground: '#FFFFFF',
-      background: '#126646',
-      ratio: '6.97:1',
+      background: '#C04D68',
+      ratio: '4.66:1',
       result: 'AA',
     },
+    {
+      label: 'White on original soft rose',
+      foreground: '#FFFFFF',
+      background: '#D4607A',
+      ratio: '3.65:1',
+      result: 'Large text only',
+    },
   ];
+
+  protected readonly rhythmRules: readonly Rule[] = [
+    {
+      title: 'Body line height',
+      value: '1.6',
+      detail:
+        'Default prose uses DM Sans at 16px with a 1.6 line height. Dense labels can tighten; long paragraphs can loosen to 1.72.',
+    },
+    {
+      title: 'Readable measure',
+      value: '54-68ch',
+      detail:
+        'Marketing copy stays narrow enough to read comfortably. Avoid full-width paragraphs on desktop.',
+    },
+    {
+      title: 'Touch target',
+      value: '44px min',
+      detail:
+        'Buttons and tappable controls keep a minimum 44px height with at least 8px between adjacent targets.',
+    },
+    {
+      title: 'Section rhythm',
+      value: '48-96px',
+      detail:
+        'Use larger vertical gaps between sections and smaller gaps inside related groups. Padding follows the 4/8px scale.',
+    },
+  ];
+
+  protected readonly buttonExamples: readonly ButtonExample[] = [
+    {
+      label: 'Book a session',
+      variant: 'primary',
+      note: 'Primary action',
+    },
+    {
+      label: 'View services',
+      variant: 'secondary',
+      note: 'Secondary action',
+    },
+    {
+      label: 'Open details',
+      variant: 'open',
+      note: 'Open or expand',
+    },
+    {
+      label: 'Remove account',
+      variant: 'ghost',
+      note: 'Low-emphasis destructive',
+    },
+    {
+      label: 'Delete service',
+      variant: 'danger',
+      note: 'High-emphasis destructive',
+    },
+    {
+      label: 'Saving...',
+      variant: 'primary',
+      note: 'Loading',
+      loading: true,
+    },
+    {
+      label: 'Unavailable',
+      variant: 'primary',
+      note: 'Disabled',
+      disabled: true,
+    },
+  ];
+
+  protected demoReminderChecked = true;
+  protected demoNotesChecked = false;
+  protected demoSwitchChecked = true;
+  protected demoPayment = 'studio';
 }

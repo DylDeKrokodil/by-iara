@@ -1,0 +1,87 @@
+<button
+  #trigger
+  type="button"
+  class="action-menu-trigger"
+  [attr.aria-label]="ariaLabel()"
+  [attr.data-tooltip]="triggerTooltip()"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  (click)="toggle($event)"
+>
+  <svg
+    viewBox="0 0 24 24"
+    width="18"
+    height="18"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <circle cx="5" cy="12" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="19" cy="12" r="1.8" />
+  </svg>
+</button>
+
+<div
+  #menu
+  class="action-menu"
+  popover="manual"
+  role="menu"
+  [attr.aria-label]="ariaLabel()"
+  [style.top.px]="menuTop()"
+  [style.left.px]="menuLeft()"
+>
+  @for (item of items(); track item.id) {
+  <button
+    type="button"
+    class="action-menu-item"
+    role="menuitem"
+    [class.danger]="item.tone === 'danger'"
+    [disabled]="item.disabled"
+    [attr.aria-label]="item.label"
+    [attr.data-tooltip]="item.label"
+    (click)="select(item)"
+  >
+    @switch (item.icon) { @case ('edit') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+    } @case ('preview') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+    } @case ('duplicate') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+    </svg>
+    } @case ('publish') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m18 8-6-6-6 6" />
+      <path d="M12 2v14" />
+      <path d="M5 13v7h14v-7" />
+    </svg>
+    } @case ('unpublish') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m6 16 6 6 6-6" />
+      <path d="M12 22V8" />
+      <path d="M5 11V4h14v7" />
+    </svg>
+    } @case ('archive') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 6h18" />
+      <path d="M5 6v14h14V6" />
+      <path d="M9 10h6" />
+      <path d="M4 3h16v3H4z" />
+    </svg>
+    } @case ('void') {
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="m6.4 6.4 11.2 11.2" />
+    </svg>
+    } }
+    <span class="visually-hidden">{{ item.label }}</span>
+  </button>
+  }
+</div>

@@ -4,6 +4,10 @@
 .env
 .env.*
 !.env.example
+!.env.production.example
+
+# Local production database dumps
+backups/
 
 # Node
 node_modules/
@@ -18,3 +22,7 @@ build/
 # IDE
 .idea/
 .vscode/
+
+# Local Claude tooling
+.claude/settings.local.json
+.claude/skills/impeccable/

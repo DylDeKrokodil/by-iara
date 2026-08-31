@@ -1,30 +1,172 @@
-<main class="home" aria-labelledby="home-title">
-  <section class="home-stage">
+<div class="home" aria-labelledby="home-title">
+  <section #heroSection class="home-hero">
+    <div class="home-media" aria-hidden="true">
+      <img
+        class="home-media-still"
+        src="hero/hero-treatment-mixkit-4744.jpg"
+        width="1400"
+        height="933"
+        alt=""
+        fetchpriority="high"
+      />
+      <video
+        #heroVideo
+        class="home-media-video"
+        autoplay
+        loop
+        muted
+        playsinline
+        preload="metadata"
+        disablepictureinpicture
+        disableremoteplayback
+        tabindex="-1"
+        style="pointer-events: none"
+        [style.opacity]="heroVideoPlaying() ? 1 : 0"
+        (playing)="onHeroVideoPlaying()"
+        (pause)="onHeroVideoPause()"
+      >
+        <source src="hero/hero-treatment-mixkit-4744.mp4" type="video/mp4" />
+      </video>
+      <div class="home-scrim"></div>
+    </div>
+
     <div class="home-copy">
       <p class="home-location">{{ copy().location }}</p>
       <h1 id="home-title">{{ copy().title }}</h1>
       <p class="home-lede">{{ copy().lede }}</p>
       <div class="home-actions" [attr.aria-label]="copy().actionsLabel">
-        <a
-          class="home-action home-action-primary"
+        <byiara-button
+          class="home-action"
+          variant="primary"
           [routerLink]="language.localizedLink('book')"
         >
           {{ copy().primaryAction }}
-        </a>
-        <a
-          class="home-action home-action-secondary"
+        </byiara-button>
+        <byiara-button
+          class="home-action"
+          variant="secondary"
           [routerLink]="language.localizedLink('services')"
         >
           {{ copy().secondaryAction }}
-        </a>
+        </byiara-button>
       </div>
+      <byiara-next-available-link></byiara-next-available-link>
     </div>
 
-    <div class="home-mark" aria-hidden="true">
-      <div class="home-mark-rose"></div>
-      <div class="home-mark-plum"></div>
-      <div class="home-mark-lime"></div>
-      <img src="brand/by-iara-monogram.svg" alt="" />
+    <p class="home-media-credit">
+      <a
+        href="https://mixkit.co/free-stock-video/masseur-giving-a-massage-in-a-spa-4744/"
+        target="_blank"
+        rel="noopener"
+      >
+        {{ copy().mediaCredit }}
+      </a>
+    </p>
+  </section>
+
+  @if (taster().length > 0) {
+  <section class="home-services" aria-labelledby="home-services-title">
+    <div class="home-section-inner" byiaraReveal>
+      <header class="home-section-header">
+        <h2 id="home-services-title">{{ copy().servicesTitle }}</h2>
+        <p class="home-section-lede">{{ copy().servicesLede }}</p>
+      </header>
+
+      <ul class="home-service-list">
+        @for (service of taster(); track service.id) {
+        <li class="home-service-row">
+          <div class="home-service-text">
+            <h3 class="home-service-name">
+              <a class="text-link" [routerLink]="detailLink(service)">
+                {{ localized(service).name }}
+              </a>
+            </h3>
+            @if (localized(service).description) {
+            <p class="home-service-description">
+              {{ localized(service).description }}
+            </p>
+            }
+          </div>
+          <p class="home-service-meta">
+            <strong>{{ copy().servicesFrom(priceFrom(service)) }}</strong>
+            <span class="home-service-separator" aria-hidden="true"
+              >&nbsp;·&nbsp;</span
+            >
+            <span>{{ durationLabel(service) }}</span>
+          </p>
+          <byiara-button
+            variant="secondary"
+            size="sm"
+            class="home-service-book"
+            (click)="onBook(service)"
+          >
+            {{ copy().servicesAction }}
+          </byiara-button>
+        </li>
+        }
+      </ul>
+
+      <a class="text-link" [routerLink]="language.localizedLink('services')">
+        {{ copy().servicesViewAll }}
+      </a>
     </div>
   </section>
-</main>
+  } @if (featuredPack(); as item) {
+  <byiara-home-pack [item]="item" />
+  }
+
+  <section class="home-expect" aria-labelledby="home-expect-title">
+    <div class="home-section-inner">
+      <h2 id="home-expect-title">{{ copy().expectTitle }}</h2>
+      <ol class="home-expect-steps" byiaraReveal byiaraRevealSequence>
+        @for (step of copy().expectSteps; track step.title) {
+        <li class="home-expect-step">
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.text }}</p>
+        </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="home-about" aria-labelledby="home-about-title">
+    <div class="home-section-inner home-about-inner" byiaraReveal>
+      <h2 id="home-about-title">{{ copy().aboutTitle }}</h2>
+      <div class="home-about-copy">
+        @for (paragraph of copy().aboutParagraphs; track paragraph) {
+        <p>{{ paragraph }}</p>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="home-visit" aria-labelledby="home-visit-title">
+    <div class="home-section-inner home-visit-inner" byiaraReveal>
+      <h2 id="home-visit-title">{{ copy().visitTitle }}</h2>
+      <div class="home-visit-facts">
+        <div class="home-visit-fact">
+          <h3>{{ copy().visitAddressTitle }}</h3>
+          <p>{{ copy().visitAddressText }}</p>
+        </div>
+        <div class="home-visit-fact">
+          <h3>{{ copy().visitHoursTitle }}</h3>
+          <p>{{ copy().visitHoursText }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-closing" aria-labelledby="home-closing-title">
+    <div class="home-section-inner home-closing-inner" byiaraReveal>
+      <h2 id="home-closing-title">{{ copy().closingTitle }}</h2>
+      <p class="home-closing-text">{{ copy().closingText }}</p>
+      <byiara-button
+        class="home-closing-action"
+        variant="secondary"
+        [routerLink]="language.localizedLink('book')"
+      >
+        {{ copy().closingAction }}
+      </byiara-button>
+    </div>
+  </section>
+</div>

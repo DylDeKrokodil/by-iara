@@ -1,168 +1,573 @@
-<article class="style-lab">
-  <section class="lab-hero">
-    <div class="lab-hero__content">
-      <p class="lab-kicker">By Iara design system</p>
-      <h1>Pink leads.</h1>
+<article class="style-guide">
+  <section class="guide-hero">
+    <div class="guide-hero__copy">
+      <p class="guide-kicker">Iara Gouveia style guidelines</p>
+      <h1>Soft rose, true white, quiet confidence.</h1>
       <p>
-        A bright camellia rose carries the brand — buttons, links, active
-        states — over a pure-white canvas. Ink stays quiet, a botanical green
-        supports, and every pink meets contrast: filled shades for buttons,
-        a deeper rose for text.
+        This page replaces the previous design rules. It is the living reference
+        for color, typography, spacing, buttons, inputs, states, and the
+        decisions that keep the brand scalable as the site and admin tools grow.
       </p>
-      <div class="lab-actions" aria-label="Button examples">
-        <button class="button button-primary" type="button">Book a session</button>
-        <button class="button button-secondary" type="button">View services</button>
-        <button class="lab-button-link" type="button">Quiet text action</button>
+      <div class="guide-actions" aria-label="Primary style guide actions">
+        <byiara-button variant="primary">Book a session</byiara-button>
+        <byiara-button variant="open">Open details</byiara-button>
+        <byiara-button variant="secondary">View services</byiara-button>
       </div>
     </div>
-    <div class="lab-hero__panel" aria-label="Brand palette summary">
-      <div class="palette-strips" aria-hidden="true">
-        <span class="strip-rose"></span>
-        <span class="strip-rose-soft"></span>
-        <span class="strip-tint"></span>
-        <span class="strip-green"></span>
-      </div>
-      <div class="panel-card">
-        <p>Primary brand color</p>
-        <strong>#E73D6D</strong>
-        <span>oklch(0.625 0.206 9) — the default action fill.</span>
+
+    <div class="hero-specimen" aria-label="Primary brand specimen">
+      <div class="hero-specimen__mark">Aa</div>
+      <div>
+        <p>Primary color</p>
+        <strong>#c04d68</strong>
+        <span>Rose pink with white AA text</span>
       </div>
     </div>
   </section>
 
-  <section class="lab-section">
+  <section class="guide-section">
     <div class="section-heading">
-      <p class="lab-kicker">Palette</p>
-      <h2>Foundation colors</h2>
-      <p>One brand rose, quiet ink, a single botanical accent, and a pure-white canvas. Everything else is a shade of these.</p>
+      <p class="guide-kicker">Foundation</p>
+      <h2>Color tokens</h2>
+      <p>
+        Components use semantic tokens from the shared theme library. The rose
+        brand color is visible, but readable plum ink does the text work.
+      </p>
     </div>
 
     <div class="swatch-grid">
       @for (swatch of swatches; track swatch.token) {
-        <article class="swatch-card" [class.light-text]="swatch.textTone === 'light'">
-          <div class="swatch-fill" [style.background]="swatch.value">
-            <span>{{ swatch.value }}</span>
-          </div>
-          <div class="swatch-copy">
-            <h3>{{ swatch.name }}</h3>
-            <code>{{ swatch.token }}</code>
-            <p>{{ swatch.role }}</p>
-          </div>
-        </article>
+      <article
+        class="swatch-card"
+        [class.light-text]="swatch.textTone === 'light'"
+      >
+        <div class="swatch-fill" [style.background]="swatch.value">
+          <span>{{ swatch.value }}</span>
+        </div>
+        <div class="swatch-copy">
+          <h3>{{ swatch.name }}</h3>
+          <code>{{ swatch.token }}</code>
+          <p>{{ swatch.role }}</p>
+        </div>
+      </article>
       }
     </div>
   </section>
 
-  <section class="lab-section lab-section--pink">
+  <section class="guide-section guide-section--tint">
     <div class="section-heading">
-      <p class="lab-kicker">Fills vs. text</p>
-      <h2>The one rule that keeps pink readable</h2>
-      <p>Bright rose is a fill color, not a text color. Fill buttons and chips with <code>--primary</code>; write pink text with <code>--primary-strong</code>.</p>
+      <p class="guide-kicker">Typography</p>
+      <h2>Playfair Display headings, DM Sans body</h2>
+      <p>
+        The contrast between a soft serif heading and a clean sans body gives
+        the site warmth without sacrificing booking clarity.
+      </p>
     </div>
 
-    <div class="section-demo-grid">
-      <article class="feature-panel feature-panel--pink">
-        <p class="mini-label">Fills — --primary</p>
-        <h3>Rose carries the action</h3>
-        <p>Buttons, active tabs, selected chips and section drenches use the bright fill with white text on top.</p>
-      </article>
-      <article class="feature-panel feature-panel--accent">
-        <p class="mini-label">Support — --accent</p>
-        <h3>Green grounds it</h3>
-        <p>A deep eucalyptus green stands in for the camellia's stem — used sparingly for accents, never for a primary action.</p>
-      </article>
+    <div class="type-specimen">
+      <div class="type-display">
+        <span>Playfair Display</span>
+        <p>Restorative massage, shaped with care.</p>
+      </div>
+      <div class="type-body">
+        <span>DM Sans</span>
+        <p>
+          Body copy uses a 16px base, 1.6 line height, and a capped measure so
+          visitors can scan treatment details on mobile and read calmly on
+          desktop.
+        </p>
+      </div>
     </div>
   </section>
 
-  <section class="lab-section">
+  <section class="guide-section">
     <div class="section-heading">
-      <p class="lab-kicker">Components</p>
-      <h2>Controls in the new system</h2>
-      <p>Primary is pink, secondary is a quiet outline, destructive is a single red. Everything reads on white.</p>
+      <p class="guide-kicker">Rhythm</p>
+      <h2>Spacing, line height, and readable width</h2>
+      <p>
+        These rules come from accessibility and interface research, then map to
+        our theme tokens so future components do not invent their own rhythm.
+      </p>
     </div>
 
-    <div class="component-grid">
-      <article class="component-card">
-        <div class="component-card__header">
-          <h3>Buttons</h3>
-          <span>Pink-led actions</span>
-        </div>
-        <div class="stack">
-          <button class="button button-primary" type="button">Primary rose</button>
-          <button class="button button-secondary" type="button">Secondary outline</button>
-          <button class="button button-primary" type="button" disabled>Disabled</button>
+    <div class="rule-grid">
+      @for (rule of rhythmRules; track rule.title) {
+      <article class="rule-card">
+        <strong>{{ rule.value }}</strong>
+        <h3>{{ rule.title }}</h3>
+        <p>{{ rule.detail }}</p>
+      </article>
+      }
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <div class="section-heading">
+      <p class="guide-kicker">Buttons</p>
+      <h2>Primary, secondary, open, ghost, danger</h2>
+      <p>
+        <code>byiara-button</code> renders a native button, or an anchor when
+        <code>href</code>/<code>routerLink</code> is set. All variants keep
+        native semantics, visible focus, a stable 44px minimum target, and
+        states that change color without shifting layout.
+      </p>
+    </div>
+
+    <div class="button-matrix">
+      @for (button of buttonExamples; track button.label) {
+      <article class="button-row">
+        <byiara-button
+          [variant]="button.variant"
+          [disabled]="!!button.disabled"
+          [loading]="!!button.loading"
+        >
+          {{ button.label }}
+        </byiara-button>
+        <span>{{ button.note }}</span>
+      </article>
+      }
+    </div>
+  </section>
+
+  <section class="guide-section guide-section--tint">
+    <div class="section-heading">
+      <p class="guide-kicker">Layout</p>
+      <h2>Cards</h2>
+      <p>
+        <code>byiara-card</code> is a generic bordered box: padding, a
+        background tint, and an optional interactive hover. Domain-specific
+        cards (a KPI card, a request card with a status chip) compose it with
+        their own header/body/footer content rather than becoming new
+        variants.
+      </p>
+    </div>
+
+    <div class="card-demo-grid">
+      <byiara-card padding="lg">
+        <h3 card-header>Default</h3>
+        <p>White surface, the standard card for most content.</p>
+      </byiara-card>
+      <byiara-card variant="muted" padding="lg">
+        <h3 card-header>Muted</h3>
+        <p>Quiet surface for secondary or resting-state content.</p>
+      </byiara-card>
+      <byiara-card variant="tinted" padding="lg">
+        <h3 card-header>Tinted</h3>
+        <p>Rose-tinted surface for summaries and callouts.</p>
+      </byiara-card>
+      <byiara-card variant="dashed" padding="lg" interactive>
+        <h3 card-header>Interactive dashed</h3>
+        <p>
+          Dashed border for empty/upload affordances; hover lift when the
+          whole card is pressable.
+        </p>
+      </byiara-card>
+    </div>
+
+    <byiara-page-header eyebrow="Reservations" title="Upcoming bookings">
+      <byiara-button page-header-action variant="primary" size="sm">
+        New block
+      </byiara-button>
+    </byiara-page-header>
+  </section>
+
+  <section class="guide-section">
+    <div class="section-heading">
+      <p class="guide-kicker">Forms</p>
+      <h2>Input types and choice states</h2>
+      <p>
+        Fields stay quiet on white, labels remain visible, helper text stays
+        close, and every control keeps a stable 44px touch target where the
+        native control allows it.
+      </p>
+    </div>
+
+    <div class="input-system">
+      <article class="input-card">
+        <h3>Text inputs</h3>
+        <label class="guide-field">
+          <span>Text</span>
+          <input type="text" value="Iara Santos" />
+        </label>
+        <label class="guide-field">
+          <span>Email</span>
+          <input type="email" value="hello@byiara.pt" />
+        </label>
+        <label class="guide-field">
+          <span>Password</span>
+          <input type="password" value="restfulsession" />
+        </label>
+        <label class="guide-field">
+          <span>Telephone</span>
+          <input type="tel" value="+351 912 345 678" />
+        </label>
+        <label class="guide-field">
+          <span>URL</span>
+          <input type="url" value="https://byiara.pt" />
+        </label>
+        <p class="field-note">
+          Text-like controls share one height, radius, border, and focus style.
+        </p>
+      </article>
+
+      <article class="input-card">
+        <h3>Search and long text</h3>
+        <label class="guide-field">
+          <span>Search</span>
+          <input type="search" placeholder="Search treatments" />
+        </label>
+        <label class="guide-field">
+          <span>Textarea</span>
+          <textarea rows="5">I prefer a quiet, relaxing appointment.</textarea>
+        </label>
+        <label class="guide-field is-error">
+          <span>Required with error</span>
+          <input
+            type="text"
+            value=""
+            placeholder="Preferred therapist"
+            aria-invalid="true"
+          />
+          <em>Please enter a preferred therapist or choose no preference.</em>
+        </label>
+      </article>
+
+      <article class="input-card">
+        <h3>Numbers and ranges</h3>
+        <label class="guide-field">
+          <span>Number</span>
+          <input type="number" min="1" max="6" value="2" />
+        </label>
+        <label class="guide-field">
+          <span>Range</span>
+          <input type="range" min="0" max="100" value="64" />
+        </label>
+        <label class="guide-field">
+          <span>Color</span>
+          <input type="color" value="#c04d68" />
+        </label>
+      </article>
+
+      <article class="input-card">
+        <h3>Date and time</h3>
+        <label class="guide-field">
+          <span>Date</span>
+          <input type="date" value="2026-07-14" />
+        </label>
+        <label class="guide-field">
+          <span>Time</span>
+          <input type="time" value="14:30" />
+        </label>
+        <label class="guide-field">
+          <span>Date and time</span>
+          <input type="datetime-local" value="2026-07-14T14:30" />
+        </label>
+        <div class="inline-fields">
+          <label class="guide-field">
+            <span>Month</span>
+            <input type="month" value="2026-07" />
+          </label>
+          <label class="guide-field">
+            <span>Week</span>
+            <input type="week" value="2026-W29" />
+          </label>
         </div>
       </article>
 
-      <article class="component-card">
-        <div class="component-card__header">
-          <h3>Inputs</h3>
-          <span>Quiet borders, rose focus</span>
-        </div>
-        <label class="lab-field">
-          <span>Name</span>
-          <input value="Iara Santos" />
-        </label>
-        <label class="lab-field">
-          <span>Session type</span>
+      <article class="input-card">
+        <h3>Selects and files</h3>
+        <label class="guide-field">
+          <span>Native select fallback</span>
           <select>
             <option>Relaxing massage</option>
             <option>Therapeutic massage</option>
+            <option>Postural reset</option>
           </select>
+        </label>
+        <div class="guide-field">
+          <span>Custom select</span>
+          <div class="custom-select-demo">
+            <button
+              class="custom-select-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded="true"
+              aria-labelledby="custom-select-label custom-select-value"
+            >
+              <span id="custom-select-label">Treatment</span>
+              <strong id="custom-select-value">Relaxing massage</strong>
+            </button>
+            <div
+              class="custom-select-options"
+              role="listbox"
+              aria-label="Treatment options"
+            >
+              <button
+                class="custom-select-option is-selected"
+                type="button"
+                role="option"
+                aria-selected="true"
+              >
+                <span>Relaxing massage</span>
+                <small>Slow pressure, nervous-system reset</small>
+              </button>
+              <button
+                class="custom-select-option"
+                type="button"
+                role="option"
+                aria-selected="false"
+              >
+                <span>Therapeutic massage</span>
+                <small>Targeted work for tension patterns</small>
+              </button>
+              <button
+                class="custom-select-option"
+                type="button"
+                role="option"
+                aria-selected="false"
+              >
+                <span>Postural reset</span>
+                <small>Focused mobility and recovery support</small>
+              </button>
+            </div>
+          </div>
+        </div>
+        <label class="guide-field">
+          <span>File</span>
+          <input type="file" />
+        </label>
+        <label class="guide-field">
+          <span>Readonly</span>
+          <input type="text" value="Confirmed by studio" readonly />
+        </label>
+        <label class="guide-field">
+          <span>Disabled</span>
+          <input type="text" value="Unavailable" disabled />
         </label>
       </article>
 
-      <article class="component-card">
-        <div class="component-card__header">
-          <h3>Chips</h3>
-          <span>Rose for selected state</span>
-        </div>
+      <article class="input-card">
+        <h3>Choice chips</h3>
         <div class="chip-row">
-          <button class="lab-chip selected" type="button">60 min</button>
-          <button class="lab-chip" type="button">75 min</button>
-          <button class="lab-chip" type="button">90 min</button>
+          <button byiara-choice-chip [selected]="true" type="button">60 min</button>
+          <button byiara-choice-chip type="button">75 min</button>
+          <button byiara-choice-chip type="button">90 min</button>
         </div>
-      </article>
-
-      <article class="component-card">
-        <div class="component-card__header">
-          <h3>Status</h3>
-          <span>Color plus text</span>
-        </div>
+        <h3>Status</h3>
         <div class="status-list">
-          <span class="status-pill success">Confirmed</span>
-          <span class="status-pill warning">Needs reply</span>
-          <span class="status-pill danger">Cancelled</span>
+          <byiara-status-chip tone="success" label="Confirmed"></byiara-status-chip>
+          <byiara-status-chip tone="warning" label="Needs reply"></byiara-status-chip>
+          <byiara-status-chip tone="danger" label="Cancelled"></byiara-status-chip>
+        </div>
+        <h3>Checkbox, radio, switch</h3>
+        <div class="choice-stack">
+          <byiara-checkbox
+            label="Send appointment reminder"
+            [(ngModel)]="demoReminderChecked"
+          ></byiara-checkbox>
+          <byiara-checkbox
+            label="Add notes before the session"
+            [(ngModel)]="demoNotesChecked"
+          ></byiara-checkbox>
+          <byiara-radio
+            label="Pay at studio"
+            name="guide-payment"
+            value="studio"
+            [checked]="demoPayment === 'studio'"
+            (checkedChange)="demoPayment = $event"
+          ></byiara-radio>
+          <byiara-radio
+            label="Pay online"
+            name="guide-payment"
+            value="online"
+            [checked]="demoPayment === 'online'"
+            (checkedChange)="demoPayment = $event"
+          ></byiara-radio>
+          <byiara-switch
+            label="Open calendar slots"
+            [(ngModel)]="demoSwitchChecked"
+          ></byiara-switch>
         </div>
       </article>
     </div>
   </section>
 
-  <section class="lab-section">
+  <section class="guide-section guide-section--tint">
     <div class="section-heading">
-      <p class="lab-kicker">Contrast</p>
+      <p class="guide-kicker">Feedback</p>
+      <h2>Alerts and empty states</h2>
+      <p>
+        <code>byiara-alert</code> is urgent: form or page-level problems that
+        need attention now, with <code>role="alert"</code>.
+        <code>byiara-empty-state</code> is neutral: "there's nothing here
+        yet," with an optional action.
+      </p>
+    </div>
+
+    <div class="feedback-demo-grid">
+      <byiara-alert tone="danger">Please choose a preferred therapist or select no preference.</byiara-alert>
+      <byiara-alert tone="info">Reservations close 2 hours before the session start.</byiara-alert>
+      <byiara-alert tone="success">Your changes were saved.</byiara-alert>
+      <byiara-alert tone="warning">This slot is nearly full.</byiara-alert>
+    </div>
+
+    <div class="feedback-demo-grid">
+      <byiara-empty-state
+        title="No services yet"
+        description="Create your first service to start taking bookings."
+      >
+        <byiara-button variant="primary" size="sm">Create service</byiara-button>
+      </byiara-empty-state>
+      <byiara-empty-state
+        title="Loading weekly hours..."
+        [dashed]="false"
+        compact
+      ></byiara-empty-state>
+    </div>
+  </section>
+
+  <section class="guide-section guide-section--picker">
+    <div class="section-heading">
+      <p class="guide-kicker">Booking picker</p>
+      <h2>Day and time selection</h2>
+      <p>
+        The public booking flow uses large, calm selectable tiles for dates and
+        times. Selected states use rose tint, rose border, and stronger text.
+      </p>
+    </div>
+
+    <div class="booking-picker-demo" aria-label="Booking picker example">
+      <section class="picker-block" aria-labelledby="guide-pick-date">
+        <h3 id="guide-pick-date">Pick a date</h3>
+        <div class="day-picker-row" role="radiogroup" aria-label="Pick a date">
+          <button byiara-selectable-tile class="day-tile">
+            <span>Sat</span>
+            <strong>4</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile">
+            <span>Sun</span>
+            <strong>5</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile">
+            <span>Mon</span>
+            <strong>6</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile">
+            <span>Tue</span>
+            <strong>7</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile" [selected]="true">
+            <span>Wed</span>
+            <strong>8</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile">
+            <span>Thu</span>
+            <strong>9</strong>
+          </button>
+          <button byiara-selectable-tile class="day-tile">
+            <span>Fri</span>
+            <strong>10</strong>
+          </button>
+        </div>
+      </section>
+
+      <section class="picker-block" aria-labelledby="guide-choose-time">
+        <h3 id="guide-choose-time">Choose a time</h3>
+        <div
+          class="time-picker-grid"
+          role="radiogroup"
+          aria-label="Choose a time"
+        >
+          <button byiara-selectable-tile shape="rect">9:00 AM</button>
+          <button byiara-selectable-tile shape="rect">10:30 AM</button>
+          <button byiara-selectable-tile shape="rect">12:00 PM</button>
+          <button byiara-selectable-tile shape="rect" [selected]="true">
+            2:00 PM
+          </button>
+          <button byiara-selectable-tile shape="rect">3:30 PM</button>
+          <button byiara-selectable-tile shape="rect">5:00 PM</button>
+          <button byiara-selectable-tile shape="rect">6:30 PM</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="guide-section">
+    <div class="section-heading">
+      <p class="guide-kicker">Contrast</p>
       <h2>Verified pairings</h2>
-      <p>Measured with WCAG 2.1 math. Body and pink text clear AA; white on the bright primary is reserved for bold button labels.</p>
+      <p>
+        The primary pink is part of the brand, but not every foreground pairing
+        is valid. Use these pairings when creating new components.
+      </p>
     </div>
 
     <div class="contrast-grid">
       @for (pair of contrastPairs; track pair.label) {
-        <article class="contrast-card">
-          <div
-            class="contrast-sample"
-            [style.color]="pair.foreground"
-            [style.background]="pair.background"
-          >
-            Aa
-          </div>
-          <div>
-            <h3>{{ pair.label }}</h3>
-            <p>{{ pair.foreground }} on {{ pair.background }}</p>
-          </div>
-          <strong>{{ pair.ratio }}</strong>
-          <span>{{ pair.result }}</span>
-        </article>
+      <article class="contrast-card">
+        <div
+          class="contrast-sample"
+          [style.color]="pair.foreground"
+          [style.background]="pair.background"
+        >
+          Aa
+        </div>
+        <div>
+          <h3>{{ pair.label }}</h3>
+          <p>{{ pair.foreground }} on {{ pair.background }}</p>
+        </div>
+        <strong>{{ pair.ratio }}</strong>
+        <span>{{ pair.result }}</span>
+      </article>
       }
+    </div>
+  </section>
+
+  <section class="guide-section guide-section--tint">
+    <div class="section-heading">
+      <p class="guide-kicker">Research notes</p>
+      <h2>Rules we are adopting</h2>
+      <p>
+        These are the external guidelines behind the tokens. Keep this section
+        updated when the design system changes.
+      </p>
+    </div>
+
+    <div class="research-list">
+      <a
+        href="https://pimpmytype.com/line-length-line-height/"
+        rel="noreferrer"
+        target="_blank"
+      >
+        60-80 characters with roughly 1.5-1.6 line height for desktop reading.
+      </a>
+      <a
+        href="https://baymard.com/blog/line-length-readability"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Body text should stay near 50-75 characters per line.
+      </a>
+      <a
+        href="https://m2.material.io/design/layout/spacing-methods.html"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Use baseline grids, padding, keylines, and incremental spacing for
+        layout rhythm.
+      </a>
+      <a
+        href="https://developer.apple.com/design/human-interface-guidelines/buttons"
+        rel="noreferrer"
+        target="_blank"
+      >
+        Place buttons with enough visual and target spacing for comfortable
+        selection.
+      </a>
+      <a href="https://www.w3.org/TR/WCAG22/" rel="noreferrer" target="_blank">
+        WCAG contrast targets: 4.5:1 for normal text and 3:1 for large text or
+        UI indicators.
+      </a>
     </div>
   </section>
 </article>

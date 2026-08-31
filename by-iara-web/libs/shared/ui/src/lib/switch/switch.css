@@ -1,0 +1,100 @@
+:host {
+  display: inline-flex;
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--byiara-space-sm);
+  cursor: pointer;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.switch-stacked {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.switch-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--byiara-space-3xs);
+}
+
+.switch-stacked .switch-text strong {
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.switch-stacked .switch-text small {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.switch-inline .switch-text {
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-block;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: var(--byiara-radius-pill);
+  background: var(--byiara-color-border);
+  transition: background-color var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.switch-inline .slider {
+  width: 2.25rem;
+  height: 1.25rem;
+}
+
+.slider::before {
+  content: '';
+  position: absolute;
+  bottom: 0.1875rem;
+  left: 0.1875rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: var(--byiara-color-white);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--byiara-color-text) 12%, transparent);
+  transition: transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.switch-inline .slider::before {
+  bottom: 0.156rem;
+  left: 0.156rem;
+  width: 0.9375rem;
+  height: 0.9375rem;
+}
+
+.switch input:checked + .slider {
+  background: var(--byiara-color-primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(1.25rem);
+}
+
+.switch-inline input:checked + .slider::before {
+  transform: translateX(1rem);
+}
+
+.switch input:focus-visible + .slider {
+  outline: 3px solid var(--byiara-color-focus);
+  outline-offset: 3px;
+}
+
+.switch.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

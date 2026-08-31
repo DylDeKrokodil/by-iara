@@ -1,0 +1,210 @@
+:host {
+  display: block;
+}
+
+.reading-progress {
+  position: sticky;
+  inset-block-start: var(--byiara-site-header-height);
+  inset-inline-start: 0;
+  z-index: var(--byiara-z-index-raised);
+  display: block;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  background: var(--byiara-color-primary-soft);
+  pointer-events: none;
+}
+
+.reading-progress::after {
+  position: absolute;
+  inset: 0;
+  background: var(--byiara-color-primary);
+  content: '';
+  transform: scaleX(var(--reading-progress, 0));
+  transform-origin: left center;
+}
+
+.guide-detail-shell {
+  padding-block: clamp(2rem, 7vw, 6rem);
+}
+
+.guide-container {
+  width: min(52rem, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.breadcrumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-xs);
+  margin: 0 0 clamp(2rem, 5vw, 4rem);
+  padding: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+  list-style: none;
+}
+
+.breadcrumbs a {
+  color: inherit;
+}
+
+.guide-header {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
+.guide-header h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.excerpt {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+  line-height: 1.65;
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-xs);
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.guide-share {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-xs);
+}
+
+.guide-share-label {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.guide-share-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-xs);
+}
+
+.guide-share-options svg,
+.guide-share-options ng-icon {
+  flex: none;
+}
+
+@media (min-width: 48rem) {
+  .native-share-action {
+    display: none;
+  }
+}
+
+.cover {
+  margin: clamp(2rem, 6vw, 4rem) 0;
+}
+
+.cover img,
+.guide-body figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--byiara-radius-lg);
+}
+
+.guide-body {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
+.guide-body p,
+.guide-body li,
+.guide-faq p {
+  margin-block: 0;
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1.8;
+}
+
+.guide-body h2,
+.guide-body h3,
+.guide-body h4 {
+  margin: clamp(2rem, 5vw, 3.5rem) 0 0;
+  line-height: 1.2;
+}
+
+.guide-body h2 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+}
+
+.guide-body blockquote {
+  margin: var(--byiara-space-lg) 0;
+  padding: var(--byiara-space-sm) 0 var(--byiara-space-sm)
+    var(--byiara-space-lg);
+  border-left: 3px solid var(--byiara-color-primary);
+  color: var(--byiara-color-text-muted);
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.guide-body figure {
+  display: grid;
+  gap: var(--byiara-space-xs);
+  margin: var(--byiara-space-xl) 0;
+}
+
+.guide-body figcaption {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.guide-faq,
+.related-services {
+  margin-top: clamp(3rem, 8vw, 6rem);
+  padding-top: clamp(2rem, 5vw, 3.5rem);
+  border-top: 1px solid var(--byiara-color-border);
+}
+
+.guide-faq h2,
+.related-services h2 {
+  margin: 0 0 var(--byiara-space-lg);
+}
+
+.guide-faq details {
+  padding-block: var(--byiara-space-md);
+  border-bottom: 1px solid var(--byiara-color-border);
+}
+
+.guide-faq summary {
+  font-weight: var(--byiara-font-weight-semibold);
+  cursor: pointer;
+}
+
+.related-services ul {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.related-services li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+}
+
+.not-found {
+  padding-block: 4rem;
+}

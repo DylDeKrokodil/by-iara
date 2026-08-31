@@ -1,0 +1,29 @@
+<section class="home-packs" aria-labelledby="home-packs-title">
+  <div class="home-packs-inner">
+    <div class="home-packs-copy">
+      <h2 id="home-packs-title">{{ copy().packsTitle }}</h2>
+      <p>{{ copy().packsLede }}</p>
+      <a class="text-link" [routerLink]="language.localizedLink('packs')">
+        {{ copy().packsAction }}
+      </a>
+    </div>
+    <div class="home-pack-feature">
+      <p>{{ serviceName() }}</p>
+      <h3>
+        {{ copy().packsExample( item().offer.sessionCount,
+        item().offer.durationMinutes ) }}
+      </h3>
+      <div class="home-pack-price">
+        <strong>{{ formatPrice(item().offer.price.amountCents) }}</strong>
+        <span>
+          {{ copy().packsPerSession(formatPrice(item().perSessionCents)) }}
+        </span>
+      </div>
+      @if (item().savingCents > 0) {
+      <p class="home-pack-saving">
+        {{ copy().packsSaving(formatPrice(item().savingCents)) }}
+      </p>
+      }
+    </div>
+  </div>
+</section>

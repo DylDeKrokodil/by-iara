@@ -1,0 +1,104 @@
+.pack-section {
+  display: grid;
+  gap: var(--byiara-space-md);
+}
+
+.section-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--byiara-space-lg);
+}
+
+.section-header h2 {
+  margin: 0;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-lg);
+}
+
+.section-header p {
+  margin: var(--byiara-space-2xs) 0 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.section-header .section-count {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.packs-card {
+  overflow: hidden;
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: var(--byiara-space-md);
+  border-bottom: 1px solid var(--byiara-color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.actions-cell {
+  text-align: right;
+}
+
+.inactive td {
+  opacity: 0.65;
+  background: var(--byiara-color-surface-muted);
+}
+th {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+  text-transform: uppercase;
+}
+td {
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+}
+td strong,
+td span {
+  display: block;
+}
+td > span:not(.status) {
+  margin-top: 0.2rem;
+  color: var(--byiara-color-text-muted);
+}
+.status {
+  display: inline-flex;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: var(--byiara-color-surface-muted);
+  text-transform: capitalize;
+}
+.status[data-status='ACTIVE'] {
+  background: var(--byiara-color-success-tint);
+  color: var(--byiara-color-success-strong);
+}
+a {
+  color: var(--byiara-color-primary-strong);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+@media (max-width: 40rem) {
+  .section-header {
+    align-items: start;
+    flex-direction: column;
+    gap: var(--byiara-space-sm);
+  }
+}

@@ -1,0 +1,11 @@
+<header class="page-header" [class.admin-page-header]="admin()">
+  <div class="page-heading">
+    @if (displayedLabel()) {
+      <p class="page-label">{{ displayedLabel() }}</p>
+    }
+    <h1>{{ title() }}</h1>
+  </div>
+  <div class="page-actions">
+    <ng-content select="[page-header-action]"></ng-content>
+  </div>
+</header>

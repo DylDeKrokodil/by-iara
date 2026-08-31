@@ -1,238 +1,691 @@
-<main class="public-shell">
+<div class="public-shell">
   <div class="booking-container">
     <a class="text-link" [routerLink]="language.localizedLink()">
       &larr; {{ copy().back }}
     </a>
 
-    @if (loading()) {
-      <div class="public-status">
-        <div class="spinner" aria-hidden="true"></div>
-        <span>{{ copy().loading }}</span>
-      </div>
-    } @else if (loadError()) {
-      <div class="public-status error">
-        <p>{{ copy().loadError }}</p>
-      </div>
-    } @else if (services().length === 0) {
-      <div class="public-status">
-        <p>{{ copy().noServices }}</p>
-      </div>
-    } @else if (confirmation(); as confirmed) {
-      <!-- Confirmation -->
-      <section class="confirmation" aria-live="polite">
-        <div class="confirmation-badge" aria-hidden="true">
-          <svg viewBox="0 0 52 52">
-            <circle class="confirmation-badge-circle" cx="26" cy="26" r="24" />
-            <path class="confirmation-badge-check" d="M15 27l8 8 14-16" />
-          </svg>
-        </div>
-        <p class="eyebrow">{{ copy().confirmedTitle }}</p>
-        <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
-        <byiara-detail-list
-          boxed
-          class="confirmation-details"
-          [items]="confirmationItems(confirmed)"
-        ></byiara-detail-list>
-        <p class="pending-note">{{ copy().pendingNote }}</p>
-        <button type="button" class="button button-secondary" (click)="resetForAnother()">
-          {{ copy().bookAnother }}
-        </button>
-      </section>
-    } @else {
-      <!-- Booking flow -->
-      <header class="booking-header">
-        <p class="eyebrow">{{ copy().eyebrow }}</p>
-        <h1>{{ copy().pageTitle }}</h1>
-      </header>
-
-      <byiara-stepper
-        [steps]="steps()"
-        [current]="currentStep()"
-        [ariaLabel]="copy().bookingSteps"
-        (stepSelect)="onStepSelect($event)"
-      ></byiara-stepper>
+    @if (!confirmation()) {
+    <header #bookingStepTop class="booking-header">
+      <p class="eyebrow">{{ copy().eyebrow }}</p>
+      <h1>{{ copy().pageTitle }}</h1>
+    </header>
+    } @if (loading()) {
+    <div class="booking-loading step-panel" aria-busy="true">
+      <byiara-skeleton
+        class="booking-stepper-skeleton"
+        variant="block"
+        width="100%"
+        height="3.75rem"
+      ></byiara-skeleton>
 
       <div class="booking-flow">
-        <section class="step-panel public-panel" [attr.data-direction]="stepDirection()">
-          @switch (currentStep()) {
-            @case ('service') {
-              <div class="booking-section">
-                <byiara-select-field
-                  [label]="copy().chooseService"
-                  [options]="serviceOptions()"
-                  [value]="selectedServiceId() ?? ''"
-                  (valueChange)="onServiceChange($event)"
-                ></byiara-select-field>
-              </div>
+        <section class="step-panel public-panel" aria-hidden="true">
+          <div class="booking-section">
+            <byiara-skeleton width="7rem" height="0.75rem"></byiara-skeleton>
+            <byiara-skeleton
+              variant="block"
+              width="100%"
+              height="2.5rem"
+            ></byiara-skeleton>
+          </div>
 
-              <div class="booking-section" aria-labelledby="choose-option">
-                <h2 id="choose-option">{{ copy().chooseOption }}</h2>
-                <div class="option-grid" role="radiogroup" [attr.aria-label]="copy().chooseOption">
-                  @for (variant of activeVariants(); track variant.id) {
-                    <button
-                      byiara-choice-chip
-                      class="option-chip"
-                      [selected]="variant.id === selectedVariantId()"
-                      (click)="selectVariant(variant.id)"
-                    >
-                      {{ variantLabel(variant) }}
-                    </button>
-                  }
-                </div>
-              </div>
+          <div class="booking-section">
+            <byiara-skeleton width="8rem" height="1.25rem"></byiara-skeleton>
+            <div class="option-grid">
+              <byiara-skeleton
+                variant="block"
+                width="6.5rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="7.5rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="6rem"
+                height="2.75rem"
+              ></byiara-skeleton>
+            </div>
+          </div>
 
-              <div class="step-actions">
-                <button type="button" class="button button-primary" (click)="nextStep()">
-                  {{ copy().next }}
+          <div class="booking-section">
+            <byiara-skeleton width="11rem" height="1.25rem"></byiara-skeleton>
+            <div class="purchase-options">
+              <byiara-skeleton
+                variant="block"
+                width="100%"
+                height="4.5rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                variant="block"
+                width="100%"
+                height="4.5rem"
+              ></byiara-skeleton>
+            </div>
+          </div>
+        </section>
+
+        <aside class="booking-summary public-panel" aria-hidden="true">
+          <byiara-skeleton width="7rem" height="1.25rem"></byiara-skeleton>
+          <byiara-skeleton width="100%" height="0.875rem"></byiara-skeleton>
+          <byiara-skeleton width="82%" height="0.875rem"></byiara-skeleton>
+          <byiara-skeleton width="68%" height="0.875rem"></byiara-skeleton>
+        </aside>
+      </div>
+
+      <p class="visually-hidden" role="status">{{ copy().loading }}</p>
+    </div>
+    } @else if (loadError()) {
+    <div class="public-status error">
+      <p>{{ copy().loadError }}</p>
+    </div>
+    } @else if (services().length === 0) {
+    <div class="public-status">
+      <p>{{ copy().noServices }}</p>
+    </div>
+    } @else if (confirmation(); as confirmed) {
+    <!-- Confirmation -->
+    <section class="confirmation" aria-live="polite">
+      <header class="confirmation-heading">
+        <p class="confirmation-status">
+          {{ copy().confirmedTitle }}
+        </p>
+        <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
+      </header>
+
+      <byiara-detail-list
+        boxed
+        class="confirmation-details"
+        [items]="confirmationItems(confirmed)"
+      ></byiara-detail-list>
+
+      <a [routerLink]="language.localizedLink()" class="button button-primary">
+        {{ copy().back }}
+      </a>
+    </section>
+    } @else {
+    <!-- Booking flow -->
+    <byiara-stepper
+      [steps]="steps()"
+      [current]="currentStep()"
+      [ariaLabel]="copy().bookingSteps"
+      (stepSelect)="onStepSelect($event)"
+    ></byiara-stepper>
+
+    <div class="booking-flow">
+      <section
+        class="step-panel public-panel"
+        [attr.data-direction]="stepDirection()"
+      >
+        @switch (currentStep()) { @case ('service') {
+        <div class="booking-section">
+          <byiara-select-field
+            [label]="copy().chooseService"
+            [options]="serviceOptions()"
+            [value]="selectedServiceId() ?? ''"
+            (valueChange)="onServiceChange($event)"
+          ></byiara-select-field>
+        </div>
+
+        <div class="booking-section" aria-labelledby="choose-option">
+          <h2 id="choose-option">{{ copy().chooseOption }}</h2>
+          <div
+            class="option-grid"
+            role="radiogroup"
+            [attr.aria-label]="copy().chooseOption"
+          >
+            @for (variant of activeVariants(); track variant.id) {
+            <button
+              byiara-choice-chip
+              class="option-chip"
+              [selected]="variant.id === selectedVariantId()"
+              (click)="selectVariant(variant.id)"
+            >
+              {{ variantLabel(variant) }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <div class="booking-section" aria-labelledby="payment-choice">
+          <h2 id="payment-choice">{{ copy().paymentChoice }}</h2>
+          <div
+            class="purchase-options"
+            role="radiogroup"
+            [attr.aria-label]="copy().paymentChoice"
+          >
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="!selectedPackOfferId() && !selectedCustomerPackId()"
+              (click)="selectRegularSession()"
+            >
+              {{ copy().singleSession }}
+            </button>
+            @for (offer of availablePackOffers(); track offer.id) {
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="offer.id === selectedPackOfferId()"
+              (click)="selectPackOffer(offer.id)"
+            >
+              {{ packOfferLabel(offer) }}
+            </button>
+            } @for (pack of eligibleCustomerPacks(); track pack.id) {
+            <button
+              byiara-selectable-tile
+              shape="rect"
+              [selected]="pack.id === selectedCustomerPackId()"
+              (click)="selectCustomerPack(pack.id)"
+            >
+              {{ customerPackLabel(pack) }}
+            </button>
+            }
+          </div>
+        </div>
+
+        <div class="step-actions">
+          <button
+            type="button"
+            class="button button-primary"
+            (click)="nextStep()"
+          >
+            {{ copy().next }}
+          </button>
+        </div>
+        } @case ('time') {
+        <div
+          class="booking-section"
+          aria-labelledby="choose-date"
+          [attr.aria-busy]="slotsLoading()"
+        >
+          <h2 id="choose-date">{{ copy().chooseDate }}</h2>
+
+          @if (slotsLoading()) {
+          <div class="booking-calendar calendar-skeleton" aria-hidden="true">
+            <div class="calendar-header">
+              <byiara-skeleton
+                width="5.5rem"
+                height="0.875rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                width="7.5rem"
+                height="1.25rem"
+              ></byiara-skeleton>
+              <byiara-skeleton
+                class="calendar-nav-next"
+                width="5.5rem"
+                height="0.875rem"
+              ></byiara-skeleton>
+            </div>
+
+            <div class="desktop-calendar">
+              <div class="calendar-weekdays">
+                @for (weekday of calendarSkeletonWeekdays; track weekday) {
+                <span>
+                  <byiara-skeleton
+                    width="2rem"
+                    height="0.625rem"
+                  ></byiara-skeleton>
+                </span>
+                }
+              </div>
+              <div class="calendar-grid">
+                @for (day of calendarSkeletonDays; track day) {
+                <byiara-skeleton
+                  class="calendar-day-spacer"
+                  variant="block"
+                  width="100%"
+                  height="100%"
+                ></byiara-skeleton>
+                }
+              </div>
+            </div>
+
+            <div class="mobile-date-strip">
+              @for (day of calendarSkeletonMobileDays; track day) {
+              <byiara-skeleton
+                class="calendar-skeleton-card"
+                variant="block"
+                width="5rem"
+                height="7rem"
+              ></byiara-skeleton>
+              }
+            </div>
+          </div>
+
+          <div class="booking-section time-choices-section" aria-hidden="true">
+            <byiara-skeleton width="8rem" height="1.25rem"></byiara-skeleton>
+            @for (group of calendarSkeletonSlotGroups; track group) {
+            <div class="slot-group">
+              <byiara-skeleton
+                width="4.5rem"
+                height="0.625rem"
+              ></byiara-skeleton>
+              <div class="slot-grid">
+                @for (slot of calendarSkeletonSlots; track slot) {
+                <byiara-skeleton
+                  variant="block"
+                  width="100%"
+                  height="3rem"
+                ></byiara-skeleton>
+                }
+              </div>
+            </div>
+            }
+          </div>
+          <p class="visually-hidden" role="status">{{ copy().slotsLoading }}</p>
+          } @else if (slotsError()) {
+          <div class="availability-error" role="alert">
+            <div>
+              <h3>{{ copy().slotsErrorTitle }}</h3>
+              <p>{{ copy().slotsError }}</p>
+            </div>
+            <div class="availability-error-actions">
+              <button
+                type="button"
+                class="button button-primary"
+                (click)="retryAvailability()"
+              >
+                {{ copy().retryAvailability }}
+              </button>
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="chooseAnotherTreatment()"
+              >
+                {{ copy().chooseAnotherTreatment }}
+              </button>
+            </div>
+          </div>
+          } @else {
+          <div class="booking-calendar">
+            <div class="calendar-header">
+              <button
+                type="button"
+                class="calendar-nav"
+                [disabled]="calendarMonthOffset() === 0"
+                [attr.aria-label]="copy().calendarPreviousMonth"
+                (click)="previousCalendarMonth()"
+              >
+                <span aria-hidden="true">&larr;</span>
+                <span>{{ copy().calendarPrevious }}</span>
+              </button>
+              <h3>{{ calendarMonthLabel() }}</h3>
+              <button
+                type="button"
+                class="calendar-nav calendar-nav-next"
+                [attr.aria-label]="copy().calendarNextMonth"
+                (click)="nextCalendarMonth()"
+              >
+                <span>{{ copy().calendarNext }}</span>
+                <span aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+
+            @if (!calendarHasAvailability()) {
+            <byiara-empty-state
+              class="calendar-empty"
+              role="status"
+              aria-live="polite"
+              [title]="copy().noAvailabilityInMonth(calendarMonthLabel())"
+              [description]="copy().noAvailabilityInMonthHelp"
+              [dashed]="false"
+            >
+              <div class="calendar-empty-actions">
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="nextCalendarMonth()"
+                >
+                  {{ copy().calendarNextMonth }}
+                  <span aria-hidden="true">&rarr;</span>
                 </button>
               </div>
-            }
-
-            @case ('time') {
-              <div class="booking-section" aria-labelledby="choose-date">
-                <h2 id="choose-date">{{ copy().chooseDate }}</h2>
-
-                @if (slotsLoading()) {
-                  <div class="public-status">
-                    <div class="spinner" aria-hidden="true"></div>
-                    <span>{{ copy().slotsLoading }}</span>
-                  </div>
-                } @else if (slotsError()) {
-                  <p class="field-error">{{ copy().slotsError }}</p>
-                } @else if (availableDates().length === 0) {
-                  <p class="muted">{{ copy().noSlots }}</p>
-                } @else {
-                  <div class="date-strip" role="radiogroup" [attr.aria-label]="copy().chooseDate">
-                    @for (date of availableDates(); track date.key; let i = $index) {
-                      <button
-                        byiara-choice-chip
-                        class="date-chip"
-                        [selected]="date.key === selectedDateKey()"
-                        [style.--stagger]="i"
-                        (click)="selectDate(date.key)"
-                      >
-                        <span class="date-weekday">{{ date.weekday }}</span>
-                        <span class="date-day">{{ date.day }}</span>
-                        <span class="date-month">{{ date.month }}</span>
-                      </button>
-                    }
-                  </div>
-
-                  <div class="booking-section" aria-labelledby="choose-slot">
-                    <h3 id="choose-slot">{{ copy().chooseSlot }}</h3>
-                    @if (selectedDateSlots().length === 0) {
-                      <p class="muted">{{ copy().noSlotsForDate }}</p>
-                    } @else {
-                      @for (group of selectedDateSlotGroups(); track group.period) {
-                        <div class="slot-group">
-                          <p class="slot-group-label">{{ group.label }}</p>
-                          <div class="slot-grid" role="radiogroup" [attr.aria-label]="group.label">
-                            @for (slot of group.slots; track slot.iso; let i = $index) {
-                              <button
-                                byiara-choice-chip
-                                class="slot-chip"
-                                [selected]="slot.iso === selectedSlot()"
-                                [style.--stagger]="i"
-                                (click)="selectSlot(slot.iso)"
-                              >
-                                {{ slot.time }}
-                              </button>
-                            }
-                          </div>
-                        </div>
-                      }
-                    }
-                  </div>
+              <div class="calendar-empty-contact">
+                <a [href]="contact.emailHref">{{ copy().contactByEmail }}</a>
+              </div>
+            </byiara-empty-state>
+            } @else {
+            <div class="desktop-calendar">
+              <div class="calendar-weekdays" aria-hidden="true">
+                @for (weekday of calendarWeekdays(); track weekday) {
+                <span>{{ weekday }}</span>
                 }
               </div>
 
-              @if (submitError()) {
-                <p class="field-error" role="alert">{{ submitError() }}</p>
+              <div
+                class="calendar-grid"
+                role="grid"
+                [attr.aria-label]="calendarMonthLabel()"
+              >
+                @for (day of calendarDays(); track day.key) { @if (day.inMonth)
+                {
+                <button
+                  type="button"
+                  class="calendar-day"
+                  role="gridcell"
+                  [class.is-available]="day.available"
+                  [class.is-selected]="day.key === selectedDateKey()"
+                  [disabled]="day.isPast || !day.available"
+                  [attr.aria-label]="day.label + ', ' + (day.available ? copy().calendarAvailable : copy().calendarUnavailable)"
+                  [attr.aria-pressed]="day.key === selectedDateKey()"
+                  (click)="selectDate(day.key)"
+                >
+                  {{ day.day }}
+                </button>
+                } @else {
+                <span class="calendar-day-spacer" aria-hidden="true"></span>
+                } }
+              </div>
+
+              <p class="calendar-legend">
+                <span aria-hidden="true"></span>
+                {{ copy().calendarAvailable }}
+              </p>
+            </div>
+
+            <div
+              #mobileDateStrip
+              class="mobile-date-strip"
+              role="radiogroup"
+              [attr.aria-label]="calendarMonthLabel()"
+            >
+              @for (day of mobileCalendarDays(); track day.key) {
+              <button
+                type="button"
+                class="mobile-date-card"
+                role="radio"
+                [class.is-selected]="day.key === selectedDateKey()"
+                [attr.data-date-key]="day.key"
+                [disabled]="!day.available"
+                [attr.aria-label]="day.label + ', ' + (day.available ? copy().calendarAvailable : copy().calendarUnavailable)"
+                [attr.aria-checked]="day.key === selectedDateKey()"
+                (click)="selectDate(day.key)"
+              >
+                <span>{{ day.weekday }}</span>
+                <strong>{{ day.day }}</strong>
+                <span>{{ day.month }}</span>
+              </button>
               }
-
-              <div class="step-actions">
-                <button type="button" class="button button-secondary" (click)="previousStep()">
-                  {{ copy().previous }}
-                </button>
-                <button type="button" class="button button-primary" (click)="nextStep()">
-                  {{ copy().next }}
-                </button>
-              </div>
+            </div>
             }
+          </div>
 
-            @case ('details') {
-              <form class="booking-form" [formGroup]="form" (ngSubmit)="nextStep()" novalidate>
-                <h2>{{ copy().yourDetails }}</h2>
-
-                <byiara-text-field
-                  [label]="copy().name"
-                  formControlName="name"
-                  autocomplete="name"
-                  [error]="form.controls.name.touched && form.controls.name.invalid ? copy().required : null"
-                ></byiara-text-field>
-
-                <byiara-text-field
-                  [label]="copy().email"
-                  type="email"
-                  formControlName="email"
-                  autocomplete="email"
-                  [error]="form.controls.email.touched && form.controls.email.invalid ? copy().invalidEmail : null"
-                ></byiara-text-field>
-
-                <byiara-text-field
-                  [label]="copy().phone"
-                  type="tel"
-                  formControlName="phone"
-                  autocomplete="tel"
-                  [optionalLabel]="copy().optional"
-                ></byiara-text-field>
-
-                <byiara-text-field
-                  [label]="copy().notes"
-                  multiline
-                  [rows]="3"
-                  formControlName="notes"
-                  [optionalLabel]="copy().optional"
-                ></byiara-text-field>
-
-                <div class="step-actions">
-                  <button type="button" class="button button-secondary" (click)="previousStep()">
-                    {{ copy().previous }}
-                  </button>
-                  <button type="submit" class="button button-primary">
-                    {{ copy().reviewBooking }}
-                  </button>
-                </div>
-              </form>
-            }
-
-            @case ('review') {
-              <div class="booking-section">
-                <h2>{{ copy().reviewStep }}</h2>
-                <byiara-detail-list [items]="reviewItems()"></byiara-detail-list>
-              </div>
-
-              @if (submitError()) {
-                <p class="field-error" role="alert">{{ submitError() }}</p>
-              }
-
-              <div class="step-actions">
-                <button type="button" class="button button-secondary" (click)="previousStep()">
-                  {{ copy().previous }}
+          @if (selectedDateKey()) {
+          <div
+            #timeChoicesSection
+            class="booking-section time-choices-section"
+            aria-labelledby="choose-slot"
+            tabindex="-1"
+          >
+            <h3 id="choose-slot">{{ copy().chooseSlot }}</h3>
+            @for (group of selectedDateSlotGroups(); track group.period) {
+            <div class="slot-group">
+              <p class="slot-group-label">{{ group.label }}</p>
+              <div
+                class="slot-grid"
+                role="radiogroup"
+                [attr.aria-label]="group.label"
+              >
+                @for (slot of group.slots; track slot.iso; let i = $index) {
+                <button
+                  byiara-selectable-tile
+                  shape="rect"
+                  class="slot-chip"
+                  [selected]="slot.iso === selectedSlot()"
+                  [style.--stagger]="i"
+                  (click)="selectSlot(slot.iso)"
+                >
+                  {{ slot.time }}
                 </button>
-                <button type="button" class="button button-primary" [disabled]="submitting()" (click)="submit()">
-                  {{ submitting() ? copy().submitting : copy().submit }}
-                </button>
+                }
               </div>
+            </div>
             }
+          </div>
+          } }
+        </div>
+
+        @if (submitError()) {
+        <p class="field-error" role="alert">{{ submitError() }}</p>
+        } @if (!slotsError()) {
+        <div class="step-actions">
+          <button
+            type="button"
+            class="button button-secondary"
+            (click)="previousStep()"
+          >
+            {{ copy().previous }}
+          </button>
+          <button
+            type="button"
+            class="button button-primary"
+            [disabled]="!selectedSlot()"
+            (click)="nextStep()"
+          >
+            {{ copy().next }}
+          </button>
+        </div>
+        } } @case ('details') {
+        <form
+          class="booking-form"
+          [formGroup]="form"
+          (ngSubmit)="nextStep()"
+          novalidate
+        >
+          <h2>{{ copy().yourDetails }}</h2>
+
+          <byiara-text-field
+            [label]="copy().name"
+            required
+            formControlName="name"
+            autocomplete="name"
+            [error]="form.controls.name.touched && form.controls.name.invalid ? copy().required : null"
+          ></byiara-text-field>
+
+          <byiara-text-field
+            [label]="copy().email"
+            type="email"
+            required
+            formControlName="email"
+            autocomplete="email"
+            [error]="form.controls.email.touched && form.controls.email.invalid ? copy().invalidEmail : null"
+          ></byiara-text-field>
+
+          <byiara-text-field
+            [label]="copy().phone"
+            type="tel"
+            formControlName="phone"
+            autocomplete="tel"
+            [optionalLabel]="copy().optional"
+          ></byiara-text-field>
+
+          <byiara-text-field
+            [label]="copy().notes"
+            multiline
+            [rows]="3"
+            formControlName="notes"
+            [optionalLabel]="copy().optional"
+          ></byiara-text-field>
+
+          <section class="pack-access" aria-labelledby="pack-access-title">
+            <div>
+              <h3 id="pack-access-title">{{ copy().alreadyHavePack }}</h3>
+              <p>
+                {{ customerSessionToken() ? copy().packConnected :
+                copy().packAccessHelp }}
+              </p>
+            </div>
+            @if (!customerSessionToken()) {
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="accessRequesting()"
+              (click)="requestPackAccess()"
+            >
+              {{ accessRequesting() ? copy().sendingPackLink :
+              copy().emailPackLink }}
+            </button>
+            } @if (accessSent()) {
+            <p class="access-message" role="status">
+              {{ copy().packLinkSent }}
+            </p>
+            } @if (accessError()) {
+            <p class="field-error" role="alert">{{ copy().packAccessError }}</p>
+            }
+          </section>
+
+          <div class="step-actions">
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="previousStep()"
+            >
+              {{ copy().previous }}
+            </button>
+            <button type="submit" class="button button-primary">
+              {{ copy().reviewBooking }}
+            </button>
+          </div>
+        </form>
+        } @case ('review') {
+        <div class="booking-section">
+          <h2>{{ copy().reviewStep }}</h2>
+          <byiara-detail-list [items]="reviewItems()"></byiara-detail-list>
+        </div>
+
+        @if (!selectedPackOfferId() && !selectedCustomerPackId()) {
+        <section
+          class="discount-entry"
+          aria-labelledby="discount-title"
+          [formGroup]="form"
+        >
+          <div>
+            <h2 id="discount-title">{{ copy().discountCode }}</h2>
+            <p>{{ copy().discountHelp }}</p>
+          </div>
+          @if (discountQuote(); as quote) {
+          <div class="discount-applied" role="status">
+            <div>
+              <strong>{{ copy().discountApplied }}</strong>
+              <span
+                >{{ copy().originalPrice }} {{
+                formatPrice(quote.originalPrice.amountCents) }} · {{
+                copy().discount }} −{{
+                formatPrice(quote.discountAmount.amountCents) }} · {{
+                copy().totalPrice }} {{
+                formatPrice(quote.finalPrice.amountCents) }}</span
+              >
+            </div>
+            <button
+              type="button"
+              class="text-button"
+              (click)="removeDiscount()"
+            >
+              {{ copy().removeDiscount }}
+            </button>
+          </div>
+          } @else {
+          <div class="discount-controls">
+            <byiara-text-field
+              [label]="copy().discountCode"
+              formControlName="discountCode"
+            ></byiara-text-field>
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="discountApplying()"
+              (click)="applyDiscount()"
+            >
+              {{ discountApplying() ? copy().applyingDiscount :
+              copy().applyDiscount }}
+            </button>
+          </div>
+          } @if (discountError()) {
+          <p class="field-error" role="alert">{{ discountError() }}</p>
           }
         </section>
+        }
 
-        <aside class="booking-summary public-panel" aria-labelledby="booking-summary">
-          <h2 id="booking-summary">{{ copy().summary }}</h2>
-          <byiara-detail-list [items]="summaryItems()"></byiara-detail-list>
-        </aside>
+        <div class="booking-legal-notice">
+          <p>{{ copy().paymentNotice }}</p>
+          <p>
+            {{ copy().dataUseNotice }}
+            <a [routerLink]="language.localizedLink('privacy')"
+              >{{ copy().privacyLink }}</a
+            >.
+          </p>
+          <p>
+            {{ copy().termsNotice }}
+            <a [routerLink]="language.localizedLink('bookingTerms')"
+              >{{ copy().termsLink }}</a
+            >.
+          </p>
+        </div>
+
+        @if (submitError()) {
+        <p class="field-error" role="alert">{{ submitError() }}</p>
+        }
+
+        <div class="step-actions">
+          <button
+            type="button"
+            class="button button-secondary"
+            (click)="previousStep()"
+          >
+            {{ copy().previous }}
+          </button>
+          <button
+            type="button"
+            class="button button-primary"
+            [disabled]="submitting()"
+            (click)="submit()"
+          >
+            {{ submitting() ? copy().submitting : copy().submit }}
+          </button>
+        </div>
+        } }
+      </section>
+
+      <aside
+        class="booking-summary public-panel"
+        aria-labelledby="booking-summary"
+      >
+        <h2 id="booking-summary">{{ copy().summary }}</h2>
+        <byiara-detail-list [items]="summaryItems()"></byiara-detail-list>
+      </aside>
+    </div>
+
+    <footer class="mobile-step-actions">
+      <div
+        class="mobile-step-actions-inner"
+        [class.has-previous]="currentStepIndex() > 0"
+      >
+        @if (currentStepIndex() > 0) {
+        <button
+          type="button"
+          class="button button-secondary mobile-previous-action"
+          (click)="previousStep()"
+        >
+          <span aria-hidden="true">&larr;</span>
+          {{ copy().previous }}
+        </button>
+        }
+        <button
+          type="button"
+          class="button button-primary mobile-primary-action"
+          [disabled]="!canContinueCurrentStep() || submitting()"
+          (click)="nextStep()"
+        >
+          {{ mobilePrimaryActionLabel() }} @if (!submitting()) {
+          <span aria-hidden="true">&rarr;</span>
+          }
+        </button>
       </div>
+    </footer>
     }
   </div>
-</main>
+</div>

@@ -25,9 +25,51 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'guides',
+        loadComponent: () =>
+          import('./guides/guides-list/guides-list').then((m) => m.GuidesList),
+      },
+      {
+        path: 'guides/new',
+        loadComponent: () =>
+          import('./guides/guide-form/guide-form').then((m) => m.GuideForm),
+      },
+      {
+        path: 'images',
+        loadComponent: () =>
+          import('./media/media-library/media-library').then(
+            (m) => m.MediaLibrary,
+          ),
+      },
+      { path: 'guides/images', redirectTo: 'images', pathMatch: 'full' },
+      {
+        path: 'guides/:id/preview',
+        loadComponent: () =>
+          import('./guides/guide-preview/guide-preview').then(
+            (m) => m.GuidePreview,
+          ),
+      },
+      {
+        path: 'guides/:id',
+        loadComponent: () =>
+          import('./guides/guide-form/guide-form').then((m) => m.GuideForm),
+      },
+      {
+        path: 'reservations/:id',
+        loadComponent: () =>
+          import('./reservations/reservation-detail/reservation-detail').then(
+            (m) => m.ReservationDetail,
+          ),
+      },
+      {
         path: 'reservations',
         loadComponent: () =>
           import('./reservations/reservations').then((m) => m.Reservations),
+      },
+      {
+        path: 'customers',
+        loadComponent: () =>
+          import('./customers/customers').then((m) => m.Customers),
       },
       {
         path: 'services/new',
@@ -47,6 +89,20 @@ export const appRoutes: Route[] = [
         path: 'availability',
         loadComponent: () =>
           import('./availability/availability').then((m) => m.Availability),
+      },
+      {
+        path: 'packs',
+        loadComponent: () => import('./packs/packs').then((m) => m.Packs),
+      },
+      {
+        path: 'discounts',
+        loadComponent: () =>
+          import('./discounts/discounts').then((m) => m.Discounts),
+      },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./finance/reports/reports').then((m) => m.Reports),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],

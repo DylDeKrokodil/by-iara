@@ -1,0 +1,83 @@
+<byiara-card padding="md">
+  <div card-header>
+    <h3>Sync to Apple Calendar</h3>
+    <p>See your pending and confirmed reservations on your iPhone's Calendar app.</p>
+  </div>
+
+  @if (error()) {
+  <p class="sync-error">{{ error() }}</p>
+  }
+
+  @if (links(); as currentLinks) {
+  <div class="sync-link">
+    <p class="sync-note">
+      Copy this link now - for your security it won't be shown again. If you lose it, regenerate a new one.
+    </p>
+    <byiara-detail-list
+      boxed
+      [items]="[{ term: 'Subscription link', detail: currentLinks.httpsUrl }]"
+    ></byiara-detail-list>
+    <byiara-button variant="secondary" size="sm" (click)="copy(currentLinks.httpsUrl)">
+      Copy link
+    </byiara-button>
+    <ol class="sync-steps">
+      <li>On your iPhone, open Settings &gt; Calendar &gt; Accounts.</li>
+      <li>Tap "Add Account", then "Other".</li>
+      <li>Tap "Add Subscribed Calendar" and paste the link above.</li>
+    </ol>
+  </div>
+  } @else if (status(); as currentStatus) {
+    @if (currentStatus.active) {
+    <div class="sync-connected">
+      <p>Connected since {{ formatDate(currentStatus.createdAt) }}.</p>
+      <div class="sync-actions">
+        <byiara-button
+          variant="secondary"
+          size="sm"
+          [loading]="submitting()"
+          (click)="openRegenerateConfirmation()"
+        >
+          Regenerate link
+        </byiara-button>
+        <byiara-button
+          variant="danger"
+          size="sm"
+          [loading]="submitting()"
+          (click)="openDisconnectConfirmation()"
+        >
+          Disconnect
+        </byiara-button>
+      </div>
+    </div>
+    } @else {
+    <div class="sync-disconnected">
+      <byiara-button
+        variant="primary"
+        size="sm"
+        [loading]="submitting()"
+        (click)="regenerate()"
+      >
+        Generate link
+      </byiara-button>
+    </div>
+    }
+  }
+</byiara-card>
+
+<byiara-confirmation-modal
+  #confirmRegenerateModal
+  title="Regenerate calendar link?"
+  message="Your iPhone will stop receiving updates from the old link until you replace it there too."
+  confirmText="Regenerate"
+  variant="primary"
+  (confirmed)="regenerate()"
+></byiara-confirmation-modal>
+
+<byiara-confirmation-modal
+  #confirmDisconnectModal
+  title="Disconnect calendar sync?"
+  message="Your iPhone will stop receiving reservation updates until you generate and add a new link."
+  confirmText="Disconnect"
+  variant="danger"
+  (confirmed)="disconnect()"
+></byiara-confirmation-modal>

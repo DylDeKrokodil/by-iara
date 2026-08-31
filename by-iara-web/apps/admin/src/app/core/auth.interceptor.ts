@@ -43,7 +43,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(initialReq).pipe(
     catchError((error: HttpErrorResponse) => {
       const canRefresh =
-        error.status === 401 && !isAuthEndpoint && !!auth.refreshToken();
+        error.status === 401 && !isAuthEndpoint;
 
       if (!canRefresh) {
         return throwError(() => error);

@@ -13,6 +13,14 @@
       "defaultConfiguration": "production",
       "options": {
         "outputPath": "dist/apps/website",
+        "security": {
+          "allowedHosts": [
+            "iaragouveia.com",
+            "www.iaragouveia.com",
+            "localhost",
+            "127.0.0.1"
+          ]
+        },
         "browser": "apps/website/src/main.ts",
         "tsConfig": "apps/website/tsconfig.app.json",
         "assets": [

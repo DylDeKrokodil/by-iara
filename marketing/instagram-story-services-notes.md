@@ -5,7 +5,7 @@ Output:
 - `instagram-story-services.png` — ready-to-post 1080x1920 Instagram story (9:16).
 - `instagram-story-services.svg` — editable source file. The official logo is **inlined** (self-contained).
 
-Based on the client's existing "SERVIÇOS" price-list reference. Same soft, welcoming light style, rebuilt with the **official By Iara brand palette** from the theme tokens instead of the reference's dusty pinks.
+Based on the client's existing "SERVIÇOS" price-list reference. Same soft, welcoming light style, rebuilt with the **official Iara Gouveia brand palette** from the theme tokens instead of the reference's dusty pinks.
 
 Services & pricing (source of truth — from the client's reference image):
 

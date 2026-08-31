@@ -1,109 +1,352 @@
 .booking-container {
-  max-width: var(--byiara-container-lg);
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--byiara-space-lg);
+  max-width: var(--byiara-container-lg);
+  margin-inline: auto;
+  overflow-x: hidden;
 }
 
 .booking-flow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20rem;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 20rem);
   align-items: start;
   gap: var(--byiara-space-xl);
+  min-width: 0;
 }
 
-.step-panel {
+.booking-header {
+  display: grid;
+  gap: var(--byiara-space-xs);
+  max-width: 44rem;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-lg);
+  scroll-margin-top: calc(var(--byiara-space-2xl) + var(--byiara-space-lg));
 }
 
 .booking-header h1 {
-  margin: var(--byiara-space-2xs) 0 0;
+  margin: 0;
   font-family: var(--byiara-font-family-display);
-  line-height: var(--byiara-line-height-title);
+  font-size: clamp(2.1rem, 1.6rem + 2.1vw, 3.6rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: var(--byiara-line-height-tight);
 }
 
-.booking-section {
-  display: flex;
-  flex-direction: column;
+.step-panel {
+  display: grid;
+  gap: var(--byiara-space-lg);
+  min-width: 0;
+}
+
+.booking-section,
+.booking-form {
+  display: grid;
   gap: var(--byiara-space-md);
+  min-width: 0;
 }
 
 .booking-section h2,
-.booking-section h3 {
+.booking-section h3,
+.booking-form h2 {
   margin: 0;
+  color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-lg);
+  line-height: var(--byiara-line-height-title);
 }
 
-.option-grid,
-.slot-grid {
+.option-grid {
   display: flex;
   flex-wrap: wrap;
   gap: var(--byiara-space-xs);
 }
 
-.slot-group {
+.purchase-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--byiara-space-sm);
+}
+
+.pack-access {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-surface-muted);
+}
+
+.discount-entry {
+  display: grid;
+  gap: var(--byiara-space-md);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface-muted);
+}
+
+.discount-entry h2,
+.discount-entry p {
+  margin: 0;
+}
+
+.discount-entry p {
+  margin-top: var(--byiara-space-2xs);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+}
+
+.discount-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--byiara-space-sm);
+}
+
+.discount-applied {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+  padding: var(--byiara-space-md);
+  border-radius: var(--byiara-radius-md);
+  background: var(--byiara-color-success-tint);
+  color: var(--byiara-color-success-strong);
+}
+
+.discount-applied strong,
+.discount-applied span {
+  display: block;
+}
+
+.discount-applied span {
+  margin-top: 0.15rem;
+  font-size: var(--byiara-font-size-sm);
+}
+
+.text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--byiara-space-sm);
+}
+
+.booking-calendar {
+  display: grid;
+  gap: var(--byiara-space-sm);
+  width: min(100%, 34rem);
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--byiara-space-xs);
+  min-height: 2.75rem;
+}
+
+.calendar-header h3 {
+  text-align: center;
+  text-wrap: nowrap;
+}
+
+.desktop-calendar {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.mobile-date-strip {
+  display: none;
+}
+
+.calendar-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--byiara-space-xs);
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--byiara-color-primary-strong);
+  font: inherit;
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+  cursor: pointer;
+}
+
+.calendar-nav-next {
+  justify-self: end;
+}
+
+.calendar-nav:disabled {
+  color: var(--byiara-color-text-subtle);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.calendar-weekdays span {
+  padding-block: var(--byiara-space-xs);
+  color: var(--byiara-color-text-subtle);
+  font-size: var(--byiara-font-size-xs);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.calendar-day,
+.calendar-day-spacer {
+  aspect-ratio: 1;
+  min-width: 0;
+}
+
+.calendar-day {
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--byiara-radius-md);
+  background: transparent;
+  color: var(--byiara-color-text-subtle);
+  font: inherit;
+  font-size: var(--byiara-font-size-sm);
+}
+
+.calendar-day.is-available {
+  border-color: var(--byiara-color-border-strong);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  font-weight: var(--byiara-font-weight-semibold);
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .calendar-day.is-available:not(.is-selected):hover {
+    border-color: var(--byiara-color-primary);
+    background: var(--byiara-color-primary-tint);
+  }
+}
+
+.calendar-day.is-selected {
+  border-color: var(--byiara-color-primary-action);
+  background: var(--byiara-color-primary-action);
+  color: var(--byiara-color-on-primary);
+}
+
+.calendar-day:disabled {
+  cursor: not-allowed;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--byiara-space-xs);
+  margin: var(--byiara-space-2xs) 0 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.calendar-legend span {
+  width: 0.75rem;
+  aspect-ratio: 1;
+  border: 1px solid var(--byiara-color-border-strong);
+  border-radius: var(--byiara-radius-sm);
+  background: var(--byiara-color-surface);
+}
+
+.calendar-empty {
+  --byiara-empty-state-min-height: 18rem;
+
+  margin-top: var(--byiara-space-xs);
+}
+
+.calendar-empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--byiara-space-sm);
+  margin-top: var(--byiara-space-sm);
+}
+
+.calendar-empty-contact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--byiara-space-xs) var(--byiara-space-lg);
+  margin-top: var(--byiara-space-xs);
+}
+
+.calendar-empty-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--byiara-color-primary-strong);
+  font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-underline-offset: 0.28em;
+}
+
+.slot-group {
+  display: grid;
   gap: var(--byiara-space-xs);
 }
 
 .slot-group-label {
   margin: 0;
+  color: var(--byiara-color-text-subtle);
   font-size: var(--byiara-font-size-xs);
-  font-weight: var(--byiara-font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--byiara-color-text-muted);
-}
-
-.date-strip {
-  display: flex;
-  gap: var(--byiara-space-xs);
-  overflow-x: auto;
-  padding-bottom: var(--byiara-space-2xs);
-}
-
-.date-chip {
-  flex: 0 0 5.75rem;
-  min-height: 5.25rem;
-  padding: var(--byiara-space-sm);
-  border-radius: var(--byiara-radius-md);
-  /* Override the chip's default centered row so the date stacks, left-aligned. */
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  text-align: left;
-}
-
-.date-weekday,
-.date-month {
-  display: block;
-  font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-semibold);
-  text-transform: capitalize;
 }
 
-.date-day {
-  display: block;
-  margin: var(--byiara-space-2xs) 0;
-  font-size: var(--byiara-font-size-2xl);
-  font-weight: var(--byiara-font-weight-bold);
-  line-height: var(--byiara-line-height-tight);
+.availability-error {
+  display: grid;
+  gap: var(--byiara-space-lg);
+  max-width: 42rem;
+  padding-block: var(--byiara-space-xs);
 }
 
-.booking-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-md);
+.availability-error > div:first-child {
+  display: grid;
+  gap: var(--byiara-space-xs);
 }
 
-.booking-form h2 {
+.availability-error h3,
+.availability-error p {
   margin: 0;
-  font-size: var(--byiara-font-size-lg);
+}
+
+.availability-error h3 {
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(1.35rem, 1.2rem + 0.5vw, 1.65rem);
+  line-height: var(--byiara-line-height-title);
+}
+
+.availability-error p {
+  color: var(--byiara-color-text-muted);
+  line-height: var(--byiara-line-height-body);
+  text-wrap: pretty;
+}
+
+.availability-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--byiara-space-sm);
 }
 
 .step-actions {
@@ -112,36 +355,59 @@
   gap: var(--byiara-space-sm);
 }
 
-.confirmation h1 {
-  margin: var(--byiara-space-2xs) 0 var(--byiara-space-md);
-  font-family: var(--byiara-font-family-display);
+.mobile-step-actions {
+  display: none;
 }
 
 .booking-summary {
-  align-self: start;
   position: sticky;
-  top: var(--byiara-space-lg);
+  top: calc(4.25rem + var(--byiara-space-lg));
+  align-self: start;
+  min-width: 0;
+  background: var(--byiara-color-surface-tinted);
 }
 
 .booking-summary h2 {
   margin: 0 0 var(--byiara-space-md);
+  color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-base);
 }
 
-/* Spacing before the pending note; the boxed look comes from byiara-detail-list. */
-.confirmation-details {
-  margin: 0 0 var(--byiara-space-md);
+.confirmation {
+  display: grid;
+  justify-items: start;
+  gap: var(--byiara-space-lg);
+  max-width: 44rem;
 }
 
-.pending-note {
-  color: var(--byiara-color-text-muted);
+.confirmation-heading {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.confirmation-status {
+  margin: 0;
+  color: var(--byiara-color-primary-strong);
   font-size: var(--byiara-font-size-sm);
+  font-weight: var(--byiara-font-weight-semibold);
+}
+
+.confirmation h1 {
+  margin: 0;
+  font-family: var(--byiara-font-family-display);
+  font-size: clamp(2rem, 1.55rem + 2vw, 3.4rem);
+  font-weight: var(--byiara-font-weight-semibold);
+  letter-spacing: -0.015em;
+  line-height: var(--byiara-line-height-tight);
+}
+
+.confirmation-details {
+  width: 100%;
 }
 
 @media (max-width: 56rem) {
   .booking-flow {
     grid-template-columns: 1fr;
-    gap: var(--byiara-space-xl);
   }
 
   .booking-summary {
@@ -149,12 +415,158 @@
   }
 }
 
-/* ----- Motion ------------------------------------------------------------ */
+@media (max-width: 40rem) {
+  .booking-container {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
 
-/* Step transitions: the panel's content enters from the direction of travel,
-   so moving forward and back feels spatially consistent. Fill is `backwards`
-   so the resting state matches the default styles and never locks transforms
-   (keeps :active press feedback working). */
+  .slot-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--byiara-space-xs);
+  }
+
+  .slot-grid .slot-chip {
+    min-width: 0;
+    min-height: 3rem;
+    padding-inline: var(--byiara-space-2xs);
+    font-size: var(--byiara-font-size-sm);
+  }
+
+  .desktop-calendar {
+    display: none;
+  }
+
+  .mobile-date-strip {
+    display: flex;
+    gap: var(--byiara-space-xs);
+    width: calc(100% + 2 * var(--byiara-space-md));
+    margin-inline: calc(-1 * var(--byiara-space-md));
+    padding: var(--byiara-space-2xs) calc(100% - 5rem) var(--byiara-space-sm)
+      var(--byiara-space-md);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: none;
+  }
+
+  .mobile-date-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .calendar-skeleton-card {
+    flex: 0 0 5rem;
+  }
+
+  .mobile-date-card {
+    display: grid;
+    flex: 0 0 5rem;
+    place-items: center;
+    gap: var(--byiara-space-2xs);
+    min-height: 7rem;
+    padding: var(--byiara-space-sm) var(--byiara-space-xs);
+    border: 1px solid var(--byiara-color-border);
+    border-radius: var(--byiara-radius-lg);
+    background: var(--byiara-color-surface);
+    color: var(--byiara-color-text);
+    font: inherit;
+    scroll-snap-align: start;
+  }
+
+  .mobile-date-card span {
+    color: var(--byiara-color-text-muted);
+    font-size: var(--byiara-font-size-sm);
+    text-transform: capitalize;
+  }
+
+  .mobile-date-card strong {
+    font-size: var(--byiara-font-size-2xl);
+    line-height: 1;
+  }
+
+  .mobile-date-card.is-selected {
+    border-color: var(--byiara-color-primary-action);
+    background: var(--byiara-color-primary-action);
+    color: var(--byiara-color-on-primary);
+  }
+
+  .mobile-date-card.is-selected span {
+    color: var(--byiara-color-on-primary);
+  }
+
+  .mobile-date-card:disabled {
+    background: var(--byiara-color-surface-muted);
+    color: var(--byiara-color-text-subtle);
+    opacity: 0.52;
+  }
+
+  .discount-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .discount-controls .button {
+    width: 100%;
+  }
+
+  .step-actions,
+  .booking-summary {
+    display: none;
+  }
+
+  .mobile-step-actions {
+    position: fixed;
+    z-index: var(--byiara-z-index-sticky);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+    padding: var(--byiara-space-sm)
+      max(var(--byiara-space-md), env(safe-area-inset-right, 0px))
+      max(var(--byiara-space-sm), env(safe-area-inset-bottom, 0px))
+      max(var(--byiara-space-md), env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--byiara-color-border);
+    background: var(--byiara-color-surface);
+  }
+
+  .mobile-step-actions-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--byiara-space-sm);
+    width: min(100%, var(--byiara-container-sm));
+    margin-inline: auto;
+  }
+
+  .mobile-step-actions-inner.has-previous {
+    grid-template-columns: minmax(6.75rem, auto) minmax(0, 1fr);
+  }
+
+  .mobile-step-actions .button {
+    width: 100%;
+  }
+
+  .mobile-primary-action {
+    animation: mobileActionIn var(--byiara-duration-base) var(--byiara-ease-out)
+      backwards;
+  }
+}
+
+@media (max-width: 34rem) {
+  .step-actions,
+  .step-actions .button,
+  .availability-error-actions,
+  .availability-error-actions .button {
+    width: 100%;
+  }
+
+  .calendar-nav span:not([aria-hidden]) {
+    display: none;
+  }
+
+  .calendar-empty-actions,
+  .calendar-empty-actions .button {
+    width: 100%;
+  }
+}
+
 .step-panel > * {
   animation: stepIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
 }
@@ -166,7 +578,7 @@
 @keyframes stepIn {
   from {
     opacity: 0;
-    transform: translateX(14px);
+    transform: translateX(12px);
   }
   to {
     opacity: 1;
@@ -177,7 +589,7 @@
 @keyframes stepInBack {
   from {
     opacity: 0;
-    transform: translateX(-14px);
+    transform: translateX(-12px);
   }
   to {
     opacity: 1;
@@ -185,19 +597,23 @@
   }
 }
 
-/* Date/time options settle in with a short, capped stagger as they load or as
-   a new date is picked — list rhythm, not decoration. Capped at 10 so the
-   total reveal stays ~half a second even for a long day of slots. */
-.date-chip,
 .slot-chip {
   animation: chipIn var(--byiara-duration-base) var(--byiara-ease-out) backwards;
-  animation-delay: calc(min(var(--stagger, 0), 10) * 28ms);
+  animation-delay: calc(min(var(--stagger, 0), 10) * 24ms);
+}
+
+.time-choices-section {
+  scroll-margin-top: calc(var(--byiara-space-2xl) + var(--byiara-space-xl));
+}
+
+.time-choices-section:focus {
+  outline: none;
 }
 
 @keyframes chipIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -205,16 +621,26 @@
   }
 }
 
-/* Confirmation: a rare moment, so it earns a little delight — the card eases
-   up and the success mark draws itself in. */
+@keyframes mobileActionIn {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .confirmation {
-  animation: confirmIn var(--byiara-duration-slow) var(--byiara-ease-out) backwards;
+  animation: confirmIn var(--byiara-duration-slow) var(--byiara-ease-out)
+    backwards;
 }
 
 @keyframes confirmIn {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.985);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -222,40 +648,25 @@
   }
 }
 
-.confirmation-badge {
-  width: 4rem;
-  height: 4rem;
-  margin-bottom: var(--byiara-space-md);
+.booking-legal-notice {
+  display: grid;
+  gap: var(--byiara-space-xs);
+  margin-top: var(--byiara-space-lg);
+  padding: var(--byiara-space-md);
+  border: 1px solid var(--byiara-color-border);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface-tinted);
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  line-height: var(--byiara-line-height-body);
 }
 
-.confirmation-badge svg {
-  width: 100%;
-  height: 100%;
+.booking-legal-notice p {
+  margin: 0;
 }
 
-.confirmation-badge-circle,
-.confirmation-badge-check {
-  fill: none;
-  stroke: var(--byiara-color-success);
-  stroke-width: 3;
-}
-
-.confirmation-badge-circle {
-  stroke-dasharray: 151;
-  stroke-dashoffset: 151;
-  animation: drawStroke 0.5s var(--byiara-ease-out) 120ms forwards;
-}
-
-.confirmation-badge-check {
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 40;
-  stroke-dashoffset: 40;
-  animation: drawStroke 0.3s var(--byiara-ease-out) 480ms forwards;
-}
-
-@keyframes drawStroke {
-  to {
-    stroke-dashoffset: 0;
-  }
+.booking-legal-notice a {
+  color: var(--byiara-color-primary-strong);
+  font-weight: var(--byiara-font-weight-semibold);
+  text-underline-offset: 0.2em;
 }

@@ -1,0 +1,131 @@
+<byiara-page-header admin label="Sales & catalogue" title="Discounts">
+  <byiara-button page-header-action variant="primary" (click)="openForm()">Create discount</byiara-button>
+</byiara-page-header>
+
+<section class="overview" aria-label="Discount overview">
+  <article><span>Campaigns</span><strong>{{ discounts().length }}</strong></article>
+  <article><span>Active now</span><strong>{{ activeCount() }}</strong></article>
+  <article><span>Completed uses</span><strong>{{ selectedDiscount()?.consumedUses ?? 0 }}</strong></article>
+</section>
+
+@if (error() && !formOpen()) { <byiara-alert tone="danger">{{ error() }}</byiara-alert> }
+
+@if (formOpen()) {
+<byiara-card padding="lg">
+  <form class="discount-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <header class="section-heading">
+      <div><h2>Create a discount</h2><p>Codes apply only to individual sessions, never packs.</p></div>
+      <byiara-button variant="ghost" size="sm" [disabled]="submitting()" (click)="closeForm()">Close</byiara-button>
+    </header>
+
+    @if (generatedCode(); as code) {
+      <byiara-alert tone="success">
+        <strong>Copy this code now:</strong> <code>{{ code }}</code><br />
+        For security, the full code cannot be shown again.
+      </byiara-alert>
+      <div class="form-actions"><byiara-button variant="primary" (click)="closeForm()">Done</byiara-button></div>
+    } @else {
+      @if (error()) { <byiara-alert tone="danger">{{ error() }}</byiara-alert> }
+      <div class="form-grid">
+        <byiara-text-field label="Internal name" formControlName="name" [error]="form.controls.name.touched && form.controls.name.invalid ? 'Enter a campaign name.' : null"></byiara-text-field>
+        <byiara-select-field label="Audience" [options]="audienceOptions" [value]="audience()" (valueChange)="setAudience($event)"></byiara-select-field>
+        <byiara-select-field label="Service scope" [options]="scopeOptions" [value]="scope()" (valueChange)="setScope($event)"></byiara-select-field>
+        <byiara-select-field label="Discount type" [options]="valueTypeOptions" [value]="valueType()" (valueChange)="setValueType($event)"></byiara-select-field>
+        <byiara-text-field [label]="valueType() === 'PERCENTAGE' ? 'Percentage' : 'Amount in euros'" type="text" formControlName="value" [error]="form.controls.value.touched && form.controls.value.invalid ? 'Enter a valid discount value.' : null"></byiara-text-field>
+        @if (audience() === 'PUBLIC') {
+          <byiara-text-field label="Public code" optionalLabel="leave blank to generate" formControlName="code"></byiara-text-field>
+          <byiara-checkbox label="Feature this code above the website navigation" formControlName="featured"></byiara-checkbox>
+        } @else {
+          <byiara-text-field label="Customer email after a completed service" type="email" formControlName="customerEmail" [error]="form.controls.customerEmail.touched && form.controls.customerEmail.invalid ? 'Enter a valid customer email.' : null"></byiara-text-field>
+          <label class="email-option">
+            <input type="checkbox" formControlName="sendEmail" />
+            <span><strong>Email this code to the customer</strong><small>The message includes the personal code, validity period, and booking link.</small></span>
+          </label>
+        }
+        <byiara-text-field label="Starts" type="datetime-local" formControlName="startsAt"></byiara-text-field>
+        <byiara-text-field label="Ends" type="datetime-local" formControlName="endsAt"></byiara-text-field>
+        <byiara-text-field label="Maximum clients" optionalLabel="unlimited" type="number" formControlName="maxClients"></byiara-text-field>
+        <byiara-text-field label="Uses per customer" type="number" formControlName="maxUsesPerCustomer"></byiara-text-field>
+      </div>
+
+      @if (scope() === 'SELECTED_SERVICES') {
+        <fieldset class="service-picker">
+          <legend>Eligible services</legend>
+          <div>
+            @for (service of services(); track service.id) {
+              <label><input type="checkbox" [checked]="selectedServiceIds().has(service.id)" (change)="toggleService(service.id, $any($event.target).checked)" /> <span>{{ service.name }}</span></label>
+            }
+          </div>
+        </fieldset>
+      }
+
+      <div class="form-actions">
+        <byiara-button type="submit" variant="primary" [loading]="submitting()">{{ submitting() ? 'Creating…' : 'Create discount' }}</byiara-button>
+        <byiara-button variant="secondary" [disabled]="submitting()" (click)="closeForm()">Cancel</byiara-button>
+      </div>
+    }
+  </form>
+</byiara-card>
+}
+
+@if (!loading() && discounts().length === 0 && !formOpen()) {
+  <byiara-empty-state title="No discounts yet" description="Create a public or personal discount for individual services." [dashed]="false">
+    <byiara-button variant="primary" (click)="openForm()">Create first discount</byiara-button>
+  </byiara-empty-state>
+} @else if (discounts().length > 0) {
+<div class="discount-layout">
+  <section class="discount-list" aria-labelledby="campaigns-heading">
+    <header class="section-heading"><div><h2 id="campaigns-heading">Campaigns</h2><p>Select one to inspect its usage.</p></div></header>
+    <div class="table-card">
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Discount</th><th>Benefit</th><th>Scope</th><th>Period</th><th>Usage</th><th>Status</th></tr></thead>
+          <tbody>
+            @for (discount of discounts(); track discount.id) {
+              <tr tabindex="0" role="button" [class.selected]="selectedDiscount()?.id === discount.id" (click)="select(discount)" (keydown.enter)="select(discount)">
+                <td><strong>{{ discount.name }}</strong><span>{{ discount.audience === 'PERSONAL' ? discount.customerEmail : discount.codeHint }}{{ discount.featured ? ' · Featured' : '' }}</span></td>
+                <td class="numeric"><strong>{{ benefit(discount) }}</strong><span>{{ discount.audience === 'PERSONAL' ? 'Personal' : 'Public' }}</span></td>
+                <td class="scope-cell">{{ serviceScope(discount) }}</td>
+                <td><strong>{{ date(discount.startsAt) }}</strong><span>to {{ date(discount.endsAt) }}</span></td>
+                <td><strong>{{ discount.consumedUses }} completed</strong><span>{{ discount.reservedUses }} reserved · {{ discount.uniqueClients }} clients</span></td>
+                <td><byiara-status-chip [label]="displayStatus(discount)" [tone]="statusTone(discount)"></byiara-status-chip></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <aside class="usage-panel">
+    @if (selectedDiscount(); as discount) {
+      <header class="usage-header">
+        <div><span>Usage details</span><h2>{{ discount.name }}</h2><p>{{ discount.codeHint }} · {{ benefit(discount) }}</p></div>
+        <div class="status-actions">
+          @if (discount.audience === 'PUBLIC' && discount.status === 'ACTIVE' && discount.publicCode) {
+            <byiara-button size="sm" [variant]="discount.featured ? 'secondary' : 'primary'" (click)="updateFeatured(discount, !discount.featured)">{{ discount.featured ? 'Stop featuring' : 'Feature on website' }}</byiara-button>
+          }
+          @if (discount.status === 'ACTIVE') { <byiara-button size="sm" variant="secondary" (click)="updateStatus(discount, 'PAUSED')">Pause</byiara-button> }
+          @if (discount.status === 'PAUSED') { <byiara-button size="sm" variant="secondary" (click)="updateStatus(discount, 'ACTIVE')">Resume</byiara-button> }
+          @if (discount.status !== 'ARCHIVED') { <byiara-button size="sm" variant="ghost" (click)="updateStatus(discount, 'ARCHIVED')">Archive</byiara-button> }
+        </div>
+      </header>
+      @if (!usageLoading() && usage().length === 0) {
+        <p class="no-usage">This discount has not been used yet.</p>
+      } @else {
+        <div class="usage-list" [attr.aria-busy]="usageLoading()">
+          @for (item of usage(); track item.id) {
+            <article>
+              <div><strong>{{ item.customerName }}</strong><span>{{ item.customerEmail }}</span></div>
+              <div><strong>{{ item.serviceName }}</strong><span>{{ money(item.originalPriceCents, item.currency) }} − {{ money(item.discountAmountCents, item.currency) }} = {{ money(item.finalPriceCents, item.currency) }}</span></div>
+              <div><byiara-status-chip [label]="item.status.toLowerCase()"></byiara-status-chip><a [routerLink]="['/reservations', item.reservationId]">Open booking</a></div>
+            </article>
+          }
+        </div>
+      }
+    } @else {
+      <p class="no-usage">Select a campaign to view customers, bookings, and saved amounts.</p>
+    }
+  </aside>
+</div>
+}

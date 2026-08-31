@@ -1,0 +1,164 @@
+:host {
+  --intro-logo-color: var(--byiara-color-on-primary);
+  --intro-panel-enter-duration: 880ms;
+  --intro-panel-enter-ease: cubic-bezier(0.65, 0, 0.35, 1);
+  --intro-panel-exit-duration: 560ms;
+  --intro-panel-exit-delay: 2.25s;
+  --intro-finish-delay: 2.81s;
+
+  position: fixed;
+  inset: 0;
+  z-index: var(--byiara-z-index-tooltip);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--byiara-color-primary);
+  color: var(--byiara-color-on-primary);
+  pointer-events: none;
+  contain: paint;
+  will-change: transform;
+  animation:
+    site-intro-panel-in var(--intro-panel-enter-duration)
+      var(--intro-panel-enter-ease) both,
+    site-intro-panel-out var(--intro-panel-exit-duration)
+      var(--byiara-ease-out-soft) var(--intro-panel-exit-delay) forwards,
+    site-intro-finish var(--intro-finish-delay) step-end forwards;
+}
+
+.intro-lockup {
+  display: grid;
+  grid-template-columns: 28.5% 1fr;
+  align-items: center;
+  gap: 6.5%;
+  width: min(82vw, 32rem);
+  animation: site-intro-lockup-out 260ms var(--byiara-ease-out) 2.12s
+    forwards;
+}
+
+.intro-mark,
+.intro-wordmark {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.intro-mark-svg,
+.intro-wordmark {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.intro-mark-path,
+.intro-mark-line {
+  stroke: var(--intro-logo-color);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+.intro-mark-path {
+  fill: var(--intro-logo-color);
+  fill-opacity: 0;
+  stroke-width: 3.2;
+  animation: site-intro-path-in 720ms var(--byiara-ease-out) 560ms forwards;
+}
+
+.intro-mark-line {
+  fill: none;
+  stroke-width: 1.45;
+  animation: site-intro-line-in 360ms var(--byiara-ease-out) 990ms forwards;
+}
+
+.intro-mark-path--body {
+  animation-delay: 670ms;
+}
+
+.intro-mark-path--arm {
+  animation-delay: 770ms;
+}
+
+.intro-mark-path--face-one {
+  animation-delay: 800ms;
+}
+
+.intro-mark-path--face-two {
+  animation-delay: 880ms;
+}
+
+.intro-wordmark {
+  aspect-ratio: 645 / 219;
+  overflow: hidden;
+  background: var(--intro-logo-color);
+  -webkit-mask: url('/brand/iara-gouveia-wordmark-v2.svg') center / contain
+    no-repeat;
+  mask: url('/brand/iara-gouveia-wordmark-v2.svg') center / contain no-repeat;
+  opacity: 0;
+  transform: translateX(-4%);
+  clip-path: inset(0 100% 0 0);
+  animation: site-intro-wordmark-in 620ms var(--byiara-ease-out) 820ms
+    forwards;
+}
+
+@keyframes site-intro-panel-in {
+  from {
+    transform: translate3d(0, -100%, 0);
+  }
+
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes site-intro-path-in {
+  62% {
+    fill-opacity: 0;
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    fill-opacity: 1;
+    stroke-opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes site-intro-line-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes site-intro-wordmark-in {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes site-intro-lockup-out {
+  to {
+    opacity: 0;
+    transform: translateY(0.45rem) scale(0.985);
+  }
+}
+
+@keyframes site-intro-panel-out {
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+@keyframes site-intro-finish {
+  to {
+    visibility: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    display: none;
+  }
+}

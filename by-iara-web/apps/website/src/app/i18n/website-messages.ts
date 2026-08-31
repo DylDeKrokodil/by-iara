@@ -1,13 +1,43 @@
 import type { LocaleCode } from './supported-locales';
+import { BRAND } from '../brand/brand';
 
 export interface WebsiteMessages {
   readonly app: {
     readonly nav: {
       readonly home: string;
       readonly services: string;
-      readonly book: string;
+      readonly guides: string;
+      readonly packs: string;
+      readonly bookCta: string;
+      readonly openMenu: string;
+      readonly closeMenu: string;
     };
-    readonly footer: string;
+    readonly footer: {
+      readonly tagline: string;
+      readonly navigationLabel: string;
+      readonly explore: string;
+      readonly home: string;
+      readonly services: string;
+      readonly guides: string;
+      readonly packs: string;
+      readonly book: string;
+      readonly legal: string;
+      readonly privacy: string;
+      readonly bookingTerms: string;
+      readonly legalNotice: string;
+      readonly complaintsBook: string;
+      readonly opensNewWindow: string;
+      readonly visit: string;
+      readonly location: string;
+      readonly availability: string;
+      readonly contact: string;
+      readonly emailLabel: string;
+      readonly social: string;
+      readonly socialNavigationLabel: string;
+      readonly bookingPrompt: string;
+      readonly bookingAction: string;
+      readonly copyright: (year: number) => string;
+    };
   };
   readonly languageSwitcher: {
     readonly ariaLabel: string;
@@ -19,6 +49,36 @@ export interface WebsiteMessages {
     readonly primaryAction: string;
     readonly secondaryAction: string;
     readonly actionsLabel: string;
+    readonly today: string;
+    readonly nextAvailable: (day: string, time: string) => string;
+    readonly mediaCredit: string;
+    readonly servicesTitle: string;
+    readonly servicesLede: string;
+    readonly servicesFrom: (price: string) => string;
+    readonly servicesDuration: (min: number, max: number) => string;
+    readonly servicesAction: string;
+    readonly servicesViewAll: string;
+    readonly packsTitle: string;
+    readonly packsLede: string;
+    readonly packsExample: (sessions: number, minutes: number) => string;
+    readonly packsPerSession: (price: string) => string;
+    readonly packsSaving: (price: string) => string;
+    readonly packsAction: string;
+    readonly expectTitle: string;
+    readonly expectSteps: ReadonlyArray<{
+      readonly title: string;
+      readonly text: string;
+    }>;
+    readonly aboutTitle: string;
+    readonly aboutParagraphs: readonly string[];
+    readonly visitTitle: string;
+    readonly visitAddressTitle: string;
+    readonly visitAddressText: string;
+    readonly visitHoursTitle: string;
+    readonly visitHoursText: string;
+    readonly closingTitle: string;
+    readonly closingText: string;
+    readonly closingAction: string;
   };
   readonly services: {
     readonly eyebrow: string;
@@ -27,8 +87,95 @@ export interface WebsiteMessages {
     readonly loadError: string;
     readonly loading: string;
     readonly empty: string;
-    readonly variantsTitle: string;
+    readonly priceFrom: (price: string) => string;
     readonly bookAction: string;
+    readonly packsAvailable: string;
+  };
+  readonly guides: {
+    readonly eyebrow: string;
+    readonly title: string;
+    readonly lede: string;
+    readonly loading: string;
+    readonly loadError: string;
+    readonly empty: string;
+    readonly readGuide: string;
+    readonly updated: string;
+  };
+  readonly guideDetail: {
+    readonly breadcrumbsLabel: string;
+    readonly homeBreadcrumb: string;
+    readonly guidesBreadcrumb: string;
+    readonly back: string;
+    readonly by: string;
+    readonly updated: string;
+    readonly readingTime: (minutes: number) => string;
+    readonly shareLabel: string;
+    readonly shareFacebook: string;
+    readonly shareCopy: string;
+    readonly shareAction: string;
+    readonly shareCopied: string;
+    readonly shareUnavailable: string;
+    readonly faqTitle: string;
+    readonly relatedTitle: string;
+    readonly relatedAction: string;
+    readonly unavailableTitle: string;
+    readonly unavailableText: string;
+  };
+  readonly serviceDetail: {
+    readonly breadcrumbsLabel: string;
+    readonly homeBreadcrumb: string;
+    readonly servicesBreadcrumb: string;
+    readonly back: string;
+    readonly eyebrow: string;
+    readonly treatmentTitle: string;
+    readonly suitableForTitle: string;
+    readonly sessionTitle: string;
+    readonly optionsTitle: string;
+    readonly locationTitle: string;
+    readonly locationText: string;
+    readonly faqTitle: string;
+    readonly book: string;
+    readonly packsTitle: string;
+    readonly packsLede: string;
+    readonly packSessions: (sessions: number, minutes: number) => string;
+    readonly packPerSession: (price: string) => string;
+    readonly packSaving: (price: string) => string;
+    readonly packValidity: (days: number) => string;
+    readonly packBook: string;
+    readonly notFoundTitle: string;
+    readonly notFoundText: string;
+  };
+  readonly notFound: {
+    readonly code: string;
+    readonly title: string;
+    readonly text: string;
+    readonly homeAction: string;
+    readonly servicesAction: string;
+    readonly contactAction: string;
+  };
+  readonly packs: {
+    readonly eyebrow: string;
+    readonly title: string;
+    readonly lede: string;
+    readonly loading: string;
+    readonly loadError: string;
+    readonly emptyTitle: string;
+    readonly emptyText: string;
+    readonly exploreServices: string;
+    readonly offerSessions: (sessions: number, minutes: number) => string;
+    readonly regularValue: (price: string) => string;
+    readonly totalPrice: string;
+    readonly perSession: (price: string) => string;
+    readonly saving: (price: string) => string;
+    readonly validity: (days: number) => string;
+    readonly book: string;
+    readonly howTitle: string;
+    readonly steps: ReadonlyArray<{
+      readonly title: string;
+      readonly text: string;
+    }>;
+    readonly termsTitle: string;
+    readonly terms: readonly string[];
   };
   readonly booking: {
     readonly eyebrow: string;
@@ -44,15 +191,40 @@ export interface WebsiteMessages {
     readonly reviewStep: string;
     readonly chooseService: string;
     readonly chooseOption: string;
+    readonly paymentChoice: string;
+    readonly singleSession: string;
+    readonly buyPackLabel: (
+      sessions: number,
+      minutes: number,
+      price: string,
+    ) => string;
+    readonly usePackLabel: (remaining: number) => string;
+    readonly alreadyHavePack: string;
+    readonly packAccessHelp: string;
+    readonly packConnected: string;
+    readonly emailPackLink: string;
+    readonly sendingPackLink: string;
+    readonly packLinkSent: string;
+    readonly packAccessError: string;
     readonly chooseDate: string;
     readonly chooseSlot: string;
     readonly periodMorning: string;
     readonly periodAfternoon: string;
     readonly periodEvening: string;
     readonly slotsLoading: string;
+    readonly slotsErrorTitle: string;
     readonly slotsError: string;
-    readonly noSlots: string;
-    readonly noSlotsForDate: string;
+    readonly retryAvailability: string;
+    readonly calendarPreviousMonth: string;
+    readonly calendarNextMonth: string;
+    readonly calendarPrevious: string;
+    readonly calendarNext: string;
+    readonly calendarAvailable: string;
+    readonly calendarUnavailable: string;
+    readonly noAvailabilityInMonth: (month: string) => string;
+    readonly noAvailabilityInMonthHelp: string;
+    readonly chooseAnotherTreatment: string;
+    readonly contactByEmail: string;
     readonly yourDetails: string;
     readonly name: string;
     readonly email: string;
@@ -71,12 +243,28 @@ export interface WebsiteMessages {
     readonly submitting: string;
     readonly submitError: string;
     readonly slotTakenError: string;
+    readonly discountCode: string;
+    readonly discountHelp: string;
+    readonly applyDiscount: string;
+    readonly applyingDiscount: string;
+    readonly discountApplied: string;
+    readonly removeDiscount: string;
+    readonly discountUnavailable: string;
+    readonly discountNeedsEmail: string;
+    readonly originalPrice: string;
+    readonly discount: string;
+    readonly totalPrice: string;
     readonly confirmedTitle: string;
     readonly confirmedLede: (name: string) => string;
     readonly confirmedService: string;
     readonly confirmedWhen: string;
+    readonly confirmedNext: string;
     readonly pendingNote: string;
-    readonly bookAnother: string;
+    readonly paymentNotice: string;
+    readonly dataUseNotice: string;
+    readonly privacyLink: string;
+    readonly termsNotice: string;
+    readonly termsLink: string;
   };
 }
 
@@ -85,35 +273,229 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     app: {
       nav: {
         home: 'Início',
-        services: 'Serviços',
-        book: 'Marcações',
+        services: 'Massagens',
+        guides: 'Guias',
+        packs: 'Packs',
+        bookCta: 'Marcar agora',
+        openMenu: 'Abrir menu',
+        closeMenu: 'Fechar menu',
       },
-      footer: '© 2026 By Iara. Todos os direitos reservados.',
+      footer: {
+        tagline:
+          'Um espaço de bem-estar dedicado às mulheres, com tempo, cuidado e atenção inteira.',
+        navigationLabel: 'Navegação do rodapé',
+        explore: 'Explorar',
+        home: 'Início',
+        services: 'Massagens',
+        guides: 'Guias',
+        packs: 'Packs',
+        book: 'Marcar sessão',
+        legal: 'Legal',
+        privacy: 'Privacidade',
+        bookingTerms: 'Termos de marcação',
+        legalNotice: 'Informação legal',
+        complaintsBook: 'Livro de Reclamações',
+        opensNewWindow: 'abre numa nova janela',
+        visit: 'Visitar',
+        location: 'Almada, Portugal',
+        availability: 'Atendimento exclusivo a mulheres, apenas por marcação',
+        contact: 'Contacto',
+        emailLabel: 'Email',
+        social: 'Redes sociais',
+        socialNavigationLabel: 'Redes sociais',
+        bookingPrompt: 'O seu momento de pausa começa aqui.',
+        bookingAction: 'Ver horários',
+        copyright: (year) =>
+          `© ${year} ${BRAND.name}. Todos os direitos reservados.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Escolher idioma',
     },
     home: {
-      location: 'Massagem terapêutica em Braga',
-      title: 'By Iara',
-      lede: 'Um espaço de pausa para reservar com calma, chegar com confiança e sair com o corpo mais leve.',
+      location: BRAND.name,
+      title: 'Massagens femininas em Almada',
+      lede: 'Um espaço calmo e acolhedor, dedicado ao bem-estar feminino e ao cuidado de si.',
       primaryAction: 'Marcar sessão',
-      secondaryAction: 'Explorar serviços',
+      secondaryAction: 'Explorar massagens',
       actionsLabel: 'Ações da página inicial',
+      today: 'hoje',
+      nextAvailable: (day, time) => `Próxima vaga: ${day}, ${time}`,
+      mediaCredit: 'Vídeo via Mixkit',
+      servicesTitle: 'Massagens',
+      servicesLede:
+        'Do alívio profundo ao puro relaxamento, escolha o ritmo do seu corpo.',
+      servicesFrom: (price) => `desde ${price}`,
+      servicesDuration: (min, max) =>
+        min === max ? `${min} min` : `${min} a ${max} min`,
+      servicesAction: 'Reservar',
+      servicesViewAll: 'Ver todas as massagens',
+      packsTitle: 'Mais tempo para cuidar de si',
+      packsLede:
+        'Escolha um pack para manter a sua rotina de bem-estar e beneficiar de um valor mais leve por sessão.',
+      packsExample: (sessions, minutes) =>
+        `${sessions} sessões de ${minutes} min`,
+      packsPerSession: (price) => `${price} por sessão`,
+      packsSaving: (price) => `Poupe ${price}`,
+      packsAction: 'Descobrir os packs',
+      expectTitle: 'O que esperar',
+      expectSteps: [
+        {
+          title: 'Marque a sua sessão',
+          text: 'Escolha a massagem e o horário que melhor se adaptam à sua agenda. A marcação é rápida e simples.',
+        },
+        {
+          title: 'Boas-vindas',
+          text: 'Será recebido num ambiente calmo e relaxante. Recomendamos que chegue alguns minutos mais cedo para se instalar com tranquilidade.',
+        },
+        {
+          title: 'A sua massagem',
+          text: 'Antes de começar, reservamos um momento para compreender as suas necessidades e adaptar a massagem a si.',
+        },
+        {
+          title: 'Depois da sessão',
+          text: 'Antes de sair, aproveite o tempo de que precisar. Se necessário, receberá algumas recomendações para ajudar a prolongar os benefícios da sua massagem.',
+        },
+      ],
+      aboutTitle: 'Olá, sou a Iara!',
+      aboutParagraphs: [
+        'Sou estudante do quarto ano de Fisioterapia, com um forte interesse pela saúde, pelo bem-estar e pela reabilitação física.',
+        'Acredito que cada mulher merece um momento para cuidar de si. É por isso que ofereço tratamentos de massagem personalizados num ambiente calmo e acolhedor, onde pode relaxar, aliviar tensões e sentir-se no seu melhor.',
+        'Estou constantemente a aprender e a desenvolver as minhas competências para prestar um serviço de alta qualidade, com dedicação, cuidado e atenção aos detalhes. Espero proporcionar a cada mulher um momento de bem-estar em cada sessão.',
+      ],
+      visitTitle: 'Em Almada, à sua espera',
+      visitAddressTitle: 'Onde',
+      visitAddressText:
+        'As sessões decorrem num espaço calmo e relaxante em Almada. A morada exata é partilhada na confirmação da sua marcação.',
+      visitHoursTitle: 'Quando',
+      visitHoursText:
+        'As sessões são sempre com marcação prévia. Veja os horários livres ao reservar.',
+      closingTitle: 'Reserve o seu momento de pausa',
+      closingText:
+        'O primeiro passo para um corpo mais leve demora menos de um minuto.',
+      closingAction: 'Marcar sessão',
     },
     services: {
       eyebrow: 'O nosso menu',
-      title: 'Serviços e tratamentos',
+      title: 'Massagens em Almada',
       lede: 'Descubra a nossa seleção de massagens terapêuticas e relaxantes, pensadas para restaurar equilíbrio e harmonia.',
       loadError:
         'Não foi possível carregar o catálogo de serviços. Tente novamente mais tarde.',
       loading: 'A carregar o catálogo...',
       empty: 'Não existem serviços disponíveis para reserva neste momento.',
-      variantsTitle: 'Opções e preços',
+      priceFrom: (price) => `Desde ${price}`,
       bookAction: 'Reservar',
+      packsAvailable: 'Packs de sessões disponíveis',
+    },
+    guides: {
+      eyebrow: 'Conhecimento para cuidar de si',
+      title: 'Guias',
+      lede: 'Orientação simples e cuidada para compreender melhor o seu corpo, preparar cada sessão e prolongar o bem-estar.',
+      loading: 'A carregar os guias...',
+      loadError: 'Não foi possível carregar os guias. Tente novamente.',
+      empty: 'Ainda não existem guias publicados.',
+      readGuide: 'Ler guia',
+      updated: 'Atualizado',
+    },
+    guideDetail: {
+      breadcrumbsLabel: 'Navegação estrutural',
+      homeBreadcrumb: 'Início',
+      guidesBreadcrumb: 'Guias',
+      back: 'Voltar aos guias',
+      by: 'Por',
+      updated: 'Atualizado',
+      readingTime: (minutes) => `${minutes} min de leitura`,
+      shareLabel: 'Partilhar este guia',
+      shareFacebook: 'Facebook',
+      shareCopy: 'Copiar ligação',
+      shareAction: 'Mais opções',
+      shareCopied: 'Ligação do guia copiada.',
+      shareUnavailable:
+        'Não foi possível partilhar este guia. Tente copiar a ligação do navegador.',
+      faqTitle: 'Perguntas frequentes',
+      relatedTitle: 'Massagens relacionadas',
+      relatedAction: 'Ver massagem',
+      unavailableTitle: 'Guia indisponível',
+      unavailableText:
+        'Este guia não está publicado ou não existe neste idioma.',
+    },
+    serviceDetail: {
+      breadcrumbsLabel: 'Navegação estrutural',
+      homeBreadcrumb: 'Início',
+      servicesBreadcrumb: 'Massagens',
+      back: 'Voltar às massagens',
+      eyebrow: 'Massagem',
+      treatmentTitle: 'Sobre esta massagem',
+      suitableForTitle: 'Para quem é indicado?',
+      sessionTitle: 'O que acontece durante a sessão?',
+      optionsTitle: 'Duração e preço',
+      locationTitle: 'Onde decorre',
+      locationText:
+        'A sessão decorre num espaço calmo e relaxante em Almada. A morada exata é partilhada na confirmação da marcação.',
+      faqTitle: 'Perguntas frequentes',
+      book: 'Marcar',
+      packsTitle: 'Transforme esta pausa numa rotina',
+      packsLede:
+        'Reserve a primeira sessão agora e pague o valor total do pack depois dessa sessão.',
+      packSessions: (sessions, minutes) => `${sessions} × ${minutes} min`,
+      packPerSession: (price) => `${price} por sessão`,
+      packSaving: (price) => `Poupe ${price}`,
+      packValidity: (days) => `Válido durante ${days} dias`,
+      packBook: 'Escolher este pack',
+      notFoundTitle: 'Serviço não encontrado',
+      notFoundText:
+        'Este serviço não está disponível neste idioma ou deixou de estar publicado.',
+    },
+    notFound: {
+      code: 'Erro 404',
+      title: 'Página não encontrada',
+      text: 'Parece que o caminho que procura não está disponível. Deixe-nos guiá-lo de volta à tranquilidade.',
+      homeAction: 'Voltar ao início',
+      servicesAction: 'Ver massagens',
+      contactAction: 'Contactar',
+    },
+    packs: {
+      eyebrow: 'Continuidade e cuidado',
+      title: 'Packs para fazer da pausa um hábito',
+      lede: 'Reserve várias sessões do mesmo tratamento por um valor especial. A primeira marcação é feita já; o pack completo é pago depois dessa sessão.',
+      loading: 'A carregar os packs disponíveis...',
+      loadError: 'Não foi possível carregar os packs. Tente novamente.',
+      emptyTitle: 'Ainda não existem packs disponíveis',
+      emptyText:
+        'Pode continuar a marcar sessões individuais ou voltar mais tarde para conhecer novas opções.',
+      exploreServices: 'Explorar massagens',
+      offerSessions: (sessions, minutes) =>
+        `${sessions} sessões · ${minutes} min`,
+      regularValue: (price) => `Valor em sessões individuais: ${price}`,
+      totalPrice: 'Valor do pack',
+      perSession: (price) => `${price} por sessão`,
+      saving: (price) => `Poupe ${price}`,
+      validity: (days) => `Utilize em até ${days} dias`,
+      book: 'Marcar primeira sessão',
+      howTitle: 'Como funciona',
+      steps: [
+        {
+          title: 'Escolha o pack',
+          text: 'Compare as opções por tratamento, duração e número de sessões.',
+        },
+        {
+          title: 'Marque a primeira sessão',
+          text: 'Escolha uma data e envie o pedido de reserva como habitualmente.',
+        },
+        {
+          title: 'Pague e continue por email',
+          text: 'Depois da primeira sessão, paga o pack completo. Para as seguintes, recebe um link seguro no email usado na compra.',
+        },
+      ],
+      termsTitle: 'Antes de escolher',
+      terms: [
+        'Cada pack pertence a um tratamento e duração específicos.',
+        'Quando aplicável, a validade começa na data da primeira sessão e aparece em cada opção.',
+        'Cancelamentos e reagendamentos seguem os termos de marcação.',
+      ],
     },
     booking: {
-      eyebrow: 'Reserva',
+      eyebrow: 'Atendimento exclusivo a mulheres',
       back: 'Voltar ao início',
       loading: 'A carregar...',
       loadError: 'Não foi possível carregar os serviços. Tente novamente.',
@@ -127,20 +509,47 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Revisão',
       chooseService: 'Escolha o serviço',
       chooseOption: 'Escolha uma opção',
+      paymentChoice: 'Como pretende reservar?',
+      singleSession: 'Sessão individual',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Comprar pack de ${sessions} × ${minutes} min · ${price}`,
+      usePackLabel: (remaining) =>
+        `Usar o meu pack · ${remaining} ${remaining === 1 ? 'sessão restante' : 'sessões restantes'}`,
+      alreadyHavePack: 'Já tem um pack?',
+      packAccessHelp:
+        'Introduza o email usado na compra e enviaremos um link seguro para aceder às suas sessões.',
+      packConnected: 'O seu pack está ligado a este pedido de reserva.',
+      emailPackLink: 'Enviar link seguro por email',
+      sendingPackLink: 'A enviar...',
+      packLinkSent:
+        'Se existir um pack ativo para este email, receberá um link dentro de momentos.',
+      packAccessError: 'Não foi possível enviar o link. Tente novamente.',
       chooseDate: 'Escolha uma data',
       chooseSlot: 'Escolha um horário',
       periodMorning: 'Manhã',
       periodAfternoon: 'Tarde',
       periodEvening: 'Noite',
       slotsLoading: 'A carregar horários...',
-      slotsError: 'Não foi possível carregar a disponibilidade.',
-      noSlots: 'Sem horários disponíveis nas próximas semanas.',
-      noSlotsForDate: 'Sem horários disponíveis para esta data.',
+      slotsErrorTitle: 'Não foi possível consultar os horários',
+      slotsError:
+        'A ligação pode ter falhado. Tente novamente ou escolha outro tratamento.',
+      retryAvailability: 'Tentar novamente',
+      calendarPreviousMonth: 'Ver mês anterior',
+      calendarNextMonth: 'Ver mês seguinte',
+      calendarPrevious: 'Anterior',
+      calendarNext: 'Seguinte',
+      calendarAvailable: 'Disponível',
+      calendarUnavailable: 'Indisponível',
+      noAvailabilityInMonth: (month) => `Sem disponibilidade em ${month}`,
+      noAvailabilityInMonthHelp:
+        'Consulte o mês seguinte ou contacte a Iara diretamente.',
+      chooseAnotherTreatment: 'Escolher outro tratamento',
+      contactByEmail: 'Enviar email',
       yourDetails: 'Os seus dados',
       name: 'Nome',
       email: 'Email',
       phone: 'Telefone',
-      notes: 'Notas',
+      notes: 'Notas logísticas (não inclua dados de saúde)',
       optional: '(opcional)',
       required: 'Obrigatório',
       invalidEmail: 'Introduza um email válido',
@@ -154,47 +563,260 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       submitting: 'A enviar...',
       submitError: 'Ocorreu um erro. Tente novamente.',
       slotTakenError: 'Esse horário já não está disponível. Escolha outro.',
-      confirmedTitle: 'Reserva pedida!',
+      discountCode: 'Código de desconto',
+      discountHelp:
+        'Introduza o código para ver o desconto antes de pedir a reserva.',
+      applyDiscount: 'Aplicar',
+      applyingDiscount: 'A aplicar...',
+      discountApplied: 'Desconto aplicado',
+      removeDiscount: 'Remover',
+      discountUnavailable:
+        'Este código de desconto é inválido ou não está disponível.',
+      discountNeedsEmail: 'Introduza um email válido para aplicar o desconto.',
+      originalPrice: 'Preço original',
+      discount: 'Desconto',
+      totalPrice: 'Total',
+      confirmedTitle: 'Pedido recebido',
       confirmedLede: (name) =>
-        `Obrigado, ${name}. Confirmaremos a sua marcação por email em breve.`,
+        `Obrigado, ${name}. Recebemos o seu pedido de marcação.`,
       confirmedService: 'Serviço',
       confirmedWhen: 'Quando',
-      pendingNote: 'O seu pedido está pendente de confirmação.',
-      bookAnother: 'Fazer outra reserva',
+      confirmedNext: 'Próximo passo',
+      pendingNote: 'Enviaremos a confirmação por email em breve.',
+      paymentNotice:
+        'Não é feito qualquer pagamento online. O pagamento é presencial por numerário, MB WAY ou transferência bancária.',
+      dataUseNotice:
+        'Utilizamos os seus dados apenas para tratar e comunicar sobre este pedido.',
+      privacyLink: 'Política de privacidade',
+      termsNotice: 'Ao pedir a reserva, confirma que leu os',
+      termsLink: 'Termos de marcação',
     },
   },
   'en-US': {
     app: {
       nav: {
         home: 'Home',
-        services: 'Services',
-        book: 'Booking',
+        services: 'Massages',
+        guides: 'Guides',
+        packs: 'Packs',
+        bookCta: 'Book now',
+        openMenu: 'Open menu',
+        closeMenu: 'Close menu',
       },
-      footer: '© 2026 By Iara. All rights reserved.',
+      footer: {
+        tagline:
+          "A space dedicated to women's well-being, with time, care, and full attention.",
+        navigationLabel: 'Footer navigation',
+        explore: 'Explore',
+        home: 'Home',
+        services: 'Massages',
+        guides: 'Guides',
+        packs: 'Packs',
+        book: 'Book a session',
+        legal: 'Legal',
+        privacy: 'Privacy',
+        bookingTerms: 'Booking terms',
+        legalNotice: 'Legal information',
+        complaintsBook: 'Complaints Book',
+        opensNewWindow: 'opens in a new window',
+        visit: 'Visit',
+        location: 'Almada, Portugal',
+        availability: 'Exclusively for women, by appointment only',
+        contact: 'Contact',
+        emailLabel: 'Email',
+        social: 'Social',
+        socialNavigationLabel: 'Social media',
+        bookingPrompt: 'Your moment of pause starts here.',
+        bookingAction: 'See availability',
+        copyright: (year) => `© ${year} ${BRAND.name}. All rights reserved.`,
+      },
     },
     languageSwitcher: {
       ariaLabel: 'Choose language',
     },
     home: {
-      location: 'Therapeutic massage in Braga',
-      title: 'By Iara',
-      lede: 'A place to pause, book calmly, arrive with trust, and leave with your body feeling lighter.',
+      location: BRAND.name,
+      title: 'Massage for women in Almada',
+      lede: "A calm, welcoming space dedicated to women's well-being and self-care.",
       primaryAction: 'Book a session',
-      secondaryAction: 'Explore services',
+      secondaryAction: 'Explore massages',
       actionsLabel: 'Home page actions',
+      today: 'today',
+      nextAvailable: (day, time) => `Next opening: ${day}, ${time}`,
+      mediaCredit: 'Video via Mixkit',
+      servicesTitle: 'Massages',
+      servicesLede:
+        "From deep relief to pure relaxation, choose your body's pace.",
+      servicesFrom: (price) => `from ${price}`,
+      servicesDuration: (min, max) =>
+        min === max ? `${min} min` : `${min} to ${max} min`,
+      servicesAction: 'Book',
+      servicesViewAll: 'See all massages',
+      packsTitle: 'More time to care for yourself',
+      packsLede:
+        'Choose a pack to make wellbeing part of your routine, with a gentler price for each session.',
+      packsExample: (sessions, minutes) =>
+        `${sessions} × ${minutes} min sessions`,
+      packsPerSession: (price) => `${price} per session`,
+      packsSaving: (price) => `Save ${price}`,
+      packsAction: 'Discover session packs',
+      expectTitle: 'What to expect',
+      expectSteps: [
+        {
+          title: 'Book your session',
+          text: 'Choose the massage and time that best suits your schedule. Booking is quick and easy.',
+        },
+        {
+          title: 'Welcome',
+          text: "You'll be welcomed into a calm and relaxing environment. We recommend arriving a few minutes early to settle in.",
+        },
+        {
+          title: 'Your massage',
+          text: "Before the session begins, we'll take a moment to understand your needs and tailor the massage to you.",
+        },
+        {
+          title: 'After your session',
+          text: "Take your time before heading off, and if needed, you'll receive a few recommendations to help extend the benefits of your massage.",
+        },
+      ],
+      aboutTitle: "Hi, I'm Iara!",
+      aboutParagraphs: [
+        "I'm a fourth-year Physical Therapy student with a strong interest in health, well-being, and physical rehabilitation.",
+        "I believe every woman deserves a moment to care for herself. That's why I offer personalised massage treatments in a calm and welcoming environment where you can relax, relieve tension, and feel your best.",
+        "I'm constantly learning and developing my skills to provide a high-quality service with dedication, care, and attention to detail. I hope to give every woman a moment of well-being in each session.",
+      ],
+      visitTitle: 'In Almada, waiting for you',
+      visitAddressTitle: 'Where',
+      visitAddressText:
+        'Sessions take place in a calm and relaxing space in Almada. The exact address is shared when your booking is confirmed.',
+      visitHoursTitle: 'When',
+      visitHoursText:
+        'Sessions are by appointment only. See open times as you book.',
+      closingTitle: 'Reserve your moment of pause',
+      closingText:
+        'The first step towards a lighter body takes less than a minute.',
+      closingAction: 'Book a session',
     },
     services: {
       eyebrow: 'Our menu',
-      title: 'Services and treatments',
+      title: 'Massages',
       lede: 'Discover our range of therapeutic and relaxing massages designed to restore balance and harmony.',
       loadError: 'Could not load the services catalog. Please try again later.',
       loading: 'Loading our catalog...',
       empty: 'No services are currently available for booking.',
-      variantsTitle: 'Options and prices',
+      priceFrom: (price) => `From ${price}`,
       bookAction: 'Book',
+      packsAvailable: 'Session packs available',
+    },
+    guides: {
+      eyebrow: 'Knowledge for caring for yourself',
+      title: 'Guides',
+      lede: 'Simple, thoughtful guidance to understand your body, prepare for each session, and extend your sense of wellbeing.',
+      loading: 'Loading guides...',
+      loadError: 'We could not load the guides. Please try again.',
+      empty: 'No guides have been published yet.',
+      readGuide: 'Read guide',
+      updated: 'Updated',
+    },
+    guideDetail: {
+      breadcrumbsLabel: 'Breadcrumbs',
+      homeBreadcrumb: 'Home',
+      guidesBreadcrumb: 'Guides',
+      back: 'Back to guides',
+      by: 'By',
+      updated: 'Updated',
+      readingTime: (minutes) => `${minutes} min read`,
+      shareLabel: 'Share this guide',
+      shareFacebook: 'Facebook',
+      shareCopy: 'Copy link',
+      shareAction: 'More options',
+      shareCopied: 'Guide link copied.',
+      shareUnavailable:
+        'This guide could not be shared. Try copying the link from your browser.',
+      faqTitle: 'Frequently asked questions',
+      relatedTitle: 'Related massages',
+      relatedAction: 'View massage',
+      unavailableTitle: 'Guide unavailable',
+      unavailableText:
+        'This guide is not published or is unavailable in this language.',
+    },
+    serviceDetail: {
+      breadcrumbsLabel: 'Breadcrumbs',
+      homeBreadcrumb: 'Home',
+      servicesBreadcrumb: 'Massages',
+      back: 'Back to massages',
+      eyebrow: 'Massage',
+      treatmentTitle: 'About this massage',
+      suitableForTitle: 'Who is it suitable for?',
+      sessionTitle: 'What happens during the session?',
+      optionsTitle: 'Duration and price',
+      locationTitle: 'Where it takes place',
+      locationText:
+        'Your session takes place in a calm and relaxing space in Almada. The exact address is shared with your booking confirmation.',
+      faqTitle: 'Frequently asked questions',
+      book: 'Book',
+      packsTitle: 'Turn this pause into a routine',
+      packsLede:
+        'Book the first session now and pay the full pack price after that session.',
+      packSessions: (sessions, minutes) => `${sessions} × ${minutes} min`,
+      packPerSession: (price) => `${price} per session`,
+      packSaving: (price) => `Save ${price}`,
+      packValidity: (days) => `Valid for ${days} days`,
+      packBook: 'Choose this pack',
+      notFoundTitle: 'Service not found',
+      notFoundText:
+        'This service is unavailable in this language or is no longer published.',
+    },
+    notFound: {
+      code: 'Error 404',
+      title: 'Page not found',
+      text: 'It seems the path you were looking for is unavailable. Let us guide you back to a calmer place.',
+      homeAction: 'Back to home',
+      servicesAction: 'View massages',
+      contactAction: 'Contact us',
+    },
+    packs: {
+      eyebrow: 'Continuity and care',
+      title: 'Packs that make pausing a habit',
+      lede: 'Reserve several sessions of the same treatment at a special price. Book your first visit now, then pay for the complete pack after that session.',
+      loading: 'Loading available packs...',
+      loadError: 'We could not load the packs. Please try again.',
+      emptyTitle: 'No packs are available yet',
+      emptyText:
+        'You can still book individual sessions or return later to discover new options.',
+      exploreServices: 'Explore massages',
+      offerSessions: (sessions, minutes) =>
+        `${sessions} sessions · ${minutes} min`,
+      regularValue: (price) => `Individual session value: ${price}`,
+      totalPrice: 'Pack price',
+      perSession: (price) => `${price} per session`,
+      saving: (price) => `Save ${price}`,
+      validity: (days) => `Use within ${days} days`,
+      book: 'Book first session',
+      howTitle: 'How it works',
+      steps: [
+        {
+          title: 'Choose your pack',
+          text: 'Compare options by treatment, duration, and number of sessions.',
+        },
+        {
+          title: 'Book the first session',
+          text: 'Choose a date and submit your booking request as usual.',
+        },
+        {
+          title: 'Pay and continue by email',
+          text: 'After the first session, pay for the complete pack. For later visits, use the secure link sent to the email used for purchase.',
+        },
+      ],
+      termsTitle: 'Before you choose',
+      terms: [
+        'Each pack is tied to one treatment and session duration.',
+        'Where applicable, validity starts on the first session date and is shown on each option.',
+        'Cancellations and rescheduling follow the booking terms.',
+      ],
     },
     booking: {
-      eyebrow: 'Booking',
+      eyebrow: 'Appointments exclusively for women',
       back: 'Back to home',
       loading: 'Loading...',
       loadError: 'Could not load services. Please try again.',
@@ -207,20 +829,47 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       reviewStep: 'Review',
       chooseService: 'Choose a service',
       chooseOption: 'Choose an option',
+      paymentChoice: 'How would you like to book?',
+      singleSession: 'Single session',
+      buyPackLabel: (sessions, minutes, price) =>
+        `Buy ${sessions} × ${minutes} min pack · ${price}`,
+      usePackLabel: (remaining) =>
+        `Use my pack · ${remaining} ${remaining === 1 ? 'session' : 'sessions'} remaining`,
+      alreadyHavePack: 'Already have a pack?',
+      packAccessHelp:
+        'Enter the email used for your purchase and we will send you a secure link to access your sessions.',
+      packConnected: 'Your pack is connected to this booking request.',
+      emailPackLink: 'Email me a secure link',
+      sendingPackLink: 'Sending...',
+      packLinkSent:
+        'If an active pack exists for this email, a link will arrive shortly.',
+      packAccessError: 'We could not send the link. Please try again.',
       chooseDate: 'Choose a date',
       chooseSlot: 'Choose a time',
       periodMorning: 'Morning',
       periodAfternoon: 'Afternoon',
       periodEvening: 'Evening',
       slotsLoading: 'Loading available times...',
-      slotsError: 'Could not load availability.',
-      noSlots: 'No times available in the next weeks.',
-      noSlotsForDate: 'No times available for this date.',
+      slotsErrorTitle: 'We could not check the available times',
+      slotsError:
+        'The connection may have failed. Try again or choose another treatment.',
+      retryAvailability: 'Try again',
+      calendarPreviousMonth: 'View previous month',
+      calendarNextMonth: 'View next month',
+      calendarPrevious: 'Previous',
+      calendarNext: 'Next',
+      calendarAvailable: 'Available',
+      calendarUnavailable: 'Unavailable',
+      noAvailabilityInMonth: (month) => `No availability in ${month}`,
+      noAvailabilityInMonthHelp:
+        'View the next month or contact Iara directly.',
+      chooseAnotherTreatment: 'Choose another treatment',
+      contactByEmail: 'Send an email',
       yourDetails: 'Your details',
       name: 'Name',
       email: 'Email',
       phone: 'Phone',
-      notes: 'Notes',
+      notes: 'Logistical notes (do not include health information)',
       optional: '(optional)',
       required: 'Required',
       invalidEmail: 'Enter a valid email',
@@ -235,13 +884,33 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       submitError: 'Something went wrong. Please try again.',
       slotTakenError:
         'That time is no longer available. Please choose another.',
-      confirmedTitle: 'Booking requested!',
+      discountCode: 'Discount code',
+      discountHelp:
+        'Enter your code to see the discount before requesting the booking.',
+      applyDiscount: 'Apply',
+      applyingDiscount: 'Applying...',
+      discountApplied: 'Discount applied',
+      removeDiscount: 'Remove',
+      discountUnavailable: 'This discount code is invalid or unavailable.',
+      discountNeedsEmail: 'Enter a valid email address to apply the discount.',
+      originalPrice: 'Original price',
+      discount: 'Discount',
+      totalPrice: 'Total',
+      confirmedTitle: 'Request received',
       confirmedLede: (name) =>
-        `Thanks, ${name}. We'll confirm your appointment by email shortly.`,
+        `Thank you, ${name}. We’ve received your appointment request.`,
       confirmedService: 'Service',
       confirmedWhen: 'When',
-      pendingNote: 'Your request is pending confirmation.',
-      bookAnother: 'Book another',
+      confirmedNext: 'Next step',
+      pendingNote: 'We’ll send your confirmation by email shortly.',
+      paymentNotice:
+        'No payment is taken online. Payment is made in person by cash, MB WAY, or bank transfer.',
+      dataUseNotice:
+        'We use your details only to process and communicate about this request.',
+      privacyLink: 'Privacy policy',
+      termsNotice:
+        'By requesting the booking, you confirm that you have read the',
+      termsLink: 'Booking terms',
     },
   },
 };
