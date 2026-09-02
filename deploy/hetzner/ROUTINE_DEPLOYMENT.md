@@ -21,6 +21,8 @@ The SSH key is restricted in `~deploy/.ssh/authorized_keys` so it cannot open an
 interactive shell or run arbitrary commands. Deployments use a lock, refuse a
 dirty checkout, verify that the requested commit belongs to `origin/release`,
 validate Compose, rebuild the stack, and check the public website and API.
+It also validates the mounted Caddyfile and restarts Caddy so proxy or redirect
+changes take effect even when Compose reuses the existing container.
 
 Use the manual procedure below if GitHub Actions is unavailable or an operator
 needs to inspect the server before deploying.
