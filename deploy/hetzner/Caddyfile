@@ -10,7 +10,12 @@
 	}
 }
 
-{$DOMAIN}, www.{$DOMAIN} {
+www.{$DOMAIN} {
+	import security_headers
+	redir https://{$DOMAIN}{uri} 301
+}
+
+{$DOMAIN} {
 	import security_headers
 	encode zstd gzip
 	reverse_proxy website:4000
