@@ -1,0 +1,90 @@
+<div class="settings-page">
+  <byiara-page-header admin label="Administration" title="Settings" />
+
+  <p class="page-introduction">
+    Control the booking rules used across the public website and admin tools.
+    Changes take effect as soon as they are saved.
+  </p>
+
+  @if (loadError()) {
+  <byiara-alert tone="danger">
+    <div class="load-error-content">
+      <span>{{ loadError() }}</span>
+      <byiara-button variant="secondary" size="sm" (click)="loadSettings()">
+        Try again
+      </byiara-button>
+    </div>
+  </byiara-alert>
+  } @else if (loading()) {
+  <div class="settings-loading" role="status" aria-label="Loading settings">
+    <byiara-skeleton width="10rem" height="1.25rem" />
+    <byiara-skeleton width="100%" height="3.25rem" variant="block" />
+    <byiara-skeleton width="7rem" height="2.75rem" variant="block" />
+  </div>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <byiara-card padding="lg">
+      <section class="setting-section" aria-labelledby="booking-settings-title">
+        <div class="section-heading">
+          <h2 id="booking-settings-title">Booking schedule</h2>
+          <p>
+            Set the preparation and reset time that must remain free between
+            massage appointments.
+          </p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="appointment-buffer">Time between appointments</label>
+            <p id="appointment-buffer-help">
+              This gap is applied before and after each appointment when
+              available times are calculated. Existing appointment times are
+              not moved.
+            </p>
+          </div>
+
+          <div class="number-field">
+            <div class="number-control">
+              <input
+                id="appointment-buffer"
+                type="number"
+                min="0"
+                max="180"
+                step="5"
+                inputmode="numeric"
+                formControlName="appointmentBufferMinutes"
+                [attr.aria-describedby]="
+                  appointmentBufferError()
+                    ? 'appointment-buffer-help appointment-buffer-error'
+                    : 'appointment-buffer-help'
+                "
+                [attr.aria-invalid]="appointmentBufferError() ? 'true' : null"
+              />
+              <span aria-hidden="true">minutes</span>
+            </div>
+            @if (appointmentBufferError()) {
+            <p id="appointment-buffer-error" class="field-error" role="alert">
+              {{ appointmentBufferError() }}
+            </p>
+            }
+          </div>
+        </div>
+
+        @if (saveError()) {
+        <byiara-alert tone="danger">{{ saveError() }}</byiara-alert>
+        }
+
+        <div class="form-actions">
+          <byiara-button
+            type="submit"
+            [loading]="saving()"
+            [disabled]="form.invalid || form.pristine"
+          >
+            {{ saving() ? 'Saving…' : 'Save changes' }}
+          </byiara-button>
+        </div>
+      </section>
+    </byiara-card>
+  </form>
+  }
+</div>

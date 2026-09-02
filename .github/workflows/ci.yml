@@ -8,7 +8,10 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
 
 jobs:
   release-only:
@@ -40,7 +43,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm nx run-many -t lint test build --projects=theme,website,admin
         env:
-          NX_DAEMON: 'false'
+          NX_DAEMON: "false"
 
   api:
     name: api
@@ -53,6 +56,42 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: gradle
       - run: chmod +x ./gradlew && ./gradlew test --no-daemon
+
+  deploy-release:
+    name: deploy-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    needs: [web, api]
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Configure deployment SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.HETZNER_SSH_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/release_deploy
+          chmod 600 ~/.ssh/release_deploy
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy the tested release commit
+        env:
+          DEPLOY_HOST: ${{ vars.HETZNER_HOST }}
+          DEPLOY_USER: ${{ vars.HETZNER_DEPLOY_USER }}
+          DEPLOY_SHA: ${{ github.sha }}
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          ssh \
+            -i ~/.ssh/release_deploy \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "$DEPLOY_USER@$DEPLOY_HOST" \
+            "$DEPLOY_SHA"

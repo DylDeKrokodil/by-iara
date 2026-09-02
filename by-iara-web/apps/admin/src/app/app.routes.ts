@@ -104,6 +104,11 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./finance/reports/reports').then((m) => m.Reports),
       },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./settings/settings').then((m) => m.Settings),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
