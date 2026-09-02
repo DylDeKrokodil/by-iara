@@ -55,7 +55,18 @@ docker compose \
 docker compose \
   --env-file "$ENV_FILE" \
   -f "$COMPOSE_FILE" \
+  run --rm --no-deps caddy \
+  caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+docker compose \
+  --env-file "$ENV_FILE" \
+  -f "$COMPOSE_FILE" \
   up -d --build --remove-orphans
+
+docker compose \
+  --env-file "$ENV_FILE" \
+  -f "$COMPOSE_FILE" \
+  restart caddy
 
 wait_for_url() {
   local name="$1"
