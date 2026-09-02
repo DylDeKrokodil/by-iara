@@ -2,7 +2,28 @@
 
 The current Hetzner server deploys the `release` branch from
 `/opt/iara-gouveia`. The repository is owned by the `deploy` user, while Docker
-commands are run by `root`.
+commands can be run by the `deploy` user through its Docker group membership.
+
+## Automatic deployments
+
+Every push to `release` runs the web and API jobs in GitHub Actions. After both
+jobs pass, the `deploy-release` job connects with a restricted SSH key and asks
+the server to deploy that exact commit. The server-side command is installed at
+`/usr/local/sbin/deploy-by-iara-release`; its versioned source is
+`deploy/hetzner/deploy-release.sh`.
+
+The GitHub `release` environment contains:
+
+- variables `HETZNER_HOST` and `HETZNER_DEPLOY_USER`;
+- secrets `HETZNER_SSH_PRIVATE_KEY` and `HETZNER_SSH_KNOWN_HOSTS`.
+
+The SSH key is restricted in `~deploy/.ssh/authorized_keys` so it cannot open an
+interactive shell or run arbitrary commands. Deployments use a lock, refuse a
+dirty checkout, verify that the requested commit belongs to `origin/release`,
+validate Compose, rebuild the stack, and check the public website and API.
+
+Use the manual procedure below if GitHub Actions is unavailable or an operator
+needs to inspect the server before deploying.
 
 > The repository branching guide describes `main` as production. If the server
 > is moved to `main` later, replace `release` with `main` in the Git commands
@@ -33,7 +54,7 @@ be understood and preserved before deployment.
 
 ## 3. Update the checked-out release
 
-Run Git as `deploy` so files do not become owned by `root`:
+Run Git as `deploy` so files remain owned by the deployment account:
 
 ```bash
 sudo -u deploy git fetch origin release
@@ -109,4 +130,3 @@ After the issue is corrected, return to the tracked branch and redeploy:
 sudo -u deploy git switch release
 sudo -u deploy git pull --ff-only origin release
 ```
-
