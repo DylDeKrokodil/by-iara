@@ -28,12 +28,15 @@ class AdminSettingsController(
 
 data class SettingsResponse(
     val appointmentBufferMinutes: Int,
+    val maxDailyBookings: Int?,
 )
 
 data class UpdateSettingsRequest(
     @field:Min(OperationalSettingsService.MIN_APPOINTMENT_BUFFER_MINUTES)
     @field:Max(OperationalSettingsService.MAX_APPOINTMENT_BUFFER_MINUTES)
     val appointmentBufferMinutes: Int,
+    @field:Min(OperationalSettingsService.MIN_MAX_DAILY_BOOKINGS.toLong())
+    val maxDailyBookings: Int?,
 ) {
     @get:AssertTrue(message = "appointmentBufferMinutes must use 5-minute increments")
     val appointmentBufferIncrementValid: Boolean
@@ -41,7 +44,13 @@ data class UpdateSettingsRequest(
 }
 
 private fun UpdateSettingsRequest.toCommand() =
-    UpdateOperationalSettingsCommand(appointmentBufferMinutes = appointmentBufferMinutes)
+    UpdateOperationalSettingsCommand(
+        appointmentBufferMinutes = appointmentBufferMinutes,
+        maxDailyBookings = maxDailyBookings,
+    )
 
 private fun OperationalSettings.toResponse() =
-    SettingsResponse(appointmentBufferMinutes = appointmentBufferMinutes)
+    SettingsResponse(
+        appointmentBufferMinutes = appointmentBufferMinutes,
+        maxDailyBookings = maxDailyBookings,
+    )

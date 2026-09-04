@@ -1,6 +1,7 @@
 package com.byiara.api.reservation.domain
 
 import java.time.OffsetDateTime
+import java.time.LocalDate
 import java.util.UUID
 
 interface ReservationRepository {
@@ -28,6 +29,21 @@ interface ReservationRepository {
         endsAt: OffsetDateTime,
         excludingReservationId: UUID? = null,
     ): List<ReservationWindow>
+
+    fun findActiveStartsBetween(
+        startsAt: OffsetDateTime,
+        startsBefore: OffsetDateTime,
+        excludingReservationId: UUID? = null,
+    ): List<OffsetDateTime>
+
+    fun countActiveStartsBetween(
+        startsAt: OffsetDateTime,
+        startsBefore: OffsetDateTime,
+        excludingReservationId: UUID? = null,
+    ): Int
+
+    /** Serializes capacity checks for one business date across all API instances. */
+    fun lockBookingDate(date: LocalDate)
 
     fun create(reservation: NewReservation): Reservation
 

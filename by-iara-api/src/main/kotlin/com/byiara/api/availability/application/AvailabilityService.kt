@@ -18,6 +18,12 @@ class AvailabilityService(
     /** Today's date in the business timezone. */
     fun today(): LocalDate = LocalDate.now(zoneId)
 
+    /** The calendar date an appointment belongs to in the business timezone. */
+    fun localDate(time: OffsetDateTime): LocalDate = time.atZoneSameInstant(zoneId).toLocalDate()
+
+    /** The start of a business calendar date, preserving daylight-saving offsets. */
+    fun startOfDay(date: LocalDate): OffsetDateTime = date.atStartOfDay(zoneId).toOffsetDateTime()
+
     // --- Rules Management ---
 
     @Transactional(readOnly = true)

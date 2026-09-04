@@ -75,6 +75,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists customer_anonymization_events")
         dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservation_reschedules")
+        dsl.execute("drop table if exists reservation_day_locks")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")
@@ -234,6 +235,14 @@ class ReservationApiTests {
                 anonymized_at timestamp with time zone,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table reservation_day_locks (
+                booking_date date primary key,
+                created_at timestamp with time zone not null default now()
             )
             """.trimIndent(),
         )
@@ -440,6 +449,7 @@ class ReservationApiTests {
 
         dsl.execute("insert into admin_users (email, password_hash, role, active) values ('admin@by-iara.local', 'x', 'ADMIN', true)")
         dsl.execute("insert into application_settings (setting_key, setting_value) values ('appointment_buffer_minutes', '15')")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('max_daily_bookings', 'unlimited')")
         dsl.execute("insert into services (id, slug, name, active) values ('$serviceId', 'relax', 'Relaxing massage', true)")
         dsl.execute(
             "insert into service_variants (id, service_id, duration_minutes, price_cents, currency, active) " +
@@ -506,6 +516,48 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.durationMinutes").value(60))
             .andExpect(jsonPath("$.price.amountCents").value(7500))
             .andExpect(jsonPath("$.customer.email").value("ana@example.com"))
+    }
+
+    @Test
+    fun `daily booking limit rejects additional bookings and hides the full day`() {
+        dsl.execute("delete from application_settings where setting_key = 'max_daily_bookings'")
+        repeat(3) { index ->
+            book(slotStart.plusMinutes(index * 75L), email = "daily-$index@example.com")
+                .andExpect(status().isCreated)
+        }
+
+        book(slotStart.plusMinutes(3 * 75L), email = "daily-full@example.com")
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("No more bookings are available on this day"))
+
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+        mockMvc.perform(
+            get("/api/reservations/availability")
+                .param("serviceId", serviceId)
+                .param("serviceVariantId", variantId)
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(0))
+    }
+
+    @Test
+    fun `daily booking limit also prevents rescheduling into a full day`() {
+        dsl.execute("update application_settings set setting_value = '3' where setting_key = 'max_daily_bookings'")
+        val movingId = reservationIdFrom(
+            book(slotStart.plusDays(7), "moving-day@example.com")
+                .andExpect(status().isCreated)
+                .andReturn(),
+        )
+        repeat(3) { index ->
+            book(slotStart.plusMinutes(index * 75L), email = "occupied-$index@example.com")
+                .andExpect(status().isCreated)
+        }
+
+        mockMvc.perform(rescheduleRequest(movingId, slotStart.plusMinutes(3 * 75L)))
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("No more bookings are available on this day"))
     }
 
     @Test
@@ -761,7 +813,7 @@ class ReservationApiTests {
             org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/admin/settings")
                 .with(adminJwt())
                 .contentType("application/json")
-                .content("""{"appointmentBufferMinutes":30}"""),
+                .content("""{"appointmentBufferMinutes":30,"maxDailyBookings":null}"""),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(30))

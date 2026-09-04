@@ -38,8 +38,8 @@
             <label for="appointment-buffer">Time between appointments</label>
             <p id="appointment-buffer-help">
               This gap is applied before and after each appointment when
-              available times are calculated. Existing appointment times are
-              not moved.
+              available times are calculated. Existing appointment times are not
+              moved.
             </p>
           </div>
 
@@ -67,6 +67,59 @@
               {{ appointmentBufferError() }}
             </p>
             }
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="daily-booking-limit">Bookings per day</label>
+            <p id="daily-booking-limit-help">
+              Once this number of pending or confirmed bookings is reached, the
+              public calendar stops offering times on that day. Existing
+              bookings are not changed.
+            </p>
+          </div>
+
+          <div class="limit-control">
+            <div class="number-field">
+              <div class="number-control">
+                <input
+                  id="daily-booking-limit"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  formControlName="maxDailyBookings"
+                  [attr.aria-describedby]="
+                    dailyBookingLimitError()
+                      ? 'daily-booking-limit-help daily-booking-limit-error'
+                      : 'daily-booking-limit-help'
+                  "
+                  [attr.aria-invalid]="
+                    dailyBookingLimitError() ? 'true' : null
+                  "
+                />
+                <span aria-hidden="true">bookings</span>
+              </div>
+              @if (dailyBookingLimitError()) {
+              <p
+                id="daily-booking-limit-error"
+                class="field-error"
+                role="alert"
+              >
+                {{ dailyBookingLimitError() }}
+              </p>
+              }
+            </div>
+
+            <label class="unlimited-option">
+              <input
+                type="checkbox"
+                formControlName="noDailyBookingLimit"
+                (change)="dailyLimitChanged($any($event.target).checked)"
+              />
+              <span>No daily limit</span>
+            </label>
           </div>
         </div>
 

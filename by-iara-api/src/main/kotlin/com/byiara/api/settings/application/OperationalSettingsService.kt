@@ -12,7 +12,10 @@ class OperationalSettingsService(
 ) {
     @Transactional(readOnly = true)
     fun getSettings(): OperationalSettings =
-        OperationalSettings(appointmentBufferMinutes = appointmentBufferMinutes())
+        OperationalSettings(
+            appointmentBufferMinutes = appointmentBufferMinutes(),
+            maxDailyBookings = maxDailyBookings(),
+        )
 
     @Transactional(readOnly = true)
     fun appointmentBufferMinutes(): Int =
@@ -24,6 +27,15 @@ class OperationalSettingsService(
             }
             ?: DEFAULT_APPOINTMENT_BUFFER_MINUTES
 
+    @Transactional(readOnly = true)
+    fun maxDailyBookings(): Int? =
+        when (val storedValue = repository.findValue(MAX_DAILY_BOOKINGS_KEY)) {
+            UNLIMITED_VALUE -> null
+            null -> DEFAULT_MAX_DAILY_BOOKINGS
+            else -> storedValue.toIntOrNull()?.takeIf { it >= MIN_MAX_DAILY_BOOKINGS }
+                ?: DEFAULT_MAX_DAILY_BOOKINGS
+        }
+
     @Transactional
     fun updateSettings(command: UpdateOperationalSettingsCommand): OperationalSettings {
         require(command.appointmentBufferMinutes.toLong() in MIN_APPOINTMENT_BUFFER_MINUTES..MAX_APPOINTMENT_BUFFER_MINUTES) {
@@ -32,8 +44,12 @@ class OperationalSettingsService(
         require(command.appointmentBufferMinutes % APPOINTMENT_BUFFER_INCREMENT_MINUTES == 0) {
             "Appointment buffer must use $APPOINTMENT_BUFFER_INCREMENT_MINUTES-minute increments"
         }
+        require(command.maxDailyBookings == null || command.maxDailyBookings >= MIN_MAX_DAILY_BOOKINGS) {
+            "Maximum daily bookings must be at least $MIN_MAX_DAILY_BOOKINGS or unlimited"
+        }
         repository.upsertValue(APPOINTMENT_BUFFER_MINUTES_KEY, command.appointmentBufferMinutes.toString())
-        return OperationalSettings(command.appointmentBufferMinutes)
+        repository.upsertValue(MAX_DAILY_BOOKINGS_KEY, command.maxDailyBookings?.toString() ?: UNLIMITED_VALUE)
+        return OperationalSettings(command.appointmentBufferMinutes, command.maxDailyBookings)
     }
 
     companion object {
@@ -41,6 +57,10 @@ class OperationalSettingsService(
         const val MAX_APPOINTMENT_BUFFER_MINUTES = 180L
         const val DEFAULT_APPOINTMENT_BUFFER_MINUTES = 15
         const val APPOINTMENT_BUFFER_INCREMENT_MINUTES = 5
+        const val MIN_MAX_DAILY_BOOKINGS = 1
+        const val DEFAULT_MAX_DAILY_BOOKINGS = 3
         private const val APPOINTMENT_BUFFER_MINUTES_KEY = "appointment_buffer_minutes"
+        private const val MAX_DAILY_BOOKINGS_KEY = "max_daily_bookings"
+        private const val UNLIMITED_VALUE = "unlimited"
     }
 }

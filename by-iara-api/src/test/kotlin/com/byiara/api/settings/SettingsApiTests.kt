@@ -41,6 +41,9 @@ class SettingsApiTests {
         dsl.execute(
             "insert into application_settings (setting_key, setting_value) values ('appointment_buffer_minutes', '15')",
         )
+        dsl.execute(
+            "insert into application_settings (setting_key, setting_value) values ('max_daily_bookings', '3')",
+        )
     }
 
     @Test
@@ -48,19 +51,48 @@ class SettingsApiTests {
         mockMvc.perform(get("/api/admin/settings").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(15))
+            .andExpect(jsonPath("$.maxDailyBookings").value(3))
 
         mockMvc.perform(
             put("/api/admin/settings")
                 .with(adminJwt())
                 .contentType("application/json")
-                .content("""{"appointmentBufferMinutes":25}"""),
+                .content("""{"appointmentBufferMinutes":25,"maxDailyBookings":5}"""),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(25))
+            .andExpect(jsonPath("$.maxDailyBookings").value(5))
 
         mockMvc.perform(get("/api/admin/settings").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(25))
+            .andExpect(jsonPath("$.maxDailyBookings").value(5))
+    }
+
+    @Test
+    fun `admin can remove the daily booking limit`() {
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"appointmentBufferMinutes":15,"maxDailyBookings":null}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.maxDailyBookings").doesNotExist())
+
+        mockMvc.perform(get("/api/admin/settings").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.maxDailyBookings").doesNotExist())
+    }
+
+    @Test
+    fun `settings reject a daily booking limit below one`() {
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"appointmentBufferMinutes":15,"maxDailyBookings":0}"""),
+        ).andExpect(status().isBadRequest)
     }
 
     @Test
@@ -69,7 +101,7 @@ class SettingsApiTests {
             put("/api/admin/settings")
                 .with(adminJwt())
                 .contentType("application/json")
-                .content("""{"appointmentBufferMinutes":181}"""),
+                .content("""{"appointmentBufferMinutes":181,"maxDailyBookings":3}"""),
         ).andExpect(status().isBadRequest)
     }
 
@@ -79,7 +111,7 @@ class SettingsApiTests {
             put("/api/admin/settings")
                 .with(adminJwt())
                 .contentType("application/json")
-                .content("""{"appointmentBufferMinutes":12}"""),
+                .content("""{"appointmentBufferMinutes":12,"maxDailyBookings":3}"""),
         ).andExpect(status().isBadRequest)
     }
 
