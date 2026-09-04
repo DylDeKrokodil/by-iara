@@ -13,6 +13,7 @@ import com.byiara.api.discount.application.DiscountService
 import com.byiara.api.discount.domain.DiscountQuote
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
+import com.byiara.api.reservation.domain.DailyBookingLimitReachedException
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
@@ -62,6 +63,7 @@ class ReservationService(
         if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        enforceDailyBookingLimit(command.startsAt)
         val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
                 command.startsAt.minusMinutes(appointmentBufferMinutes),
@@ -217,8 +219,13 @@ class ReservationService(
             return slots
         }
 
-        val queryStart = slots.first().minusMinutes(appointmentBufferMinutes)
-        val queryEnd = slots.last()
+        val capacityEligibleSlots = excludeFullyBookedDates(slots, excludingReservationId)
+        if (capacityEligibleSlots.isEmpty()) {
+            return capacityEligibleSlots
+        }
+
+        val queryStart = capacityEligibleSlots.first().minusMinutes(appointmentBufferMinutes)
+        val queryEnd = capacityEligibleSlots.last()
             .plusMinutes(durationMinutes.toLong())
             .plusMinutes(appointmentBufferMinutes)
         val activeWindows = reservationRepository.findActiveWindowsOverlapping(
@@ -227,7 +234,7 @@ class ReservationService(
             excludingReservationId,
         )
 
-        return slots.filter { slotStart ->
+        return capacityEligibleSlots.filter { slotStart ->
             val slotEnd = slotStart.plusMinutes(durationMinutes.toLong())
             val bufferedSlotStart = slotStart.minusMinutes(appointmentBufferMinutes)
             val bufferedSlotEnd = slotEnd.plusMinutes(appointmentBufferMinutes)
@@ -235,6 +242,22 @@ class ReservationService(
                 bufferedSlotStart.isBefore(window.endsAt) && bufferedSlotEnd.isAfter(window.startsAt)
             }
         }
+    }
+
+    private fun excludeFullyBookedDates(
+        slots: List<OffsetDateTime>,
+        excludingReservationId: UUID?,
+    ): List<OffsetDateTime> {
+        val maxDailyBookings = settingsService.maxDailyBookings() ?: return slots
+        val firstDate = availabilityService.localDate(slots.first())
+        val lastDate = availabilityService.localDate(slots.last())
+        val bookingCounts = reservationRepository.findActiveStartsBetween(
+            availabilityService.startOfDay(firstDate),
+            availabilityService.startOfDay(lastDate.plusDays(1)),
+            excludingReservationId,
+        ).groupingBy(availabilityService::localDate).eachCount()
+
+        return slots.filter { (bookingCounts[availabilityService.localDate(it)] ?: 0) < maxDailyBookings }
     }
 
     @Transactional(readOnly = true)
@@ -314,6 +337,7 @@ class ReservationService(
         if (!availabilityService.isAvailable(startsAt, reservation.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        enforceDailyBookingLimit(startsAt, excludingReservationId = id)
         val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
                 startsAt.minusMinutes(appointmentBufferMinutes),
@@ -337,6 +361,20 @@ class ReservationService(
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         reservationEmailService.notifyCustomerOfReschedule(reservation, updated)
         return updated
+    }
+
+    private fun enforceDailyBookingLimit(startsAt: OffsetDateTime, excludingReservationId: UUID? = null) {
+        val maxDailyBookings = settingsService.maxDailyBookings() ?: return
+        val bookingDate = availabilityService.localDate(startsAt)
+        reservationRepository.lockBookingDate(bookingDate)
+        val activeBookings = reservationRepository.countActiveStartsBetween(
+            availabilityService.startOfDay(bookingDate),
+            availabilityService.startOfDay(bookingDate.plusDays(1)),
+            excludingReservationId,
+        )
+        if (activeBookings >= maxDailyBookings) {
+            throw DailyBookingLimitReachedException()
+        }
     }
 
     private fun transition(

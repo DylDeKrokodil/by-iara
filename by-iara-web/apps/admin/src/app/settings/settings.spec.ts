@@ -15,7 +15,9 @@ describe('Settings', () => {
 
   beforeEach(async () => {
     settingsApi = {
-      get: vi.fn(() => of({ appointmentBufferMinutes: 15 })),
+      get: vi.fn(() =>
+        of({ appointmentBufferMinutes: 15, maxDailyBookings: 3 }),
+      ),
       update: vi.fn((input) => of(input)),
     };
     toast = { show: vi.fn() };
@@ -32,13 +34,20 @@ describe('Settings', () => {
     fixture.detectChanges();
   });
 
-  it('loads the current appointment buffer', () => {
+  it('loads the current booking settings', () => {
     const input = fixture.nativeElement.querySelector(
       '#appointment-buffer',
     ) as HTMLInputElement;
 
     expect(settingsApi.get).toHaveBeenCalledOnce();
     expect(input.value).toBe('15');
+    expect(
+      (
+        fixture.nativeElement.querySelector(
+          '#daily-booking-limit',
+        ) as HTMLInputElement
+      ).value,
+    ).toBe('3');
     expect(fixture.nativeElement.textContent).toContain(
       'Time between appointments',
     );
@@ -58,8 +67,26 @@ describe('Settings', () => {
 
     expect(settingsApi.update).toHaveBeenCalledWith({
       appointmentBufferMinutes: 30,
+      maxDailyBookings: 3,
     });
     expect(toast.show).toHaveBeenCalledWith('Settings saved.', 'success');
+  });
+
+  it('saves an unlimited daily booking setting', () => {
+    const checkbox = fixture.nativeElement.querySelector(
+      '.unlimited-option input',
+    ) as HTMLInputElement;
+    checkbox.click();
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(settingsApi.update).toHaveBeenCalledWith({
+      appointmentBufferMinutes: 15,
+      maxDailyBookings: null,
+    });
   });
 
   it('rejects buffers outside five-minute increments', () => {
@@ -81,9 +108,7 @@ describe('Settings', () => {
   });
 
   it('offers a retry when settings cannot load', () => {
-    settingsApi.get.mockReturnValueOnce(
-      throwError(() => new Error('offline')),
-    );
+    settingsApi.get.mockReturnValueOnce(throwError(() => new Error('offline')));
     const failedFixture = TestBed.createComponent(Settings);
     failedFixture.detectChanges();
 

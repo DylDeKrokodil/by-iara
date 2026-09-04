@@ -6,6 +6,7 @@ import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
+import com.byiara.api.reservation.domain.DailyBookingLimitReachedException
 import com.byiara.api.pack.domain.PackNotAvailableException
 import com.byiara.api.pack.domain.CustomerAccessDeniedException
 import com.byiara.api.discount.domain.DiscountUnavailableException
@@ -42,6 +43,12 @@ class ReservationExceptionHandler {
     fun handleSlotAlreadyBooked(exception: SlotAlreadyBookedException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.CONFLICT).body(
             ApiErrorResponse(message = exception.message ?: "The requested time slot is already booked"),
+        )
+
+    @ExceptionHandler(DailyBookingLimitReachedException::class)
+    fun handleDailyBookingLimitReached(exception: DailyBookingLimitReachedException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ApiErrorResponse(message = exception.message ?: "No more bookings are available on this day"),
         )
 
     @ExceptionHandler(PackNotAvailableException::class)

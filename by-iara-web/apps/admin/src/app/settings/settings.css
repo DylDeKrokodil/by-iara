@@ -46,7 +46,11 @@
   gap: var(--byiara-space-xl);
   align-items: start;
   padding-block: var(--byiara-space-lg);
-  border-block: 1px solid var(--byiara-color-border);
+  border-top: 1px solid var(--byiara-color-border);
+}
+
+.setting-row:last-of-type {
+  border-bottom: 1px solid var(--byiara-color-border);
 }
 
 .setting-copy label {
@@ -68,6 +72,31 @@
 .number-field {
   display: grid;
   gap: var(--byiara-space-xs);
+}
+
+.limit-control {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.unlimited-option {
+  display: flex;
+  gap: var(--byiara-space-xs);
+  align-items: center;
+  color: var(--byiara-color-text);
+  font-size: var(--byiara-font-size-sm);
+  cursor: pointer;
+}
+
+.unlimited-option input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--byiara-color-primary);
+}
+
+.number-control:has(input:disabled) {
+  background: var(--byiara-color-surface-muted);
+  opacity: 0.65;
 }
 
 .number-control {

@@ -14,17 +14,11 @@ import { SettingsApi } from './settings-api';
 
 const MIN_APPOINTMENT_BUFFER_MINUTES = 0;
 const MAX_APPOINTMENT_BUFFER_MINUTES = 180;
+const DEFAULT_MAX_DAILY_BOOKINGS = 3;
 
 @Component({
   selector: 'byiara-settings',
-  imports: [
-    ReactiveFormsModule,
-    Alert,
-    Button,
-    Card,
-    PageHeader,
-    Skeleton,
-  ],
+  imports: [ReactiveFormsModule, Alert, Button, Card, PageHeader, Skeleton],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })
@@ -48,6 +42,11 @@ export class Settings implements OnInit {
         Validators.pattern(/^\d*[05]$/),
       ],
     ],
+    maxDailyBookings: [
+      DEFAULT_MAX_DAILY_BOOKINGS,
+      [Validators.required, Validators.min(1)],
+    ],
+    noDailyBookingLimit: false,
   });
 
   ngOnInit(): void {
@@ -59,7 +58,7 @@ export class Settings implements OnInit {
     this.loadError.set(null);
     this.api.get().subscribe({
       next: (settings) => {
-        this.form.reset(settings);
+        this.applySettings(settings);
         this.loading.set(false);
       },
       error: () => {
@@ -77,19 +76,39 @@ export class Settings implements OnInit {
     }
 
     this.saving.set(true);
-    this.api.update(this.form.getRawValue()).subscribe({
-      next: (settings) => {
-        this.form.reset(settings);
-        this.saving.set(false);
-        this.toast.show('Settings saved.', 'success');
-      },
-      error: (error: HttpErrorResponse) => {
-        this.saveError.set(
-          apiErrorMessage(error, 'Could not save settings. Please try again.'),
-        );
-        this.saving.set(false);
-      },
-    });
+    const value = this.form.getRawValue();
+    this.api
+      .update({
+        appointmentBufferMinutes: value.appointmentBufferMinutes,
+        maxDailyBookings: value.noDailyBookingLimit
+          ? null
+          : value.maxDailyBookings,
+      })
+      .subscribe({
+        next: (settings) => {
+          this.applySettings(settings);
+          this.saving.set(false);
+          this.toast.show('Settings saved.', 'success');
+        },
+        error: (error: HttpErrorResponse) => {
+          this.saveError.set(
+            apiErrorMessage(
+              error,
+              'Could not save settings. Please try again.',
+            ),
+          );
+          this.saving.set(false);
+        },
+      });
+  }
+
+  protected dailyLimitChanged(noLimit: boolean): void {
+    const control = this.form.controls.maxDailyBookings;
+    if (noLimit) {
+      control.disable();
+    } else {
+      control.enable();
+    }
   }
 
   protected appointmentBufferError(): string | null {
@@ -101,5 +120,27 @@ export class Settings implements OnInit {
       return 'Enter the time needed between appointments.';
     }
     return `Enter a value from ${MIN_APPOINTMENT_BUFFER_MINUTES} to ${MAX_APPOINTMENT_BUFFER_MINUTES} in 5-minute increments.`;
+  }
+
+  protected dailyBookingLimitError(): string | null {
+    const control = this.form.controls.maxDailyBookings;
+    if (!control.touched || control.valid || control.disabled) {
+      return null;
+    }
+    return 'Enter at least 1 booking per day, or choose no limit.';
+  }
+
+  private applySettings(settings: {
+    appointmentBufferMinutes: number;
+    maxDailyBookings: number | null;
+  }): void {
+    const noDailyBookingLimit = settings.maxDailyBookings === null;
+    this.form.reset({
+      appointmentBufferMinutes: settings.appointmentBufferMinutes,
+      maxDailyBookings: settings.maxDailyBookings ?? DEFAULT_MAX_DAILY_BOOKINGS,
+      noDailyBookingLimit,
+    });
+    this.dailyLimitChanged(noDailyBookingLimit);
+    this.form.markAsPristine();
   }
 }
