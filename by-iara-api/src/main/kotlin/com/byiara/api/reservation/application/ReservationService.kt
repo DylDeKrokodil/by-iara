@@ -91,11 +91,11 @@ class ReservationService(
             } ?: throw PackNotAvailableException("This pack offer is no longer available")
         }
 
-        val discountQuote = command.discountCode?.takeIf { it.isNotBlank() }?.let { code ->
-            if (existingPack != null || newPackOffer != null) {
-                throw InvalidReservationRequestException("Discounts are only available for individual sessions")
-            }
-            discountService.prepareForReservation(code, service.id, customer, variant.price)
+        val discountQuote = when {
+            existingPack != null || newPackOffer != null -> null
+            !command.discountCode.isNullOrBlank() ->
+                discountService.prepareForReservation(command.discountCode, service.id, customer, variant.price)
+            else -> discountService.prepareAutomaticForReservation(service.id, variant.price)
         }
         val reservationPrice = when {
             existingPack != null -> Money(0, existingPack.price.currency)

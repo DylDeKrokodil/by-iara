@@ -51,7 +51,7 @@ class DiscountService(private val repository: DiscountRepository) {
                     customerEmail = command.customerEmail?.normalizedEmail(),
                 ),
                 codeHash = hash(code),
-                codeHint = hint(code),
+                codeHint = if (command.audience == DiscountAudience.AUTOMATIC) "Automatic" else hint(code),
                 customerId = customerId,
                 publicCode = code.takeIf { command.audience == DiscountAudience.PUBLIC },
                 featured = command.featured,
@@ -59,7 +59,10 @@ class DiscountService(private val repository: DiscountRepository) {
         )
         return CreatedDiscount(
             created,
-            code.takeIf { generated || command.audience == DiscountAudience.PERSONAL },
+            code.takeIf {
+                command.audience != DiscountAudience.AUTOMATIC &&
+                    (generated || command.audience == DiscountAudience.PERSONAL)
+            },
             recipient,
         )
     }
@@ -89,6 +92,14 @@ class DiscountService(private val repository: DiscountRepository) {
         return repository.updateFeatured(id, featured) ?: throw DiscountNotFoundException(id)
     }
 
+    @Transactional
+    fun delete(id: UUID) {
+        get(id)
+        if (!repository.deleteUnused(id)) {
+            throw InvalidDiscountException("Used discounts cannot be deleted; archive this campaign instead")
+        }
+    }
+
     @Transactional(readOnly = true)
     fun featured(): Discount? = repository.findFeatured(OffsetDateTime.now())
 
@@ -111,6 +122,13 @@ class DiscountService(private val repository: DiscountRepository) {
             basePrice,
             forUpdate = true,
         )
+
+    @Transactional(readOnly = true)
+    fun automaticPromotions(): List<Discount> = repository.findActiveAutomatic(OffsetDateTime.now())
+
+    @Transactional(readOnly = true)
+    fun prepareAutomaticForReservation(serviceId: UUID, basePrice: Money): DiscountQuote? =
+        bestAutomaticQuote(repository.findActiveAutomatic(OffsetDateTime.now()), serviceId, basePrice)
 
     fun reserve(reservationId: UUID, customer: Customer, quote: DiscountQuote) =
         repository.reserve(
@@ -159,12 +177,26 @@ class DiscountService(private val repository: DiscountRepository) {
         if (discount.valueType == DiscountValueType.FIXED_AMOUNT && discount.currency != basePrice.currency) {
             throw DiscountUnavailableException()
         }
+        return quote(discount, basePrice) ?: throw DiscountUnavailableException()
+    }
+
+    private fun bestAutomaticQuote(
+        discounts: List<Discount>,
+        serviceId: UUID,
+        basePrice: Money,
+    ): DiscountQuote? = discounts.asSequence()
+        .filter { it.scope == DiscountScope.SELECTED_SERVICES && serviceId in it.serviceIds }
+        .mapNotNull { quote(it, basePrice) }
+        .maxByOrNull { it.discountAmount.amountCents }
+
+    private fun quote(discount: Discount, basePrice: Money): DiscountQuote? {
+        if (discount.valueType == DiscountValueType.FIXED_AMOUNT && discount.currency != basePrice.currency) return null
         val reduction = when (discount.valueType) {
             DiscountValueType.PERCENTAGE ->
                 ((basePrice.amountCents * discount.valueAmount) + 5_000L) / 10_000L
             DiscountValueType.FIXED_AMOUNT -> discount.valueAmount
         }.coerceAtMost(basePrice.amountCents)
-        if (reduction <= 0L) throw DiscountUnavailableException()
+        if (reduction <= 0L) return null
         return DiscountQuote(
             discountId = discount.id,
             discountName = discount.name,
@@ -193,6 +225,14 @@ class DiscountService(private val repository: DiscountRepository) {
         if (command.audience == DiscountAudience.PERSONAL && command.customerEmail.isNullOrBlank()) {
             throw InvalidDiscountException("Customer email is required for a personal discount")
         }
+        if (command.audience == DiscountAudience.AUTOMATIC && command.scope != DiscountScope.SELECTED_SERVICES) {
+            throw InvalidDiscountException("Automatic promotions must target selected services")
+        }
+        if (command.audience == DiscountAudience.AUTOMATIC &&
+            (command.maxUniqueClients != null || command.featured || !command.customerEmail.isNullOrBlank())
+        ) {
+            throw InvalidDiscountException("Automatic promotions cannot have customer limits, email delivery, or a featured code")
+        }
         if (command.featured && command.audience != DiscountAudience.PUBLIC) {
             throw InvalidDiscountException("Only public discounts can be featured")
         }
@@ -200,14 +240,15 @@ class DiscountService(private val repository: DiscountRepository) {
             throw InvalidDiscountException("Maximum clients must be greater than zero")
         }
         if (command.maxUsesPerCustomer <= 0) throw InvalidDiscountException("Uses per customer must be greater than zero")
-        if (!command.requestedCode.isNullOrBlank() && command.requestedCode.normalizedCode().length < 6) {
-            throw InvalidDiscountException("Public codes must contain at least 6 characters")
-        }
     }
 
     private fun generateCode(audience: DiscountAudience): String {
         val bytes = ByteArray(18).also(secureRandom::nextBytes)
-        val prefix = if (audience == DiscountAudience.PERSONAL) "PERS" else "DISC"
+        val prefix = when (audience) {
+            DiscountAudience.PERSONAL -> "PERS"
+            DiscountAudience.PUBLIC -> "DISC"
+            DiscountAudience.AUTOMATIC -> "AUTO"
+        }
         return "$prefix-${Base64.getUrlEncoder().withoutPadding().encodeToString(bytes).uppercase()}"
     }
 

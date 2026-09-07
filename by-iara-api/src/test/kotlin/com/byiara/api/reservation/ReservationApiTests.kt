@@ -306,7 +306,11 @@ class ReservationApiTests {
                 public_code varchar(100),
                 featured boolean not null default false,
                 created_at timestamp with time zone not null default now(),
-                updated_at timestamp with time zone not null default now()
+                updated_at timestamp with time zone not null default now(),
+                constraint discounts_personal_customer check (
+                    (audience = 'PERSONAL' and customer_id is not null)
+                    or (audience in ('PUBLIC', 'AUTOMATIC') and customer_id is null)
+                )
             )
             """.trimIndent(),
         )
@@ -697,6 +701,96 @@ class ReservationApiTests {
                     """{"serviceId":"$serviceId","serviceVariantId":"$variantId","customerEmail":"discount+again@example.com","discountCode":"SAVE20"}""",
                 ),
         ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `automatic service promotion is public and applies without a code`() {
+        val startsAt = OffsetDateTime.now(zone).minusHours(1)
+        val endsAt = OffsetDateTime.now(zone).plusDays(14)
+        mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"September service offer",
+                      "audience":"AUTOMATIC",
+                      "scope":"SELECTED_SERVICES",
+                      "valueType":"PERCENTAGE",
+                      "valueAmount":2500,
+                      "startsAt":"${iso(startsAt)}",
+                      "endsAt":"${iso(endsAt)}",
+                      "serviceIds":["$serviceId"]
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.discount.audience").value("AUTOMATIC"))
+            .andExpect(jsonPath("$.discount.codeHint").value("Automatic"))
+            .andExpect(jsonPath("$.generatedCode").doesNotExist())
+
+        mockMvc.perform(get("/api/discounts/automatic"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].serviceIds[0]").value(serviceId.toString()))
+            .andExpect(jsonPath("$[0].valueAmount").value(2500))
+
+        val result = mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId":"$serviceId",
+                      "serviceVariantId":"$variantId",
+                      "startsAt":"${iso(slotStart)}",
+                      "customer":{"name":"Promotion Customer","email":"promotion@example.com"}
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.price.amountCents").value(5625))
+            .andReturn()
+
+        val reservationId = reservationIdFrom(result)
+        assertEquals(
+            1875L,
+            dsl.fetchValue(
+                "select discount_amount_cents from reservation_discounts where reservation_id = ?",
+                UUID.fromString(reservationId),
+                Long::class.java,
+            ),
+        )
+    }
+
+    @Test
+    fun `public discount codes may be shorter than six characters`() {
+        val startsAt = OffsetDateTime.now(zone).minusHours(1)
+        val endsAt = OffsetDateTime.now(zone).plusDays(14)
+
+        mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"Short public code",
+                      "audience":"PUBLIC",
+                      "scope":"ALL_SERVICES",
+                      "valueType":"PERCENTAGE",
+                      "valueAmount":1000,
+                      "startsAt":"${iso(startsAt)}",
+                      "endsAt":"${iso(endsAt)}",
+                      "code":"A"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.discount.publicCode").value("A"))
     }
 
     @Test

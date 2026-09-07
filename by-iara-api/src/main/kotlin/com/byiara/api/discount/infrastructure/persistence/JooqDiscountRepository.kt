@@ -187,6 +187,13 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
         return if (changed > 0) findById(id) else null
     }
 
+    override fun deleteUnused(id: UUID): Boolean {
+        val hasUsage = dsl.fetchExists(dsl.selectOne().from(usages).where(uDiscountId.eq(id)))
+        if (hasUsage) return false
+        dsl.deleteFrom(scopes).where(sDiscountId.eq(id)).execute()
+        return dsl.deleteFrom(discounts).where(dId.eq(id)).execute() > 0
+    }
+
     override fun findFeatured(now: OffsetDateTime): Discount? = selectDiscounts(
         dFeatured.isTrue
             .and(dStatus.eq(DiscountStatus.ACTIVE.name))
@@ -194,6 +201,13 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
             .and(dEndsAt.gt(now))
             .and(dPublicCode.isNotNull),
     ).singleOrNull()
+
+    override fun findActiveAutomatic(now: OffsetDateTime): List<Discount> = selectDiscounts(
+        dAudience.eq(DiscountAudience.AUTOMATIC.name)
+            .and(dStatus.eq(DiscountStatus.ACTIVE.name))
+            .and(dStartsAt.le(now))
+            .and(dEndsAt.gt(now)),
+    )
 
     override fun usage(discountId: UUID): List<DiscountUsage> = dsl.select(
         uId, uReservationId, uDiscountName, uOriginal, uDiscount, uFinal, uCurrency, uStatus,
