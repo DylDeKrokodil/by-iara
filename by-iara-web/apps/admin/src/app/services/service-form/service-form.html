@@ -108,12 +108,16 @@
               <byiara-text-field
                 label="Question"
                 formControlName="question"
+                required
+                [error]="touchedError(faq.get('question'), { required: 'Enter a question.' })"
               ></byiara-text-field>
               <byiara-text-field
                 label="Answer"
                 multiline
                 [rows]="3"
                 formControlName="answer"
+                required
+                [error]="touchedError(faq.get('answer'), { required: 'Enter an answer.' })"
               ></byiara-text-field>
               <byiara-button
                 variant="ghost"
@@ -192,12 +196,16 @@
               <byiara-text-field
                 label="Question"
                 formControlName="question"
+                required
+                [error]="touchedError(faq.get('question'), { required: 'Enter a question.' })"
               ></byiara-text-field>
               <byiara-text-field
                 label="Answer"
                 multiline
                 [rows]="3"
                 formControlName="answer"
+                required
+                [error]="touchedError(faq.get('answer'), { required: 'Enter an answer.' })"
               ></byiara-text-field>
               <byiara-button
                 variant="ghost"
@@ -281,13 +289,20 @@
                       formControlName="durationMinutes"
                       min="1"
                       [class.is-invalid]="variant.get('durationMinutes')?.invalid && variant.get('durationMinutes')?.touched"
+                      [attr.aria-invalid]="variant.get('durationMinutes')?.invalid && variant.get('durationMinutes')?.touched ? 'true' : null"
+                      [attr.aria-describedby]="variant.get('durationMinutes')?.invalid && variant.get('durationMinutes')?.touched ? 'variant-' + $index + '-duration-error' : null"
                     />
                     <span class="input-suffix">min</span>
                   </div>
                 </label>
                 @if (variant.get('durationMinutes')?.invalid &&
                 variant.get('durationMinutes')?.touched) {
-                <span class="error-message">Required (min: 1)</span>
+                <span
+                  class="error-message"
+                  [id]="'variant-' + $index + '-duration-error'"
+                  aria-live="polite"
+                  >Enter a duration of at least 1 minute.</span
+                >
                 }
               </div>
 
@@ -303,12 +318,19 @@
                       min="0"
                       step="0.01"
                       [class.is-invalid]="variant.get('priceEuros')?.invalid && variant.get('priceEuros')?.touched"
+                      [attr.aria-invalid]="variant.get('priceEuros')?.invalid && variant.get('priceEuros')?.touched ? 'true' : null"
+                      [attr.aria-describedby]="variant.get('priceEuros')?.invalid && variant.get('priceEuros')?.touched ? 'variant-' + $index + '-price-error' : null"
                     />
                   </div>
                 </label>
                 @if (variant.get('priceEuros')?.invalid &&
                 variant.get('priceEuros')?.touched) {
-                <span class="error-message">Required (min: 0)</span>
+                <span
+                  class="error-message"
+                  [id]="'variant-' + $index + '-price-error'"
+                  aria-live="polite"
+                  >Enter a price of zero or more.</span
+                >
                 }
               </div>
 

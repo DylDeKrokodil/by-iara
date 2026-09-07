@@ -7,20 +7,42 @@ describe('SidebarPreferences', () => {
     TestBed.resetTestingModule();
   });
 
-  it('starts with Dashboard and Reports as favorites', () => {
+  it('starts with every navigation group open', () => {
     const preferences = TestBed.inject(SidebarPreferences);
 
-    expect([...preferences.favoriteIds()]).toEqual(['dashboard', 'reports']);
+    expect([...preferences.openGroupIds()]).toEqual([
+      'appointments',
+      'catalogue',
+      'content',
+      'business',
+    ]);
   });
 
-  it('persists user-selected favorites', () => {
+  it('persists collapsed groups', () => {
     const preferences = TestBed.inject(SidebarPreferences);
-    preferences.toggleFavorite('services');
-    preferences.toggleFavorite('dashboard');
+    preferences.toggleGroup('content');
 
     TestBed.resetTestingModule();
     const restored = TestBed.inject(SidebarPreferences);
 
-    expect([...restored.favoriteIds()]).toEqual(['reports', 'services']);
+    expect([...restored.openGroupIds()]).toEqual([
+      'appointments',
+      'catalogue',
+      'business',
+    ]);
+  });
+
+  it('opens a collapsed group without duplicating it', () => {
+    const preferences = TestBed.inject(SidebarPreferences);
+    preferences.toggleGroup('catalogue');
+    preferences.openGroup('catalogue');
+    preferences.openGroup('catalogue');
+
+    expect([...preferences.openGroupIds()]).toEqual([
+      'appointments',
+      'content',
+      'business',
+      'catalogue',
+    ]);
   });
 });

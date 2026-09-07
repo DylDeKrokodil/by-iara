@@ -81,55 +81,55 @@
     </div>
 
     <nav class="sidebar-navigation" aria-label="Primary">
-      <div class="navigation-heading">
-        <span>Favorites</span>
-        <button
-          type="button"
-          class="edit-favorites"
-          [attr.aria-pressed]="customizingFavorites()"
-          (click)="toggleFavoriteCustomization()"
-        >
-          {{ customizingFavorites() ? 'Done' : 'Edit' }}
-        </button>
-      </div>
+      @if (isCollapsed()) {
 
-      <div class="navigation-list">
-        @for (item of favoriteItems(); track item.id) {
+      <div class="navigation-list collapsed-navigation">
+        @for (item of navigationItems; track item.id) {
         <ng-container
           *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
         ></ng-container>
-        } @empty {
-        <p class="favorites-empty">Choose favorites from More.</p>
         }
       </div>
-
-      <button
-        type="button"
-        class="more-toggle"
-        [attr.aria-expanded]="isMoreOpen()"
-        [attr.aria-label]="isCollapsed() ? 'Show all navigation' : null"
-        [title]="isCollapsed() ? 'Show all navigation' : ''"
-        aria-controls="more-navigation"
-        (click)="toggleMore()"
-      >
-        <span>More</span>
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          [class.is-open]="isMoreOpen()"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </button>
-
-      @if (isMoreOpen()) {
-      <div id="more-navigation" class="navigation-list more-navigation">
-        @for (item of moreItems(); track item.id) {
+      } @else {
+      <div class="navigation-list primary-navigation">
         <ng-container
-          *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
+          *ngTemplateOutlet="navigationItem; context: { $implicit: dashboardItem }"
         ></ng-container>
-        } @empty {
-        <p class="favorites-empty">All pages are favorites.</p>
+      </div>
+
+      <div class="navigation-groups">
+        @for (group of navigationGroups; track group.id) {
+        <section class="navigation-group">
+          <button
+            type="button"
+            class="group-toggle"
+            [attr.aria-expanded]="isGroupOpen(group.id)"
+            [attr.aria-controls]="'sidebar-group-' + group.id"
+            (click)="toggleGroup(group.id)"
+          >
+            <span>{{ group.label }}</span>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              [class.is-open]="isGroupOpen(group.id)"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+
+          @if (isGroupOpen(group.id)) {
+          <div
+            [id]="'sidebar-group-' + group.id"
+            class="navigation-list group-navigation"
+          >
+            @for (item of group.items; track item.id) {
+            <ng-container
+              *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
+            ></ng-container>
+            }
+          </div>
+          }
+        </section>
         }
       </div>
       }
@@ -194,32 +194,13 @@
             <path d="M16 2v4M8 2v4M3 10h18" />
             } @case ('settings') {
             <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
-            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.36a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.07 14H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.63h.01A1.7 1.7 0 0 0 10 3.07V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.64a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.37 9v.01A1.7 1.7 0 0 0 20.93 10H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.36a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.07 14H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.63h.01A1.7 1.7 0 0 0 10 3.07V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.64a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.37 9v.01A1.7 1.7 0 0 0 20.93 10H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"
+            />
             } }
           </svg>
           <span class="nav-label">{{ item.label }}</span>
         </a>
-
-        @if (customizingFavorites()) {
-        <button
-          type="button"
-          class="favorite-toggle"
-          [class.is-favorite]="isFavorite(item.id)"
-          [attr.aria-pressed]="isFavorite(item.id)"
-          [attr.aria-label]="
-            (isFavorite(item.id) ? 'Remove ' : 'Add ') +
-            item.label +
-            (isFavorite(item.id) ? ' from favorites' : ' to favorites')
-          "
-          (click)="toggleFavorite(item.id)"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="m12 3 2.25 5.35 5.75.5-4.36 3.77 1.31 5.63L12 15.26l-4.95 2.99 1.31-5.63L4 8.85l5.75-.5L12 3Z"
-            />
-          </svg>
-        </button>
-        }
       </div>
     </ng-template>
 
