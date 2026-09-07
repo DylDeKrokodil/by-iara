@@ -4,7 +4,7 @@ import com.byiara.api.catalog.domain.Money
 import java.time.OffsetDateTime
 import java.util.UUID
 
-enum class DiscountAudience { PUBLIC, PERSONAL }
+enum class DiscountAudience { PUBLIC, PERSONAL, AUTOMATIC }
 enum class DiscountScope { ALL_SERVICES, SELECTED_SERVICES }
 enum class DiscountValueType { PERCENTAGE, FIXED_AMOUNT }
 enum class DiscountStatus { ACTIVE, PAUSED, ARCHIVED }

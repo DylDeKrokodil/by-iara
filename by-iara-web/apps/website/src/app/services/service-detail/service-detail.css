@@ -162,7 +162,15 @@
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0;
+  gap: var(--byiara-space-xs);
+}
+
+.service-option-summary del {
+  color: var(--byiara-color-text-muted);
+}
+
+.service-option-summary .promotional-price {
+  color: var(--byiara-color-primary-strong);
 }
 
 .service-options li span {

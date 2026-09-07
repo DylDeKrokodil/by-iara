@@ -93,6 +93,15 @@ data class FeaturedDiscountResponse(
     val endsAt: OffsetDateTime,
 )
 
+data class AutomaticPromotionResponse(
+    val name: String,
+    val serviceIds: Set<UUID>,
+    val valueType: String,
+    val valueAmount: Long,
+    val currency: String?,
+    val endsAt: OffsetDateTime,
+)
+
 data class DiscountUsageResponse(
     val id: UUID,
     val reservationId: UUID,
@@ -117,6 +126,10 @@ fun Discount.toResponse() = DiscountResponse(
 
 fun Discount.toFeaturedResponse() = FeaturedDiscountResponse(
     name, requireNotNull(publicCode), valueType.name, valueAmount, currency, endsAt,
+)
+
+fun Discount.toAutomaticPromotionResponse() = AutomaticPromotionResponse(
+    name, serviceIds, valueType.name, valueAmount, currency, endsAt,
 )
 
 fun CreatedDiscount.toResponse(deliveryStatus: String? = null) =

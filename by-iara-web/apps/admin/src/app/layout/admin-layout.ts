@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   NavigationEnd,
@@ -11,7 +11,11 @@ import {
 import { filter } from 'rxjs';
 import { AuthService } from '../core/auth.service';
 import { ToastContainerComponent } from '@by-iara/shared-ui';
-import { SidebarItemId, SidebarPreferences } from './sidebar-preferences';
+import {
+  SidebarGroupId,
+  SidebarItemId,
+  SidebarPreferences,
+} from './sidebar-preferences';
 
 interface NavigationItem {
   readonly id: SidebarItemId;
@@ -19,18 +23,58 @@ interface NavigationItem {
   readonly route: string;
 }
 
+interface NavigationGroup {
+  readonly id: SidebarGroupId;
+  readonly label: string;
+  readonly items: ReadonlyArray<NavigationItem>;
+}
+
+const dashboardItem: NavigationItem = {
+  id: 'dashboard',
+  label: 'Dashboard',
+  route: '/dashboard',
+};
+
+const navigationGroups: ReadonlyArray<NavigationGroup> = [
+  {
+    id: 'appointments',
+    label: 'Appointments',
+    items: [
+      { id: 'reservations', label: 'Reservations', route: '/reservations' },
+      { id: 'customers', label: 'Customers', route: '/customers' },
+      { id: 'availability', label: 'Availability', route: '/availability' },
+    ],
+  },
+  {
+    id: 'catalogue',
+    label: 'Catalogue',
+    items: [
+      { id: 'services', label: 'Services', route: '/services' },
+      { id: 'packs', label: 'Packs', route: '/packs' },
+      { id: 'discounts', label: 'Discounts', route: '/discounts' },
+    ],
+  },
+  {
+    id: 'content',
+    label: 'Content',
+    items: [
+      { id: 'guides', label: 'Guides', route: '/guides' },
+      { id: 'images', label: 'Images', route: '/images' },
+    ],
+  },
+  {
+    id: 'business',
+    label: 'Business',
+    items: [
+      { id: 'reports', label: 'Reports', route: '/reports' },
+      { id: 'settings', label: 'Settings', route: '/settings' },
+    ],
+  },
+];
+
 const navigationItems: ReadonlyArray<NavigationItem> = [
-  { id: 'dashboard', label: 'Dashboard', route: '/dashboard' },
-  { id: 'reservations', label: 'Reservations', route: '/reservations' },
-  { id: 'reports', label: 'Reports', route: '/reports' },
-  { id: 'services', label: 'Services', route: '/services' },
-  { id: 'guides', label: 'Guides', route: '/guides' },
-  { id: 'images', label: 'Images', route: '/images' },
-  { id: 'customers', label: 'Customers', route: '/customers' },
-  { id: 'packs', label: 'Packs', route: '/packs' },
-  { id: 'discounts', label: 'Discounts', route: '/discounts' },
-  { id: 'availability', label: 'Availability', route: '/availability' },
-  { id: 'settings', label: 'Settings', route: '/settings' },
+  dashboardItem,
+  ...navigationGroups.flatMap((group) => group.items),
 ];
 
 @Component({
@@ -54,19 +98,12 @@ export class AdminLayout {
 
   protected readonly isCollapsed = signal(false);
   protected readonly isMobileMenuOpen = signal(false);
-  protected readonly isMoreOpen = signal(false);
-  protected readonly customizingFavorites = signal(false);
-  protected readonly favoriteItems = computed(() => {
-    const favoriteIds = this.sidebarPreferences.favoriteIds();
-    return navigationItems.filter((item) => favoriteIds.has(item.id));
-  });
-  protected readonly moreItems = computed(() => {
-    const favoriteIds = this.sidebarPreferences.favoriteIds();
-    return navigationItems.filter((item) => !favoriteIds.has(item.id));
-  });
+  protected readonly dashboardItem = dashboardItem;
+  protected readonly navigationGroups = navigationGroups;
+  protected readonly navigationItems = navigationItems;
 
   constructor() {
-    this.expandMoreForCurrentRoute();
+    this.expandGroupForCurrentRoute();
     this.router.events
       .pipe(
         filter(
@@ -74,39 +111,19 @@ export class AdminLayout {
         ),
         takeUntilDestroyed(),
       )
-      .subscribe(() => this.expandMoreForCurrentRoute());
+      .subscribe(() => this.expandGroupForCurrentRoute());
   }
 
-  protected toggleMore(): void {
-    if (this.isCollapsed()) {
-      this.isCollapsed.set(false);
-      this.isMoreOpen.set(true);
-      return;
-    }
-    this.isMoreOpen.update((value) => !value);
+  protected toggleGroup(id: SidebarGroupId): void {
+    this.sidebarPreferences.toggleGroup(id);
+  }
+
+  protected isGroupOpen(id: SidebarGroupId): boolean {
+    return this.sidebarPreferences.openGroupIds().has(id);
   }
 
   protected toggleCollapse(): void {
     this.isCollapsed.update((value) => !value);
-    if (this.isCollapsed()) {
-      this.customizingFavorites.set(false);
-      this.isMoreOpen.set(false);
-    }
-  }
-
-  protected toggleFavoriteCustomization(): void {
-    this.customizingFavorites.update((value) => !value);
-    if (this.customizingFavorites()) {
-      this.isMoreOpen.set(true);
-    }
-  }
-
-  protected toggleFavorite(id: SidebarItemId): void {
-    this.sidebarPreferences.toggleFavorite(id);
-  }
-
-  protected isFavorite(id: SidebarItemId): boolean {
-    return this.sidebarPreferences.favoriteIds().has(id);
   }
 
   protected toggleMobileMenu(): void {
@@ -120,14 +137,16 @@ export class AdminLayout {
     this.isMobileMenuOpen.set(false);
   }
 
-  private expandMoreForCurrentRoute(): void {
-    const currentItem = navigationItems.find(
-      (item) =>
-        this.router.url === item.route ||
-        this.router.url.startsWith(`${item.route}/`),
+  private expandGroupForCurrentRoute(): void {
+    const activeGroup = navigationGroups.find((group) =>
+      group.items.some(
+        (item) =>
+          this.router.url === item.route ||
+          this.router.url.startsWith(`${item.route}/`),
+      ),
     );
-    if (currentItem && !this.isFavorite(currentItem.id)) {
-      this.isMoreOpen.set(true);
+    if (activeGroup) {
+      this.sidebarPreferences.openGroup(activeGroup.id);
     }
   }
 

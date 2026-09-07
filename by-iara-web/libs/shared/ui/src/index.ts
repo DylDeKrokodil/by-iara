@@ -24,3 +24,4 @@ export * from './lib/alert/alert';
 export * from './lib/empty-state/empty-state';
 export * from './lib/page-header/page-header';
 export * from './lib/selectable-tile/selectable-tile';
+export * from './lib/form-validation/form-validation';

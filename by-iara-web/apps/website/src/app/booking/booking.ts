@@ -735,7 +735,8 @@ export class Booking implements OnInit {
   }
 
   protected variantLabel(variant: ServiceVariant): string {
-    return `${variant.durationMinutes} min · ${this.formatPrice(variant.price.amountCents)}`;
+    const price = variant.promotionalPrice ?? variant.price;
+    return `${variant.durationMinutes} min · ${this.formatPrice(price.amountCents)}`;
   }
 
   protected packOfferLabel(
@@ -811,23 +812,38 @@ export class Booking implements OnInit {
 
   private discountPriceItems(): DetailListItem[] {
     const quote = this.discountQuote();
-    if (!quote || this.selectedPackOfferId() || this.selectedCustomerPackId()) {
+    const variant = this.selectedVariant();
+    if (this.selectedPackOfferId() || this.selectedCustomerPackId()) {
       return [];
     }
 
     const copy = this.copy();
+    let originalCents: number;
+    let finalCents: number;
+    let discountCents: number;
+    if (quote) {
+      originalCents = quote.originalPrice.amountCents;
+      finalCents = quote.finalPrice.amountCents;
+      discountCents = quote.discountAmount.amountCents;
+    } else if (variant?.promotionalPrice) {
+      originalCents = variant.price.amountCents;
+      finalCents = variant.promotionalPrice.amountCents;
+      discountCents = originalCents - finalCents;
+    } else {
+      return [];
+    }
     return [
       {
         term: copy.originalPrice,
-        detail: this.formatPrice(quote.originalPrice.amountCents),
+        detail: this.formatPrice(originalCents),
       },
       {
         term: copy.discount,
-        detail: `−${this.formatPrice(quote.discountAmount.amountCents)}`,
+        detail: `−${this.formatPrice(discountCents)}`,
       },
       {
         term: copy.totalPrice,
-        detail: this.formatPrice(quote.finalPrice.amountCents),
+        detail: this.formatPrice(finalCents),
       },
     ];
   }

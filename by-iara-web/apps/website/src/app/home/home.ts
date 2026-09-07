@@ -26,13 +26,7 @@ import { RevealOnScroll } from './reveal-on-scroll.directive';
 
 @Component({
   selector: 'byiara-home',
-  imports: [
-    Button,
-    HomePack,
-    NextAvailableLink,
-    RevealOnScroll,
-    RouterLink,
-  ],
+  imports: [Button, HomePack, NextAvailableLink, RevealOnScroll, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -182,16 +176,31 @@ export class Home implements OnInit {
   }
 
   protected priceFrom(service: Service): string {
-    const cents = Math.min(
-      ...service.variants
-        .filter((variant) => variant.active)
-        .map((variant) => variant.price.amountCents),
-    );
+    const variant = this.cheapestVariant(service);
+    const cents = variant?.price.amountCents ?? 0;
     return new Intl.NumberFormat(this.language.current().locale, {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
     }).format(cents / 100);
+  }
+
+  protected promotionalPriceFrom(service: Service): string | null {
+    const cents = this.cheapestVariant(service)?.promotionalPrice?.amountCents;
+    if (cents === undefined) return null;
+    return new Intl.NumberFormat(this.language.current().locale, {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+    }).format(cents / 100);
+  }
+
+  private cheapestVariant(service: Service) {
+    return service.variants
+      .filter((variant) => variant.active)
+      .reduce<
+        (typeof service.variants)[number] | null
+      >((current, variant) => (!current || (variant.promotionalPrice?.amountCents ?? variant.price.amountCents) < (current.promotionalPrice?.amountCents ?? current.price.amountCents) ? variant : current), null);
   }
 
   protected durationLabel(service: Service): string {

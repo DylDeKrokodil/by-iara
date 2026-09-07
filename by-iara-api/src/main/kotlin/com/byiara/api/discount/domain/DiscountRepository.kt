@@ -16,6 +16,8 @@ interface DiscountRepository {
     fun transitionReservation(reservationId: UUID, target: DiscountUsageStatus, at: OffsetDateTime)
     fun updateStatus(id: UUID, status: DiscountStatus): Discount?
     fun updateFeatured(id: UUID, featured: Boolean): Discount?
+    fun deleteUnused(id: UUID): Boolean
     fun findFeatured(now: OffsetDateTime): Discount?
+    fun findActiveAutomatic(now: OffsetDateTime): List<Discount>
     fun usage(discountId: UUID): List<DiscountUsage>
 }
