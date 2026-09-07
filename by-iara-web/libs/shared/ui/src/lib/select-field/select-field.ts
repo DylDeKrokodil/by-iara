@@ -29,25 +29,36 @@ export class SelectField {
   label = input.required<string>();
   options = input.required<ReadonlyArray<SelectFieldOption>>();
   value = input.required<string>();
+  error = input<string | null>(null);
   valueChange = output<string>();
+  touched = output<void>();
 
   protected readonly open = signal(false);
   protected readonly activeIndex = signal(0);
   protected readonly labelId = `byiara-select-field-label-${this.instanceId}`;
   protected readonly listboxId = `byiara-select-field-listbox-${this.instanceId}`;
-  protected readonly activeOptionId = computed(() => (
+  protected readonly errorId = `byiara-select-field-error-${this.instanceId}`;
+  protected readonly activeOptionId = computed(() =>
     this.open() && this.options()[this.activeIndex()]
       ? this.optionId(this.activeIndex())
-      : null
-  ));
-  protected readonly selectedOption = computed(() => (
-    this.options().find((option) => option.value === this.value()) ?? this.options()[0] ?? null
-  ));
-  protected readonly selectedLabel = computed(() => this.selectedOption()?.label ?? '');
+      : null,
+  );
+  protected readonly selectedOption = computed(
+    () =>
+      this.options().find((option) => option.value === this.value()) ??
+      this.options()[0] ??
+      null,
+  );
+  protected readonly selectedLabel = computed(
+    () => this.selectedOption()?.label ?? '',
+  );
 
   @HostListener('document:click', ['$event.target'])
   protected onDocumentClick(target: EventTarget | null): void {
-    if (target instanceof Node && !this.elementRef.nativeElement.contains(target)) {
+    if (
+      target instanceof Node &&
+      !this.elementRef.nativeElement.contains(target)
+    ) {
       this.closeDropdown();
     }
   }
@@ -130,7 +141,9 @@ export class SelectField {
   }
 
   private selectedIndex(): number {
-    const selectedIndex = this.options().findIndex((option) => option.value === this.value());
+    const selectedIndex = this.options().findIndex(
+      (option) => option.value === this.value(),
+    );
 
     return selectedIndex >= 0 ? selectedIndex : 0;
   }
@@ -143,7 +156,9 @@ export class SelectField {
       return;
     }
 
-    this.activeIndex.update((current) => (current + step + optionsLength) % optionsLength);
+    this.activeIndex.update(
+      (current) => (current + step + optionsLength) % optionsLength,
+    );
   }
 
   private selectActiveOption(): void {
