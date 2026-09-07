@@ -139,7 +139,9 @@ export class SeoService {
         .filter((variant) => variant.active)
         .map((variant) => ({
           '@type': 'Offer',
-          price: (variant.price.amountCents / 100).toFixed(2),
+          price: (
+            (variant.promotionalPrice ?? variant.price).amountCents / 100
+          ).toFixed(2),
           priceCurrency: variant.price.currency,
           url: `${this.absolute(this.staticPath(locale.path, 'book'))}?service=${encodeURIComponent(service.slug)}&variant=${encodeURIComponent(variant.id)}`,
         })),

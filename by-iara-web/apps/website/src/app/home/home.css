@@ -220,9 +220,18 @@ h1 {
   display: flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 0;
+  gap: var(--byiara-space-xs);
   margin: 0;
   text-align: right;
+}
+
+.home-service-meta del {
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-xs);
+}
+
+.home-service-meta .promotional-price {
+  color: var(--byiara-color-primary-strong);
 }
 
 .home-service-meta strong {

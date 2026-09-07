@@ -88,7 +88,14 @@
             }
           </div>
           <p class="home-service-meta">
+            @if (promotionalPriceFrom(service); as promotionalPrice) {
+            <del>{{ copy().servicesFrom(priceFrom(service)) }}</del>
+            <strong class="promotional-price"
+              >{{ copy().servicesFrom(promotionalPrice) }}</strong
+            >
+            } @else {
             <strong>{{ copy().servicesFrom(priceFrom(service)) }}</strong>
+            }
             <span class="home-service-separator" aria-hidden="true"
               >&nbsp;·&nbsp;</span
             >

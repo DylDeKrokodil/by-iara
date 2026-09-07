@@ -89,7 +89,13 @@
 
               @if (startingPrice(service); as price) {
               <div class="booking-row">
-                <span class="starting-price">{{ price }}</span>
+                <span
+                  class="starting-price"
+                  [class.has-promotion]="price.original"
+                >
+                  @if (price.original) { <del>{{ price.original }}</del> }
+                  <strong>{{ price.current }}</strong>
+                </span>
                 <byiara-button
                   variant="secondary"
                   size="sm"
