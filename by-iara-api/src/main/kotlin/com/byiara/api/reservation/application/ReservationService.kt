@@ -95,7 +95,7 @@ class ReservationService(
             existingPack != null || newPackOffer != null -> null
             !command.discountCode.isNullOrBlank() ->
                 discountService.prepareForReservation(command.discountCode, service.id, customer, variant.price)
-            else -> discountService.prepareAutomaticForReservation(service.id, variant.price)
+            else -> discountService.prepareAutomaticForReservation(service.id, variant.price, customer)
         }
         val reservationPrice = when {
             existingPack != null -> Money(0, existingPack.price.currency)
@@ -104,6 +104,17 @@ class ReservationService(
             else -> variant.price
         }
 
+        if (command.expectedPriceCents != null && command.expectedPriceCents != reservationPrice.amountCents) {
+            throw com.byiara.api.reservation.domain.ReservationPriceChangedException()
+        }
+        // A restricted automatic offer must always be reviewed, including older clients.
+        if (command.expectedPriceCents == null && discountQuote != null &&
+            command.discountCode.isNullOrBlank()) {
+            val promotion = discountService.get(discountQuote.discountId)
+            if (promotion.firstTimeCustomersOnly || promotion.maxUsesPerCustomer != null) {
+                throw com.byiara.api.reservation.domain.ReservationPriceChangedException()
+            }
+        }
         val reservation = reservationRepository.create(
             NewReservation(
                 customerId = customer.id,
@@ -140,6 +151,13 @@ class ReservationService(
         }
         reservationEmailService.notifyAdminsOfNewReservation(reservation)
         return reservation
+    }
+
+    @Transactional(readOnly = true)
+    fun previewAutomaticPrice(serviceId: java.util.UUID, variantId: java.util.UUID, email: String): Pair<Money, Money> {
+        val service = requireActiveService(serviceId)
+        val variant = requireActiveVariant(service, variantId)
+        return variant.price to (discountService.previewAutomatic(service.id, variant.price, email)?.finalPrice ?: variant.price)
     }
 
     @Transactional(readOnly = true)

@@ -56,6 +56,15 @@ class ReservationController(
         return reservationService.create(request.toCommand()).toResponse()
     }
 
+    @PostMapping("/automatic-price")
+    fun automaticPrice(@Valid @RequestBody request: AutomaticPriceRequest): AutomaticPriceResponse {
+        val (original, final) = reservationService.previewAutomaticPrice(request.serviceId!!, request.serviceVariantId!!, request.customerEmail)
+        return AutomaticPriceResponse(
+            ReservationMoneyResponse(original.amountCents, original.currency),
+            ReservationMoneyResponse(final.amountCents, final.currency),
+        )
+    }
+
     @PostMapping("/discount-preview")
     fun previewDiscount(@Valid @RequestBody request: PreviewDiscountRequest): DiscountQuoteResponse =
         reservationService.previewDiscount(request.toCommand()).toResponse()

@@ -27,12 +27,13 @@ data class CreateDiscountRequest(
     @field:NotNull val startsAt: OffsetDateTime?,
     @field:NotNull @field:Future val endsAt: OffsetDateTime?,
     @field:Positive val maxUniqueClients: Int? = null,
-    @field:Positive val maxUsesPerCustomer: Int = 1,
+    @field:Positive val maxUsesPerCustomer: Int? = null,
     val serviceIds: Set<UUID> = emptySet(),
     @field:Email @field:Size(max = 255) val customerEmail: String? = null,
     @field:Size(max = 100) val code: String? = null,
     val sendEmail: Boolean = false,
     val featured: Boolean = false,
+    val firstTimeCustomersOnly: Boolean = false,
 ) {
     fun toCommand() = CreateDiscountCommand(
         name = name,
@@ -44,11 +45,12 @@ data class CreateDiscountRequest(
         startsAt = startsAt!!,
         endsAt = endsAt!!,
         maxUniqueClients = maxUniqueClients,
-        maxUsesPerCustomer = maxUsesPerCustomer,
+        maxUsesPerCustomer = if (audience == DiscountAudience.AUTOMATIC) maxUsesPerCustomer else maxUsesPerCustomer ?: 1,
         serviceIds = serviceIds,
         customerEmail = customerEmail,
         requestedCode = code,
         featured = featured,
+        firstTimeCustomersOnly = firstTimeCustomersOnly,
     )
 }
 
@@ -63,7 +65,7 @@ data class DiscountResponse(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val maxUniqueClients: Int?,
-    val maxUsesPerCustomer: Int,
+    val maxUsesPerCustomer: Int?,
     val codeHint: String,
     val customerEmail: String?,
     val status: String,
@@ -73,6 +75,7 @@ data class DiscountResponse(
     val uniqueClients: Int,
     val publicCode: String?,
     val featured: Boolean,
+    val firstTimeCustomersOnly: Boolean,
 )
 
 data class CreatedDiscountResponse(
@@ -86,11 +89,13 @@ data class UpdateFeaturedDiscountRequest(val featured: Boolean)
 
 data class FeaturedDiscountResponse(
     val name: String,
-    val code: String,
+    val code: String?,
     val valueType: String,
     val valueAmount: Long,
     val currency: String?,
     val endsAt: OffsetDateTime,
+    val firstTimeCustomersOnly: Boolean,
+    val maxUsesPerCustomer: Int?,
 )
 
 data class AutomaticPromotionResponse(
@@ -100,6 +105,8 @@ data class AutomaticPromotionResponse(
     val valueAmount: Long,
     val currency: String?,
     val endsAt: OffsetDateTime,
+    val firstTimeCustomersOnly: Boolean,
+    val maxUsesPerCustomer: Int?,
 )
 
 data class DiscountUsageResponse(
@@ -121,15 +128,15 @@ data class DiscountUsageResponse(
 fun Discount.toResponse() = DiscountResponse(
     id, name, audience.name, scope.name, valueType.name, valueAmount, currency, startsAt, endsAt,
     maxUniqueClients, maxUsesPerCustomer, codeHint, customerEmail, status.name, serviceIds,
-    reservedUses, consumedUses, uniqueClients, publicCode, featured,
+    reservedUses, consumedUses, uniqueClients, publicCode, featured, firstTimeCustomersOnly,
 )
 
 fun Discount.toFeaturedResponse() = FeaturedDiscountResponse(
-    name, requireNotNull(publicCode), valueType.name, valueAmount, currency, endsAt,
+    name, publicCode, valueType.name, valueAmount, currency, endsAt, firstTimeCustomersOnly, maxUsesPerCustomer,
 )
 
 fun Discount.toAutomaticPromotionResponse() = AutomaticPromotionResponse(
-    name, serviceIds, valueType.name, valueAmount, currency, endsAt,
+    name, serviceIds, valueType.name, valueAmount, currency, endsAt, firstTimeCustomersOnly, maxUsesPerCustomer,
 )
 
 fun CreatedDiscount.toResponse(deliveryStatus: String? = null) =
