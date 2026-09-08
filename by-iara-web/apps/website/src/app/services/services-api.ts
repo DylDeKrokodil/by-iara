@@ -14,6 +14,7 @@ export interface ServiceVariant {
   durationMinutes: number;
   price: Money;
   promotionalPrice?: Money | null;
+  promotion?: AutomaticPromotion;
   active: boolean;
   sortOrder: number;
 }
@@ -66,6 +67,8 @@ export interface ServiceImage {
 }
 
 export interface AutomaticPromotion {
+  firstTimeCustomersOnly?: boolean;
+  maxUsesPerCustomer?: number | null;
   name: string;
   serviceIds: string[];
   valueType: 'PERCENTAGE' | 'FIXED_AMOUNT';
@@ -148,27 +151,33 @@ export function applyAutomaticPromotions(
     return {
       ...service,
       variants: service.variants.map((variant) => {
-        const prices = applicable
+        const offers = applicable
           .filter(
             (promotion) =>
               promotion.valueType !== 'FIXED_AMOUNT' ||
               promotion.currency === variant.price.currency,
           )
-          .map((promotion) =>
-            promotion.valueType === 'PERCENTAGE'
-              ? variant.price.amountCents -
-                Math.round(
-                  (variant.price.amountCents * promotion.valueAmount) / 10_000,
-                )
-              : Math.max(0, variant.price.amountCents - promotion.valueAmount),
-          );
-        return prices.length
+          .map((promotion) => ({
+            promotion,
+            price: Math.max(
+              0,
+              variant.price.amountCents -
+                (promotion.valueType === 'PERCENTAGE'
+                  ? Math.round(
+                      (variant.price.amountCents * promotion.valueAmount) /
+                        10_000,
+                    )
+                  : promotion.valueAmount),
+            ),
+          }))
+          .filter((offer) => offer.price < variant.price.amountCents)
+          .sort((a, b) => a.price - b.price);
+        const best = offers[0];
+        return best
           ? {
               ...variant,
-              promotionalPrice: {
-                ...variant.price,
-                amountCents: Math.min(...prices),
-              },
+              promotionalPrice: { ...variant.price, amountCents: best.price },
+              promotion: best.promotion,
             }
           : variant;
       }),
