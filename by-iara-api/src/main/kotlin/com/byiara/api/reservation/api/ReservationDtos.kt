@@ -57,6 +57,8 @@ data class CreateReservationRequest(
     val customerSessionToken: String? = null,
     @field:Size(max = 100)
     val discountCode: String? = null,
+    @field:jakarta.validation.constraints.PositiveOrZero
+    val expectedPriceCents: Long? = null,
 ) {
     fun toCommand(): CreateReservationCommand =
         CreateReservationCommand(
@@ -70,8 +72,22 @@ data class CreateReservationRequest(
             customerPackId = customerPackId,
             customerSessionToken = customerSessionToken,
             discountCode = discountCode?.trim()?.ifBlank { null },
+            expectedPriceCents = expectedPriceCents,
         )
 }
+
+data class AutomaticPriceRequest(
+    @field:NotNull val serviceId: UUID?,
+    @field:NotNull val serviceVariantId: UUID?,
+    @field:NotBlank @field:Email
+    @field:Pattern(regexp = PUBLIC_EMAIL_DOMAIN_PATTERN)
+    @field:Size(max = 255) val customerEmail: String,
+)
+
+data class AutomaticPriceResponse(
+    val originalPrice: ReservationMoneyResponse,
+    val finalPrice: ReservationMoneyResponse,
+)
 
 data class PreviewDiscountRequest(
     @field:NotNull val serviceId: UUID?,

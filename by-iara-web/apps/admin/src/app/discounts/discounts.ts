@@ -85,6 +85,10 @@ const discountDateRangeValidator: ValidatorFn = (
 })
 export class Discounts implements OnInit {
   protected readonly touchedError = touchedError;
+  protected readonly automaticUsageOptions: SelectFieldOption[] = [
+    { label: 'Unlimited', value: 'unlimited' },
+    { label: 'Once', value: 'once' },
+  ];
   @ViewChild('detailsDialog')
   private detailsDialog?: ElementRef<HTMLDialogElement>;
   @ViewChild('deleteConfirmation')
@@ -145,6 +149,8 @@ export class Discounts implements OnInit {
       ],
       sendEmail: [true],
       featured: [false],
+      automaticUsage: ['unlimited'],
+      firstTimeCustomersOnly: [false],
     },
     { validators: discountDateRangeValidator },
   );
@@ -177,6 +183,8 @@ export class Discounts implements OnInit {
       maxUsesPerCustomer: '1',
       sendEmail: true,
       featured: false,
+      automaticUsage: 'unlimited',
+      firstTimeCustomersOnly: false,
     });
     this.audience.set('PUBLIC');
     this.scope.set('ALL_SERVICES');
@@ -334,7 +342,14 @@ export class Discounts implements OnInit {
             : raw.maxClients
               ? Number(raw.maxClients)
               : undefined,
-        maxUsesPerCustomer: Number(raw.maxUsesPerCustomer),
+        maxUsesPerCustomer:
+          this.audience() === 'AUTOMATIC'
+            ? raw.automaticUsage === 'once'
+              ? 1
+              : null
+            : Number(raw.maxUsesPerCustomer),
+        firstTimeCustomersOnly:
+          this.audience() === 'AUTOMATIC' && raw.firstTimeCustomersOnly,
         serviceIds: [...this.selectedServiceIds()],
         customerEmail:
           this.audience() === 'PERSONAL' ? raw.customerEmail.trim() : undefined,
@@ -343,7 +358,7 @@ export class Discounts implements OnInit {
             ? raw.code.trim() || undefined
             : undefined,
         sendEmail: this.audience() === 'PERSONAL' && raw.sendEmail,
-        featured: this.audience() === 'PUBLIC' && raw.featured,
+        featured: this.audience() !== 'PERSONAL' && raw.featured,
       })
       .subscribe({
         next: ({ discount, generatedCode, deliveryStatus }) => {

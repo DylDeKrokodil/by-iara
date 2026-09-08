@@ -62,6 +62,7 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("create alias if not exists discount_customer_identity for \"com.byiara.api.reservation.DiscountIdentityTestFunctions.normalize\"")
         dsl.execute("drop table if exists application_settings")
         dsl.execute("drop table if exists public_request_rate_limits")
         dsl.execute("drop table if exists reservation_discounts")
@@ -298,7 +299,8 @@ class ReservationApiTests {
                 starts_at timestamp with time zone not null,
                 ends_at timestamp with time zone not null,
                 max_unique_clients integer,
-                max_uses_per_customer integer not null default 1,
+                max_uses_per_customer integer default 1,
+                first_time_customers_only boolean not null default false,
                 code_hash varchar(64) not null unique,
                 code_hint varchar(40) not null,
                 customer_id uuid references customers(id),
@@ -763,6 +765,113 @@ class ReservationApiTests {
                 Long::class.java,
             ),
         )
+    }
+
+    private fun automaticOffer(once: Boolean = true, firstTime: Boolean = false, amount: Int = 2500, featured: Boolean = false): UUID {
+        val result = mockMvc.perform(post("/api/admin/discounts").with(adminJwt()).contentType("application/json").content(
+            """{"name":"Automatic eligibility test", "audience":"AUTOMATIC", "scope":"SELECTED_SERVICES",
+                "valueType":"PERCENTAGE", "valueAmount":$amount,
+                "startsAt":"${iso(OffsetDateTime.now(zone).minusHours(1))}", "endsAt":"${iso(OffsetDateTime.now(zone).plusDays(30))}",
+                "serviceIds":["$serviceId"], "maxUsesPerCustomer":${if (once) "1" else "null"},
+                "firstTimeCustomersOnly":$firstTime, "featured":$featured}""",
+        )).andExpect(status().isCreated).andReturn()
+        return UUID.fromString(Regex("\"id\":\"([^\"]+)\"").find(result.response.contentAsString)!!.groupValues[1])
+    }
+
+    private fun automaticPreview(email: String, expected: Int) = mockMvc.perform(
+        post("/api/reservations/automatic-price").contentType("application/json").content(
+            """{"serviceId":"$serviceId", "serviceVariantId":"$variantId", "customerEmail":"$email"}""",
+        ),
+    ).andExpect(status().isOk).andExpect(jsonPath("$.finalPrice.amountCents").value(expected))
+
+    private fun bookAtPrice(email: String, cents: Int, start: OffsetDateTime = slotStart) = mockMvc.perform(
+        post("/api/reservations").contentType("application/json").content(
+            bookingBody(start, email).replace("\"notes\":", "\"expectedPriceCents\":$cents, \"notes\":"),
+        ),
+    )
+
+    @Test
+    fun `automatic once usage reserves and releases and falls back to another offer`() {
+        automaticOffer()
+        automaticOffer(once = false, amount = 1000)
+        automaticPreview("once@example.com", 5625)
+        val id = reservationIdFrom(bookAtPrice("once@example.com", 5625).andExpect(status().isCreated).andReturn())
+        automaticPreview("once+alias@example.com", 6750)
+        bookAtPrice("once@example.com", 5625, slotStart.plusHours(2))
+            .andExpect(status().isConflict).andExpect(jsonPath("$.code").value("PRICE_CHANGED"))
+        assertEquals(1, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
+        mockMvc.perform(rejectRequest(id)).andExpect(status().isOk)
+        automaticPreview("once@example.com", 5625)
+    }
+
+    @Test
+    fun `first time means no completed appointment and handles email aliases`() {
+        automaticOffer(once = false, firstTime = true)
+        insertReservation(OffsetDateTime.now(zone).minusDays(2), "COMPLETED", "first.last@gmail.com")
+        automaticPreview("FirstLast+offer@googlemail.com", 7500)
+        automaticPreview("new@example.com", 5625)
+        insertReservation(OffsetDateTime.now(zone).minusDays(3), "CANCELLED", "cancelled@example.com")
+        automaticPreview("cancelled@example.com", 5625)
+        bookAtPrice("firstlast@gmail.com", 5625).andExpect(status().isConflict)
+        assertEquals(2, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
+    }
+
+    @Test
+    fun `unlimited automatic offer remains eligible with a pending booking`() {
+        automaticOffer(once = false)
+        bookAtPrice("repeat@example.com", 5625).andExpect(status().isCreated)
+        automaticPreview("repeat@example.com", 5625)
+        bookAtPrice("repeat@example.com", 5625, slotStart.plusHours(2)).andExpect(status().isCreated)
+    }
+
+    @Test
+    fun `automatic banner includes restrictions without a code and respects status`() {
+        val id = automaticOffer(firstTime = true, featured = true)
+        mockMvc.perform(get("/api/discounts/featured")).andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstTimeCustomersOnly").value(true))
+            .andExpect(jsonPath("$.maxUsesPerCustomer").value(1))
+            .andExpect(jsonPath("$.code").doesNotExist())
+        mockMvc.perform(patch("/api/admin/discounts/$id/status").with(adminJwt()).contentType("application/json")
+            .content("""{"status":"PAUSED"}""")).andExpect(status().isOk)
+        mockMvc.perform(get("/api/discounts/featured")).andExpect(status().isNoContent)
+    }
+
+    @Test
+    fun `cancelling releases automatic usage and completing consumes it`() {
+        automaticOffer()
+        val id = reservationIdFrom(bookAtPrice("lifecycle@example.com", 5625).andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
+        mockMvc.perform(cancelRequest(id)).andExpect(status().isOk)
+        automaticPreview("lifecycle@example.com", 5625)
+        val completedId = reservationIdFrom(bookAtPrice("lifecycle@example.com", 5625).andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$completedId/confirm").with(adminJwt())).andExpect(status().isOk)
+        dsl.execute("update reservations set starts_at = ?, ends_at = ? where id = ?",
+            OffsetDateTime.now(zone).minusHours(2), OffsetDateTime.now(zone).minusHours(1), UUID.fromString(completedId))
+        mockMvc.perform(patch("/api/admin/reservations/$completedId/complete").with(adminJwt())).andExpect(status().isOk)
+        automaticPreview("lifecycle@example.com", 7500)
+        assertEquals("CONSUMED", dsl.fetchValue("select status from reservation_discounts where reservation_id = ?", UUID.fromString(completedId)))
+    }
+
+    @Test
+    fun `simultaneous automatic claims only reserve one use for an email identity`() {
+        automaticOffer()
+        val executor = java.util.concurrent.Executors.newFixedThreadPool(2)
+        val ready = java.util.concurrent.CyclicBarrier(2)
+        try {
+            val results = (0..1).map { index -> executor.submit<Int> {
+                ready.await(10, java.util.concurrent.TimeUnit.SECONDS)
+                bookAtPrice("concurrent+$index@example.com", 5625, slotStart.plusHours(index * 2L)).andReturn().response.status
+            } }.map { it.get(20, java.util.concurrent.TimeUnit.SECONDS) }.sorted()
+            assertEquals(listOf(201, 409), results)
+            assertEquals(1, dsl.fetchCount(org.jooq.impl.DSL.table("reservation_discounts")))
+        } finally { executor.shutdownNow() }
+    }
+
+    @Test
+    fun `single use automatic discount requires price review`() {
+        automaticOffer()
+        book(slotStart).andExpect(status().isConflict).andExpect(jsonPath("$.code").value("PRICE_CHANGED"))
+        assertEquals(0, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
     }
 
     @Test

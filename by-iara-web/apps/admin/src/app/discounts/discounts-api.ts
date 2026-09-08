@@ -18,7 +18,8 @@ export interface Discount {
   startsAt: string;
   endsAt: string;
   maxUniqueClients: number | null;
-  maxUsesPerCustomer: number;
+  maxUsesPerCustomer: number | null;
+  firstTimeCustomersOnly?: boolean;
   codeHint: string;
   customerEmail: string | null;
   status: DiscountStatus;
@@ -40,7 +41,8 @@ export interface DiscountInput {
   startsAt: string;
   endsAt: string;
   maxUniqueClients?: number;
-  maxUsesPerCustomer: number;
+  maxUsesPerCustomer: number | null;
+  firstTimeCustomersOnly?: boolean;
   serviceIds: string[];
   customerEmail?: string;
   code?: string;
@@ -72,9 +74,7 @@ export class DiscountsApi {
     return this.http.get<Discount[]>('/api/admin/discounts');
   }
 
-  create(
-    input: DiscountInput,
-  ): Observable<{
+  create(input: DiscountInput): Observable<{
     discount: Discount;
     generatedCode: string | null;
     deliveryStatus: 'SENT' | 'FAILED' | null;

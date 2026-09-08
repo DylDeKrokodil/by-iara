@@ -36,7 +36,7 @@ class SecurityConfig {
                     "/api/discounts/automatic",
                 ).permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()
-                it.requestMatchers(HttpMethod.POST, "/api/reservations/discount-preview").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/api/reservations/discount-preview", "/api/reservations/automatic-price").permitAll()
                 it.requestMatchers("/api/customer-access/**").permitAll()
                 // Opaque-token-gated, not truly public: an iPhone calendar subscription can't send a
                 // JWT, so this feed authenticates via the unguessable token in the path itself.

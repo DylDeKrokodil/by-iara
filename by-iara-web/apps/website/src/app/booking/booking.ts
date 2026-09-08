@@ -1,6 +1,9 @@
 import {
   Component,
   computed,
+  effect,
+  untracked,
+  DestroyRef,
   ElementRef,
   inject,
   OnInit,
@@ -8,6 +11,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { timer, switchMap } from 'rxjs';
+import {
+  promotionDisclaimer,
+  promotionMessages,
+} from '../promotions/promotion-copy';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -37,6 +46,7 @@ import {
   ReservationConfirmation,
   CustomerPack,
   DiscountQuote,
+  AutomaticPrice,
 } from './booking-api';
 import {
   bookingCalendarMonth,
@@ -110,6 +120,7 @@ export class Booking implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly language = inject(LanguageService);
   private readonly bookingStepTop =
     viewChild<ElementRef<HTMLElement>>('bookingStepTop');
@@ -179,6 +190,123 @@ export class Booking implements OnInit {
     notes: [''],
     discountCode: [''],
   });
+
+  private readonly bookingEmail = toSignal(
+    this.form.controls.email.valueChanges,
+    { initialValue: '' },
+  );
+  private readonly priceRetry = signal(0);
+  private discountRequestId = 0;
+  protected readonly automaticPrice = signal<AutomaticPrice | null>(null);
+  protected readonly priceChecking = signal(false);
+  protected readonly priceFailed = signal(false);
+  protected readonly promotionCopy = computed(() =>
+    promotionMessages(this.language.current().path),
+  );
+  protected readonly promotionNotice = computed(() =>
+    promotionDisclaimer(
+      this.selectedVariant()?.promotion,
+      this.language.current().path,
+    ),
+  );
+  protected readonly priceReady = computed(
+    () =>
+      Boolean(
+        this.selectedPackOfferId() ||
+          this.selectedCustomerPackId() ||
+          this.discountQuote() ||
+          this.automaticPrice(),
+      ) &&
+      !this.priceChecking() &&
+      !this.discountApplying(),
+  );
+  protected readonly offerUnavailable = computed(() => {
+    const advertised = this.selectedVariant()?.promotionalPrice;
+    const checked = this.automaticPrice();
+    return (
+      !!advertised &&
+      !!checked &&
+      checked.finalPrice.amountCents > advertised.amountCents
+    );
+  });
+
+  constructor() {
+    effect((onCleanup) => {
+      const email = this.bookingEmail().trim();
+      const serviceId = this.selectedServiceId();
+      const serviceVariantId = this.selectedVariantId();
+      const pack = this.selectedPackOfferId() || this.selectedCustomerPackId();
+      const code = this.appliedDiscountCode();
+      this.priceRetry();
+      untracked(() => {
+        this.automaticPrice.set(null);
+        this.priceFailed.set(false);
+        this.priceChecking.set(false);
+      });
+      if (
+        !isPlatformBrowser(this.platformId) ||
+        !email ||
+        this.form.controls.email.invalid ||
+        !serviceId ||
+        !serviceVariantId ||
+        pack ||
+        code
+      )
+        return;
+      untracked(() => this.priceChecking.set(true));
+      const subscription = timer(350)
+        .pipe(
+          switchMap(() =>
+            this.bookingApi.automaticPrice({
+              serviceId,
+              serviceVariantId,
+              customerEmail: email,
+            }),
+          ),
+        )
+        .subscribe({
+          next: (price) => {
+            this.automaticPrice.set(price);
+            this.priceChecking.set(false);
+          },
+          error: () => {
+            this.priceFailed.set(true);
+            this.priceChecking.set(false);
+          },
+        });
+      onCleanup(() => subscription.unsubscribe());
+    });
+  }
+
+  protected retryPrice(): void {
+    this.priceRetry.update((value) => value + 1);
+  }
+
+  protected sessionPrice(variant: ServiceVariant): number {
+    if (variant.id === this.selectedVariantId()) {
+      return (
+        this.discountQuote()?.finalPrice.amountCents ??
+        this.automaticPrice()?.finalPrice.amountCents ??
+        variant.promotionalPrice?.amountCents ??
+        variant.price.amountCents
+      );
+    }
+    return variant.promotionalPrice?.amountCents ?? variant.price.amountCents;
+  }
+
+  private expectedPrice(): number {
+    const offer = this.availablePackOffers().find(
+      (item) => item.id === this.selectedPackOfferId(),
+    );
+    if (this.selectedCustomerPackId()) return 0;
+    return (
+      offer?.price.amountCents ??
+      this.discountQuote()?.finalPrice.amountCents ??
+      this.automaticPrice()?.finalPrice.amountCents ??
+      this.selectedVariant()?.price.amountCents ??
+      0
+    );
+  }
 
   protected readonly serviceOptions = computed<SelectFieldOption[]>(() =>
     this.services().map((service) => ({
@@ -414,9 +542,9 @@ export class Booking implements OnInit {
   ngOnInit(): void {
     const isBrowser = isPlatformBrowser(this.platformId);
     if (isBrowser) {
-      this.form.controls.email.valueChanges.subscribe(() =>
-        this.clearDiscount(false),
-      );
+      this.form.controls.email.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.clearDiscount(false));
 
       const accessToken = this.route.snapshot.queryParamMap.get('packAccess');
       if (accessToken) {
@@ -481,6 +609,7 @@ export class Booking implements OnInit {
     this.selectedPackOfferId.set(null);
     this.selectedCustomerPackId.set(null);
     this.clearDiscount();
+    this.retryPrice();
   }
 
   protected selectPackOffer(id: string): void {
@@ -621,7 +750,9 @@ export class Booking implements OnInit {
       case 'details':
         return Boolean(this.selectedSlot());
       case 'review':
-        return Boolean(this.selectedSlot() && this.form.valid);
+        return Boolean(
+          this.selectedSlot() && this.form.valid && this.priceReady(),
+        );
     }
   }
 
@@ -634,7 +765,7 @@ export class Booking implements OnInit {
       case 'details':
         return this.canOpenStep('review');
       case 'review':
-        return true;
+        return this.priceReady();
     }
   }
 
@@ -658,7 +789,7 @@ export class Booking implements OnInit {
           this.form.markAllAsTouched();
           return;
         }
-        this.goToStep('review');
+        if (this.priceReady()) this.goToStep('review');
         return;
       case 'review':
         this.submit();
@@ -677,7 +808,7 @@ export class Booking implements OnInit {
     const service = this.selectedService();
     const variant = this.selectedVariant();
     const slot = this.selectedSlot();
-    if (!service || !variant || this.submitting()) {
+    if (!service || !variant || this.submitting() || !this.priceReady()) {
       return;
     }
     if (!slot) {
@@ -707,6 +838,7 @@ export class Booking implements OnInit {
         customerPackId: this.selectedCustomerPackId(),
         customerSessionToken: this.customerSessionToken(),
         discountCode: this.appliedDiscountCode(),
+        expectedPriceCents: this.expectedPrice(),
       })
       .subscribe({
         next: (confirmation) => {
@@ -715,7 +847,11 @@ export class Booking implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           this.submitting.set(false);
-          if (err.status === 400 && this.appliedDiscountCode()) {
+          if (err.error?.code === 'PRICE_CHANGED') {
+            this.clearDiscount(false);
+            this.retryPrice();
+            this.submitError.set(this.promotionCopy().changed);
+          } else if (err.status === 400 && this.appliedDiscountCode()) {
             this.clearDiscount(false);
             this.submitError.set(this.copy().discountUnavailable);
           } else if (err.status === 409 || err.status === 422) {
@@ -735,8 +871,7 @@ export class Booking implements OnInit {
   }
 
   protected variantLabel(variant: ServiceVariant): string {
-    const price = variant.promotionalPrice ?? variant.price;
-    return `${variant.durationMinutes} min · ${this.formatPrice(price.amountCents)}`;
+    return `${variant.durationMinutes} min · ${this.formatPrice(this.sessionPrice(variant))}`;
   }
 
   protected packOfferLabel(
@@ -825,9 +960,9 @@ export class Booking implements OnInit {
       originalCents = quote.originalPrice.amountCents;
       finalCents = quote.finalPrice.amountCents;
       discountCents = quote.discountAmount.amountCents;
-    } else if (variant?.promotionalPrice) {
+    } else if (variant) {
       originalCents = variant.price.amountCents;
-      finalCents = variant.promotionalPrice.amountCents;
+      finalCents = this.sessionPrice(variant);
       discountCents = originalCents - finalCents;
     } else {
       return [];
@@ -866,6 +1001,7 @@ export class Booking implements OnInit {
       this.discountError.set(this.copy().discountNeedsEmail);
       return;
     }
+    const requestId = ++this.discountRequestId;
     this.discountApplying.set(true);
     this.discountError.set(null);
     this.bookingApi
@@ -877,11 +1013,13 @@ export class Booking implements OnInit {
       })
       .subscribe({
         next: (quote) => {
+          if (requestId !== this.discountRequestId) return;
           this.discountQuote.set(quote);
           this.appliedDiscountCode.set(code);
           this.discountApplying.set(false);
         },
         error: () => {
+          if (requestId !== this.discountRequestId) return;
           this.clearDiscount(false);
           this.discountApplying.set(false);
           this.discountError.set(this.copy().discountUnavailable);
@@ -892,9 +1030,14 @@ export class Booking implements OnInit {
   protected removeDiscount(): void {
     this.form.controls.discountCode.setValue('');
     this.clearDiscount(false);
+    this.retryPrice();
   }
 
   private clearDiscount(clearCode = true): void {
+    this.retryPrice();
+    this.discountRequestId++;
+    this.discountApplying.set(false);
+    this.automaticPrice.set(null);
     this.discountQuote.set(null);
     this.appliedDiscountCode.set(null);
     this.discountError.set(null);
@@ -991,6 +1134,7 @@ export class Booking implements OnInit {
     preselectedPack: string | null = null,
     loadAvailability = true,
   ): void {
+    this.clearDiscount();
     this.selectedServiceId.set(serviceId);
     this.selectedPackOfferId.set(null);
     this.selectedCustomerPackId.set(null);

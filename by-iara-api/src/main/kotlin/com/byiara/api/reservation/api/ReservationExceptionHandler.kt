@@ -17,6 +17,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ReservationExceptionHandler {
+    @ExceptionHandler(com.byiara.api.reservation.domain.ReservationPriceChangedException::class)
+    fun handlePriceChanged(): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(mapOf("code" to "PRICE_CHANGED", "message" to "Review the updated booking price"))
+
     @ExceptionHandler(DiscountUnavailableException::class)
     fun handleDiscountUnavailable(exception: DiscountUnavailableException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiErrorResponse(message = exception.message!!))

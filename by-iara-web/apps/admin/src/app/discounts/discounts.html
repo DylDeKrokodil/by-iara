@@ -201,6 +201,33 @@
           ></byiara-checkbox>
         </div>
       </div>
+      } @if (audience() === 'AUTOMATIC') {
+      <div class="form-grid">
+        <byiara-select-field
+          label="Uses per customer"
+          [options]="automaticUsageOptions"
+          [value]="form.controls.automaticUsage.value"
+          (valueChange)="form.controls.automaticUsage.setValue($event)"
+        ></byiara-select-field>
+        <div>
+          <div class="checkbox-field">
+            <byiara-checkbox
+              label="First-time customers only"
+              formControlName="firstTimeCustomersOnly"
+            ></byiara-checkbox>
+          </div>
+          <p class="field-hint">
+            Eligible when the booking email has no completed appointments. A
+            pending single-use booking reserves the offer.
+          </p>
+        </div>
+        <div class="checkbox-field">
+          <byiara-checkbox
+            label="Feature this promotion above the website navigation"
+            formControlName="featured"
+          ></byiara-checkbox>
+        </div>
+      </div>
       } @if (audience() !== 'AUTOMATIC') {
       <details class="advanced-settings">
         <summary>Usage limits</summary>
@@ -230,6 +257,28 @@
     } @case ('review') {
     <div class="step-content review">
       <dl>
+        @if (audience() === 'AUTOMATIC') {
+        <div>
+          <dt>Uses per customer</dt>
+          <dd>
+            {{ form.controls.automaticUsage.value === 'once' ? 'Once' :
+            'Unlimited' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Eligibility</dt>
+          <dd>
+            {{ form.controls.firstTimeCustomersOnly.value ? 'First-time
+            customers only' : 'All customers' }}
+          </dd>
+        </div>
+        <div>
+          <dt>Website banner</dt>
+          <dd>
+            {{ form.controls.featured.value ? 'Featured' : 'Not featured' }}
+          </dd>
+        </div>
+        }
         <div>
           <dt>Name</dt>
           <dd>{{ form.controls.name.value }}</dd>
@@ -412,6 +461,17 @@ discounts().length === 0) {
             reserved
           </dd>
         </div>
+        <div>
+          <dt>Uses per customer</dt>
+          <dd>{{ discount.maxUsesPerCustomer ?? 'Unlimited' }}</dd>
+        </div>
+        <div>
+          <dt>Eligibility</dt>
+          <dd>
+            {{ discount.firstTimeCustomersOnly ? 'First-time customers only' :
+            'All customers' }}
+          </dd>
+        </div>
         @if (discount.audience !== 'AUTOMATIC') {
         <div>
           <dt>Code</dt>
@@ -420,8 +480,8 @@ discounts().length === 0) {
         }
       </dl>
       <div class="status-actions">
-        @if (discount.audience === 'PUBLIC' && discount.status === 'ACTIVE' &&
-        discount.publicCode) {
+        @if (discount.status === 'ACTIVE' && (discount.audience === 'AUTOMATIC'
+        || (discount.audience === 'PUBLIC' && discount.publicCode))) {
         <byiara-button
           size="sm"
           [variant]="discount.featured ? 'secondary' : 'primary'"

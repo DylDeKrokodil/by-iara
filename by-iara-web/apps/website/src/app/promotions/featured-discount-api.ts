@@ -5,7 +5,9 @@ import { API_ORIGIN, apiUrl } from '../api-origin';
 
 export interface FeaturedDiscount {
   name: string;
-  code: string;
+  code: string | null;
+  firstTimeCustomersOnly?: boolean;
+  maxUsesPerCustomer?: number | null;
   valueType: 'PERCENTAGE' | 'FIXED_AMOUNT';
   valueAmount: number;
   currency: string | null;
@@ -18,6 +20,8 @@ export class FeaturedDiscountApi {
   private readonly apiOrigin = inject(API_ORIGIN);
 
   get(): Observable<FeaturedDiscount | null> {
-    return this.http.get<FeaturedDiscount | null>(apiUrl(this.apiOrigin, '/api/discounts/featured'));
+    return this.http.get<FeaturedDiscount | null>(
+      apiUrl(this.apiOrigin, '/api/discounts/featured'),
+    );
   }
 }

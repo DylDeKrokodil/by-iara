@@ -1,11 +1,25 @@
-<aside class="promotion-bar" aria-label="Featured discount">
+<aside class="promotion-bar" [attr.aria-label]="discount().name">
   <div class="promotion-content">
     <p>
+      @if (discount().code) {
       <span>{{ copy().prefix }}</span>
       <strong>{{ benefit() }}</strong>
       <span>{{ copy().suffix }}</span>
       <code>{{ discount().code }}</code>
+      } @else {
+      <span>{{ discount().name }}</span>
+      <strong>{{ benefit() }} {{ messages().off }}</strong>
+      <span>{{ disclaimer() }}</span>
+      <a [routerLink]="language.localizedLink('book')">{{ messages().book }}</a>
+      }
     </p>
   </div>
-  <button type="button" class="promotion-close" (click)="dismissed.emit()" [attr.aria-label]="copy().close">×</button>
+  <button
+    type="button"
+    class="promotion-close"
+    (click)="dismissed.emit()"
+    [attr.aria-label]="copy().close"
+  >
+    ×
+  </button>
 </aside>

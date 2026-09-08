@@ -21,7 +21,7 @@ data class Discount(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val maxUniqueClients: Int?,
-    val maxUsesPerCustomer: Int,
+    val maxUsesPerCustomer: Int?,
     val codeHint: String,
     val customerId: UUID?,
     val customerEmail: String?,
@@ -32,6 +32,7 @@ data class Discount(
     val uniqueClients: Int = 0,
     val publicCode: String? = null,
     val featured: Boolean = false,
+    val firstTimeCustomersOnly: Boolean = false,
 )
 
 data class CreateDiscountCommand(
@@ -44,11 +45,12 @@ data class CreateDiscountCommand(
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val maxUniqueClients: Int?,
-    val maxUsesPerCustomer: Int,
+    val maxUsesPerCustomer: Int?,
     val serviceIds: Set<UUID>,
     val customerEmail: String?,
     val requestedCode: String?,
     val featured: Boolean = false,
+    val firstTimeCustomersOnly: Boolean = false,
 )
 
 data class NewDiscount(

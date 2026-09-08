@@ -7,6 +7,8 @@ interface DiscountRepository {
     fun create(discount: NewDiscount): Discount
     fun list(): List<Discount>
     fun findById(id: UUID): Discount?
+    fun lockCampaign(id: UUID)
+    fun hasCompletedAppointments(identityKey: String): Boolean
     fun findByCodeHash(codeHash: String, forUpdate: Boolean): Discount?
     fun findCustomerIdByEmail(email: String): UUID?
     fun findCompletedRecipientByEmail(email: String): DiscountRecipient?
