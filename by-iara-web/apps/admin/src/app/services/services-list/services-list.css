@@ -16,7 +16,7 @@
 }
 
 .inactive td {
-  opacity: 0.65;
+  opacity: 1;
   background-color: color-mix(
     in srgb,
     var(--byiara-color-text) 1%,
@@ -48,7 +48,7 @@
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-xs);
   font-weight: var(--byiara-font-weight-regular);
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .metric-value {

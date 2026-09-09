@@ -1,10 +1,11 @@
-<byiara-page-header admin label="Sales & catalogue" title="Discounts">
+<byiara-page-header admin title="Discounts">
   @if (!formOpen()) {
   <byiara-button page-header-action variant="primary" (click)="openForm()"
     >Create discount</byiara-button
   >
   }
 </byiara-page-header>
+<p class="admin-page-description">Create offers and manage who can use them.</p>
 
 @if (formOpen()) {
 <section class="wizard" aria-labelledby="wizard-title">
@@ -421,11 +422,13 @@ discounts().length === 0) {
 <dialog
   #detailsDialog
   class="details-dialog"
+  [class.is-closing]="detailsClosing()"
   aria-labelledby="details-title"
   tabindex="-1"
   (close)="onDetailsClosed()"
+  (cancel)="closeDetails($event)"
   (click)="onDrawerBackdrop($event)"
-  (keydown.escape)="closeDetails()"
+  (keydown.escape)="closeDetails($event)"
 >
   @if (selectedDiscount(); as discount) {
   <div class="details-panel">

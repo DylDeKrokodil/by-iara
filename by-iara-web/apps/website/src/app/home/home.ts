@@ -21,6 +21,7 @@ import {
 import { NextAvailableLink } from './next-available-link/next-available-link';
 import { featuredServices } from './featured-services';
 import { packPresentations } from '../packs/pack-presentation';
+import { HeaderAppearanceService } from '../header-appearance.service';
 import { HomePack } from './home-pack/home-pack';
 import { RevealOnScroll } from './reveal-on-scroll.directive';
 
@@ -35,6 +36,7 @@ export class Home implements OnInit {
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly headerAppearance = inject(HeaderAppearanceService);
 
   protected readonly copy = computed(() => this.language.messages().home);
   protected readonly heroVideoPlaying = signal(false);
@@ -85,11 +87,15 @@ export class Home implements OnInit {
       if (!hero) {
         return;
       }
+      this.headerAppearance.setMovingMediaBehindHeader(!reduceMotion);
       // Stop compositing the looping video while it is offscreen. Entries
       // batch on fast scroll reversals, so only the last one is current.
       const observer = new IntersectionObserver((entries) => {
         const visible = entries[entries.length - 1].isIntersecting;
         this.heroVideoShouldPlay = visible;
+        this.headerAppearance.setMovingMediaBehindHeader(
+          visible && this.heroVideoPlaying(),
+        );
 
         if (!video || reduceMotion) {
           return;
@@ -120,6 +126,7 @@ export class Home implements OnInit {
         signal: lifecycleEvents.signal,
       });
       this.destroyRef.onDestroy(() => {
+        this.headerAppearance.setMovingMediaBehindHeader(false);
         observer.disconnect();
         lifecycleEvents.abort();
       });
@@ -130,11 +137,11 @@ export class Home implements OnInit {
   private heroVideoShouldPlay = true;
 
   protected onHeroVideoPlaying(): void {
-    this.heroVideoPlaying.set(true);
+    this.setHeroVideoPlaying(true);
   }
 
   protected onHeroVideoPause(): void {
-    this.heroVideoPlaying.set(false);
+    this.setHeroVideoPlaying(false);
 
     const video = this.heroVideo()?.nativeElement;
     if (
@@ -150,11 +157,33 @@ export class Home implements OnInit {
   private playHeroVideo(video: HTMLVideoElement): void {
     video.muted = true;
     video.defaultMuted = true;
-    video.play().catch(() => {
-      // Browser policy or Low Power Mode blocked autoplay. Keep the matching
-      // still image visible rather than exposing native video controls.
-      this.heroVideoPlaying.set(false);
-    });
+    void video
+      .play()
+      .then(() => {
+        // Autoplay can begin before Angular hydrates and subscribes to the
+        // `playing` event. Synchronize the signal from the play result too so
+        // an already-playing video is not left hidden behind its poster.
+        if (
+          !video.paused &&
+          this.heroVideoPlaybackEnabled &&
+          this.heroVideoShouldPlay &&
+          document.visibilityState === 'visible'
+        ) {
+          this.setHeroVideoPlaying(true);
+        }
+      })
+      .catch(() => {
+        // Browser policy or Low Power Mode blocked autoplay. Keep the matching
+        // still image visible rather than exposing native video controls.
+        this.setHeroVideoPlaying(false);
+      });
+  }
+
+  private setHeroVideoPlaying(playing: boolean): void {
+    this.heroVideoPlaying.set(playing);
+    this.headerAppearance.setMovingMediaBehindHeader(
+      playing && this.heroVideoShouldPlay,
+    );
   }
 
   ngOnInit(): void {

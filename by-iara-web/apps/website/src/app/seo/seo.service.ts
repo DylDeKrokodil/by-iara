@@ -377,7 +377,7 @@ export class SeoService {
             name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
             logo: `${this.siteOrigin}/${BRAND.logoPath}`,
-            image: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
+            image: `${this.siteOrigin}/hero/hero-studio-massage-2026-09.jpg`,
             email: BUSINESS_DETAILS.email,
             address: {
               '@type': 'PostalAddress',
@@ -439,9 +439,9 @@ export class SeoService {
   }): void {
     const canonical = this.absolute(config.canonicalPath);
     const image = config.image ?? {
-      url: `${this.siteOrigin}/hero/hero-treatment-mixkit-4744.jpg`,
-      width: 1400,
-      height: 933,
+      url: `${this.siteOrigin}/hero/hero-studio-massage-2026-09.jpg`,
+      width: 1280,
+      height: 720,
       alt: DEFAULT_IMAGE_ALT[config.locale.locale],
     };
     this.title.setTitle(config.title);

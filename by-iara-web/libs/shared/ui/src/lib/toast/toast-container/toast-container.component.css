@@ -20,13 +20,24 @@
   border: 1px solid var(--byiara-color-border);
   border-left-width: 4px;
   box-shadow:
-    0 10px 25px -5px color-mix(in srgb, var(--byiara-color-text) 8%, transparent),
+    0 10px 25px -5px
+      color-mix(in srgb, var(--byiara-color-text) 8%, transparent),
     0 8px 16px -6px color-mix(in srgb, var(--byiara-color-text) 4%, transparent);
   min-width: 18rem;
   max-width: 26rem;
   color: var(--byiara-color-text);
   overflow: hidden;
-  animation: slide-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--byiara-duration-base) var(--byiara-ease-out),
+    transform var(--byiara-duration-base) var(--byiara-ease-out);
+}
+
+.toast-item.is-dismissing {
+  opacity: 0;
+  transform: translateX(1rem) scale(0.98);
+  transition-duration: var(--byiara-duration-fast);
 }
 
 .toast-icon {
@@ -54,15 +65,25 @@
   cursor: pointer;
   padding: var(--byiara-space-3xs);
   border-radius: var(--byiara-radius-sm);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out),
+    opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
   opacity: 0.6;
   flex-shrink: 0;
 }
 
-.toast-close:hover {
-  background: var(--byiara-color-surface-muted);
-  color: var(--byiara-color-text);
-  opacity: 1;
+.toast-close:active {
+  transform: scale(0.94);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .toast-close:hover {
+    background: var(--byiara-color-surface-muted);
+    color: var(--byiara-color-text);
+    opacity: 1;
+  }
 }
 
 /* Success Toast */
@@ -89,13 +110,20 @@
   color: var(--byiara-color-primary-strong);
 }
 
-@keyframes slide-in {
-  from {
-    transform: translateX(120%) scale(0.9);
+@starting-style {
+  .toast-item {
+    transform: translateX(1.5rem) scale(0.96);
     opacity: 0;
   }
-  to {
-    transform: translateX(0) scale(1);
-    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-item {
+    transform: none;
+    transition: none;
+  }
+
+  .toast-close {
+    transition: none;
   }
 }

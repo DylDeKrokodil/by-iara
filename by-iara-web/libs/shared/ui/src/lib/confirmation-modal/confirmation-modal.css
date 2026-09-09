@@ -2,22 +2,51 @@
   border: 0;
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface);
-  box-shadow: 0 10px 25px -5px color-mix(in srgb, var(--byiara-color-text) 10%, transparent), 0 8px 16px -6px color-mix(in srgb, var(--byiara-color-text) 5%, transparent);
+  box-shadow:
+    0 10px 25px -5px
+      color-mix(in srgb, var(--byiara-color-text) 10%, transparent),
+    0 8px 16px -6px color-mix(in srgb, var(--byiara-color-text) 5%, transparent);
   padding: var(--byiara-space-xl);
   max-width: 26rem;
   width: 90%;
   color: var(--byiara-color-text);
   overflow: visible;
+  opacity: 0;
+  transform: translateY(0.5rem) scale(0.97);
+  transition:
+    opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out),
+    display var(--byiara-duration-fast) allow-discrete,
+    overlay var(--byiara-duration-fast) allow-discrete;
 }
 
 .confirmation-dialog[open] {
-  animation: slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+  transform: none;
+  transition-duration:
+    var(--byiara-duration-base), var(--byiara-duration-base),
+    var(--byiara-duration-base), var(--byiara-duration-base);
 }
 
 .confirmation-dialog::backdrop {
-  background-color: color-mix(in srgb, var(--byiara-color-text) 35%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--byiara-color-text) 35%,
+    transparent
+  );
   backdrop-filter: blur(2px);
-  animation: fade-in 0.2s ease-out;
+  opacity: 0;
+  transition:
+    opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+    display var(--byiara-duration-fast) allow-discrete,
+    overlay var(--byiara-duration-fast) allow-discrete;
+}
+
+.confirmation-dialog[open]::backdrop {
+  opacity: 1;
+  transition-duration:
+    var(--byiara-duration-base), var(--byiara-duration-base),
+    var(--byiara-duration-base);
 }
 
 .dialog-content {
@@ -47,23 +76,14 @@
   gap: var(--byiara-space-sm);
 }
 
-@keyframes slide-up {
-  from {
+@starting-style {
+  .confirmation-dialog[open] {
     opacity: 0;
     transform: scale(0.96) translateY(8px);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
 
-@keyframes fade-in {
-  from {
+  .confirmation-dialog[open]::backdrop {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 
@@ -78,8 +98,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .confirmation-dialog[open],
+  .confirmation-dialog,
   .confirmation-dialog::backdrop {
-    animation: none;
+    transition: none;
+  }
+
+  .confirmation-dialog {
+    transform: none;
   }
 }

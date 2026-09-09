@@ -55,7 +55,9 @@ td {
 }
 
 .actions-cell {
+  width: 1%;
   text-align: right;
+  vertical-align: middle;
 }
 
 .inactive td {

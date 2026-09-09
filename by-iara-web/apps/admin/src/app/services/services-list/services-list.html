@@ -1,4 +1,4 @@
-<byiara-page-header admin label="Catalogue" title="Services">
+<byiara-page-header admin title="Services">
   <byiara-button
     page-header-action
     variant="primary"
@@ -7,6 +7,9 @@
     New service
   </byiara-button>
 </byiara-page-header>
+<p class="admin-page-description">
+  Manage your treatments, prices and booking options.
+</p>
 
 @if (error()) {
 <byiara-alert tone="danger">{{ error() }}</byiara-alert>
@@ -58,7 +61,9 @@
     <tr [class.inactive]="!service.active">
       <td>
         <div class="name-cell">
-          <span class="service-name">{{ service.name }}</span>
+          <a class="service-name" [routerLink]="['/services', service.id]"
+            >{{ service.name }}</a
+          >
           <span class="slug">/{{ service.slug }}</span>
         </div>
       </td>

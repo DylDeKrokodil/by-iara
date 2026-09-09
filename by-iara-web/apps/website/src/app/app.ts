@@ -9,6 +9,7 @@ import { SeoService } from './seo/seo.service';
 import { SiteIntroComponent } from './site-intro/site-intro.component';
 import { BRAND, SOCIAL_LINKS } from './brand/brand';
 import { GuidesApi } from './guides/guides-api';
+import { HeaderAppearanceService } from './header-appearance.service';
 import { BUSINESS_DETAILS } from './legal/business-details';
 import { FeaturedDiscount, FeaturedDiscountApi } from './promotions/featured-discount-api';
 import { PromotionBar } from './promotions/promotion-bar';
@@ -34,6 +35,7 @@ export class App {
   private readonly guidesApi = inject(GuidesApi);
 
   protected readonly language = inject(LanguageService);
+  protected readonly headerAppearance = inject(HeaderAppearanceService);
   protected readonly copy = computed(() => this.language.messages().app);
   protected readonly menuOpen = signal(false);
   protected readonly hasGuides = signal(false);

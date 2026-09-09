@@ -1,8 +1,7 @@
-<byiara-page-header
-  admin
-  label="Settings"
-  title="Availability"
-></byiara-page-header>
+<byiara-page-header admin title="Availability"></byiara-page-header>
+<p class="admin-page-description">
+  Your regular hours and time away, all in one place.
+</p>
 
 <byiara-tabs
   ariaLabel="Availability sections"
@@ -15,57 +14,6 @@
 @if (activeTab() === 'rules') {
 <div class="tab-content">
   <div class="availability-grid">
-    <!-- Add rule Form -->
-    <byiara-card padding="lg">
-      <h2 class="form-title">Add Weekly Shift</h2>
-
-      @if (ruleError()) {
-      <byiara-alert tone="danger">{{ ruleError() }}</byiara-alert>
-      }
-
-      <form [formGroup]="ruleForm" (ngSubmit)="submitRule()" novalidate>
-        <div class="form-group">
-          <byiara-select-field
-            label="Day of the Week"
-            [options]="ruleDayOptions"
-            [value]="ruleForm.get('dayOfWeek')?.value ?? ''"
-            [error]="ruleForm.controls.dayOfWeek.touched && ruleForm.controls.dayOfWeek.invalid ? 'Choose a day of the week.' : null"
-            (valueChange)="ruleForm.controls.dayOfWeek.setValue($event)"
-            (touched)="ruleForm.controls.dayOfWeek.markAsTouched()"
-          >
-          </byiara-select-field>
-        </div>
-
-        <div class="form-group">
-          <byiara-text-field
-            label="Start Time"
-            type="time"
-            formControlName="startTime"
-            [error]="ruleForm.get('startTime')?.invalid && ruleForm.get('startTime')?.touched ? 'Start time is required' : null"
-          ></byiara-text-field>
-        </div>
-
-        <div class="form-group">
-          <byiara-text-field
-            label="End Time"
-            type="time"
-            formControlName="endTime"
-            [error]="ruleForm.get('endTime')?.invalid && ruleForm.get('endTime')?.touched ? 'End time is required' : null"
-          ></byiara-text-field>
-        </div>
-
-        <div class="form-actions">
-          <byiara-button
-            type="submit"
-            variant="primary"
-            [loading]="submittingRule()"
-          >
-            {{ submittingRule() ? 'Adding…' : 'Add Shift' }}
-          </byiara-button>
-        </div>
-      </form>
-    </byiara-card>
-
     <!-- Rules list -->
     <div class="roster-container">
       @if (loadingRules()) {
@@ -90,7 +38,7 @@
                 type="button"
                 class="shift-delete-btn"
                 (click)="confirmDeleteRule(shift)"
-                title="Remove shift"
+                [attr.aria-label]="'Remove ' + day.label + ' shift at ' + formatTime(shift.startTime)"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -114,6 +62,58 @@
       </div>
       } }
     </div>
+    <div class="availability-editor">
+      <!-- Add rule Form -->
+      <byiara-card padding="lg">
+        <h2 class="form-title">Add weekly hours</h2>
+
+        @if (ruleError()) {
+        <byiara-alert tone="danger">{{ ruleError() }}</byiara-alert>
+        }
+
+        <form [formGroup]="ruleForm" (ngSubmit)="submitRule()" novalidate>
+          <div class="form-group">
+            <byiara-select-field
+              label="Day of the week"
+              [options]="ruleDayOptions"
+              [value]="ruleForm.get('dayOfWeek')?.value ?? ''"
+              [error]="ruleForm.controls.dayOfWeek.touched && ruleForm.controls.dayOfWeek.invalid ? 'Choose a day of the week.' : null"
+              (valueChange)="ruleForm.controls.dayOfWeek.setValue($event)"
+              (touched)="ruleForm.controls.dayOfWeek.markAsTouched()"
+            >
+            </byiara-select-field>
+          </div>
+
+          <div class="form-group">
+            <byiara-text-field
+              label="Start time"
+              type="time"
+              formControlName="startTime"
+              [error]="ruleForm.get('startTime')?.invalid && ruleForm.get('startTime')?.touched ? 'Start time is required' : null"
+            ></byiara-text-field>
+          </div>
+
+          <div class="form-group">
+            <byiara-text-field
+              label="End time"
+              type="time"
+              formControlName="endTime"
+              [error]="ruleForm.get('endTime')?.invalid && ruleForm.get('endTime')?.touched ? 'End time is required' : null"
+            ></byiara-text-field>
+          </div>
+
+          <div class="form-actions">
+            <byiara-button
+              type="submit"
+              variant="primary"
+              [loading]="submittingRule()"
+            >
+              {{ submittingRule() ? 'Adding…' : 'Add hours' }}
+            </byiara-button>
+          </div>
+        </form>
+      </byiara-card>
+    </div>
   </div>
 </div>
 }
@@ -121,10 +121,10 @@
 <!-- Tab content: Blocks -->
 @if (activeTab() === 'blocks') {
 <div class="tab-content">
-  <div class="availability-grid">
+  <div class="availability-grid availability-grid--blocks">
     <!-- Add block Form -->
     <byiara-card padding="lg">
-      <h2 class="form-title">Block Calendar Period</h2>
+      <h2 class="form-title">Block time away</h2>
 
       @if (blockError()) {
       <byiara-alert tone="danger">{{ blockError() }}</byiara-alert>

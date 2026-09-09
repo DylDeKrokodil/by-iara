@@ -121,24 +121,6 @@ h1 {
   padding-top: var(--byiara-space-xs);
 }
 
-.home-media-credit {
-  position: absolute;
-  right: clamp(1rem, 4vw, 2rem);
-  bottom: var(--byiara-space-md);
-  z-index: var(--byiara-z-index-raised);
-  margin: 0;
-  font-size: var(--byiara-font-size-xs);
-}
-
-.home-media-credit a {
-  color: color-mix(in srgb, var(--byiara-color-white) 72%, transparent);
-  text-decoration-color: color-mix(in srgb, currentColor 38%, transparent);
-}
-
-.home-media-credit a:hover {
-  color: var(--byiara-color-white);
-}
-
 /* ---- Sections below the hero ---- */
 
 .home-section-inner {
@@ -391,10 +373,6 @@ h1 {
       34rem,
       calc(100svh + var(--byiara-site-header-height) + 1px)
     );
-  }
-
-  .home-media-credit {
-    display: none;
   }
 
   .home-service-row {

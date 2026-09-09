@@ -2,11 +2,13 @@ import {
   Component,
   OnInit,
   computed,
+  DestroyRef,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import {
   Alert,
   Button,
@@ -22,6 +24,11 @@ import {
   Tabs,
 } from '@by-iara/shared-ui';
 import { formatMoney } from '../services/service.models';
+import { AvailabilityApi } from '../availability/availability-api';
+import {
+  AvailabilityBlock,
+  AvailabilityRule,
+} from '../availability/availability.models';
 import { CalendarSync } from './calendar-sync/calendar-sync';
 import {
   AttentionReason,
@@ -32,6 +39,10 @@ import {
   reservationStatusTone,
 } from './reservation.models';
 import { ReservationsApi } from './reservations-api';
+import {
+  connectFragmentTab,
+  navigateToFragmentTab,
+} from '../core/fragment-tab-state';
 
 const reservationViewValues = ['attention', 'calendar', 'history'] as const;
 type ReservationView = (typeof reservationViewValues)[number];
@@ -81,9 +92,17 @@ interface AgendaGroup {
   key: string;
   label: string;
   heading: string;
+  weekday: string;
+  day: string;
+  count: number;
   isSelected: boolean;
   isToday: boolean;
   reservations: ReservationResponse[];
+  availability: CalendarInterval[];
+  blocks: CalendarInterval[];
+  capacityKnown: boolean;
+  workloadPercent: number;
+  availabilityLabel: string;
 }
 
 interface CalendarDay {
@@ -94,7 +113,21 @@ interface CalendarDay {
   isSelected: boolean;
   isToday: boolean;
   isCurrentMonth?: boolean;
-  reservations?: ReservationResponse[];
+  capacityKnown: boolean;
+  workloadPercent: number;
+  availabilityLabel: string;
+}
+
+interface CalendarInterval {
+  startMinutes: number;
+  endMinutes: number;
+  label: string;
+}
+
+interface CalendarHour {
+  label: string;
+  minutes: number;
+  position: number;
 }
 
 function isReservationView(value: string): value is ReservationView {
@@ -125,7 +158,10 @@ function isHistoryFilter(value: string): value is HistoryFilter {
 })
 export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
+  private readonly availabilityApi = inject(AvailabilityApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly calendarSyncOpen = signal(false);
   protected readonly activeView = signal<ReservationView>('attention');
@@ -136,6 +172,9 @@ export class Reservations implements OnInit {
   protected readonly highlightId = signal<string | null>(null);
   private hasScrolledToHighlight = false;
   protected readonly calendarReservations = signal<ReservationResponse[]>([]);
+  protected readonly availabilityRules = signal<AvailabilityRule[]>([]);
+  protected readonly availabilityBlocks = signal<AvailabilityBlock[]>([]);
+  protected readonly availabilityReady = signal(false);
   protected readonly history = signal<ReservationResponse[]>([]);
 
   private loadedFrom: string | null = null;
@@ -143,8 +182,10 @@ export class Reservations implements OnInit {
 
   protected readonly loadingAttention = signal(false);
   protected readonly loadingCalendar = signal(false);
+  protected readonly loadingAvailability = signal(false);
   protected readonly loadingHistory = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly availabilityError = signal<string | null>(null);
 
   protected readonly historyFilter = signal<HistoryFilter>('all');
   protected readonly historyPage = signal(0);
@@ -152,14 +193,19 @@ export class Reservations implements OnInit {
   protected readonly attentionPage = signal(0);
   protected readonly attentionTotal = signal(0);
 
-  protected readonly reservationTabs = computed<ReadonlyArray<TabOption>>(() => [
-    {
-      label: this.attentionTotal() > 0 ? `Needs attention (${this.attentionTotal()})` : 'Needs attention',
-      value: 'attention',
-    },
-    { label: 'Calendar', value: 'calendar' },
-    { label: 'History', value: 'history' },
-  ]);
+  protected readonly reservationTabs = computed<ReadonlyArray<TabOption>>(
+    () => [
+      {
+        label:
+          this.attentionTotal() > 0
+            ? `Needs attention (${this.attentionTotal()})`
+            : 'Needs attention',
+        value: 'attention',
+      },
+      { label: 'Calendar', value: 'calendar' },
+      { label: 'History', value: 'history' },
+    ],
+  );
   protected readonly reservationColumns = reservationColumns;
   protected readonly attentionColumns = attentionColumns;
   protected readonly historyFilters = historyFilters;
@@ -178,6 +224,17 @@ export class Reservations implements OnInit {
         this.calendarEndKey(),
       )}`,
   );
+  protected readonly calendarPeriodLabel = computed(() => {
+    if (this.calendarView() === 'day') {
+      return this.formatLongDate(this.selectedDateKey());
+    }
+
+    if (this.calendarView() === 'month') {
+      return this.currentMonthLabel();
+    }
+
+    return this.calendarRangeLabel();
+  });
   protected readonly currentMonthLabel = computed(() => {
     const date = this.utcDateFromKey(this.selectedDateKey());
     return new Intl.DateTimeFormat('en-GB', {
@@ -209,6 +266,7 @@ export class Reservations implements OnInit {
         count: counts.get(key) ?? 0,
         isSelected: key === this.selectedDateKey(),
         isToday: key === this.todayKey(),
+        ...this.dayCapacity(key, this.reservationsForDay(key)),
       };
     });
   });
@@ -223,14 +281,26 @@ export class Reservations implements OnInit {
       ]);
     }
 
-    return this.calendarDays().map((day) => ({
-      key: day.key,
-      label: this.formatDateGroupLabel(day.key),
-      heading: this.formatLongDate(day.key),
-      isSelected: day.isSelected,
-      isToday: day.isToday,
-      reservations: reservationsByDay.get(day.key) ?? [],
-    }));
+    return this.calendarDays().map((day) => {
+      const reservations = reservationsByDay.get(day.key) ?? [];
+
+      return {
+        key: day.key,
+        label: this.formatDateGroupLabel(day.key),
+        heading: this.formatLongDate(day.key),
+        weekday: day.weekday,
+        day: day.day,
+        count: reservations.length,
+        isSelected: day.isSelected,
+        isToday: day.isToday,
+        reservations,
+        availability: this.availabilityIntervalsForDay(day.key),
+        blocks: this.blockIntervalsForDay(day.key),
+        capacityKnown: day.capacityKnown,
+        workloadPercent: day.workloadPercent,
+        availabilityLabel: day.availabilityLabel,
+      };
+    });
   });
   protected readonly monthGridDays = computed<CalendarDay[]>(() => {
     const selectedDate = this.utcDateFromKey(this.selectedDateKey());
@@ -238,15 +308,10 @@ export class Reservations implements OnInit {
     const selectedYear = selectedDate.getUTCFullYear();
     const { startKey } = this.getMonthGridRange(this.selectedDateKey());
     const counts = new Map<string, number>();
-    const dailyReservations = new Map<string, ReservationResponse[]>();
 
     for (const reservation of this.calendarReservations()) {
       const key = this.dateKey(reservation.startsAt);
       counts.set(key, (counts.get(key) ?? 0) + 1);
-      dailyReservations.set(key, [
-        ...(dailyReservations.get(key) ?? []),
-        reservation,
-      ]);
     }
 
     return Array.from({ length: 42 }, (_, index) => {
@@ -259,10 +324,54 @@ export class Reservations implements OnInit {
         count: counts.get(key) ?? 0,
         isSelected: key === this.selectedDateKey(),
         isToday: key === this.todayKey(),
-        isCurrentMonth: date.getUTCMonth() === selectedMonth && date.getUTCFullYear() === selectedYear,
-        reservations: dailyReservations.get(key) ?? [],
+        isCurrentMonth:
+          date.getUTCMonth() === selectedMonth &&
+          date.getUTCFullYear() === selectedYear,
+        ...this.dayCapacity(key, this.reservationsForDay(key)),
       };
     });
+  });
+  protected readonly scheduleStartMinutes = computed(() => {
+    const starts = [9 * 60];
+
+    for (const rule of this.availabilityRules()) {
+      starts.push(this.clockMinutes(rule.startTime));
+    }
+
+    for (const reservation of this.visibleWeekReservations()) {
+      starts.push(this.minutesInBusinessDay(reservation.startsAt));
+    }
+
+    return Math.max(0, Math.floor(Math.min(...starts) / 60) * 60);
+  });
+  protected readonly scheduleEndMinutes = computed(() => {
+    const ends = [18 * 60];
+
+    for (const rule of this.availabilityRules()) {
+      ends.push(this.clockMinutes(rule.endTime));
+    }
+
+    for (const reservation of this.visibleWeekReservations()) {
+      ends.push(this.minutesInBusinessDay(reservation.endsAt));
+    }
+
+    return Math.min(24 * 60, Math.ceil(Math.max(...ends) / 60) * 60);
+  });
+  protected readonly scheduleHours = computed<CalendarHour[]>(() => {
+    const start = this.scheduleStartMinutes();
+    const end = this.scheduleEndMinutes();
+    const duration = Math.max(end - start, 60);
+    const hours: CalendarHour[] = [];
+
+    for (let minutes = start; minutes <= end; minutes += 60) {
+      hours.push({
+        label: this.formatClockMinutes(minutes),
+        minutes,
+        position: ((minutes - start) / duration) * 100,
+      });
+    }
+
+    return hours;
   });
   protected readonly totalHistoryPages = computed(() =>
     Math.max(Math.ceil(this.historyTotal() / historyPageSize), 1),
@@ -282,7 +391,9 @@ export class Reservations implements OnInit {
   protected readonly totalAttentionPages = computed(() =>
     Math.max(Math.ceil(this.attentionTotal() / attentionPageSize), 1),
   );
-  protected readonly canGoToPreviousAttentionPage = computed(() => this.attentionPage() > 0);
+  protected readonly canGoToPreviousAttentionPage = computed(
+    () => this.attentionPage() > 0,
+  );
   protected readonly canGoToNextAttentionPage = computed(
     () => this.attentionPage() + 1 < this.totalAttentionPages(),
   );
@@ -313,6 +424,14 @@ export class Reservations implements OnInit {
 
   ngOnInit(): void {
     this.highlightId.set(this.route.snapshot.queryParamMap.get('id'));
+    connectFragmentTab({
+      allowedValues: reservationViewValues,
+      defaultValue: 'attention',
+      destroyRef: this.destroyRef,
+      route: this.route,
+      router: this.router,
+      state: this.activeView,
+    });
     this.reload();
   }
 
@@ -326,6 +445,7 @@ export class Reservations implements OnInit {
     }
 
     this.activeView.set(view);
+    void navigateToFragmentTab(this.router, this.route, view);
   }
 
   protected reload(): void {
@@ -462,14 +582,19 @@ export class Reservations implements OnInit {
 
   protected attentionLabel(reason: AttentionReason): string {
     switch (reason) {
-      case 'APPROVAL_REQUIRED': return 'Approval required';
-      case 'OUTCOME_REQUIRED': return 'Outcome required';
-      case 'PAYMENT_DUE': return 'Payment due';
+      case 'APPROVAL_REQUIRED':
+        return 'Approval required';
+      case 'OUTCOME_REQUIRED':
+        return 'Outcome required';
+      case 'PAYMENT_DUE':
+        return 'Payment due';
     }
   }
 
   protected attentionTone(reason: AttentionReason) {
-    return reason === 'PAYMENT_DUE' ? 'warning' as const : 'danger' as const;
+    return reason === 'PAYMENT_DUE'
+      ? ('warning' as const)
+      : ('danger' as const);
   }
 
   protected formatBalance(item: ReservationAttention): string {
@@ -479,9 +604,49 @@ export class Reservations implements OnInit {
     });
   }
 
+  protected reservationCountLabel(count: number): string {
+    return `${count} ${count === 1 ? 'booking' : 'bookings'}`;
+  }
+
+  protected calendarDayAriaLabel(day: CalendarDay | AgendaGroup): string {
+    const workload = day.capacityKnown
+      ? `, ${day.workloadPercent} percent booked`
+      : '';
+
+    return `${this.formatLongDate(day.key)}, ${this.reservationCountLabel(day.count)}, ${day.availabilityLabel}${workload}`;
+  }
+
+  protected intervalTop(startMinutes: number): number {
+    return this.schedulePosition(startMinutes);
+  }
+
+  protected intervalHeight(startMinutes: number, endMinutes: number): number {
+    const top = this.schedulePosition(startMinutes);
+    const bottom = this.schedulePosition(endMinutes);
+
+    return Math.max(bottom - top, 0);
+  }
+
+  protected reservationTop(reservation: ReservationResponse): number {
+    return this.intervalTop(this.minutesInBusinessDay(reservation.startsAt));
+  }
+
+  protected reservationHeight(reservation: ReservationResponse): number {
+    return this.intervalHeight(
+      this.minutesInBusinessDay(reservation.startsAt),
+      this.minutesInBusinessDay(reservation.endsAt),
+    );
+  }
+
+  protected reservationAriaLabel(reservation: ReservationResponse): string {
+    return `${this.formatTime(reservation.startsAt)} to ${this.formatTime(reservation.endsAt)}, ${reservation.customer.name}, ${reservation.serviceName}, ${this.statusLabel(reservation.status)}`;
+  }
+
   private getMonthGridRange(key: string): { startKey: string; endKey: string } {
     const date = this.utcDateFromKey(key);
-    const firstOfMonth = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12));
+    const firstOfMonth = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12),
+    );
     const firstOfMonthKey = firstOfMonth.toISOString().slice(0, 10);
     const startKey = this.startOfWeekKey(firstOfMonthKey);
     const endKey = this.addDays(startKey, 41);
@@ -512,28 +677,59 @@ export class Reservations implements OnInit {
 
     if (needsCalendarReload) {
       this.loadingCalendar.set(true);
+      this.reloadAvailability(startKey);
     }
     this.error.set(null);
 
     if (!needsCalendarReload) return;
 
-    this.api.list({
-      statuses: ['PENDING', 'CONFIRMED'],
-      from: calendarStart,
-      to: calendarEnd,
-      sort: 'STARTS_AT_ASC',
-      page: 0,
-      size: calendarPageSize,
+    this.api
+      .list({
+        statuses: ['PENDING', 'CONFIRMED'],
+        from: calendarStart,
+        to: calendarEnd,
+        sort: 'STARTS_AT_ASC',
+        page: 0,
+        size: calendarPageSize,
+      })
+      .subscribe({
+        next: (page) => {
+          this.calendarReservations.set(page.items);
+          this.loadedFrom = startKey;
+          this.loadedTo = endKey;
+          this.loadingCalendar.set(false);
+        },
+        error: () => {
+          this.error.set('Could not load current reservations.');
+          this.loadingCalendar.set(false);
+        },
+      });
+  }
+
+  private reloadAvailability(startKey: string): void {
+    this.loadingAvailability.set(true);
+    this.availabilityError.set(null);
+
+    forkJoin({
+      rules: this.availabilityApi.listRules(),
+      blocks: this.availabilityApi.listBlocks(
+        this.zonedDateTimeIso(this.addDays(startKey, -1)),
+      ),
     }).subscribe({
-      next: (page) => {
-        this.calendarReservations.set(page.items);
-        this.loadedFrom = startKey;
-        this.loadedTo = endKey;
-        this.loadingCalendar.set(false);
+      next: ({ rules, blocks }) => {
+        this.availabilityRules.set(rules);
+        this.availabilityBlocks.set(blocks);
+        this.availabilityReady.set(true);
+        this.loadingAvailability.set(false);
       },
       error: () => {
-        this.error.set('Could not load current reservations.');
-        this.loadingCalendar.set(false);
+        this.availabilityRules.set([]);
+        this.availabilityBlocks.set([]);
+        this.availabilityReady.set(false);
+        this.availabilityError.set(
+          'Availability could not be loaded. Reservation times are still shown.',
+        );
+        this.loadingAvailability.set(false);
       },
     });
   }
@@ -595,6 +791,171 @@ export class Reservations implements OnInit {
       default:
         return { historyBefore: now };
     }
+  }
+
+  private visibleWeekReservations(): ReservationResponse[] {
+    const from = this.calendarStartKey();
+    const to = this.calendarEndKey();
+
+    return this.calendarReservations().filter((reservation) => {
+      const key = this.dateKey(reservation.startsAt);
+      return key >= from && key <= to;
+    });
+  }
+
+  private reservationsForDay(key: string): ReservationResponse[] {
+    return this.calendarReservations().filter(
+      (reservation) => this.dateKey(reservation.startsAt) === key,
+    );
+  }
+
+  private dayCapacity(
+    key: string,
+    reservations: ReservationResponse[],
+  ): Pick<
+    CalendarDay,
+    'capacityKnown' | 'workloadPercent' | 'availabilityLabel'
+  > {
+    if (!this.availabilityReady()) {
+      return {
+        capacityKnown: false,
+        workloadPercent: 0,
+        availabilityLabel: 'Availability unavailable',
+      };
+    }
+
+    const availability = this.availabilityIntervalsForDay(key);
+    if (availability.length === 0) {
+      return {
+        capacityKnown: true,
+        workloadPercent: 0,
+        availabilityLabel:
+          reservations.length > 0 ? 'Outside working hours' : 'Closed',
+      };
+    }
+
+    const blocks = this.blockIntervalsForDay(key);
+    const workingMinutes = availability.reduce(
+      (total, interval) => total + interval.endMinutes - interval.startMinutes,
+      0,
+    );
+    const blockedMinutes = blocks.reduce(
+      (total, block) =>
+        total +
+        availability.reduce(
+          (overlap, interval) =>
+            overlap +
+            Math.max(
+              0,
+              Math.min(block.endMinutes, interval.endMinutes) -
+                Math.max(block.startMinutes, interval.startMinutes),
+            ),
+          0,
+        ),
+      0,
+    );
+    const capacityMinutes = Math.max(workingMinutes - blockedMinutes, 0);
+    const bookedMinutes = reservations.reduce(
+      (total, reservation) => total + reservation.durationMinutes,
+      0,
+    );
+
+    return {
+      capacityKnown: true,
+      workloadPercent:
+        capacityMinutes === 0
+          ? 0
+          : Math.min(Math.round((bookedMinutes / capacityMinutes) * 100), 100),
+      availabilityLabel:
+        capacityMinutes === 0
+          ? reservations.length > 0
+            ? 'Overbooked'
+            : 'Blocked'
+          : 'Open',
+    };
+  }
+
+  private availabilityIntervalsForDay(key: string): CalendarInterval[] {
+    if (!this.availabilityReady()) {
+      return [];
+    }
+
+    const dayOfWeek = this.dayOfWeekCode(key);
+
+    return this.availabilityRules()
+      .filter((rule) => rule.dayOfWeek === dayOfWeek)
+      .map((rule) => ({
+        startMinutes: this.clockMinutes(rule.startTime),
+        endMinutes: this.clockMinutes(rule.endTime),
+        label: 'Available',
+      }))
+      .sort((left, right) => left.startMinutes - right.startMinutes);
+  }
+
+  private blockIntervalsForDay(key: string): CalendarInterval[] {
+    if (!this.availabilityReady()) {
+      return [];
+    }
+
+    const dayStart = new Date(this.zonedDateTimeIso(key)).getTime();
+    const dayEnd = new Date(
+      this.zonedDateTimeIso(this.addDays(key, 1)),
+    ).getTime();
+
+    return this.availabilityBlocks()
+      .filter((block) => {
+        const start = new Date(block.startTime).getTime();
+        const end = new Date(block.endTime).getTime();
+        return start < dayEnd && end > dayStart;
+      })
+      .map((block) => {
+        const start = new Date(block.startTime).getTime();
+        const end = new Date(block.endTime).getTime();
+
+        return {
+          startMinutes:
+            start <= dayStart ? 0 : this.minutesInBusinessDay(block.startTime),
+          endMinutes:
+            end >= dayEnd ? 24 * 60 : this.minutesInBusinessDay(block.endTime),
+          label: block.reason?.trim() || 'Blocked',
+        };
+      });
+  }
+
+  private schedulePosition(minutes: number): number {
+    const start = this.scheduleStartMinutes();
+    const end = this.scheduleEndMinutes();
+    const clamped = Math.min(Math.max(minutes, start), end);
+
+    return ((clamped - start) / Math.max(end - start, 60)) * 100;
+  }
+
+  private clockMinutes(value: string): number {
+    const [hours = 0, minutes = 0] = value.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
+  private minutesInBusinessDay(value: string): number {
+    const parts = this.zonedParts(new Date(value));
+    return parts.hour * 60 + parts.minute;
+  }
+
+  private formatClockMinutes(minutes: number): string {
+    const hours = Math.floor(minutes / 60) % 24;
+    const remainder = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
+  }
+
+  private dayOfWeekCode(key: string): AvailabilityRule['dayOfWeek'] {
+    return [
+      'SUNDAY',
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+      'SATURDAY',
+    ][this.utcDateFromKey(key).getUTCDay()];
   }
 
   private dateKey(value: string | Date): string {

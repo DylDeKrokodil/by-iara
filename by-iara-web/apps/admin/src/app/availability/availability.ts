@@ -1,4 +1,12 @@
-import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AvailabilityApi } from './availability-api';
@@ -23,6 +31,10 @@ import {
   TextField,
   ToastService,
 } from '@by-iara/shared-ui';
+import {
+  connectFragmentTab,
+  navigateToFragmentTab,
+} from '../core/fragment-tab-state';
 
 const availabilityTabValues = ['rules', 'blocks'] as const;
 type AvailabilityTab = (typeof availabilityTabValues)[number];
@@ -58,6 +70,9 @@ export class Availability implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(AvailabilityApi);
   private readonly toast = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Navigation State
   protected readonly activeTab = signal<AvailabilityTab>('rules');
@@ -122,6 +137,14 @@ export class Availability implements OnInit {
   private confirmDeleteBlockModal!: ConfirmationModal;
 
   ngOnInit(): void {
+    connectFragmentTab({
+      allowedValues: availabilityTabValues,
+      defaultValue: 'rules',
+      destroyRef: this.destroyRef,
+      route: this.route,
+      router: this.router,
+      state: this.activeTab,
+    });
     this.reloadRules();
     this.reloadBlocks();
   }
@@ -132,6 +155,7 @@ export class Availability implements OnInit {
     }
 
     this.activeTab.set(tab);
+    void navigateToFragmentTab(this.router, this.route, tab);
   }
 
   // --- Rules logic ---
