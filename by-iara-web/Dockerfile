@@ -21,7 +21,9 @@ ENV PORT=4000
 # Angular 21 SSR validates the Host header; list the hosts the server answers on.
 ENV NG_ALLOWED_HOSTS=localhost
 # server.mjs resolves ../browser relative to itself, so keep the dist layout intact.
-COPY --from=build /workspace/dist/apps/website ./dist/apps/website
+# Own the copied output as the runtime user: release checkouts use a restrictive
+# umask, and static assets must remain readable after Docker preserves their mode.
+COPY --chown=node:node --from=build /workspace/dist/apps/website ./dist/apps/website
 USER node
 EXPOSE 4000
 CMD ["node", "dist/apps/website/server/server.mjs"]
@@ -29,5 +31,5 @@ CMD ["node", "dist/apps/website/server/server.mjs"]
 # ---- admin: static SPA served by nginx with history-API fallback ----
 FROM nginx:alpine AS admin
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /workspace/dist/apps/admin/browser /usr/share/nginx/html
+COPY --chown=nginx:nginx --from=build /workspace/dist/apps/admin/browser /usr/share/nginx/html
 EXPOSE 80
