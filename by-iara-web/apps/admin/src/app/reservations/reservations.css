@@ -70,7 +70,7 @@
 
 .calendar-panel {
   position: sticky;
-  top: var(--byiara-space-md);
+  top: calc(var(--byiara-admin-toolbar-height) + var(--byiara-space-md));
   min-width: 0;
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
@@ -355,7 +355,7 @@
   border: 0;
   border-radius: calc(var(--byiara-radius-md) - 2px);
   padding: var(--byiara-space-2xs) var(--byiara-space-md);
-  min-height: 2.125rem;
+  min-height: 2.75rem;
   background: transparent;
   color: var(--byiara-color-text-muted);
   font-weight: var(--byiara-font-weight-semibold);
@@ -373,8 +373,9 @@
 }
 
 .view-toggles button.toggle-btn.active {
-  background: var(--byiara-color-primary-action);
-  color: var(--byiara-color-on-primary);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  box-shadow: var(--byiara-shadow-sm);
 }
 
 .nav-buttons {
@@ -389,8 +390,8 @@
 .nav-buttons button {
   border: 0;
   background: transparent;
-  min-height: 2.125rem;
-  min-width: 2.5rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
   padding: 0 var(--byiara-space-xs);
   font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-semibold);
@@ -613,8 +614,16 @@
 
 .week-res-card.is-pending,
 .month-booking-pill.is-pending {
-  border-color: color-mix(in srgb, var(--byiara-color-warning) 35%, transparent);
-  background: color-mix(in srgb, var(--byiara-color-warning) 8%, var(--byiara-color-surface));
+  border-color: color-mix(
+    in srgb,
+    var(--byiara-color-warning) 35%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--byiara-color-warning) 8%,
+    var(--byiara-color-surface)
+  );
 }
 
 .week-res-card .calendar-status {

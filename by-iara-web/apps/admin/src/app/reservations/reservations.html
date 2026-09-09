@@ -1,7 +1,7 @@
-<byiara-page-header admin label="Schedule" title="Reservations">
+<byiara-page-header admin title="Reservations">
   <byiara-button
     page-header-action
-    variant="primary"
+    variant="secondary"
     (click)="toggleCalendarSync()"
   >
     Sync to Apple Calendar
@@ -145,6 +145,7 @@
           type="button"
           class="button-secondary toggle-btn"
           [class.active]="calendarView() === 'day'"
+          [attr.aria-pressed]="calendarView() === 'day'"
           (click)="setCalendarView('day')"
         >
           Day
@@ -153,6 +154,7 @@
           type="button"
           class="button-secondary toggle-btn"
           [class.active]="calendarView() === 'week'"
+          [attr.aria-pressed]="calendarView() === 'week'"
           (click)="setCalendarView('week')"
         >
           Week
@@ -161,6 +163,7 @@
           type="button"
           class="button-secondary toggle-btn"
           [class.active]="calendarView() === 'month'"
+          [attr.aria-pressed]="calendarView() === 'month'"
           (click)="setCalendarView('month')"
         >
           Month
