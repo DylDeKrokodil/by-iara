@@ -9,7 +9,10 @@
     (dismissed)="dismissPromotion()"
   />
   } }
-  <header class="site-header">
+  <header
+    class="site-header"
+    [class.is-over-moving-media]="headerAppearance.movingMediaBehindHeader()"
+  >
     <div class="header-container">
       <button
         type="button"

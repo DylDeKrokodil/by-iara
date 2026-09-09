@@ -27,6 +27,18 @@
   backdrop-filter: blur(18px) saturate(1.45);
 }
 
+/* A live backdrop blur forces the browser to reprocess every video frame.
+   Keep the header legible but cheap to composite over moving media. */
+.site-header.is-over-moving-media {
+  background: color-mix(
+    in srgb,
+    var(--byiara-color-background) 90%,
+    transparent
+  );
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
 /* Frosted glass needs backdrop-filter; otherwise stay opaque for legibility. */
 @supports not (backdrop-filter: blur(1px)) {
   .site-header {
