@@ -2,9 +2,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   Alert,
   Button,
-  Card,
   EmptyState,
-  PageHeader,
+  Skeleton,
   StatusChip,
 } from '@by-iara/shared-ui';
 import { forkJoin } from 'rxjs';
@@ -32,7 +31,7 @@ interface UpcomingDay {
 
 @Component({
   selector: 'byiara-dashboard',
-  imports: [Alert, Button, Card, EmptyState, PageHeader, StatusChip],
+  imports: [Alert, Button, EmptyState, Skeleton, StatusChip],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -59,9 +58,11 @@ export class Dashboard implements OnInit {
 
   protected readonly nextReservation = computed(() => {
     const now = Date.now();
-    return this.todayReservations().find(
-      (reservation) => new Date(reservation.startsAt).getTime() >= now,
-    ) ?? null;
+    return (
+      this.todayReservations().find(
+        (reservation) => new Date(reservation.startsAt).getTime() >= now,
+      ) ?? null
+    );
   });
 
   protected readonly upcomingDays = computed<UpcomingDay[]>(() => {
@@ -87,7 +88,9 @@ export class Dashboard implements OnInit {
     const weekday = new Intl.DateTimeFormat('en-US', {
       timeZone: businessTimeZone,
       weekday: 'long',
-    }).format(new Date()).toUpperCase();
+    })
+      .format(new Date())
+      .toUpperCase();
     return this.rules().some((rule) => rule.dayOfWeek === weekday);
   });
 
@@ -111,6 +114,16 @@ export class Dashboard implements OnInit {
 
   protected serviceLabel(reservation: ReservationResponse): string {
     return `${reservation.serviceName} · ${reservation.durationMinutes} min`;
+  }
+
+  protected formatRequestDate(value: string): string {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: businessTimeZone,
+    }).format(new Date(value));
   }
 
   protected formatTime(value: string): string {
@@ -181,7 +194,9 @@ export class Dashboard implements OnInit {
         this.hasAnyReservations.set(allReservations.total > 0);
         this.rules.set(rules);
         this.blocks.set(
-          [...blocks].sort((left, right) => left.startTime.localeCompare(right.startTime)),
+          [...blocks].sort((left, right) =>
+            left.startTime.localeCompare(right.startTime),
+          ),
         );
         this.loading.set(false);
       },
