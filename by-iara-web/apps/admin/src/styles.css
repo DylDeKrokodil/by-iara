@@ -1,3 +1,6 @@
+@import './styles/admin-theme.css';
+@import './styles/admin-controls.css';
+
 body {
   min-width: 20rem;
 }
@@ -45,4 +48,31 @@ body {
     color: var(--byiara-color-primary-strong);
     box-shadow: var(--byiara-shadow-sm);
   }
+}
+
+/* App-level page patterns shared by catalogue, content and operations. */
+.admin-page-description {
+  max-width: 65ch;
+  margin: -1rem 0 1.75rem;
+  color: var(--byiara-color-text-muted);
+  font-size: 0.9375rem;
+}
+:root .byiara-admin .list-toolbar {
+  padding: 1.125rem;
+  border: 1px solid var(--byiara-color-border-subtle);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+  margin-bottom: 1.5rem;
+}
+:root .byiara-admin .button-secondary {
+  box-shadow: none;
+  font-weight: 500;
+}
+:root .byiara-admin byiara-packs th,
+:root .byiara-admin byiara-discounts th {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  background: var(--byiara-color-surface);
 }

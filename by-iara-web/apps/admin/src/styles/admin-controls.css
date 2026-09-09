@@ -1,0 +1,236 @@
+/* Adapts existing shared components at the admin app boundary. No public styles
+   or component contracts change. Keep all selectors inside .byiara-admin. */
+:root
+  .byiara-admin
+  :is(byiara-button, byiara-file-upload-button)
+  .btn {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding-inline: 1rem;
+  border-radius: var(--byiara-radius-md);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25;
+  box-shadow: none;
+}
+:root
+  .byiara-admin
+  :is(byiara-button, byiara-file-upload-button)
+  .btn-sm {
+  padding-inline: 0.875rem;
+  font-size: 0.8125rem;
+}
+:root .byiara-admin byiara-button .btn-icon {
+  padding-inline: 0;
+}
+:root
+  .byiara-admin
+  :is(byiara-button, byiara-file-upload-button)
+  .btn-secondary {
+  border-color: transparent;
+  background: var(--byiara-color-surface-muted);
+  color: var(--byiara-color-primary-strong);
+}
+:root
+  .byiara-admin
+  :is(byiara-button, byiara-file-upload-button)
+  .btn-secondary:hover:not(:disabled) {
+  background: var(--byiara-color-primary-soft);
+}
+:root .byiara-admin byiara-button .btn-open::after {
+  transform: rotate(45deg);
+  width: 0.35rem;
+}
+:root .byiara-admin byiara-card .card {
+  border-color: var(--byiara-color-border-subtle);
+  box-shadow: none;
+}
+:root .byiara-admin byiara-card .card-padding-lg {
+  padding: 1.5rem;
+}
+:root .byiara-admin byiara-page-header .page-header {
+  align-items: center;
+  gap: 1rem;
+}
+:root .byiara-admin byiara-page-header .page-label {
+  margin-bottom: 0.25rem;
+  color: var(--byiara-color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+:root .byiara-admin byiara-page-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
+  font-weight: 700;
+}
+:root .byiara-admin byiara-page-header .page-actions {
+  flex-wrap: wrap;
+}
+:root .byiara-admin byiara-tabs .tabs-navigation {
+  width: fit-content;
+  max-width: 100%;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.75rem;
+  border: 0;
+  border-radius: var(--byiara-radius-md);
+  background: #e9e9ed;
+  overflow-x: auto;
+}
+:root .byiara-admin byiara-tabs .tab-btn {
+  bottom: 0;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.125rem;
+  border: 0;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+:root .byiara-admin byiara-tabs .tab-btn.active {
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+  box-shadow: var(--byiara-shadow-sm);
+  font-weight: 600;
+}
+:root .byiara-admin byiara-tabs .tab-btn:focus-visible {
+  outline: 2px solid var(--byiara-color-focus);
+  outline-offset: -2px;
+}
+:root .byiara-admin byiara-text-field .field {
+  gap: 0.5rem;
+}
+:root .byiara-admin byiara-text-field .field > span,
+:root .byiara-admin byiara-select-field .select-label {
+  color: var(--byiara-color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+:root .byiara-admin byiara-text-field .field input,
+:root .byiara-admin byiara-text-field .field textarea,
+:root .byiara-admin byiara-select-field .select-trigger {
+  min-width: 0;
+  min-height: 2.75rem;
+  border-color: var(--byiara-color-border-strong);
+  background: var(--byiara-color-surface);
+  box-shadow: none;
+  font-size: 1rem;
+  font-weight: 400;
+}
+:root .byiara-admin byiara-text-field .field input[aria-invalid='true'],
+:root .byiara-admin byiara-text-field .field textarea[aria-invalid='true'],
+:root .byiara-admin byiara-select-field .select-trigger[aria-invalid='true'] {
+  border-color: var(--byiara-color-danger);
+}
+:root .byiara-admin byiara-select-field .select-field {
+  gap: 0.5rem;
+}
+:root .byiara-admin byiara-select-field .select-trigger:focus-visible {
+  outline: 2px solid var(--byiara-color-focus);
+  outline-offset: 2px;
+}
+:root .byiara-admin byiara-select-field .select-option {
+  min-height: 2.75rem;
+  font-weight: 400;
+}
+:root .byiara-admin byiara-data-table .byiara-data-table-container {
+  box-shadow: none;
+  border-color: var(--byiara-color-border);
+}
+:root .byiara-admin byiara-data-table .byiara-data-table th {
+  padding-block: 0.875rem;
+  border: 0;
+  border-bottom: 1px solid var(--byiara-color-border);
+  background: var(--byiara-color-surface);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+:root .byiara-admin byiara-data-table .byiara-data-table td {
+  padding-block: 1rem;
+  border: 0;
+  border-bottom: 1px solid var(--byiara-color-border-subtle);
+  font-size: 0.875rem;
+}
+:root
+  .byiara-admin
+  byiara-data-table
+  .byiara-data-table
+  tbody
+  tr:last-child
+  td {
+  border-bottom: 0;
+}
+:root .byiara-admin byiara-data-table .byiara-data-table-sort {
+  min-height: 2.75rem;
+  margin-block: -0.75rem;
+}
+:root .byiara-admin byiara-data-table .byiara-data-table-footer {
+  background: var(--byiara-color-surface);
+}
+:root .byiara-admin byiara-empty-state .empty-state {
+  border-style: solid;
+  border-color: var(--byiara-color-border-subtle);
+  background: var(--byiara-color-surface);
+}
+
+@media (max-width: 48rem) {
+  :root .byiara-admin byiara-page-header .page-header {
+    align-items: flex-start;
+  }
+  :root .byiara-admin byiara-page-header h1 {
+    font-size: 1.75rem;
+  }
+  :root .byiara-admin byiara-card .card-padding-lg {
+    padding: 1.125rem;
+  }
+  :root
+    .byiara-admin
+    byiara-data-table
+    .responsive-stack
+    .byiara-data-table
+    td {
+    border: 0;
+    padding-block: 0.5rem;
+  }
+}
+
+:root .byiara-admin byiara-stepper .stepper {
+  padding: 0;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+:root .byiara-admin byiara-stepper .step-button {
+  flex: 1;
+  justify-content: center;
+  border-radius: var(--byiara-radius-md);
+  font-size: 0.8125rem;
+}
+:root .byiara-admin byiara-stepper .step-button.selected {
+  background: var(--byiara-color-primary-tint);
+  box-shadow: none;
+  font-weight: 600;
+}
+:root .byiara-admin byiara-stepper .step-number {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+:root .byiara-admin byiara-action-menu .action-menu-trigger {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+/* Keep the hidden file input inside the workspace's scroll boundary. Without
+   a positioned label, its absolute position can enlarge the outer document. */
+:root .byiara-admin byiara-file-upload-button .btn {
+  position: relative;
+}
