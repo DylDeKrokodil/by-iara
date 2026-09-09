@@ -5,43 +5,6 @@ body {
   min-width: 20rem;
 }
 
-/* Route motion is deliberately limited to a short crossfade. The sidebar and
-   toolbar stay anchored so navigation preserves spatial context. */
-.workspace-content {
-  view-transition-name: admin-route;
-}
-
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-}
-
-::view-transition-old(admin-route),
-::view-transition-new(admin-route) {
-  mix-blend-mode: normal;
-}
-
-::view-transition-old(admin-route) {
-  animation: admin-route-out 90ms var(--byiara-ease-out) both;
-}
-
-::view-transition-new(admin-route) {
-  animation: admin-route-in var(--byiara-duration-fast) var(--byiara-ease-out)
-    both;
-}
-
-@keyframes admin-route-out {
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes admin-route-in {
-  from {
-    opacity: 0;
-  }
-}
-
 /* Bespoke calendar-toolbar buttons (apps/admin/src/app/reservations) --
    the only other .button-* usage is byiara-button, which owns this look. */
 .button-secondary {
@@ -121,11 +84,4 @@ body {
   text-transform: none;
   letter-spacing: 0;
   background: var(--byiara-color-surface);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(admin-route),
-  ::view-transition-new(admin-route) {
-    animation: none;
-  }
 }

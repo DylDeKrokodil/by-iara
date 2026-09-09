@@ -18,7 +18,7 @@ A practitioner checks the next appointment between customers, using a laptop at 
 Motion communicates state and spatial relationships; it is not page decoration.
 
 - Use the shared `--byiara-duration-fast` (140ms), `--byiara-duration-base` (220ms), and `--byiara-ease-out` tokens. Exits use the faster duration; entrances may use the base duration.
-- Keep the sidebar and workspace toolbar anchored during navigation. Pointer-driven route changes use a brief content crossfade; initial load, keyboard navigation, same-page fragment changes, and reduced-motion sessions stay instant.
+- Keep page navigation instant so frequently used routes never ghost, overlap, or delay the task. The sidebar and workspace toolbar stay anchored while routed content is replaced.
 - Drawers and dialogs enter from their physical origin and retain their content until the exit finishes. Animate opacity and transforms rather than layout-driving properties.
 - High-frequency controls use color or border state transitions only. Do not choreograph tab content, tables, or page sections on load.
 - Shared primitives own their feedback motion. Admin pages should compose buttons, menus, modals, tiles, and toasts rather than redefining their timing locally.
