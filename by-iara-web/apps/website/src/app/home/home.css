@@ -299,14 +299,20 @@ h1 {
 }
 
 .home-visit {
-  padding-block: clamp(3rem, 7vw, 5rem);
+  padding-block: clamp(4rem, 9vw, 7rem);
   border-top: 1px solid var(--byiara-color-border-subtle);
 }
 
 .home-visit-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-  gap: clamp(2rem, 6vw, 5rem);
+  grid-template-columns: minmax(0, 1.15fr) minmax(17rem, 0.85fr);
+  align-items: center;
+  gap: clamp(2.5rem, 7vw, 6rem);
+}
+
+.home-visit-copy {
+  display: grid;
+  gap: clamp(2rem, 5vw, 3.5rem);
 }
 
 .home-visit-facts {
@@ -324,6 +330,18 @@ h1 {
 
 .home-visit-fact p {
   max-width: 44ch;
+}
+
+.home-visit-media {
+  width: min(100%, 28rem);
+  margin: 0 auto;
+}
+
+.home-visit-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--byiara-radius-lg);
 }
 
 /* The single fully-saturated rose moment on the page. */
