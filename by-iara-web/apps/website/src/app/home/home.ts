@@ -150,11 +150,26 @@ export class Home implements OnInit {
   private playHeroVideo(video: HTMLVideoElement): void {
     video.muted = true;
     video.defaultMuted = true;
-    video.play().catch(() => {
-      // Browser policy or Low Power Mode blocked autoplay. Keep the matching
-      // still image visible rather than exposing native video controls.
-      this.heroVideoPlaying.set(false);
-    });
+    void video
+      .play()
+      .then(() => {
+        // Autoplay can begin before Angular hydrates and subscribes to the
+        // `playing` event. Synchronize the signal from the play result too so
+        // an already-playing video is not left hidden behind its poster.
+        if (
+          !video.paused &&
+          this.heroVideoPlaybackEnabled &&
+          this.heroVideoShouldPlay &&
+          document.visibilityState === 'visible'
+        ) {
+          this.heroVideoPlaying.set(true);
+        }
+      })
+      .catch(() => {
+        // Browser policy or Low Power Mode blocked autoplay. Keep the matching
+        // still image visible rather than exposing native video controls.
+        this.heroVideoPlaying.set(false);
+      });
   }
 
   ngOnInit(): void {
