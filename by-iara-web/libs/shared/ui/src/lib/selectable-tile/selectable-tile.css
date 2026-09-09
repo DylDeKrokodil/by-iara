@@ -10,14 +10,15 @@
   cursor: pointer;
   transition:
     border-color var(--byiara-duration-base) var(--byiara-ease-out),
-    border-width var(--byiara-duration-fast) var(--byiara-ease-out),
-    background var(--byiara-duration-base) var(--byiara-ease-out),
+    background-color var(--byiara-duration-base) var(--byiara-ease-out),
     box-shadow var(--byiara-duration-base) var(--byiara-ease-out),
     transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-:host(:hover) {
-  border-color: var(--byiara-color-primary);
+@media (hover: hover) and (pointer: fine) {
+  :host(:hover) {
+    border-color: var(--byiara-color-primary);
+  }
 }
 
 :host(:active) {
@@ -25,11 +26,12 @@
 }
 
 :host(.selected) {
-  border-width: 2px;
   border-color: var(--byiara-color-primary-action);
   background: var(--byiara-color-primary-tint);
-  box-shadow: 0 0.5rem 1.25rem
-    color-mix(in srgb, var(--byiara-color-primary) 14%, transparent);
+  box-shadow:
+    inset 0 0 0 1px var(--byiara-color-primary-action),
+    0 0.5rem 1.25rem
+      color-mix(in srgb, var(--byiara-color-primary) 14%, transparent);
 }
 
 :host(:disabled) {
@@ -55,4 +57,10 @@
 
 :host(.tile-rect.selected) {
   font-weight: var(--byiara-font-weight-bold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    transition: none;
+  }
 }

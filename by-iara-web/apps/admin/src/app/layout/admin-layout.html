@@ -34,14 +34,13 @@
     />
   </header>
 
-  <!-- Backdrop overlay for mobile menu -->
-  @if (isMobileMenuOpen()) {
+  <!-- Kept mounted so opening and closing can both transition smoothly. -->
   <div
     class="sidebar-backdrop"
+    [class.is-open]="isMobileMenuOpen()"
     (click)="closeMobileMenu()"
     aria-hidden="true"
   ></div>
-  }
 
   <!-- Sidebar -->
   <aside

@@ -164,7 +164,10 @@
   background: var(--byiara-color-surface);
   color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-sm);
-  transition: all 0.15s ease;
+  transition:
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out),
+    outline-color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .field input::placeholder,
@@ -274,18 +277,23 @@
   background: var(--byiara-color-surface-muted);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-.variant-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--byiara-color-primary) 15%,
-    transparent
-  );
-  background: var(--byiara-color-white);
-  box-shadow: 0 2px 8px
-    color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .variant-card:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--byiara-color-primary) 15%,
+      transparent
+    );
+    background: var(--byiara-color-white);
+    box-shadow: 0 2px 8px
+      color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+  }
 }
 
 .variant-fields {

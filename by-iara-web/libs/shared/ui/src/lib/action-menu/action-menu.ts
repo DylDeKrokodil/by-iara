@@ -107,6 +107,9 @@ export class ActionMenu {
     const trigger = this.trigger?.nativeElement;
     if (!menu || !trigger) return;
 
+    // Keyboard-opened menus appear immediately; pointer-opened menus get a
+    // brief origin-aware transition that reinforces their trigger.
+    menu.classList.toggle('motion-enabled', !focusFirstItem);
     menu.showPopover();
     this.open.set(true);
 
@@ -121,6 +124,7 @@ export class ActionMenu {
     const fitsBelow =
       triggerRect.bottom + gap + menuRect.height <=
       window.innerHeight - viewportPadding;
+    menu.classList.toggle('opens-above', !fitsBelow);
     const top = fitsBelow
       ? triggerRect.bottom + gap
       : Math.max(viewportPadding, triggerRect.top - menuRect.height - gap);

@@ -148,7 +148,7 @@
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
-  transition: transform 160ms ease-out;
+  transition: transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 .group-toggle svg.is-open {
   transform: rotate(90deg);
@@ -165,7 +165,8 @@
   font-size: 0.875rem;
   font-weight: 400;
   text-decoration: none;
-  transition: background-color 160ms ease-out;
+  transition: background-color var(--byiara-duration-fast)
+    var(--byiara-ease-out);
 }
 .navigation-item a:hover {
   background: rgb(255 255 255 / 60%);
@@ -361,13 +362,17 @@
     z-index: var(--byiara-z-index-modal);
     transform: translateX(-100%);
     visibility: hidden;
-    transition: transform 200ms var(--byiara-ease-out);
+    transition:
+      transform var(--byiara-duration-fast) var(--byiara-ease-out),
+      visibility 0s linear var(--byiara-duration-fast);
     padding-top: max(1rem, env(safe-area-inset-top));
     padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
   .sidebar.mobile-open {
     transform: none;
     visibility: visible;
+    transition-duration: var(--byiara-duration-base), 0s;
+    transition-delay: 0s;
   }
   .sidebar-backdrop {
     display: block;
@@ -375,6 +380,19 @@
     inset: 0;
     z-index: var(--byiara-z-index-overlay);
     background: rgb(0 0 0 / 28%);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+      visibility 0s linear var(--byiara-duration-fast);
+  }
+  .sidebar-backdrop.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-duration: var(--byiara-duration-base), 0s;
+    transition-delay: 0s;
   }
   .mobile-close {
     display: inline-grid;
@@ -397,5 +415,14 @@
   .workspace-toolbar {
     background: var(--byiara-color-background);
     backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group-toggle svg,
+  .navigation-item a,
+  .sidebar,
+  .sidebar-backdrop {
+    transition: none;
   }
 }

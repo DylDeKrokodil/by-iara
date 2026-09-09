@@ -1,19 +1,4 @@
 /* Grid Layouts for Content */
-.tab-content {
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .availability-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20rem;
@@ -115,12 +100,16 @@
   font-size: var(--byiara-font-size-sm);
   color: var(--byiara-color-text);
   font-weight: var(--byiara-font-weight-medium);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-.shift-badge:hover {
-  border-color: var(--byiara-color-primary);
-  background: var(--byiara-color-surface-tinted);
+@media (hover: hover) and (pointer: fine) {
+  .shift-badge:hover {
+    border-color: var(--byiara-color-primary);
+    background: var(--byiara-color-surface-tinted);
+  }
 }
 
 .shift-delete-btn {
@@ -132,15 +121,24 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
   border-radius: 50%;
   width: 2.75rem;
   height: 2.75rem;
 }
 
-.shift-delete-btn:hover {
-  color: var(--byiara-color-danger);
-  background: color-mix(in srgb, var(--byiara-color-danger) 8%, transparent);
+.shift-delete-btn:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shift-delete-btn:hover {
+    color: var(--byiara-color-danger);
+    background: color-mix(in srgb, var(--byiara-color-danger) 8%, transparent);
+  }
 }
 
 .no-hours {

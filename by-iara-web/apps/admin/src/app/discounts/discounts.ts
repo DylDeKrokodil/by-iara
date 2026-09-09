@@ -4,6 +4,7 @@ import {
   computed,
   ElementRef,
   inject,
+  OnDestroy,
   OnInit,
   signal,
   ViewChild,
@@ -33,6 +34,7 @@ import {
   touchedError,
 } from '@by-iara/shared-ui';
 import type { StepperStep } from '@by-iara/shared-ui';
+import { AdminMotion } from '../core/admin-motion';
 import { ServicesApi } from '../services/services-api';
 import type { Service } from '../services/service.models';
 import {
@@ -83,7 +85,7 @@ const discountDateRangeValidator: ValidatorFn = (
   templateUrl: './discounts.html',
   styleUrl: './discounts.css',
 })
-export class Discounts implements OnInit {
+export class Discounts implements OnInit, OnDestroy {
   protected readonly touchedError = touchedError;
   protected readonly automaticUsageOptions: SelectFieldOption[] = [
     { label: 'Unlimited', value: 'unlimited' },
@@ -97,6 +99,8 @@ export class Discounts implements OnInit {
   private readonly servicesApi = inject(ServicesApi);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
+  private readonly motion = inject(AdminMotion);
+  private detailsCloseTimer?: ReturnType<typeof setTimeout>;
 
   protected readonly discounts = signal<Discount[]>([]);
   protected readonly services = signal<Service[]>([]);
@@ -106,6 +110,7 @@ export class Discounts implements OnInit {
   protected readonly usageLoading = signal(false);
   protected readonly submitting = signal(false);
   protected readonly formOpen = signal(false);
+  protected readonly detailsClosing = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly generatedCode = signal<string | null>(null);
   protected readonly selectedServiceIds = signal<Set<string>>(new Set());
@@ -167,6 +172,10 @@ export class Discounts implements OnInit {
     this.servicesApi
       .list({ active: true })
       .subscribe({ next: (services) => this.services.set(services) });
+  }
+
+  ngOnDestroy(): void {
+    if (this.detailsCloseTimer) clearTimeout(this.detailsCloseTimer);
   }
 
   protected openForm(): void {
@@ -392,16 +401,31 @@ export class Discounts implements OnInit {
   }
 
   protected select(discount: Discount): void {
+    if (this.detailsCloseTimer) clearTimeout(this.detailsCloseTimer);
+    this.detailsClosing.set(false);
     this.selectedDiscount.set(discount);
     this.loadUsage(discount);
     this.detailsDialog?.nativeElement.showModal();
   }
 
-  protected closeDetails(): void {
-    this.detailsDialog?.nativeElement.close();
+  protected closeDetails(event?: Event): void {
+    event?.preventDefault();
+    const dialog = this.detailsDialog?.nativeElement;
+    if (!dialog?.open || this.detailsClosing()) return;
+
+    if (this.motion.prefersReducedMotion()) {
+      dialog.close();
+      return;
+    }
+
+    this.detailsClosing.set(true);
+    this.detailsCloseTimer = setTimeout(() => dialog.close(), 140);
   }
 
   protected onDetailsClosed(): void {
+    if (this.detailsCloseTimer) clearTimeout(this.detailsCloseTimer);
+    this.detailsCloseTimer = undefined;
+    this.detailsClosing.set(false);
     this.selectedDiscount.set(null);
     this.usage.set([]);
   }

@@ -46,6 +46,29 @@ async function mockAdmin(page: Page) {
       customer: { name: 'Ana Silva', email: 'ana@example.com', phone: null },
       notes: null,
     };
+    const discount = {
+      id: 'discount-1',
+      name: 'Welcome offer',
+      audience: 'PUBLIC',
+      scope: 'ALL_SERVICES',
+      valueType: 'PERCENTAGE',
+      valueAmount: 1000,
+      currency: null,
+      startsAt: '2026-09-01T00:00:00Z',
+      endsAt: '2026-09-30T23:59:59Z',
+      maxUniqueClients: null,
+      maxUsesPerCustomer: 1,
+      firstTimeCustomersOnly: false,
+      codeHint: 'WEL••••',
+      customerEmail: null,
+      status: 'ACTIVE',
+      serviceIds: [],
+      reservedUses: 0,
+      consumedUses: 0,
+      uniqueClients: 0,
+      publicCode: 'WELCOME10',
+      featured: false,
+    };
     let data: unknown = [];
     if (path.includes('/auth/')) {
       data = {
@@ -85,6 +108,10 @@ async function mockAdmin(page: Page) {
       data = [service];
     } else if (path.includes('/services/')) {
       data = service;
+    } else if (path.endsWith('/discounts')) {
+      data = [discount];
+    } else if (path.endsWith('/discounts/discount-1/usage')) {
+      data = [];
     } else if (path.endsWith('/availability/rules')) {
       data = [
         {
@@ -212,6 +239,43 @@ test('shows calendar capacity in a time-based week overview', async ({
   await expect(page.locator('.month-cell')).toHaveCount(42);
   await page.getByRole('button', { name: 'Day', exact: true }).click();
   await expect(page.locator('.agenda-day')).toBeVisible();
+});
+
+test('opens and dismisses the discount details drawer', async ({ page }) => {
+  await page.goto('/discounts');
+  await page
+    .getByRole('button', { name: 'Open Welcome offer details' })
+    .click();
+
+  const dialog = page.getByRole('dialog', { name: 'Welcome offer' });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect(dialog).toBeHidden();
+});
+
+test('removes overlay movement when reduced motion is requested', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/discounts');
+  await page
+    .getByRole('button', { name: 'Open Welcome offer details' })
+    .click();
+
+  const dialog = page.getByRole('dialog', { name: 'Welcome offer' });
+  await expect(dialog).toBeVisible();
+  await expect
+    .poll(() =>
+      dialog.evaluate((element) => getComputedStyle(element).transform),
+    )
+    .toBe('none');
+  await expect
+    .poll(() =>
+      dialog.evaluate(
+        (element) => getComputedStyle(element).transitionProperty,
+      ),
+    )
+    .toBe('none');
 });
 
 for (const width of [390, 834, 1440]) {
