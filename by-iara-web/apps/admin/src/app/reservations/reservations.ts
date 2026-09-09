@@ -2,11 +2,12 @@ import {
   Component,
   OnInit,
   computed,
+  DestroyRef,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import {
   Alert,
@@ -38,6 +39,10 @@ import {
   reservationStatusTone,
 } from './reservation.models';
 import { ReservationsApi } from './reservations-api';
+import {
+  connectFragmentTab,
+  navigateToFragmentTab,
+} from '../core/fragment-tab-state';
 
 const reservationViewValues = ['attention', 'calendar', 'history'] as const;
 type ReservationView = (typeof reservationViewValues)[number];
@@ -155,6 +160,8 @@ export class Reservations implements OnInit {
   private readonly api = inject(ReservationsApi);
   private readonly availabilityApi = inject(AvailabilityApi);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly calendarSyncOpen = signal(false);
   protected readonly activeView = signal<ReservationView>('attention');
@@ -417,6 +424,14 @@ export class Reservations implements OnInit {
 
   ngOnInit(): void {
     this.highlightId.set(this.route.snapshot.queryParamMap.get('id'));
+    connectFragmentTab({
+      allowedValues: reservationViewValues,
+      defaultValue: 'attention',
+      destroyRef: this.destroyRef,
+      route: this.route,
+      router: this.router,
+      state: this.activeView,
+    });
     this.reload();
   }
 
@@ -430,6 +445,7 @@ export class Reservations implements OnInit {
     }
 
     this.activeView.set(view);
+    void navigateToFragmentTab(this.router, this.route, view);
   }
 
   protected reload(): void {

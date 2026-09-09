@@ -283,6 +283,7 @@ describe('Reservations - arriving via the new-reservation email link', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: { queryParamMap: convertToParamMap({ id: 'pending-1' }) },
+            fragment: of(null),
           },
         },
       ],

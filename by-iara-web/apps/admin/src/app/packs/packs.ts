@@ -1,5 +1,12 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   Alert,
   Button,
@@ -12,6 +19,10 @@ import {
 import { ServicesApi } from '../services/services-api';
 import type { PackOffer, Service } from '../services/service.models';
 import { CustomerPack, PacksApi } from './packs-api';
+import {
+  connectFragmentTab,
+  navigateToFragmentTab,
+} from '../core/fragment-tab-state';
 
 interface ConfiguredPackOffer {
   readonly service: Service;
@@ -19,7 +30,8 @@ interface ConfiguredPackOffer {
   readonly perSessionCents: number;
 }
 
-type PacksTab = 'offers' | 'customers';
+const packTabValues = ['offers', 'customers'] as const;
+type PacksTab = (typeof packTabValues)[number];
 
 const packTabs: ReadonlyArray<TabOption> = [
   { label: 'Pack offers', value: 'offers' },
@@ -43,6 +55,9 @@ const packTabs: ReadonlyArray<TabOption> = [
 export class Packs implements OnInit {
   private readonly api = inject(PacksApi);
   private readonly servicesApi = inject(ServicesApi);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly packs = signal<CustomerPack[]>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal(false);
@@ -71,6 +86,14 @@ export class Packs implements OnInit {
   );
 
   ngOnInit(): void {
+    connectFragmentTab({
+      allowedValues: packTabValues,
+      defaultValue: 'offers',
+      destroyRef: this.destroyRef,
+      route: this.route,
+      router: this.router,
+      state: this.activeTab,
+    });
     this.loadConfiguredOffers();
     this.api.list().subscribe({
       next: (packs) => {
@@ -106,6 +129,7 @@ export class Packs implements OnInit {
   protected setActiveTab(value: string): void {
     if (value === 'offers' || value === 'customers') {
       this.activeTab.set(value);
+      void navigateToFragmentTab(this.router, this.route, value);
     }
   }
 
