@@ -192,6 +192,28 @@ test('opens service editing from its name and supports keyboard view switching',
   ).toHaveAttribute('aria-selected', 'true');
 });
 
+test('shows calendar capacity in a time-based week overview', async ({
+  page,
+}) => {
+  await page.goto('/reservations');
+  await page.getByRole('tab', { name: 'Calendar' }).click();
+
+  await expect(
+    page.getByRole('heading', { name: 'Calendar agenda' }),
+  ).toBeVisible();
+  await expect(page.locator('.week-schedule-grid')).toBeVisible();
+  await expect(page.locator('.schedule-reservation')).toHaveCount(1);
+  await expect(
+    page.getByText('Availability and workload by day, week, or month.'),
+  ).toBeVisible();
+  await expect(page.getByText(/h booked|h available/)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Month', exact: true }).click();
+  await expect(page.locator('.month-grid')).toBeVisible();
+  await expect(page.locator('.month-cell')).toHaveCount(42);
+  await page.getByRole('button', { name: 'Day', exact: true }).click();
+  await expect(page.locator('.agenda-day')).toBeVisible();
+});
+
 for (const width of [390, 834, 1440]) {
   test(`admin routes remain usable at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 1000 });

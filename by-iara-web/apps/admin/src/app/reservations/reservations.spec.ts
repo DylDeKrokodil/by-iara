@@ -1,6 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import { of } from 'rxjs';
 import { ToastService } from '@by-iara/shared-ui';
 import { Reservations } from './reservations';
@@ -12,6 +16,7 @@ import {
   ReservationAttentionPage,
 } from './reservation.models';
 import { ReservationsApi } from './reservations-api';
+import { AvailabilityApi } from '../availability/availability-api';
 
 const emptyPage: ReservationPage = {
   items: [],
@@ -76,6 +81,10 @@ describe('Reservations', () => {
     reject: ReturnType<typeof vi.fn>;
     attention: ReturnType<typeof vi.fn>;
   };
+  let availabilityApi: {
+    listRules: ReturnType<typeof vi.fn>;
+    listBlocks: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(async () => {
     vi.useFakeTimers();
@@ -113,9 +122,36 @@ describe('Reservations', () => {
       confirm: vi.fn(),
       reject: vi.fn(),
       attention: vi.fn(() => {
-        const pending = reservation('pending-1', '2026-06-29T09:00:00.000Z', 'PENDING');
-        return of({ ...emptyAttentionPage, items: [attentionItem(pending)], total: 1 });
+        const pending = reservation(
+          'pending-1',
+          '2026-06-29T09:00:00.000Z',
+          'PENDING',
+        );
+        return of({
+          ...emptyAttentionPage,
+          items: [attentionItem(pending)],
+          total: 1,
+        });
       }),
+    };
+    availabilityApi = {
+      listRules: vi.fn(() =>
+        of([
+          {
+            id: 'rule-monday',
+            dayOfWeek: 'MONDAY',
+            startTime: '09:00',
+            endTime: '17:00',
+          },
+          {
+            id: 'rule-tuesday',
+            dayOfWeek: 'TUESDAY',
+            startTime: '09:00',
+            endTime: '17:00',
+          },
+        ]),
+      ),
+      listBlocks: vi.fn(() => of([])),
     };
 
     await TestBed.configureTestingModule({
@@ -123,6 +159,7 @@ describe('Reservations', () => {
       providers: [
         provideRouter([]),
         { provide: ReservationsApi, useValue: api },
+        { provide: AvailabilityApi, useValue: availabilityApi },
         { provide: ToastService, useValue: { show: vi.fn() } },
       ],
     }).compileComponents();
@@ -151,20 +188,31 @@ describe('Reservations', () => {
   });
 
   it('renders calendar counts and empty day states separately from pending requests', () => {
-    (fixture.componentInstance as unknown as { setActiveView(value: string): void }).setActiveView('calendar');
+    (
+      fixture.componentInstance as unknown as {
+        setActiveView(value: string): void;
+      }
+    ).setActiveView('calendar');
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
 
     expect(compiled.textContent).toContain('Calendar agenda');
-    expect(compiled.textContent).toContain('Selected date');
-    expect(compiled.textContent).toContain('reservation');
-    expect(compiled.textContent).toContain('No reservations');
+    expect(compiled.textContent).toContain('Availability and workload');
+    expect(compiled.textContent).toContain('1 booking');
+    expect(compiled.textContent).toContain('Open');
     expect(compiled.textContent).toContain('Customer today-1');
     expect(compiled.textContent).toContain('Customer tomorrow-1');
+    expect(
+      compiled.querySelector('.week-day-header')?.getAttribute('aria-label'),
+    ).toContain('13 percent booked');
   });
 
   it('reloads the reservation range when moving to the next week', () => {
-    (fixture.componentInstance as unknown as { setActiveView(value: string): void }).setActiveView('calendar');
+    (
+      fixture.componentInstance as unknown as {
+        setActiveView(value: string): void;
+      }
+    ).setActiveView('calendar');
     fixture.detectChanges();
     const nextButton = fixture.debugElement.query(
       By.css('button[aria-label="Next week"]'),
@@ -206,8 +254,16 @@ describe('Reservations - arriving via the new-reservation email link', () => {
       confirm: vi.fn(),
       reject: vi.fn(),
       attention: vi.fn(() => {
-        const pending = reservation('pending-1', '2026-06-29T09:00:00.000Z', 'PENDING');
-        return of({ ...emptyAttentionPage, items: [attentionItem(pending)], total: 1 });
+        const pending = reservation(
+          'pending-1',
+          '2026-06-29T09:00:00.000Z',
+          'PENDING',
+        );
+        return of({
+          ...emptyAttentionPage,
+          items: [attentionItem(pending)],
+          total: 1,
+        });
       }),
     };
 
@@ -215,10 +271,19 @@ describe('Reservations - arriving via the new-reservation email link', () => {
       imports: [Reservations],
       providers: [
         { provide: ReservationsApi, useValue: api },
+        {
+          provide: AvailabilityApi,
+          useValue: {
+            listRules: vi.fn(() => of([])),
+            listBlocks: vi.fn(() => of([])),
+          },
+        },
         { provide: ToastService, useValue: { show: vi.fn() } },
         {
           provide: ActivatedRoute,
-          useValue: { snapshot: { queryParamMap: convertToParamMap({ id: 'pending-1' }) } },
+          useValue: {
+            snapshot: { queryParamMap: convertToParamMap({ id: 'pending-1' }) },
+          },
         },
       ],
     }).compileComponents();
@@ -255,6 +320,13 @@ describe('Reservations - calendar sync panel', () => {
       providers: [
         provideRouter([]),
         { provide: ReservationsApi, useValue: api },
+        {
+          provide: AvailabilityApi,
+          useValue: {
+            listRules: vi.fn(() => of([])),
+            listBlocks: vi.fn(() => of([])),
+          },
+        },
         { provide: CalendarFeedApi, useValue: calendarFeedApi },
         { provide: ToastService, useValue: { show: vi.fn() } },
       ],
@@ -265,11 +337,17 @@ describe('Reservations - calendar sync panel', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('byiara-calendar-sync'),
+    ).toBeNull();
 
     const toggleButton = fixture.debugElement
       .queryAll(By.css('byiara-button button'))
-      .find((button) => (button.nativeElement as HTMLElement).textContent?.includes('Sync to Apple Calendar'));
+      .find((button) =>
+        (button.nativeElement as HTMLElement).textContent?.includes(
+          'Sync to Apple Calendar',
+        ),
+      );
     if (!toggleButton) {
       throw new Error('Could not find the "Sync to Apple Calendar" button');
     }
@@ -279,12 +357,16 @@ describe('Reservations - calendar sync panel', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('byiara-calendar-sync'),
+    ).toBeTruthy();
     expect(calendarFeedApi.status).toHaveBeenCalled();
 
     toggleButton.nativeElement.click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('byiara-calendar-sync')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector('byiara-calendar-sync'),
+    ).toBeNull();
   });
 });
