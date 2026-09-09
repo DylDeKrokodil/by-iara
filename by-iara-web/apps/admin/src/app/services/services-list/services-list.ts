@@ -10,7 +10,7 @@ import {
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ServicesApi } from '../services-api';
 import {
   formatMoney,
@@ -83,6 +83,7 @@ function isServiceStatusFilter(value: string): value is ServiceStatusFilter {
 @Component({
   selector: 'byiara-services-list',
   imports: [
+    RouterLink,
     ActionMenu,
     Alert,
     Button,
