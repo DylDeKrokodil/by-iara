@@ -447,6 +447,7 @@ h1 {
   margin: 0;
   color: var(--public-ink);
   font: inherit;
+  text-decoration-thickness: 1px;
 }
 .home-about h2 {
   color: var(--byiara-color-white);
