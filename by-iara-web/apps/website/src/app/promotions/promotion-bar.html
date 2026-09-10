@@ -1,18 +1,25 @@
-<aside class="promotion-bar" [attr.aria-label]="discount().name">
+<aside
+  class="promotion-bar"
+  [class.promotion-bar-automatic]="!discount().code"
+  [attr.aria-label]="discount().code ? discount().name : benefit() + ' ' + messages().off"
+>
   <div class="promotion-content">
+    @if (discount().code) {
     <p>
-      @if (discount().code) {
       <span>{{ copy().prefix }}</span>
       <strong>{{ benefit() }}</strong>
       <span>{{ copy().suffix }}</span>
       <code>{{ discount().code }}</code>
-      } @else {
-      <span>{{ discount().name }}</span>
-      <strong>{{ benefit() }} {{ messages().off }}</strong>
-      <span>{{ disclaimer() }}</span>
-      <a [routerLink]="language.localizedLink('book')">{{ messages().book }}</a>
-      }
     </p>
+    } @else {
+    <div class="promotion-offer">
+      <strong>{{ benefit() }} {{ messages().off }}</strong>
+      @if (disclaimer()) {
+      <p class="promotion-disclaimer">{{ disclaimer() }}</p>
+      }
+    </div>
+    <a [routerLink]="language.localizedLink('book')">{{ messages().book }}</a>
+    }
   </div>
   <button
     type="button"
