@@ -1,18 +1,6 @@
-.guides-shell {
-  width: min(76rem, calc(100% - 2rem));
-  margin-inline: auto;
-  padding-block: clamp(3rem, 8vw, 7rem);
-}
-
 .guides-header {
-  width: min(42rem, 100%);
+  width: min(48rem, 100%);
   margin-bottom: clamp(2.5rem, 6vw, 5rem);
-}
-
-.guides-header h1 {
-  margin: var(--byiara-space-xs) 0 var(--byiara-space-md);
-  font-size: clamp(2.75rem, 8vw, 5.5rem);
-  line-height: 0.98;
 }
 
 .guides-header > p:last-child {
@@ -34,7 +22,8 @@
   overflow: hidden;
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
-  background: var(--byiara-color-surface);
+  background: var(--byiara-color-surface-muted);
+  border-color: transparent;
 }
 
 .guide-media {
@@ -56,12 +45,13 @@
   flex: 1;
   flex-direction: column;
   gap: var(--byiara-space-sm);
-  padding: var(--byiara-space-lg);
+  padding: 1.5rem;
 }
 
 .guide-card h2 {
   margin: 0;
-  font-size: 1.45rem;
+  font-family: var(--byiara-font-family-sans);
+  font-size: 1.5rem;
   line-height: 1.25;
 }
 
@@ -90,9 +80,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--byiara-space-sm);
   margin-top: auto;
   padding-top: var(--byiara-space-sm);
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .skeleton-card {
@@ -116,4 +107,8 @@
   .guide-grid {
     grid-template-columns: 1fr;
   }
+}
+.guide-card-footer a {
+  min-height: 2.75rem;
+  align-items: center;
 }

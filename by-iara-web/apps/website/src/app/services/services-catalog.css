@@ -11,34 +11,9 @@
   max-width: 44rem;
 }
 
-.catalog-header h1 {
-  margin: 0;
-  color: var(--byiara-color-text);
-  font-family: var(--byiara-font-family-display);
-  font-size: clamp(2.1rem, 1.55rem + 2.4vw, 4rem);
-  font-weight: var(--byiara-font-weight-semibold);
-  letter-spacing: -0.015em;
-  line-height: var(--byiara-line-height-tight);
-  text-wrap: balance;
-}
-
-.catalog-header p {
-  max-width: 58ch;
-  margin: 0;
-  color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-lg);
-  line-height: 1.72;
-  text-wrap: pretty;
-}
-
 .services-grid {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-@media (min-width: 48rem) {
-  .services-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  gap: clamp(1.5rem, 3vw, 2.5rem);
 }
 
 .service-card-shell {
@@ -51,21 +26,22 @@
 }
 
 .service-card {
-  display: grid;
-  grid-template-rows: auto 1fr;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   overflow: hidden;
   border-radius: inherit;
-  background: var(--byiara-color-surface-muted);
+  background: var(--byiara-color-surface);
 }
 
 .service-card-content {
+  flex: 1;
   display: grid;
-  align-content: start;
+  grid-template-rows: 1fr auto;
   gap: var(--byiara-space-lg);
   min-width: 0;
-  padding: clamp(1.25rem, 4vw, 2rem);
   color: var(--byiara-color-text);
+  padding: clamp(1.5rem, 3vw, 2rem);
 }
 
 .service-card-media {
@@ -140,12 +116,11 @@
 
 @media (hover: hover) and (pointer: fine) {
   .service-card-shell:hover {
-    box-shadow: 0 6px 8px rgb(40 18 25 / 18%);
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
 
   .service-card-shell:hover .service-card-media img {
-    transform: scale(1.035);
+    transform: scale(1.015);
   }
 }
 
@@ -197,6 +172,7 @@
   color: inherit;
   text-decoration-color: color-mix(in srgb, currentColor 55%, transparent);
   text-underline-offset: 0.18em;
+  text-decoration: none;
 }
 
 .pack-availability {
@@ -217,4 +193,22 @@
   height: 0.45rem;
   border-radius: 50%;
   background: currentColor;
+}
+.service-name {
+  font-family: var(--byiara-font-family-sans);
+  font-weight: 600;
+}
+.service-name a:hover {
+  text-decoration: underline;
+}
+.service-description {
+  font-size: 1rem;
+}
+.service-card-shell:focus-within {
+  outline: 2px solid var(--byiara-color-focus);
+  outline-offset: 4px;
+}
+
+.booking-row {
+  flex-wrap: wrap;
 }
