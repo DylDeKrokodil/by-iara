@@ -11,6 +11,8 @@ export interface WebsiteMessages {
       readonly bookCta: string;
       readonly openMenu: string;
       readonly closeMenu: string;
+      readonly skipToContent: string;
+      readonly navigationLabel: string;
     };
     readonly footer: {
       readonly tagline: string;
@@ -49,6 +51,8 @@ export interface WebsiteMessages {
     readonly primaryAction: string;
     readonly secondaryAction: string;
     readonly actionsLabel: string;
+    readonly pauseVideo: string;
+    readonly playVideo: string;
     readonly today: string;
     readonly nextAvailable: (day: string, time: string) => string;
     readonly servicesTitle: string;
@@ -279,6 +283,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
+        skipToContent: 'Saltar para o conteúdo',
+        navigationLabel: 'Navegação principal',
       },
       footer: {
         tagline:
@@ -319,6 +325,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar massagens',
       actionsLabel: 'Ações da página inicial',
+      pauseVideo: 'Pausar vídeo',
+      playVideo: 'Reproduzir vídeo',
       today: 'hoje',
       nextAvailable: (day, time) => `Próxima vaga: ${day}, ${time}`,
       servicesTitle: 'Massagens',
@@ -603,6 +611,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         bookCta: 'Book now',
         openMenu: 'Open menu',
         closeMenu: 'Close menu',
+        skipToContent: 'Skip to content',
+        navigationLabel: 'Main navigation',
       },
       footer: {
         tagline:
@@ -642,6 +652,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       primaryAction: 'Book a session',
       secondaryAction: 'Explore massages',
       actionsLabel: 'Home page actions',
+      pauseVideo: 'Pause video',
+      playVideo: 'Play video',
       today: 'today',
       nextAvailable: (day, time) => `Next opening: ${day}, ${time}`,
       servicesTitle: 'Massages',

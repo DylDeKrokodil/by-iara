@@ -1,0 +1,114 @@
+/* Public website: Apple HIG hierarchy, adaptive layout and comfortable controls.
+   Brand primitives remain owned by libs/shared/theme. */
+:root {
+  --byiara-button-small-min-height: 2.75rem;
+  --byiara-button-small-font-size: 0.875rem;
+  --byiara-button-line-height: 1.35;
+  --byiara-button-padding-block: 0.625rem;
+  --byiara-select-min-height: 2.875rem;
+  --public-ink: var(--byiara-color-plum-950);
+  --public-gutter: clamp(1.25rem, 4vw, 2.5rem);
+  --public-section-space: clamp(3.5rem, 7vw, 6rem);
+  --public-title-size: clamp(2.25rem, 1.4rem + 3vw, 4rem);
+  --public-reading-width: 68ch;
+  --byiara-site-header-height: 5rem;
+}
+
+.public-heading {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+}
+.public-heading h1 {
+  margin: 0;
+  color: var(--public-ink);
+  font-family: var(--byiara-font-family-display);
+  font-size: var(--public-title-size);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+.public-heading > p {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+.public-heading > .eyebrow {
+  color: var(--byiara-color-primary-strong);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.home h1,
+.home h2,
+.home h3,
+.packs-page h1,
+.packs-page h2,
+.packs-page h3,
+.service-detail h1,
+.service-detail h2,
+.service-detail h3,
+.catalog-header h1,
+.guides-header h1,
+.guide-header h1,
+.legal-header h1,
+.booking-header h1,
+.not-found-copy h1 {
+  font-family: var(--byiara-font-family-display);
+}
+
+/* A public touch target stays comfortable even for compact shared buttons. */
+byiara-root .btn,
+byiara-root .button {
+  min-height: 2.875rem;
+  padding-block: 0.75rem;
+  line-height: 1.35;
+}
+byiara-root .btn-sm {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  font-size: 0.875rem;
+}
+byiara-root .btn-primary {
+  box-shadow: none;
+}
+byiara-root :is(input, textarea, select) {
+  font-size: max(1rem, 1em);
+}
+byiara-root :is(h1, h2, h3, p, a, button) {
+  overflow-wrap: anywhere;
+}
+byiara-root :is(a, button, input, select, textarea, summary) {
+  scroll-margin-block: calc(var(--byiara-site-header-height) + 1rem) 7rem;
+}
+byiara-root :is(.service-breadcrumbs, .breadcrumbs) a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+byiara-root summary {
+  min-height: 2.75rem;
+  padding-block: 0.75rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+@media (prefers-contrast: more) {
+  byiara-root {
+    --byiara-color-border: var(--byiara-color-text-muted);
+    --byiara-color-border-subtle: var(--byiara-color-text-muted);
+    --byiara-color-border-strong: var(--public-ink);
+  }
+}
+
+/* Grid/flex children may shrink when text is enlarged independently of the viewport. */
+.site-main :where(section, article, header, div, aside, form, li) {
+  min-inline-size: 0;
+}
