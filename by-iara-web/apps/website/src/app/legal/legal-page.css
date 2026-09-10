@@ -42,7 +42,7 @@
 }
 
 .legal-incomplete h2 {
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: var(--byiara-font-size-md);
 }
 
@@ -74,7 +74,7 @@
   margin: 0 0 var(--byiara-space-md);
   font-size: clamp(1.35rem, 1.2rem + 0.5vw, 1.7rem);
   line-height: var(--byiara-line-height-title);
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
 }
 
 .legal-section p,

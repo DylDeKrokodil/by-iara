@@ -43,7 +43,7 @@
   color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-lg);
   line-height: var(--byiara-line-height-title);
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
 }
 
 .option-grid {

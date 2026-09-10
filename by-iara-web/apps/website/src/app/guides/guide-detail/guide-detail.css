@@ -210,7 +210,7 @@
 .guide-body :is(h2, h3),
 .guide-faq h2,
 .related-services h2 {
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
 }
 .guide-faq details[open] summary {
   color: var(--byiara-color-primary-strong);

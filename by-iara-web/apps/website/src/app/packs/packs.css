@@ -84,7 +84,7 @@
 .packs-how h2,
 .packs-terms h2 {
   margin: 0;
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: clamp(2rem, 3.5vw, 3.5rem);
   font-weight: 400;
   line-height: 1.08;
@@ -123,7 +123,7 @@
 }
 .pack-offer-main h3 {
   margin: 0;
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: clamp(1.5rem, 2.2vw, 2.1rem);
   font-weight: 500;
 }

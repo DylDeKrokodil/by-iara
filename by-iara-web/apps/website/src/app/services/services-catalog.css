@@ -195,7 +195,7 @@
   background: currentColor;
 }
 .service-name {
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-weight: 600;
 }
 .service-name a:hover {

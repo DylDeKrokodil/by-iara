@@ -43,21 +43,9 @@
   font-weight: 600;
 }
 
-.home h1,
-.home h2,
-.home h3,
-.packs-page h1,
-.packs-page h2,
-.packs-page h3,
-.service-detail h1,
-.service-detail h2,
-.service-detail h3,
-.catalog-header h1,
-.guides-header h1,
-.guide-header h1,
-.legal-header h1,
-.booking-header h1,
-.not-found-copy h1 {
+/* A low-specificity default for public content, including newly added pages.
+   Navigation and footer labels retain their own UI typography. */
+:where(.site-main) :where(h1, h2, h3, h4, h5, h6) {
   font-family: var(--byiara-font-family-display);
 }
 

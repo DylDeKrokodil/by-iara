@@ -87,7 +87,7 @@
 
 .not-found-copy h1 {
   color: var(--byiara-color-text);
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: clamp(2rem, 1.6rem + 1.8vw, 3rem);
   font-weight: var(--byiara-font-weight-semibold);
   line-height: var(--byiara-line-height-display);

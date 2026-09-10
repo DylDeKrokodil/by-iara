@@ -21,7 +21,7 @@
 h2 {
   max-width: 11ch;
   margin: 0;
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: clamp(1.9rem, 1.5rem + 1.6vw, 2.9rem);
   line-height: var(--byiara-line-height-display);
 }
@@ -63,7 +63,7 @@ h2 {
 h3 {
   max-width: 12ch;
   margin: 0;
-  font-family: var(--byiara-font-family-sans);
+  font-family: var(--byiara-font-family-display);
   font-size: clamp(2rem, 4.5vw, 4rem);
   font-weight: var(--byiara-font-weight-regular);
   line-height: var(--byiara-line-height-tight);

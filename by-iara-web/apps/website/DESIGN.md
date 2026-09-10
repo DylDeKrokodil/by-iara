@@ -65,8 +65,8 @@ Check motion with both normal and reduced-motion preferences.
 
 ## Remaining verification
 
-Some component-scoped heading rules still use DM Sans and override the intended
-Playfair Display typography. Reconcile those rules before declaring font restoration
-complete. Recheck video autoplay/fallback behavior and text contrast against the
+Editorial heading rules now use Playfair Display, with a low-specificity default
+for headings inside `.site-main`. Keep component overrides aligned with that default.
+Recheck video autoplay/fallback behavior and text contrast against the
 moving footage. Run final interaction and accessibility checks after the accumulated
 changes; earlier checks do not certify later edits.
