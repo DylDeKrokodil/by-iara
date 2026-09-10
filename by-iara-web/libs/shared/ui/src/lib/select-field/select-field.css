@@ -1,4 +1,6 @@
 :host {
+  min-width: 0;
+  max-width: 100%;
   display: inline-flex;
 }
 
@@ -6,7 +8,7 @@
   display: inline-flex;
   flex-direction: column;
   gap: var(--byiara-space-2xs);
-  min-width: 10rem;
+  min-width: min(10rem, 100%);
 }
 
 .select-error {
@@ -50,7 +52,7 @@
   display: inline-flex;
   align-items: center;
   width: 100%;
-  min-height: 2.375rem;
+  min-height: var(--byiara-select-min-height, 2.375rem);
   padding: 0 2rem 0 var(--byiara-space-sm);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
@@ -93,7 +95,7 @@
   right: 0;
   display: grid;
   width: 100%;
-  min-width: 10rem;
+  min-width: min(10rem, 100%);
   padding: var(--byiara-space-2xs);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
@@ -104,7 +106,7 @@
 .select-option {
   display: flex;
   align-items: center;
-  min-height: 2.25rem;
+  min-height: var(--byiara-select-min-height, 2.25rem);
   padding: 0 var(--byiara-space-sm);
   border: 0;
   border-radius: var(--byiara-radius-sm);

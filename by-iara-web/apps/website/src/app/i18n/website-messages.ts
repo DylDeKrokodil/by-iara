@@ -11,6 +11,8 @@ export interface WebsiteMessages {
       readonly bookCta: string;
       readonly openMenu: string;
       readonly closeMenu: string;
+      readonly skipToContent: string;
+      readonly navigationLabel: string;
     };
     readonly footer: {
       readonly tagline: string;
@@ -49,6 +51,8 @@ export interface WebsiteMessages {
     readonly primaryAction: string;
     readonly secondaryAction: string;
     readonly actionsLabel: string;
+    readonly pauseVideo: string;
+    readonly playVideo: string;
     readonly today: string;
     readonly nextAvailable: (day: string, time: string) => string;
     readonly servicesTitle: string;
@@ -75,6 +79,7 @@ export interface WebsiteMessages {
     readonly visitAddressText: string;
     readonly visitHoursTitle: string;
     readonly visitHoursText: string;
+    readonly visitImageAlt: string;
     readonly closingTitle: string;
     readonly closingText: string;
     readonly closingAction: string;
@@ -278,6 +283,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         bookCta: 'Marcar agora',
         openMenu: 'Abrir menu',
         closeMenu: 'Fechar menu',
+        skipToContent: 'Saltar para o conteúdo',
+        navigationLabel: 'Navegação principal',
       },
       footer: {
         tagline:
@@ -314,10 +321,12 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     home: {
       location: BRAND.name,
       title: 'Massagens femininas em Almada',
-      lede: 'Um espaço calmo e acolhedor, dedicado ao bem-estar feminino e ao cuidado de si.',
+      lede: 'Um espaço dedicado ao bem-estar feminino, com cuidado e atenção em cada detalhe.',
       primaryAction: 'Marcar sessão',
       secondaryAction: 'Explorar massagens',
       actionsLabel: 'Ações da página inicial',
+      pauseVideo: 'Pausar vídeo',
+      playVideo: 'Reproduzir vídeo',
       today: 'hoje',
       nextAvailable: (day, time) => `Próxima vaga: ${day}, ${time}`,
       servicesTitle: 'Massagens',
@@ -368,6 +377,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       visitHoursTitle: 'Quando',
       visitHoursText:
         'As sessões são sempre com marcação prévia. Veja os horários livres ao reservar.',
+      visitImageAlt:
+        'Sala de massagens em Almada preparada com marquesa, toalhas e luz ambiente.',
       closingTitle: 'Reserve o seu momento de pausa',
       closingText:
         'O primeiro passo para um corpo mais leve demora menos de um minuto.',
@@ -376,7 +387,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     services: {
       eyebrow: 'O nosso menu',
       title: 'Massagens em Almada',
-      lede: 'Descubra a nossa seleção de massagens terapêuticas e relaxantes, pensadas para restaurar equilíbrio e harmonia.',
+      lede: 'Massagens terapêuticas e relaxantes pensadas para proporcionar conforto e bem-estar.',
       loadError:
         'Não foi possível carregar o catálogo de serviços. Tente novamente mais tarde.',
       loading: 'A carregar o catálogo...',
@@ -453,7 +464,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       contactAction: 'Contactar',
     },
     packs: {
-      eyebrow: 'Continuidade e cuidado',
+      eyebrow: 'Mais sessões, melhor valor',
       title: 'Packs para fazer da pausa um hábito',
       lede: 'Reserve várias sessões do mesmo tratamento por um valor especial. A primeira marcação é feita já; o pack completo é pago depois dessa sessão.',
       loading: 'A carregar os packs disponíveis...',
@@ -600,6 +611,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
         bookCta: 'Book now',
         openMenu: 'Open menu',
         closeMenu: 'Close menu',
+        skipToContent: 'Skip to content',
+        navigationLabel: 'Main navigation',
       },
       footer: {
         tagline:
@@ -639,6 +652,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       primaryAction: 'Book a session',
       secondaryAction: 'Explore massages',
       actionsLabel: 'Home page actions',
+      pauseVideo: 'Pause video',
+      playVideo: 'Play video',
       today: 'today',
       nextAvailable: (day, time) => `Next opening: ${day}, ${time}`,
       servicesTitle: 'Massages',
@@ -689,6 +704,8 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       visitHoursTitle: 'When',
       visitHoursText:
         'Sessions are by appointment only. See open times as you book.',
+      visitImageAlt:
+        'Massage room in Almada prepared with a treatment table, towels and warm ambient light.',
       closingTitle: 'Reserve your moment of pause',
       closingText:
         'The first step towards a lighter body takes less than a minute.',
@@ -697,7 +714,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     services: {
       eyebrow: 'Our menu',
       title: 'Massages',
-      lede: 'Discover our range of therapeutic and relaxing massages designed to restore balance and harmony.',
+      lede: 'Discover our range of therapeutic and relaxing massages designed to provide comfort and well-being.',
       loadError: 'Could not load the services catalog. Please try again later.',
       loading: 'Loading our catalog...',
       empty: 'No services are currently available for booking.',
@@ -773,7 +790,7 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
       contactAction: 'Contact us',
     },
     packs: {
-      eyebrow: 'Continuity and care',
+      eyebrow: 'More sessions, better value',
       title: 'Packs that make pausing a habit',
       lede: 'Reserve several sessions of the same treatment at a special price. Book your first visit now, then pay for the complete pack after that session.',
       loading: 'Loading available packs...',

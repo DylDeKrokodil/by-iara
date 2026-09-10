@@ -24,7 +24,7 @@
 
     @if (guide && translation(); as localized) {
     <article>
-      <header class="guide-header">
+      <header class="guide-header public-heading">
         @if (guide.categories.length) {
         <p class="eyebrow">{{ guide.categories.join(' · ') }}</p>
         }
@@ -57,10 +57,7 @@
               />
               {{ copy().shareFacebook }}
             </byiara-button>
-            <byiara-button
-              variant="secondary"
-              (click)="copyGuideLink()"
-            >
+            <byiara-button variant="secondary" (click)="copyGuideLink()">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
@@ -73,7 +70,9 @@
                 stroke-linejoin="round"
               >
                 <rect x="8" y="8" width="12" height="12" rx="2"></rect>
-                <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+                <path
+                  d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
+                ></path>
               </svg>
               {{ copy().shareCopy }}
             </byiara-button>

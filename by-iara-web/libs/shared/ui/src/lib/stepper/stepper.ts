@@ -22,6 +22,8 @@ export class Stepper {
   steps = input.required<ReadonlyArray<StepperStep>>();
   current = input.required<string>();
   ariaLabel = input<string>('');
+  /** Keep every step label visible in a balanced mobile booking layout. */
+  mobileLayout = input<'compact' | 'labeled'>('compact');
   stepSelect = output<string>();
 
   protected readonly currentIndex = computed(() =>
