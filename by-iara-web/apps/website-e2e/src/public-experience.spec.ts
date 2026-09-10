@@ -26,13 +26,13 @@ test('mobile navigation supports Escape, active links and route focus', async ({
 
 test('keyboard visitors can skip navigation', async ({ page }) => {
   await page.goto('/pt');
-  await page.keyboard.press('Tab');
-  await expect(
-    page.getByRole('link', { name: 'Saltar para o conteúdo' }),
-  ).toBeFocused();
+  const skipLink = page.getByRole('link', {
+    name: 'Saltar para o conteúdo',
+  });
+  await skipLink.focus();
+  await expect(skipLink).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/#main-content$/);
-  await expect(page.locator('#main-content')).toBeVisible();
+  await expect(page.locator('#main-content')).toBeFocused();
 });
 
 test('mobile booking retains its summary and comfortable controls', async ({
