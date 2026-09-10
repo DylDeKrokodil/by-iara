@@ -1,6 +1,6 @@
 <div class="home" aria-labelledby="home-title">
   <section #heroSection class="home-hero">
-    <div class="home-media" aria-hidden="true">
+    <div class="home-media">
       <img
         class="home-media-still"
         src="hero/hero-studio-massage-2026-09.jpg"
@@ -10,26 +10,32 @@
         fetchpriority="high"
       />
       <video
+        aria-hidden="true"
         #heroVideo
         class="home-media-video"
         autoplay
         loop
         muted
+        [muted]="true"
         playsinline
         preload="metadata"
         disablepictureinpicture
         disableremoteplayback
         tabindex="-1"
         style="pointer-events: none"
-        [style.opacity]="heroVideoPlaying() ? 1 : 0"
+        [style.opacity]="1"
         (playing)="onHeroVideoPlaying()"
         (pause)="onHeroVideoPause()"
       >
         <source src="hero/hero-studio-massage-2026-09.webm" type="video/webm" />
         <source src="hero/hero-studio-massage-2026-09.mp4" type="video/mp4" />
       </video>
-      <div class="home-scrim"></div>
     </div>
+
+    <button type="button" class="hero-playback" (click)="toggleHeroPlayback()">
+      <span aria-hidden="true">{{ heroVideoPlaying() ? 'Ⅱ' : '▶' }}</span>
+      {{ heroVideoPlaying() ? copy().pauseVideo : copy().playVideo }}
+    </button>
 
     <div class="home-copy">
       <p class="home-location">{{ copy().location }}</p>

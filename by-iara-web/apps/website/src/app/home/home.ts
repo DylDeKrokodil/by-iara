@@ -56,78 +56,54 @@ export class Home implements OnInit {
     );
   });
 
-  private readonly heroSection =
-    viewChild<ElementRef<HTMLElement>>('heroSection');
   private readonly heroVideo =
     viewChild<ElementRef<HTMLVideoElement>>('heroVideo');
 
   constructor() {
-    // Browser-only: the `muted` content attribute alone doesn't reliably
-    // satisfy autoplay policies once Angular re-creates the element, so set
-    // the property and kick playback explicitly. The video stays hidden until
-    // playback really starts, preventing Safari's native play overlay from
-    // appearing when autoplay is unavailable.
     afterNextRender(() => {
-      const hero = this.heroSection()?.nativeElement;
       const video = this.heroVideo()?.nativeElement;
-      const reduceMotion = window.matchMedia(
+      if (!video) return;
+
+      const motionPreference = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
-      ).matches;
-      this.heroVideoPlaybackEnabled = !reduceMotion;
-
-      if (video) {
-        if (reduceMotion) {
-          video.removeAttribute('autoplay');
-          video.pause();
-        } else {
-          this.playHeroVideo(video);
-        }
-      }
-
-      if (!hero) {
-        return;
-      }
-      this.headerAppearance.setMovingMediaBehindHeader(!reduceMotion);
-      // Stop compositing the looping video while it is offscreen. Entries
-      // batch on fast scroll reversals, so only the last one is current.
-      const observer = new IntersectionObserver((entries) => {
-        const visible = entries[entries.length - 1].isIntersecting;
-        this.heroVideoShouldPlay = visible;
-        this.headerAppearance.setMovingMediaBehindHeader(
-          visible && this.heroVideoPlaying(),
-        );
-
-        if (!video || reduceMotion) {
-          return;
-        }
-        if (visible) {
-          this.playHeroVideo(video);
-        } else {
-          video.pause();
-        }
-      });
-      observer.observe(hero);
-
+      );
       const lifecycleEvents = new AbortController();
-      const resumePlayback = () => {
+      this.heroVideoPlaybackEnabled = !motionPreference.matches;
+      video.muted = true;
+      video.defaultMuted = true;
+      const synchronizePlayback = () => {
         if (
-          video &&
           this.heroVideoPlaybackEnabled &&
           this.heroVideoShouldPlay &&
           document.visibilityState === 'visible'
         ) {
           this.playHeroVideo(video);
+        } else {
+          video.pause();
         }
       };
-      document.addEventListener('visibilitychange', resumePlayback, {
+      motionPreference.addEventListener(
+        'change',
+        () => {
+          this.heroVideoPlaybackEnabled = !motionPreference.matches;
+          synchronizePlayback();
+        },
+        { signal: lifecycleEvents.signal },
+      );
+      document.addEventListener('visibilitychange', synchronizePlayback, {
         signal: lifecycleEvents.signal,
       });
-      window.addEventListener('pageshow', resumePlayback, {
+      window.addEventListener('pageshow', synchronizePlayback, {
         signal: lifecycleEvents.signal,
       });
+      synchronizePlayback();
+      // Hydrated video elements can miss the initial autoplay opportunity in
+      // Safari. Retry once after media metadata and layout have settled.
+      window.setTimeout(synchronizePlayback, 250);
       this.destroyRef.onDestroy(() => {
+        this.heroVideoPlaybackEnabled = false;
+        video.pause();
         this.headerAppearance.setMovingMediaBehindHeader(false);
-        observer.disconnect();
         lifecycleEvents.abort();
       });
     });
@@ -136,22 +112,25 @@ export class Home implements OnInit {
   private heroVideoPlaybackEnabled = false;
   private heroVideoShouldPlay = true;
 
+  protected toggleHeroPlayback(): void {
+    const video = this.heroVideo()?.nativeElement;
+    if (!video) return;
+    this.heroVideoPlaybackEnabled = !this.heroVideoPlaying();
+    if (this.heroVideoPlaybackEnabled) this.playHeroVideo(video);
+    else video.pause();
+  }
+
   protected onHeroVideoPlaying(): void {
+    // A preference or visibility change can race an outstanding play promise.
+    if (!this.heroVideoPlaybackEnabled || !this.heroVideoShouldPlay) {
+      this.heroVideo()?.nativeElement.pause();
+      return;
+    }
     this.setHeroVideoPlaying(true);
   }
 
   protected onHeroVideoPause(): void {
     this.setHeroVideoPlaying(false);
-
-    const video = this.heroVideo()?.nativeElement;
-    if (
-      video &&
-      this.heroVideoPlaybackEnabled &&
-      this.heroVideoShouldPlay &&
-      document.visibilityState === 'visible'
-    ) {
-      this.playHeroVideo(video);
-    }
   }
 
   private playHeroVideo(video: HTMLVideoElement): void {
@@ -160,21 +139,18 @@ export class Home implements OnInit {
     void video
       .play()
       .then(() => {
-        // Autoplay can begin before Angular hydrates and subscribes to the
-        // `playing` event. Synchronize the signal from the play result too so
-        // an already-playing video is not left hidden behind its poster.
         if (
-          !video.paused &&
-          this.heroVideoPlaybackEnabled &&
-          this.heroVideoShouldPlay &&
-          document.visibilityState === 'visible'
+          !this.heroVideoPlaybackEnabled ||
+          !this.heroVideoShouldPlay ||
+          document.visibilityState !== 'visible'
         ) {
-          this.setHeroVideoPlaying(true);
+          video.pause();
+          return;
         }
+        this.setHeroVideoPlaying(!video.paused);
       })
       .catch(() => {
-        // Browser policy or Low Power Mode blocked autoplay. Keep the matching
-        // still image visible rather than exposing native video controls.
+        // Keep the still and an explicit play action when autoplay is unavailable.
         this.setHeroVideoPlaying(false);
       });
   }
