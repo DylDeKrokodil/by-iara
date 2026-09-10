@@ -1,7 +1,6 @@
 import {
   Component,
-  DestroyRef,
-  afterNextRender,
+  afterRenderEffect,
   ElementRef,
   computed,
   inject,
@@ -41,7 +40,6 @@ import { PromotionBar } from './promotions/promotion-bar';
 })
 export class App {
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly headerLayout =
     viewChild<ElementRef<HTMLElement>>('headerLayout');
   private readonly seo = inject(SeoService);
@@ -94,17 +92,24 @@ export class App {
   };
 
   constructor() {
-    afterNextRender(() => {
+    afterRenderEffect((onCleanup) => {
       const header = this.headerLayout()?.nativeElement;
       if (!header) return;
-      const observer = new ResizeObserver(() => {
+      const measureHeader = () => {
+        // Hydration can replace the observed node. Never overwrite the
+        // fallback with the zero size of a detached or hidden element.
+        if (!header.isConnected) return;
+        const height = Math.ceil(header.getBoundingClientRect().height);
+        if (height <= 0) return;
         document.documentElement.style.setProperty(
           '--byiara-site-header-height',
-          `${Math.ceil(header.getBoundingClientRect().height)}px`,
+          `${height + 1}px`,
         );
-      });
+      };
+      measureHeader();
+      const observer = new ResizeObserver(measureHeader);
       observer.observe(header);
-      this.destroyRef.onDestroy(() => {
+      onCleanup(() => {
         observer.disconnect();
         document.documentElement.style.removeProperty(
           '--byiara-site-header-height',
