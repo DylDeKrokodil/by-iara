@@ -732,6 +732,7 @@ export class Booking implements OnInit {
   private scrollToStepTop(): void {
     if (!isPlatformBrowser(this.platformId)) return;
     window.requestAnimationFrame(() => {
+      this.bookingStepTop()?.nativeElement.focus({ preventScroll: true });
       this.bookingStepTop()?.nativeElement.scrollIntoView({
         behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches
           ? 'auto'

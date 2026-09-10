@@ -5,7 +5,7 @@
     </a>
 
     @if (!confirmation()) {
-    <header #bookingStepTop class="booking-header">
+    <header #bookingStepTop tabindex="-1" class="booking-header public-heading">
       <p class="eyebrow">{{ copy().eyebrow }}</p>
       <h1>{{ copy().pageTitle }}</h1>
     </header>
@@ -106,6 +106,7 @@
     } @else {
     <!-- Booking flow -->
     <byiara-stepper
+      mobileLayout="labeled"
       [steps]="steps()"
       [current]="currentStep()"
       [ariaLabel]="copy().bookingSteps"
@@ -154,8 +155,8 @@
               [selected]="variant.id === selectedVariantId()"
               (click)="selectVariant(variant.id)"
             >
-              {{ variant.durationMinutes }} min · @if (sessionPrice(variant) < variant.price.amountCents)
-              {
+              {{ variant.durationMinutes }} min · @if (sessionPrice(variant) <
+              variant.price.amountCents) {
               <span class="visually-hidden">{{ copy().originalPrice }}</span>
               <s>{{ formatPrice(variant.price.amountCents) }}</s>
               } {{ formatPrice(sessionPrice(variant)) }}

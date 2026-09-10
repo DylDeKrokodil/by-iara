@@ -35,7 +35,7 @@
 
 @media (max-width: 40rem) {
   .stepper {
-    overflow-x: visible;
+    overflow-x: auto;
   }
 
   .step-button {
@@ -79,7 +79,9 @@
   font-weight: var(--byiara-font-weight-bold);
   transition:
     background var(--byiara-duration-base) var(--byiara-ease-out),
-    color var(--byiara-duration-base) var(--byiara-ease-out);
+    color var(--byiara-duration-base) var(--byiara-ease-out),
+    transform 180ms var(--byiara-ease-out),
+    box-shadow 180ms var(--byiara-ease-out);
 }
 
 .step-check {
@@ -108,4 +110,102 @@
 .step-button.selected .step-number {
   background: var(--byiara-color-primary-action);
   color: var(--byiara-color-on-primary);
+}
+
+@media (max-width: 40rem) {
+  .stepper-labeled {
+    position: relative;
+    gap: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .stepper-labeled::after {
+    content: '';
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+    width: calc(100% / var(--step-count));
+    height: 2px;
+    background: linear-gradient(
+        var(--byiara-color-primary-action),
+        var(--byiara-color-primary-action)
+      )
+      center / 50% 100% no-repeat;
+    transform: translateX(calc(var(--current-step) * 100%));
+    transition: transform 220ms var(--byiara-ease-out);
+    pointer-events: none;
+  }
+
+  .stepper-labeled:dir(rtl)::after {
+    transform: translateX(calc(var(--current-step) * -100%));
+  }
+
+  .stepper-labeled .step-button {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.125rem;
+    border-radius: var(--byiara-radius-sm);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .stepper-labeled .step-button span:last-child {
+    display: block;
+  }
+
+  .stepper-labeled .step-number {
+    flex-shrink: 0;
+    width: min(2rem, 100%);
+    height: auto;
+    aspect-ratio: 1;
+    font-size: 0.875rem;
+  }
+
+  .stepper-labeled .step-button.selected {
+    background: transparent;
+    box-shadow: none;
+    font-weight: var(--byiara-font-weight-semibold);
+  }
+
+  .stepper-labeled .step-button.selected .step-number {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 3px var(--byiara-color-primary-soft);
+  }
+
+  .stepper-labeled .step-button:disabled {
+    opacity: 1;
+  }
+
+  .stepper-labeled .step-button:disabled:not(.selected) .step-number {
+    background: var(--byiara-color-surface-muted);
+    color: var(--byiara-color-text-muted);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-button,
+  .step-number,
+  .stepper-labeled::after {
+    transition: none;
+  }
+
+  .step-button:not(:disabled):active,
+  .stepper-labeled .step-button.selected .step-number {
+    transform: none;
+  }
+
+  .step-check path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
 }
