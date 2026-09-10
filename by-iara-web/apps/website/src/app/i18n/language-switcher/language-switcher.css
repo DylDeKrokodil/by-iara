@@ -11,8 +11,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
-  min-height: 2rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
   border-radius: var(--byiara-radius-pill);
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-xs);

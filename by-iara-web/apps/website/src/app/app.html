@@ -1,4 +1,6 @@
-<byiara-site-intro />
+<a class="skip-link" href="#main-content" (click)="focusMainContent($event)">
+  {{ copy().nav.skipToContent }}
+</a>
 
 <div class="site-frame">
   @if (featuredDiscount(); as promotion) { @if (!promotionDismissed()) {
@@ -13,13 +15,13 @@
     class="site-header"
     [class.is-over-moving-media]="headerAppearance.movingMediaBehindHeader()"
   >
-    <div class="header-container">
+    <div #headerLayout class="header-container">
       <button
         type="button"
         class="menu-toggle"
         [class.is-open]="menuOpen()"
         (click)="toggleMenu()"
-        (keydown.escape)="closeMenu()"
+        #menuToggle
         aria-controls="mobile-menu"
         [attr.aria-expanded]="menuOpen()"
         [attr.aria-label]="menuOpen() ? copy().nav.closeMenu : copy().nav.openMenu"
@@ -29,10 +31,11 @@
         <span class="menu-toggle-bar"></span>
       </button>
 
-      <nav class="header-nav">
+      <nav class="header-nav" [attr.aria-label]="copy().nav.navigationLabel">
         <a
           [routerLink]="language.localizedLink()"
           routerLinkActive="active"
+          ariaCurrentWhenActive="page"
           [routerLinkActiveOptions]="{ exact: true }"
         >
           {{ copy().nav.home }}
@@ -40,12 +43,14 @@
         <a
           [routerLink]="language.localizedLink('services')"
           routerLinkActive="active"
+          ariaCurrentWhenActive="page"
         >
           {{ copy().nav.services }}
         </a>
         <a
           [routerLink]="language.localizedLink('packs')"
           routerLinkActive="active"
+          ariaCurrentWhenActive="page"
         >
           {{ copy().nav.packs }}
         </a>
@@ -53,6 +58,7 @@
         <a
           [routerLink]="language.localizedLink('guides')"
           routerLinkActive="active"
+          ariaCurrentWhenActive="page"
         >
           {{ copy().nav.guides }}
         </a>
@@ -84,10 +90,14 @@
       id="mobile-menu"
     >
       <div class="mobile-menu-content">
-        <nav class="mobile-menu-nav">
+        <nav
+          class="mobile-menu-nav"
+          [attr.aria-label]="copy().nav.navigationLabel"
+        >
           <a
             [routerLink]="language.localizedLink()"
             routerLinkActive="active"
+            ariaCurrentWhenActive="page"
             [routerLinkActiveOptions]="{ exact: true }"
           >
             {{ copy().nav.home }}
@@ -95,12 +105,14 @@
           <a
             [routerLink]="language.localizedLink('services')"
             routerLinkActive="active"
+            ariaCurrentWhenActive="page"
           >
             {{ copy().nav.services }}
           </a>
           <a
             [routerLink]="language.localizedLink('packs')"
             routerLinkActive="active"
+            ariaCurrentWhenActive="page"
           >
             {{ copy().nav.packs }}
           </a>
@@ -108,6 +120,7 @@
           <a
             [routerLink]="language.localizedLink('guides')"
             routerLinkActive="active"
+            ariaCurrentWhenActive="page"
           >
             {{ copy().nav.guides }}
           </a>
@@ -118,7 +131,7 @@
     </div>
   </header>
 
-  <main class="site-main">
+  <main #mainContent id="main-content" class="site-main" tabindex="-1">
     <router-outlet></router-outlet>
   </main>
 
@@ -160,7 +173,12 @@
           <a [routerLink]="language.localizedLink('book')"
             >{{ copy().footer.book }}</a
           >
-          <h2 class="footer-legal-heading">{{ copy().footer.legal }}</h2>
+        </nav>
+        <nav
+          class="footer-nav footer-legal"
+          [attr.aria-label]="copy().footer.legal"
+        >
+          <h2>{{ copy().footer.legal }}</h2>
           <a [routerLink]="language.localizedLink('privacy')">
             {{ copy().footer.privacy }}
           </a>
