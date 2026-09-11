@@ -28,18 +28,22 @@
 }
 .promotion-bar-automatic .promotion-content {
   width: min(100%, var(--byiara-container-lg));
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.5rem 2rem;
+  text-align: center;
 }
 .promotion-offer {
   flex: 1 1 24rem;
   min-width: 0;
   display: grid;
   gap: 0.25rem;
+  text-align: center;
 }
 .promotion-content .promotion-disclaimer {
   display: block;
+  width: 100%;
   max-width: 75ch;
+  margin-inline: auto;
   font-size: 0.8125rem;
   line-height: 1.5;
   text-wrap: pretty;
@@ -91,7 +95,7 @@
   }
   .promotion-bar-automatic .promotion-content {
     display: grid;
-    justify-items: start;
+    justify-items: center;
     gap: 0.25rem;
   }
   .promotion-bar-automatic .promotion-close {
