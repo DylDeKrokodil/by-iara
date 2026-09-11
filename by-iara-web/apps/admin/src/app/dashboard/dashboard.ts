@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import {
   Alert,
   Button,
@@ -20,7 +21,6 @@ import {
 } from '../reservations/reservation.models';
 import { ReservationsApi } from '../reservations/reservations-api';
 
-const businessTimeZone = 'Europe/Brussels';
 const dashboardPageSize = 100;
 
 interface UpcomingDay {
@@ -53,7 +53,7 @@ export class Dashboard implements OnInit {
   protected readonly todayKey = this.dateKey(new Date());
   protected readonly todayLabel = new Intl.DateTimeFormat('en-GB', {
     dateStyle: 'full',
-    timeZone: businessTimeZone,
+    timeZone: BUSINESS_TIME_ZONE,
   }).format(new Date());
 
   protected readonly nextReservation = computed(() => {
@@ -86,7 +86,7 @@ export class Dashboard implements OnInit {
 
   protected readonly todayHasAvailability = computed(() => {
     const weekday = new Intl.DateTimeFormat('en-US', {
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       weekday: 'long',
     })
       .format(new Date())
@@ -122,7 +122,7 @@ export class Dashboard implements OnInit {
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -130,7 +130,7 @@ export class Dashboard implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -141,7 +141,7 @@ export class Dashboard implements OnInit {
     const startText = new Intl.DateTimeFormat('en-GB', {
       day: 'numeric',
       month: 'short',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       ...(sameDay ? {} : { year: 'numeric' as const }),
     }).format(start);
     return `${startText}, ${this.formatTime(block.startTime)}–${this.formatTime(block.endTime)}`;
@@ -224,7 +224,7 @@ export class Dashboard implements OnInit {
     const parts = new Intl.DateTimeFormat('en-CA', {
       day: '2-digit',
       month: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(value);
     const year = parts.find((part) => part.type === 'year')?.value;
@@ -268,7 +268,7 @@ export class Dashboard implements OnInit {
       minute: '2-digit',
       month: '2-digit',
       second: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(date);
     const value = (type: Intl.DateTimeFormatPartTypes) =>

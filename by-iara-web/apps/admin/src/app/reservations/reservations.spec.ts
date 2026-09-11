@@ -178,8 +178,8 @@ describe('Reservations', () => {
     expect(api.list).toHaveBeenCalledWith(
       expect.objectContaining({
         statuses: ['PENDING', 'CONFIRMED'],
-        from: '2026-05-31T22:00:00.000Z',
-        to: '2026-07-12T22:00:00.000Z',
+        from: '2026-05-31T23:00:00.000Z',
+        to: '2026-07-12T23:00:00.000Z',
         sort: 'STARTS_AT_ASC',
         page: 0,
         size: 250,
@@ -224,8 +224,8 @@ describe('Reservations', () => {
     expect(api.list).toHaveBeenCalledWith(
       expect.objectContaining({
         statuses: ['PENDING', 'CONFIRMED'],
-        from: '2026-06-28T22:00:00.000Z',
-        to: '2026-08-09T22:00:00.000Z',
+        from: '2026-06-28T23:00:00.000Z',
+        to: '2026-08-09T23:00:00.000Z',
         sort: 'STARTS_AT_ASC',
         page: 0,
         size: 250,

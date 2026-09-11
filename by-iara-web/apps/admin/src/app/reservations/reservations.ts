@@ -8,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import { forkJoin } from 'rxjs';
 import {
   Alert,
@@ -86,7 +87,6 @@ const attentionColumns: ReadonlyArray<DataTableColumn> = [
 const historyPageSize = 10;
 const attentionPageSize = 20;
 const calendarPageSize = 250;
-const businessTimeZone = 'Europe/Brussels';
 
 interface AgendaGroup {
   key: string;
@@ -560,7 +560,7 @@ export class Reservations implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       dateStyle: 'medium',
       timeStyle: 'short',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -568,7 +568,7 @@ export class Reservations implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -962,7 +962,7 @@ export class Reservations implements OnInit {
     const parts = new Intl.DateTimeFormat('en-CA', {
       day: '2-digit',
       month: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(value instanceof Date ? value : new Date(value));
     const year = parts.find((part) => part.type === 'year')?.value;
@@ -1086,7 +1086,7 @@ export class Reservations implements OnInit {
       minute: '2-digit',
       month: '2-digit',
       second: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(date);
     const partValue = (type: string) =>

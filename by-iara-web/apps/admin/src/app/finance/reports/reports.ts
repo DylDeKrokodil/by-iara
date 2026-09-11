@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import {
   Component,
   OnInit,
@@ -39,7 +40,6 @@ import {
   expenseCategoryLabels,
 } from '../finance.models';
 
-const businessTimeZone = 'Europe/Brussels';
 const currency = 'EUR';
 const expensePageSize = 20;
 const paymentPageSize = 20;
@@ -409,7 +409,7 @@ export class Reports implements OnInit {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -540,7 +540,7 @@ export class Reports implements OnInit {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
     }).formatToParts(new Date(input));
     const value = (type: Intl.DateTimeFormatPartTypes) =>
       parts.find((part) => part.type === type)?.value;
@@ -566,7 +566,7 @@ export class Reports implements OnInit {
         minute: '2-digit',
         second: '2-digit',
         hourCycle: 'h23',
-        timeZone: businessTimeZone,
+        timeZone: BUSINESS_TIME_ZONE,
       }).formatToParts(new Date(utcTime));
       const value = (type: Intl.DateTimeFormatPartTypes) =>
         Number(parts.find((part) => part.type === type)?.value);

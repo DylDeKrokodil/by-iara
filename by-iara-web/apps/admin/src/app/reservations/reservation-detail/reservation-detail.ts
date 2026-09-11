@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import {
   Component,
   DestroyRef,
@@ -662,7 +663,7 @@ export class ReservationDetail implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       dateStyle: 'full',
       timeStyle: 'short',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -670,7 +671,7 @@ export class ReservationDetail implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -679,7 +680,7 @@ export class ReservationDetail implements OnInit {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).formatToParts(new Date(value));
     const part = (type: Intl.DateTimeFormatPartTypes) =>
       parts.find((item) => item.type === type)?.value ?? '';
