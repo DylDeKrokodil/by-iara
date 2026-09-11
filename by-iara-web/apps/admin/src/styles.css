@@ -1,5 +1,6 @@
 @import './styles/admin-theme.css';
 @import './styles/admin-controls.css';
+@import './styles/popup-preview.css';
 
 body {
   min-width: 20rem;

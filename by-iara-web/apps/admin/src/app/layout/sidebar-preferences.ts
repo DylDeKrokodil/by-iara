@@ -7,6 +7,7 @@ export const sidebarItemIds = [
   'services',
   'guides',
   'images',
+  'popups',
   'customers',
   'packs',
   'discounts',

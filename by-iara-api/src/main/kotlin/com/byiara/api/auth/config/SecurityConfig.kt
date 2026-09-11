@@ -33,6 +33,7 @@ class SecurityConfig {
                     "/api/reservations/availability",
                     "/api/reservations/next-available",
                     "/api/discounts/featured",
+                    "/api/popups/active",
                     "/api/discounts/automatic",
                 ).permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/reservations").permitAll()

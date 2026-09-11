@@ -1,0 +1,19 @@
+<div class="visually-hidden" role="status" aria-atomic="true">
+  @if (popup(); as item) { {{ copy().announcement + ' ' + (portuguese() ?
+  item.titlePt : item.titleEn) }} }
+</div>
+@if (popup(); as item) {
+<div class="popup-position">
+  <byiara-announcement-card
+    [title]="portuguese() ? item.titlePt : item.titleEn"
+    [message]="portuguese() ? item.bodyPt : item.bodyEn"
+    [actionLabel]="actionLabel()"
+    [actionLink]="language.localizedLink(item.action)"
+    [closeLabel]="copy().close"
+    [moreLabel]="copy().more"
+    [lessLabel]="copy().less"
+    (dismissed)="dismiss()"
+    (followed)="dismiss(false)"
+  />
+</div>
+}

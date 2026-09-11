@@ -1,5 +1,4 @@
 import { Component, inject, input, output } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { LanguageService } from '../i18n/language.service';
 import { promotionDisclaimer, promotionMessages } from './promotion-copy';
 import { FeaturedDiscount } from './featured-discount-api';
@@ -12,7 +11,6 @@ export interface PromotionBarCopy {
 
 @Component({
   selector: 'byiara-promotion-bar',
-  imports: [RouterLink],
   templateUrl: './promotion-bar.html',
   styleUrl: './promotion-bar.css',
 })

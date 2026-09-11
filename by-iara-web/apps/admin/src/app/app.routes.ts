@@ -95,6 +95,10 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./packs/packs').then((m) => m.Packs),
       },
       {
+        path: 'popups',
+        loadComponent: () => import('./popups/popups').then((m) => m.Popups),
+      },
+      {
         path: 'discounts',
         loadComponent: () =>
           import('./discounts/discounts').then((m) => m.Discounts),
