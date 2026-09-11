@@ -3,7 +3,12 @@ import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Spinner } from '../spinner/spinner';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'open' | 'ghost' | 'danger';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'open'
+  | 'ghost'
+  | 'danger';
 export type ButtonSize = 'md' | 'sm';
 
 /**
@@ -30,6 +35,7 @@ export class Button {
   rel = input<string | null>(null);
   /** Required for iconOnly buttons. Also mirrored to `title` for a mouse-hover tooltip. */
   ariaLabel = input<string | null>(null);
+  ariaExpanded = input<boolean | null>(null);
 
   protected readonly classes = computed(() => {
     const classes = ['btn', `btn-${this.variant()}`];
