@@ -19,10 +19,23 @@ import {
   ConfirmationModal,
   EmptyState,
   PageHeader,
+  TabOption,
+  Tabs,
   TextField,
   touchedError,
 } from '@by-iara/shared-ui';
 import { Popup, PopupContent, PopupsApi } from './popups-api';
+
+type PopupLanguageTab = 'ptPT' | 'enUS';
+
+const languageTabs: ReadonlyArray<TabOption> = [
+  { label: 'Portuguese (pt-PT)', value: 'ptPT' },
+  { label: 'English (en-US)', value: 'enUS' },
+];
+
+function isPopupLanguageTab(value: string): value is PopupLanguageTab {
+  return value === 'ptPT' || value === 'enUS';
+}
 
 @Component({
   selector: 'byiara-popups',
@@ -34,6 +47,7 @@ import { Popup, PopupContent, PopupsApi } from './popups-api';
     ConfirmationModal,
     EmptyState,
     PageHeader,
+    Tabs,
     TextField,
   ],
   templateUrl: './popups.html',
@@ -58,7 +72,11 @@ export class Popups {
   protected readonly status = signal('');
   protected readonly formOpen = signal(false);
   protected readonly editingId = signal<string | null>(null);
-  protected readonly previewEnglish = signal(false);
+  protected readonly activeLanguageTab = signal<PopupLanguageTab>('ptPT');
+  protected readonly languageTabs = languageTabs;
+  protected readonly previewEnglish = computed(
+    () => this.activeLanguageTab() === 'enUS',
+  );
   protected readonly pending = signal<Popup | null>(null);
   protected readonly replacementMessage = computed(
     () =>
@@ -150,6 +168,7 @@ export class Popups {
 
   protected edit(popup: Popup | null): void {
     this.editingId.set(popup?.id ?? null);
+    this.activeLanguageTab.set('ptPT');
     this.form.reset(
       popup?.content ?? {
         name: '',
@@ -180,10 +199,19 @@ export class Popups {
     });
   }
 
+  protected setActiveLanguageTab(value: string): void {
+    if (isPopupLanguageTab(value)) {
+      this.activeLanguageTab.set(value);
+    }
+  }
+
   protected save(): void {
     this.form.markAllAsTouched();
     if (this.busy()) return;
     if (this.form.invalid) {
+      if (this.form.controls.name.valid) {
+        this.activateFirstInvalidLanguageTab();
+      }
       afterNextRender(
         () =>
           this.element.nativeElement
@@ -220,6 +248,23 @@ export class Popups {
             'The popup could not be saved. Your changes are still here; please try again.',
           ),
       });
+  }
+
+  private activateFirstInvalidLanguageTab(): void {
+    if (
+      this.form.controls.titlePt.invalid ||
+      this.form.controls.bodyPt.invalid
+    ) {
+      this.activeLanguageTab.set('ptPT');
+      return;
+    }
+
+    if (
+      this.form.controls.titleEn.invalid ||
+      this.form.controls.bodyEn.invalid
+    ) {
+      this.activeLanguageTab.set('enUS');
+    }
   }
 
   protected toggle(popup: Popup): void {
