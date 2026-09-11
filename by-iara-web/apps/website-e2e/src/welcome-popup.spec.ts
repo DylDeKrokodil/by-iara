@@ -42,6 +42,17 @@ test('non-modal welcome leaves content and focus available, then returns after r
   await expect(card).toBeVisible();
 });
 
+test('welcome popup remains visible when navigating between content pages', async ({
+  page,
+}) => {
+  await page.goto('/en');
+  const card = page.locator('byiara-welcome-popup .announcement');
+  await expect(card).toBeVisible();
+
+  await page.goto('/en/massages');
+  await expect(card).toBeVisible();
+});
+
 test('compact mobile popup expands, fits the viewport and respects reduced motion', async ({
   page,
 }) => {
