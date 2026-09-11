@@ -55,12 +55,6 @@ export class WelcomePopup {
           )
           .subscribe(() => this.load());
     });
-    this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(),
-      )
-      .subscribe(() => this.popup.set(null));
   }
 
   private load(): void {
