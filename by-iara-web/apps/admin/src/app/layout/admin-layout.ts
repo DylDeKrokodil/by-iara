@@ -70,6 +70,7 @@ const navigationGroups: ReadonlyArray<NavigationGroup> = [
     items: [
       { id: 'guides', label: 'Guides', route: '/guides' },
       { id: 'images', label: 'Images', route: '/images' },
+      { id: 'popups', label: 'Website popups', route: '/popups' },
     ],
   },
   {

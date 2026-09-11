@@ -1,0 +1,188 @@
+<div #heading tabindex="-1">
+  <byiara-page-header title="Website popups">
+    <byiara-button
+      page-header-action
+      (click)="edit(null)"
+      [disabled]="busy() || formOpen()"
+      >Create popup</byiara-button
+    >
+  </byiara-page-header>
+</div>
+<p class="intro">
+  A thoughtful welcome, in your own words. Create a message in Portuguese and
+  English, preview it, then choose when it goes live.
+</p>
+<div class="publication-summary">
+  <span
+    class="publication-dot"
+    [class.is-active]="active()"
+    aria-hidden="true"
+  ></span>
+  <p>
+    @if (loading()) { Checking publication status… } @else if (error()) {
+    Refresh the list to confirm publication status. } @else if (active(); as
+    current) { <strong>{{ current.content.name }}</strong> is live on the
+    website. } @else { No popup is currently active. }
+    <span>Only one popup can be active at a time.</span>
+  </p>
+</div>
+<p class="save-status" role="status">{{ status() }}</p>
+@if (error()) {
+<byiara-alert
+  >{{ error() }}
+  <byiara-button
+    variant="secondary"
+    (click)="load()"
+    [disabled]="busy() || loading()"
+    >Refresh list</byiara-button
+  ></byiara-alert
+>
+} @if (formOpen()) {
+<div class="editor-layout">
+  <form [formGroup]="form" (ngSubmit)="save()" class="popup-form">
+    <h2 #editor tabindex="-1">
+      {{ editingId() ? 'Edit popup' : 'Create a popup' }}
+    </h2>
+    <p class="form-hint">
+      Titles: up to 80 characters. Messages: up to 240. New popups are saved
+      disabled.
+    </p>
+    <fieldset [disabled]="busy()">
+      <legend class="visually-hidden">Popup content</legend>
+      <byiara-text-field
+        label="Internal name"
+        formControlName="name"
+        required
+        [error]="fieldError('name')"
+      />
+      <div class="language-fields" lang="pt-PT">
+        <h3>Português</h3>
+        <byiara-text-field
+          label="Título"
+          formControlName="titlePt"
+          required
+          [error]="fieldError('titlePt')"
+        />
+        <byiara-text-field
+          label="Mensagem"
+          formControlName="bodyPt"
+          multiline
+          required
+          [error]="fieldError('bodyPt')"
+        />
+      </div>
+      <div class="language-fields" lang="en">
+        <h3>English</h3>
+        <byiara-text-field
+          label="Title"
+          formControlName="titleEn"
+          required
+          [error]="fieldError('titleEn')"
+        />
+        <byiara-text-field
+          label="Message"
+          formControlName="bodyEn"
+          multiline
+          required
+          [error]="fieldError('bodyEn')"
+        />
+      </div>
+      <label class="action-label" for="popup-action">Primary action</label>
+      <select id="popup-action" formControlName="action">
+        <option value="book">Book a session</option>
+        <option value="services">Explore massages</option>
+        <option value="packs">Explore packs</option>
+      </select>
+    </fieldset>
+    <p class="form-hint">
+      The button opens the matching page in the visitor’s language. Editing an
+      active popup updates the live message.
+    </p>
+    <div class="form-actions">
+      <byiara-button type="submit" [loading]="busy()"
+        >{{ busy() ? 'Saving…' : 'Save popup' }}</byiara-button
+      ><byiara-button
+        variant="secondary"
+        (click)="closeEditor()"
+        [disabled]="busy()"
+        >Cancel</byiara-button
+      >
+    </div>
+  </form>
+  <aside class="preview" aria-label="Popup preview">
+    <div class="preview-header">
+      <h2>Live preview</h2>
+      <byiara-button
+        variant="secondary"
+        (click)="previewEnglish.set(!previewEnglish())"
+        >{{ previewEnglish() ? 'View Portuguese' : 'View English'
+        }}</byiara-button
+      >
+    </div>
+    <div
+      class="preview-surface popup-preview"
+      [attr.lang]="previewEnglish() ? 'en' : 'pt-PT'"
+    >
+      <byiara-announcement-card
+        [title]="previewTitle()"
+        [message]="previewBody()"
+        [actionLabel]="previewAction()"
+        [closeLabel]="previewEnglish() ? 'Close announcement (preview)' : 'Fechar novidade (pré-visualização)'"
+        [moreLabel]="previewEnglish() ? 'Read more' : 'Saber mais'"
+        [lessLabel]="previewEnglish() ? 'Show less' : 'Mostrar menos'"
+      />
+    </div>
+    <p class="form-hint">
+      Preview only; buttons do not navigate or dismiss. On small screens,
+      visitors can expand the message. The page stays usable, and dismissal is
+      remembered for this popup.
+    </p>
+  </aside>
+</div>
+} @else if (loading()) {
+<byiara-empty-state title="Loading popups…" [dashed]="false" />
+} @else if (!items().length && !error()) {
+<byiara-empty-state
+  title="Your next welcome starts here"
+  description="Create a short announcement for an offer, a new treatment or news from the practice."
+  ><byiara-button (click)="edit(null)"
+    >Create your first popup</byiara-button
+  ></byiara-empty-state
+>
+} @else {
+<ul class="popup-list" aria-label="Configured popups">
+  @for (popup of items(); track popup.id) {
+  <li class="popup-row">
+    <div class="popup-description">
+      <span class="state" [class.is-active]="popup.active"
+        >{{ popup.active ? 'Active' : 'Disabled' }}</span
+      >
+      <h2>{{ popup.content.name }}</h2>
+      <p>{{ popup.content.titlePt }}</p>
+    </div>
+    <div class="row-actions">
+      <byiara-button
+        variant="secondary"
+        (click)="edit(popup)"
+        [disabled]="busy()"
+        [ariaLabel]="'Edit ' + popup.content.name"
+        >Edit</byiara-button
+      ><byiara-button
+        [variant]="popup.active ? 'secondary' : 'primary'"
+        (click)="toggle(popup)"
+        [disabled]="busy()"
+        [ariaLabel]="(popup.active ? 'Disable ' : 'Enable ') + popup.content.name"
+        >{{ popup.active ? 'Disable' : 'Enable' }}</byiara-button
+      >
+    </div>
+  </li>
+  }
+</ul>
+}
+<byiara-confirmation-modal
+  title="Enable this popup?"
+  [message]="replacementMessage()"
+  confirmText="Enable popup"
+  (confirmed)="confirmActivation()"
+  (cancelled)="pending.set(null)"
+/>
