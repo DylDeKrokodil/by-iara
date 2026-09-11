@@ -4,16 +4,20 @@ import com.byiara.api.auth.config.AdminAuthProperties
 import com.byiara.api.auth.config.InitialAdminProperties
 import com.byiara.api.calendar.config.CalendarFeedProperties
 import com.byiara.api.common.ratelimit.PublicRateLimitProperties
+import com.byiara.api.common.config.BusinessTimeProperties
 import com.byiara.api.common.storage.S3MediaStorageProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
+import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication
+@EnableScheduling
 @EnableConfigurationProperties(
 	AdminAuthProperties::class,
 	InitialAdminProperties::class,
 	CalendarFeedProperties::class,
+	BusinessTimeProperties::class,
 	PublicRateLimitProperties::class,
 	S3MediaStorageProperties::class,
 )

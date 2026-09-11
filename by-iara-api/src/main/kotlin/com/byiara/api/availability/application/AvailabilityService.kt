@@ -1,7 +1,7 @@
 package com.byiara.api.availability.application
 
 import com.byiara.api.availability.domain.*
-import org.springframework.beans.factory.annotation.Value
+import com.byiara.api.common.config.BusinessTimeProperties
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.*
@@ -10,10 +10,9 @@ import java.util.UUID
 @Service
 class AvailabilityService(
     private val availabilityRepository: AvailabilityRepository,
-    @Value("\${by-iara.timezone:Europe/Brussels}")
-    private val timezoneIdStr: String,
+    private val businessTime: BusinessTimeProperties,
 ) {
-    private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
+    private val zoneId: ZoneId get() = businessTime.zoneId
 
     /** Today's date in the business timezone. */
     fun today(): LocalDate = LocalDate.now(zoneId)

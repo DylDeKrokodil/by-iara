@@ -11,10 +11,17 @@ import {
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../core/api-error-message';
 import { SettingsApi } from './settings-api';
+import { OperationalSettings } from './settings.models';
 
 const MIN_APPOINTMENT_BUFFER_MINUTES = 0;
 const MAX_APPOINTMENT_BUFFER_MINUTES = 180;
 const DEFAULT_MAX_DAILY_BOOKINGS = 3;
+const MIN_BOOKING_NOTICE_HOURS = 0;
+const MAX_BOOKING_NOTICE_HOURS = 8760;
+const DEFAULT_MINIMUM_BOOKING_NOTICE_HOURS = 0;
+const MIN_BOOKING_REMINDER_HOURS = 1;
+const MAX_BOOKING_REMINDER_HOURS = 168;
+const DEFAULT_BOOKING_REMINDER_HOURS = 24;
 
 @Component({
   selector: 'byiara-settings',
@@ -47,6 +54,25 @@ export class Settings implements OnInit {
       [Validators.required, Validators.min(1)],
     ],
     noDailyBookingLimit: false,
+    minimumBookingNoticeHours: [
+      DEFAULT_MINIMUM_BOOKING_NOTICE_HOURS,
+      [
+        Validators.required,
+        Validators.min(MIN_BOOKING_NOTICE_HOURS),
+        Validators.max(MAX_BOOKING_NOTICE_HOURS),
+        Validators.pattern(/^\d+$/),
+      ],
+    ],
+    bookingReminderEnabled: false,
+    bookingReminderHoursBefore: [
+      DEFAULT_BOOKING_REMINDER_HOURS,
+      [
+        Validators.required,
+        Validators.min(MIN_BOOKING_REMINDER_HOURS),
+        Validators.max(MAX_BOOKING_REMINDER_HOURS),
+        Validators.pattern(/^\d+$/),
+      ],
+    ],
   });
 
   ngOnInit(): void {
@@ -83,6 +109,9 @@ export class Settings implements OnInit {
         maxDailyBookings: value.noDailyBookingLimit
           ? null
           : value.maxDailyBookings,
+        minimumBookingNoticeHours: value.minimumBookingNoticeHours,
+        bookingReminderEnabled: value.bookingReminderEnabled,
+        bookingReminderHoursBefore: value.bookingReminderHoursBefore,
       })
       .subscribe({
         next: (settings) => {
@@ -111,6 +140,15 @@ export class Settings implements OnInit {
     }
   }
 
+  protected reminderEnabledChanged(enabled: boolean): void {
+    const control = this.form.controls.bookingReminderHoursBefore;
+    if (enabled) {
+      control.enable();
+    } else {
+      control.disable();
+    }
+  }
+
   protected appointmentBufferError(): string | null {
     const control = this.form.controls.appointmentBufferMinutes;
     if (!control.touched || control.valid) {
@@ -130,17 +168,38 @@ export class Settings implements OnInit {
     return 'Enter at least 1 booking per day, or choose no limit.';
   }
 
-  private applySettings(settings: {
-    appointmentBufferMinutes: number;
-    maxDailyBookings: number | null;
-  }): void {
+  protected bookingReminderHoursError(): string | null {
+    const control = this.form.controls.bookingReminderHoursBefore;
+    if (!control.touched || control.valid || control.disabled) {
+      return null;
+    }
+    return `Enter a whole number from ${MIN_BOOKING_REMINDER_HOURS} to ${MAX_BOOKING_REMINDER_HOURS} hours.`;
+  }
+
+  protected minimumBookingNoticeHoursError(): string | null {
+    const control = this.form.controls.minimumBookingNoticeHours;
+    if (!control.touched || control.valid) {
+      return null;
+    }
+    return `Enter a whole number from ${MIN_BOOKING_NOTICE_HOURS} to ${MAX_BOOKING_NOTICE_HOURS} hours.`;
+  }
+
+  private applySettings(settings: OperationalSettings): void {
     const noDailyBookingLimit = settings.maxDailyBookings === null;
+    const bookingReminderEnabled = settings.bookingReminderEnabled ?? false;
     this.form.reset({
       appointmentBufferMinutes: settings.appointmentBufferMinutes,
       maxDailyBookings: settings.maxDailyBookings ?? DEFAULT_MAX_DAILY_BOOKINGS,
       noDailyBookingLimit,
+      minimumBookingNoticeHours:
+        settings.minimumBookingNoticeHours ??
+        DEFAULT_MINIMUM_BOOKING_NOTICE_HOURS,
+      bookingReminderEnabled,
+      bookingReminderHoursBefore:
+        settings.bookingReminderHoursBefore ?? DEFAULT_BOOKING_REMINDER_HOURS,
     });
     this.dailyLimitChanged(noDailyBookingLimit);
+    this.reminderEnabledChanged(bookingReminderEnabled);
     this.form.markAsPristine();
   }
 }

@@ -72,6 +72,49 @@
 
         <div class="setting-row">
           <div class="setting-copy">
+            <label for="minimum-booking-notice">Minimum booking notice</label>
+            <p id="minimum-booking-notice-help">
+              Customers only see appointment times that start at least this many
+              hours from now. Use 0 to allow same-day, last-minute bookings.
+              Admin rescheduling is not restricted.
+            </p>
+          </div>
+
+          <div class="number-field">
+            <div class="number-control">
+              <input
+                id="minimum-booking-notice"
+                type="number"
+                min="0"
+                max="8760"
+                step="1"
+                inputmode="numeric"
+                formControlName="minimumBookingNoticeHours"
+                [attr.aria-describedby]="
+                  minimumBookingNoticeHoursError()
+                    ? 'minimum-booking-notice-help minimum-booking-notice-error'
+                    : 'minimum-booking-notice-help'
+                "
+                [attr.aria-invalid]="
+                  minimumBookingNoticeHoursError() ? 'true' : null
+                "
+              />
+              <span aria-hidden="true">hours ahead</span>
+            </div>
+            @if (minimumBookingNoticeHoursError()) {
+            <p
+              id="minimum-booking-notice-error"
+              class="field-error"
+              role="alert"
+            >
+              {{ minimumBookingNoticeHoursError() }}
+            </p>
+            }
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
             <label for="daily-booking-limit">Bookings per day</label>
             <p id="daily-booking-limit-help">
               Once this number of pending or confirmed bookings is reached, the
@@ -120,6 +163,56 @@
               />
               <span>No daily limit</span>
             </label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="booking-reminder-hours">Appointment reminder</label>
+            <p id="booking-reminder-help">
+              Email customers before confirmed appointments. Changes apply to
+              every reminder that has not been sent yet, including existing
+              confirmed bookings.
+            </p>
+          </div>
+
+          <div class="reminder-control">
+            <label class="toggle-option">
+              <input
+                type="checkbox"
+                formControlName="bookingReminderEnabled"
+                (change)="reminderEnabledChanged($any($event.target).checked)"
+              />
+              <span>Send email reminders</span>
+            </label>
+
+            <div class="number-field">
+              <div class="number-control">
+                <input
+                  id="booking-reminder-hours"
+                  type="number"
+                  min="1"
+                  max="168"
+                  step="1"
+                  inputmode="numeric"
+                  formControlName="bookingReminderHoursBefore"
+                  [attr.aria-describedby]="
+                    bookingReminderHoursError()
+                      ? 'booking-reminder-help booking-reminder-error'
+                      : 'booking-reminder-help'
+                  "
+                  [attr.aria-invalid]="
+                    bookingReminderHoursError() ? 'true' : null
+                  "
+                />
+                <span aria-hidden="true">hours before</span>
+              </div>
+              @if (bookingReminderHoursError()) {
+              <p id="booking-reminder-error" class="field-error" role="alert">
+                {{ bookingReminderHoursError() }}
+              </p>
+              }
+            </div>
           </div>
         </div>
 

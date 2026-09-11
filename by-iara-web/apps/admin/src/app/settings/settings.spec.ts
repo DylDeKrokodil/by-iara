@@ -16,7 +16,13 @@ describe('Settings', () => {
   beforeEach(async () => {
     settingsApi = {
       get: vi.fn(() =>
-        of({ appointmentBufferMinutes: 15, maxDailyBookings: 3 }),
+        of({
+          appointmentBufferMinutes: 15,
+          maxDailyBookings: 3,
+          minimumBookingNoticeHours: 0,
+          bookingReminderEnabled: false,
+          bookingReminderHoursBefore: 24,
+        }),
       ),
       update: vi.fn((input) => of(input)),
     };
@@ -68,6 +74,9 @@ describe('Settings', () => {
     expect(settingsApi.update).toHaveBeenCalledWith({
       appointmentBufferMinutes: 30,
       maxDailyBookings: 3,
+      minimumBookingNoticeHours: 0,
+      bookingReminderEnabled: false,
+      bookingReminderHoursBefore: 24,
     });
     expect(toast.show).toHaveBeenCalledWith('Settings saved.', 'success');
   });
@@ -86,7 +95,99 @@ describe('Settings', () => {
     expect(settingsApi.update).toHaveBeenCalledWith({
       appointmentBufferMinutes: 15,
       maxDailyBookings: null,
+      minimumBookingNoticeHours: 0,
+      bookingReminderEnabled: false,
+      bookingReminderHoursBefore: 24,
     });
+  });
+
+  it('enables a configurable booking reminder', () => {
+    const enabled = fixture.nativeElement.querySelector(
+      '.toggle-option input',
+    ) as HTMLInputElement;
+    enabled.click();
+    fixture.detectChanges();
+
+    const hours = fixture.nativeElement.querySelector(
+      '#booking-reminder-hours',
+    ) as HTMLInputElement;
+    hours.value = '12';
+    hours.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(settingsApi.update).toHaveBeenCalledWith({
+      appointmentBufferMinutes: 15,
+      maxDailyBookings: 3,
+      minimumBookingNoticeHours: 0,
+      bookingReminderEnabled: true,
+      bookingReminderHoursBefore: 12,
+    });
+  });
+
+  it('requires reminder lead time to be between 1 and 168 hours', () => {
+    const enabled = fixture.nativeElement.querySelector(
+      '.toggle-option input',
+    ) as HTMLInputElement;
+    enabled.click();
+
+    const hours = fixture.nativeElement.querySelector(
+      '#booking-reminder-hours',
+    ) as HTMLInputElement;
+    hours.value = '169';
+    hours.dispatchEvent(new Event('input'));
+    hours.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'whole number from 1 to 168 hours',
+    );
+  });
+
+  it('saves a configurable minimum booking notice', () => {
+    const hours = fixture.nativeElement.querySelector(
+      '#minimum-booking-notice',
+    ) as HTMLInputElement;
+    hours.value = '24';
+    hours.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
+    fixture.detectChanges();
+
+    expect(settingsApi.update).toHaveBeenCalledWith({
+      appointmentBufferMinutes: 15,
+      maxDailyBookings: 3,
+      minimumBookingNoticeHours: 24,
+      bookingReminderEnabled: false,
+      bookingReminderHoursBefore: 24,
+    });
+  });
+
+  it('requires minimum booking notice to be a whole number within one year', () => {
+    const hours = fixture.nativeElement.querySelector(
+      '#minimum-booking-notice',
+    ) as HTMLInputElement;
+    hours.value = '8761';
+    hours.dispatchEvent(new Event('input'));
+    hours.dispatchEvent(new Event('blur'));
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain(
+      'whole number from 0 to 8760 hours',
+    );
   });
 
   it('rejects buffers outside five-minute increments', () => {

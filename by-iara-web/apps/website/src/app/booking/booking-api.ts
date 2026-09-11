@@ -1,11 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import { API_ORIGIN, apiUrl } from '../api-origin';
 
 // The catalog/slots are computed in the business timezone, so display them there
 // too, regardless of the visitor's browser timezone.
-export const BUSINESS_TIMEZONE = 'Europe/Brussels';
+export const BUSINESS_TIMEZONE = BUSINESS_TIME_ZONE;
 
 export interface CreateReservationPayload {
   serviceId: string;

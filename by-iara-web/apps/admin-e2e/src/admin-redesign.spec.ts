@@ -122,7 +122,13 @@ async function mockAdmin(page: Page) {
         },
       ];
     } else if (path.includes('/settings')) {
-      data = { appointmentBufferMinutes: 15, maxDailyBookings: 6 };
+      data = {
+        appointmentBufferMinutes: 15,
+        maxDailyBookings: 6,
+        minimumBookingNoticeHours: 24,
+        bookingReminderEnabled: true,
+        bookingReminderHoursBefore: 24,
+      };
     } else if (path.endsWith('/finance/report')) {
       data = {
         from: '2026-09-01',

@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import java.util.UUID
@@ -52,7 +53,7 @@ class ReservationApiTests {
     @MockitoBean
     private lateinit var mailSender: JavaMailSender
 
-    private val zone = ZoneId.of("Europe/Brussels")
+    private val zone = ZoneId.of("Europe/Lisbon")
     private val serviceId = "11111111-1111-1111-1111-111111111111"
     private val variantId = "22222222-2222-2222-2222-222222222222"
 
@@ -73,6 +74,7 @@ class ReservationApiTests {
         dsl.execute("drop table if exists customer_packs")
         dsl.execute("drop table if exists reservation_payments")
         dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists reservation_reminders")
         dsl.execute("drop table if exists customer_anonymization_events")
         dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservation_reschedules")
@@ -275,6 +277,22 @@ class ReservationApiTests {
         )
         dsl.execute(
             """
+            create table reservation_reminders (
+                reservation_id uuid primary key references reservations(id) on delete cascade,
+                reservation_starts_at timestamp with time zone not null,
+                status varchar(20) not null default 'PENDING',
+                attempt_count integer not null default 0,
+                next_attempt_at timestamp with time zone not null default now(),
+                claimed_at timestamp with time zone,
+                sent_at timestamp with time zone,
+                last_error text,
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
             create table admin_users (
                 id uuid default random_uuid() primary key,
                 email varchar(255) not null unique,
@@ -456,6 +474,7 @@ class ReservationApiTests {
         dsl.execute("insert into admin_users (email, password_hash, role, active) values ('admin@by-iara.local', 'x', 'ADMIN', true)")
         dsl.execute("insert into application_settings (setting_key, setting_value) values ('appointment_buffer_minutes', '15')")
         dsl.execute("insert into application_settings (setting_key, setting_value) values ('max_daily_bookings', 'unlimited')")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('minimum_booking_notice_hours', '0')")
         dsl.execute("insert into services (id, slug, name, active) values ('$serviceId', 'relax', 'Relaxing massage', true)")
         dsl.execute(
             "insert into service_variants (id, service_id, duration_minutes, price_cents, currency, active) " +
@@ -990,6 +1009,40 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `minimum booking notice hides slots and rejects direct bookings`() {
+        dsl.execute(
+            "update application_settings set setting_value = '192' where setting_key = 'minimum_booking_notice_hours'",
+        )
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+
+        mockMvc.perform(
+            get("/api/reservations/availability")
+                .param("serviceId", serviceId)
+                .param("serviceVariantId", variantId)
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").isEmpty)
+
+        book(slotStart)
+            .andExpect(status().isUnprocessableEntity)
+            .andExpect(jsonPath("$.message").value("Appointments must be booked at least 192 hours in advance"))
+    }
+
+    @Test
+    fun `minimum booking notice does not prevent an admin reschedule`() {
+        val id = reservationIdFrom(book(slotStart).andExpect(status().isCreated).andReturn())
+        dsl.execute(
+            "update application_settings set setting_value = '192' where setting_key = 'minimum_booking_notice_hours'",
+        )
+
+        mockMvc.perform(rescheduleRequest(id, slotStart.plusHours(2)))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startsAt").value(iso(slotStart.plusHours(2).withOffsetSameInstant(ZoneOffset.UTC))))
+    }
+
+    @Test
     fun `overlapping booking is rejected`() {
         book(slotStart, email = "first@example.com").andExpect(status().isCreated)
 
@@ -1111,6 +1164,13 @@ class ReservationApiTests {
         mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("CONFIRMED"))
+
+        val reminder = dsl.fetchOne(
+            "select reservation_starts_at, status from reservation_reminders where reservation_id = ?",
+            UUID.fromString(id),
+        )!!
+        assertEquals(slotStart.toInstant(), reminder.get("reservation_starts_at", OffsetDateTime::class.java).toInstant())
+        assertEquals("PENDING", reminder.get("status", String::class.java))
     }
 
     @Test

@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import {
   Button,
   Card,
@@ -96,7 +97,7 @@ export class CalendarSync implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       dateStyle: 'long',
       timeStyle: 'short',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 

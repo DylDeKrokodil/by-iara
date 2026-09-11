@@ -1,6 +1,7 @@
 package com.byiara.api.notification.application
 
 import com.byiara.api.auth.domain.AdminCredentialsRepository
+import com.byiara.api.common.config.BusinessTimeProperties
 import com.byiara.api.discount.domain.CreatedDiscount
 import com.byiara.api.calendar.application.ReservationIcsBuilder
 import com.byiara.api.notification.domain.EmailLogRepository
@@ -22,8 +23,7 @@ class ReservationEmailService(
     private val mailTransport: MailTransport,
     private val emailLogRepository: EmailLogRepository,
     private val adminCredentialsRepository: AdminCredentialsRepository,
-    @Value("\${by-iara.timezone:Europe/Brussels}")
-    private val timezoneIdStr: String,
+    private val businessTime: BusinessTimeProperties,
     @Value("\${by-iara.admin-url}")
     private val adminUrl: String,
     @Value("\${by-iara.business-phone:}")
@@ -37,7 +37,7 @@ class ReservationEmailService(
     @Value("\${by-iara.website-url}")
     private val websiteUrl: String,
 ) {
-    private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
+    private val zoneId: ZoneId get() = businessTime.zoneId
 
     /**
      * Never throws: a mail failure must never affect the reservation write that
@@ -125,6 +125,24 @@ class ReservationEmailService(
         }.onFailure { log.error("Failed to notify customer of reschedule for reservation {}", updated.id, it) }
     }
 
+    /** Returns whether the reminder was delivered so the durable worker can retry safely. */
+    fun notifyCustomerOfReminder(reservation: Reservation): Boolean =
+        runCatching {
+            val content = EmailCopy.reservationReminder(
+                reservation,
+                zoneId,
+                businessAddress,
+            )
+            sendAndLog(
+                reservation.customer.email,
+                content,
+                reservation.id,
+                EmailType.RESERVATION_REMINDER,
+            )
+        }.onFailure {
+            log.error("Failed to prepare reminder for reservation {}", reservation.id, it)
+        }.getOrDefault(false)
+
     fun notifyCustomerOfCompletion(reservation: Reservation, discount: CreatedDiscount? = null) {
         runCatching {
             val content = EmailCopy.reservationCompleted(
@@ -142,13 +160,15 @@ class ReservationEmailService(
         }.onFailure { log.error("Failed to notify customer of completion for reservation {}", reservation.id, it) }
     }
 
-    private fun sendAndLog(recipient: String, content: EmailContent, reservationId: UUID?, type: EmailType) {
+    private fun sendAndLog(recipient: String, content: EmailContent, reservationId: UUID?, type: EmailType): Boolean {
         try {
             mailTransport.send(recipient, content)
             emailLogRepository.record(NewEmailLog(reservationId, recipient, type, EmailStatus.SENT, null))
+            return true
         } catch (e: Exception) {
             log.error("Giving up sending {} email to {} for reservation {} after retries", type, recipient, reservationId, e)
             emailLogRepository.record(NewEmailLog(reservationId, recipient, type, EmailStatus.FAILED, e.message))
+            return false
         }
     }
 

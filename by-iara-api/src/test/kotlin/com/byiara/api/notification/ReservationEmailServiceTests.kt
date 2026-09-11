@@ -49,7 +49,7 @@ class ReservationEmailServiceTests {
     @MockitoBean
     private lateinit var mailSender: JavaMailSender
 
-    private val zone = ZoneId.of("Europe/Brussels")
+    private val zone = ZoneId.of("Europe/Lisbon")
 
     @BeforeEach
     fun resetSchema() {
@@ -154,6 +154,26 @@ class ReservationEmailServiceTests {
         assertTrue(enConfirmed!!.subject.contains("confirmed"))
         assertTrue(ptRejected!!.body.contains("não foi possível"))
         assertTrue(enRejected!!.body.contains("couldn't confirm"))
+    }
+
+    @Test
+    fun `reminder copy matches the booking locale and includes appointment details`() {
+        val ptReminder = EmailCopy.reservationReminder(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.PT),
+            zone,
+            "Rua Vila do Seixal 5",
+        )
+        val enReminder = EmailCopy.reservationReminder(
+            reservation(ReservationStatus.CONFIRMED, ReservationLocale.EN),
+            zone,
+            "Rua Vila do Seixal 5",
+        )
+
+        assertTrue(ptReminder.subject.contains("Lembrete"))
+        assertTrue(ptReminder.body.contains("Relaxing massage"))
+        assertTrue(ptReminder.body.contains("Rua Vila do Seixal 5"))
+        assertTrue(enReminder.subject.contains("Reminder"))
+        assertTrue(enReminder.htmlBody!!.contains("upcoming session"))
     }
 
     @Test

@@ -80,7 +80,13 @@
   gap: var(--byiara-space-sm);
 }
 
-.unlimited-option {
+.reminder-control {
+  display: grid;
+  gap: var(--byiara-space-sm);
+}
+
+.unlimited-option,
+.toggle-option {
   display: flex;
   gap: var(--byiara-space-xs);
   align-items: center;
@@ -90,7 +96,8 @@
   min-height: 2.75rem;
 }
 
-.unlimited-option input {
+.unlimited-option input,
+.toggle-option input {
   width: 1rem;
   height: 1rem;
   accent-color: var(--byiara-color-primary);
