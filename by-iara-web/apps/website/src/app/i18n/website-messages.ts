@@ -2,6 +2,13 @@ import type { LocaleCode } from './supported-locales';
 import { BRAND } from '../brand/brand';
 
 export interface WebsiteMessages {
+  readonly popup: {
+    readonly announcement: string;
+    readonly close: string;
+    readonly more: string;
+    readonly less: string;
+    readonly actions: Record<'book' | 'services' | 'packs', string>;
+  };
   readonly app: {
     readonly nav: {
       readonly home: string;
@@ -274,6 +281,17 @@ export interface WebsiteMessages {
 
 export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
   'pt-PT': {
+    popup: {
+      announcement: 'Novidade:',
+      close: 'Fechar novidade',
+      more: 'Saber mais',
+      less: 'Mostrar menos',
+      actions: {
+        book: 'Marcar uma sessão',
+        services: 'Explorar massagens',
+        packs: 'Conhecer os packs',
+      },
+    },
     app: {
       nav: {
         home: 'Início',
@@ -602,6 +620,17 @@ export const WEBSITE_MESSAGES: Record<LocaleCode, WebsiteMessages> = {
     },
   },
   'en-US': {
+    popup: {
+      announcement: 'Announcement:',
+      close: 'Close announcement',
+      more: 'Read more',
+      less: 'Show less',
+      actions: {
+        book: 'Book a session',
+        services: 'Explore massages',
+        packs: 'Explore packs',
+      },
+    },
     app: {
       nav: {
         home: 'Home',

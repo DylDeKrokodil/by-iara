@@ -22,6 +22,7 @@ import {
   FeaturedDiscount,
   FeaturedDiscountApi,
 } from './promotions/featured-discount-api';
+import { WelcomePopup } from './popups/welcome-popup';
 import { PromotionBar } from './promotions/promotion-bar';
 
 @Component({
@@ -32,6 +33,7 @@ import { PromotionBar } from './promotions/promotion-bar';
     LanguageSwitcher,
     Button,
     PromotionBar,
+    WelcomePopup,
   ],
   selector: 'byiara-root',
   host: { '(document:keydown.escape)': 'closeMenu(true)' },
