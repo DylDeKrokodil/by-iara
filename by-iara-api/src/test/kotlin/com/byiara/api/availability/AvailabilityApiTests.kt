@@ -166,8 +166,8 @@ class AvailabilityApiTests {
         // Slot 4 (10:30 - 11:30) -> Overlaps!
         // Slot 5 (11:00 - 12:00) -> No overlap (11:00 < 11:00 is FALSE).
         // Remaining slots should be: 09:00 and 11:00.
-        val blockStart = nextMonday.atTime(10, 0).atZone(java.time.ZoneId.of("Europe/Brussels")).toOffsetDateTime()
-        val blockEnd = nextMonday.atTime(11, 0).atZone(java.time.ZoneId.of("Europe/Brussels")).toOffsetDateTime()
+        val blockStart = nextMonday.atTime(10, 0).atZone(java.time.ZoneId.of("Europe/Lisbon")).toOffsetDateTime()
+        val blockEnd = nextMonday.atTime(11, 0).atZone(java.time.ZoneId.of("Europe/Lisbon")).toOffsetDateTime()
 
         mockMvc.perform(
             post("/api/admin/availability/blocks").with(adminJwt())

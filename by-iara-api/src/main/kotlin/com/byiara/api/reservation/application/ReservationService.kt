@@ -4,6 +4,7 @@ import com.byiara.api.availability.application.AvailabilityService
 import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.notification.application.ReservationEmailService
+import com.byiara.api.notification.application.ReservationReminderService
 import com.byiara.api.pack.application.CustomerAccessService
 import com.byiara.api.pack.domain.NewCustomerPack
 import com.byiara.api.pack.domain.PackNotAvailableException
@@ -41,6 +42,7 @@ class ReservationService(
     private val serviceRepository: ServiceRepository,
     private val availabilityService: AvailabilityService,
     private val reservationEmailService: ReservationEmailService,
+    private val reservationReminderService: ReservationReminderService,
     private val packRepository: PackRepository,
     private val customerAccessService: CustomerAccessService,
     private val discountService: DiscountService,
@@ -63,6 +65,7 @@ class ReservationService(
         if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        enforceMinimumBookingNotice(command.startsAt)
         enforceDailyBookingLimit(command.startsAt)
         val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
@@ -182,7 +185,7 @@ class ReservationService(
             variant.durationMinutes,
         )
         return excludeOverlappingReservations(
-            slots,
+            excludeSlotsInsideMinimumBookingNotice(slots),
             variant.durationMinutes,
             settingsService.appointmentBufferMinutes().toLong(),
         )
@@ -214,14 +217,15 @@ class ReservationService(
             .minOfOrNull { it.durationMinutes }
             ?: return null
 
-        val today = availabilityService.today()
+        val earliestStart = earliestPublicBookingStart()
+        val searchStartDate = availabilityService.localDate(earliestStart)
         val slots = availabilityService.findAvailableSlots(
-            today,
-            today.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
+            searchStartDate,
+            searchStartDate.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
             shortestDuration,
         )
         return excludeOverlappingReservations(
-            slots,
+            excludeSlotsInsideMinimumBookingNotice(slots, earliestStart),
             shortestDuration,
             settingsService.appointmentBufferMinutes().toLong(),
         ).firstOrNull()
@@ -277,6 +281,29 @@ class ReservationService(
 
         return slots.filter { (bookingCounts[availabilityService.localDate(it)] ?: 0) < maxDailyBookings }
     }
+
+    private fun excludeSlotsInsideMinimumBookingNotice(
+        slots: List<OffsetDateTime>,
+        earliestStart: OffsetDateTime = earliestPublicBookingStart(),
+    ): List<OffsetDateTime> {
+        return slots.filterNot { it.isBefore(earliestStart) }
+    }
+
+    private fun enforceMinimumBookingNotice(startsAt: OffsetDateTime) {
+        val minimumNoticeHours = settingsService.minimumBookingNoticeHours()
+        if (minimumNoticeHours == 0) {
+            return
+        }
+        if (startsAt.isBefore(OffsetDateTime.now().plusHours(minimumNoticeHours.toLong()))) {
+            val unit = if (minimumNoticeHours == 1) "hour" else "hours"
+            throw SlotNotAvailableException(
+                "Appointments must be booked at least $minimumNoticeHours $unit in advance",
+            )
+        }
+    }
+
+    private fun earliestPublicBookingStart(): OffsetDateTime =
+        OffsetDateTime.now().plusHours(settingsService.minimumBookingNoticeHours().toLong())
 
     @Transactional(readOnly = true)
     fun list(
@@ -377,6 +404,9 @@ class ReservationService(
             throw InvalidReservationRequestException("The reservation status changed while rescheduling")
         }
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (updated.status == ReservationStatus.CONFIRMED) {
+            reservationReminderService.schedule(updated)
+        }
         reservationEmailService.notifyCustomerOfReschedule(reservation, updated)
         return updated
     }
@@ -407,6 +437,9 @@ class ReservationService(
         }
         reservationRepository.updateDecision(id, target, rejectionReasonCode, rejectionMessage)
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (updated.status == ReservationStatus.CONFIRMED) {
+            reservationReminderService.schedule(updated)
+        }
         reservationEmailService.notifyCustomerOfDecision(updated)
         return updated
     }

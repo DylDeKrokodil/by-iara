@@ -44,6 +44,15 @@ class SettingsApiTests {
         dsl.execute(
             "insert into application_settings (setting_key, setting_value) values ('max_daily_bookings', '3')",
         )
+        dsl.execute(
+            "insert into application_settings (setting_key, setting_value) values ('minimum_booking_notice_hours', '0')",
+        )
+        dsl.execute(
+            "insert into application_settings (setting_key, setting_value) values ('booking_reminder_enabled', 'false')",
+        )
+        dsl.execute(
+            "insert into application_settings (setting_key, setting_value) values ('booking_reminder_hours_before', '24')",
+        )
     }
 
     @Test
@@ -52,21 +61,32 @@ class SettingsApiTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(15))
             .andExpect(jsonPath("$.maxDailyBookings").value(3))
+            .andExpect(jsonPath("$.minimumBookingNoticeHours").value(0))
+            .andExpect(jsonPath("$.bookingReminderEnabled").value(false))
+            .andExpect(jsonPath("$.bookingReminderHoursBefore").value(24))
 
         mockMvc.perform(
             put("/api/admin/settings")
                 .with(adminJwt())
                 .contentType("application/json")
-                .content("""{"appointmentBufferMinutes":25,"maxDailyBookings":5}"""),
+                .content(
+                    """{"appointmentBufferMinutes":25,"maxDailyBookings":5,"minimumBookingNoticeHours":24,"bookingReminderEnabled":true,"bookingReminderHoursBefore":12}""",
+                ),
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(25))
             .andExpect(jsonPath("$.maxDailyBookings").value(5))
+            .andExpect(jsonPath("$.minimumBookingNoticeHours").value(24))
+            .andExpect(jsonPath("$.bookingReminderEnabled").value(true))
+            .andExpect(jsonPath("$.bookingReminderHoursBefore").value(12))
 
         mockMvc.perform(get("/api/admin/settings").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.appointmentBufferMinutes").value(25))
             .andExpect(jsonPath("$.maxDailyBookings").value(5))
+            .andExpect(jsonPath("$.minimumBookingNoticeHours").value(24))
+            .andExpect(jsonPath("$.bookingReminderEnabled").value(true))
+            .andExpect(jsonPath("$.bookingReminderHoursBefore").value(12))
     }
 
     @Test
@@ -83,6 +103,29 @@ class SettingsApiTests {
         mockMvc.perform(get("/api/admin/settings").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.maxDailyBookings").doesNotExist())
+    }
+
+    @Test
+    fun `older admin clients preserve reminder settings when fields are omitted`() {
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{"appointmentBufferMinutes":15,"maxDailyBookings":3,"minimumBookingNoticeHours":24,"bookingReminderEnabled":true,"bookingReminderHoursBefore":12}""",
+                ),
+        ).andExpect(status().isOk)
+
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"appointmentBufferMinutes":20,"maxDailyBookings":4}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.bookingReminderEnabled").value(true))
+            .andExpect(jsonPath("$.bookingReminderHoursBefore").value(12))
+            .andExpect(jsonPath("$.minimumBookingNoticeHours").value(24))
     }
 
     @Test
@@ -112,6 +155,30 @@ class SettingsApiTests {
                 .with(adminJwt())
                 .contentType("application/json")
                 .content("""{"appointmentBufferMinutes":12,"maxDailyBookings":3}"""),
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `settings reject reminder lead time outside one week`() {
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{"appointmentBufferMinutes":15,"maxDailyBookings":3,"bookingReminderEnabled":true,"bookingReminderHoursBefore":169}""",
+                ),
+        ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `settings reject minimum booking notice longer than one year`() {
+        mockMvc.perform(
+            put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """{"appointmentBufferMinutes":15,"maxDailyBookings":3,"minimumBookingNoticeHours":8761}""",
+                ),
         ).andExpect(status().isBadRequest)
     }
 

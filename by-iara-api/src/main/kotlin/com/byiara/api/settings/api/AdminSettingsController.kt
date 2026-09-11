@@ -29,6 +29,9 @@ class AdminSettingsController(
 data class SettingsResponse(
     val appointmentBufferMinutes: Int,
     val maxDailyBookings: Int?,
+    val minimumBookingNoticeHours: Int,
+    val bookingReminderEnabled: Boolean,
+    val bookingReminderHoursBefore: Int,
 )
 
 data class UpdateSettingsRequest(
@@ -37,6 +40,13 @@ data class UpdateSettingsRequest(
     val appointmentBufferMinutes: Int,
     @field:Min(OperationalSettingsService.MIN_MAX_DAILY_BOOKINGS.toLong())
     val maxDailyBookings: Int?,
+    @field:Min(OperationalSettingsService.MIN_BOOKING_NOTICE_HOURS.toLong())
+    @field:Max(OperationalSettingsService.MAX_BOOKING_NOTICE_HOURS.toLong())
+    val minimumBookingNoticeHours: Int? = null,
+    val bookingReminderEnabled: Boolean? = null,
+    @field:Min(OperationalSettingsService.MIN_BOOKING_REMINDER_HOURS_BEFORE.toLong())
+    @field:Max(OperationalSettingsService.MAX_BOOKING_REMINDER_HOURS_BEFORE.toLong())
+    val bookingReminderHoursBefore: Int? = null,
 ) {
     @get:AssertTrue(message = "appointmentBufferMinutes must use 5-minute increments")
     val appointmentBufferIncrementValid: Boolean
@@ -47,10 +57,16 @@ private fun UpdateSettingsRequest.toCommand() =
     UpdateOperationalSettingsCommand(
         appointmentBufferMinutes = appointmentBufferMinutes,
         maxDailyBookings = maxDailyBookings,
+        minimumBookingNoticeHours = minimumBookingNoticeHours,
+        bookingReminderEnabled = bookingReminderEnabled,
+        bookingReminderHoursBefore = bookingReminderHoursBefore,
     )
 
 private fun OperationalSettings.toResponse() =
     SettingsResponse(
         appointmentBufferMinutes = appointmentBufferMinutes,
         maxDailyBookings = maxDailyBookings,
+        minimumBookingNoticeHours = minimumBookingNoticeHours,
+        bookingReminderEnabled = bookingReminderEnabled,
+        bookingReminderHoursBefore = bookingReminderHoursBefore,
     )
