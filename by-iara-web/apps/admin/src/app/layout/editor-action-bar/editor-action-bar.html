@@ -1,0 +1,25 @@
+<div
+  class="editor-action-bar"
+  [class.editor-action-bar--stack-mobile]="stackActionsOnMobile()"
+>
+  <div class="editor-action-meta">
+    <ng-content select="[editor-action-leading]"></ng-content>
+
+    @if (status()) {
+    <p
+      class="editor-action-status"
+      [class.editor-action-status--danger]="tone() === 'danger'"
+      [class.editor-action-status--success]="tone() === 'success'"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      {{ status() }}
+    </p>
+    }
+  </div>
+
+  <div class="editor-action-buttons">
+    <ng-content></ng-content>
+  </div>
+</div>

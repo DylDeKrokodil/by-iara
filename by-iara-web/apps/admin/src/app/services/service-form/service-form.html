@@ -533,8 +533,23 @@
       </fieldset>
     </div>
 
-    <!-- Form Footer Actions -->
-    <div class="form-actions-bar">
+    <byiara-editor-action-bar
+      [status]="
+        submitting()
+          ? 'Saving…'
+          : error() || packError() || imageError()
+            ? 'Changes not saved'
+            : form.dirty || selectedImage() || selectedMediaId() || imageMarkedForRemoval()
+              ? 'Unsaved changes'
+              : editing
+                ? 'All changes saved'
+                : 'New service not saved'
+      "
+      [tone]="error() || packError() || imageError() ? 'danger' : 'neutral'"
+    >
+      <byiara-button variant="secondary" routerLink="/services"
+        >Cancel</byiara-button
+      >
       <byiara-button
         type="submit"
         variant="primary"
@@ -543,10 +558,7 @@
       >
         {{ submitting() ? 'Saving…' : 'Save service' }}
       </byiara-button>
-      <byiara-button variant="secondary" routerLink="/services"
-        >Cancel</byiara-button
-      >
-    </div>
+    </byiara-editor-action-bar>
   </div>
 </form>
 

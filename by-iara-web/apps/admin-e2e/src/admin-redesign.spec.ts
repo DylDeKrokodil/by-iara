@@ -225,6 +225,47 @@ test('opens service editing from its name and supports keyboard view switching',
   ).toHaveAttribute('aria-selected', 'true');
 });
 
+test('keeps full-page editor actions visible without covering the editor content', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/services/service-1');
+
+  const actionBar = page.locator('byiara-editor-action-bar');
+  await expect(actionBar).toBeInViewport();
+  await expect(
+    actionBar.getByRole('link', { name: 'Cancel', exact: true }),
+  ).toBeVisible();
+  await expect(
+    actionBar.getByRole('button', { name: 'Save service', exact: true }),
+  ).toBeVisible();
+
+  await page.locator('.workspace').evaluate((workspace) => {
+    workspace.scrollTop = workspace.scrollHeight;
+  });
+  const editorContentBox = await page.locator('.pricing-column').boundingBox();
+  const actionBarBox = await actionBar.boundingBox();
+  expect(editorContentBox).not.toBeNull();
+  expect(actionBarBox).not.toBeNull();
+  expect(editorContentBox!.y + editorContentBox!.height).toBeLessThanOrEqual(
+    actionBarBox!.y,
+  );
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/services/new');
+  await expect(actionBar).toBeInViewport();
+  await expect(
+    actionBar.getByRole('link', { name: 'Cancel', exact: true }),
+  ).toBeVisible();
+  await expect(
+    actionBar.getByRole('button', { name: 'Save service', exact: true }),
+  ).toBeVisible();
+  const hasHorizontalOverflow = await page
+    .locator('.workspace')
+    .evaluate((workspace) => workspace.scrollWidth > workspace.clientWidth);
+  expect(hasHorizontalOverflow).toBe(false);
+});
+
 test('shows calendar capacity in a time-based week overview', async ({
   page,
 }) => {

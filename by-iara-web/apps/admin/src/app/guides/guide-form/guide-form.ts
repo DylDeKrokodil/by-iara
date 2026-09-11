@@ -44,6 +44,7 @@ import {
   GuideStatus,
   GuideTranslation,
 } from '../guide.models';
+import { EditorActionBar } from '../../layout/editor-action-bar/editor-action-bar';
 
 type LanguageTab = 'ptPT' | 'enUS';
 type EditorTab = 'content' | 'seo' | 'faqs';
@@ -81,6 +82,7 @@ const blockTypeOptions: ReadonlyArray<{
     TextField,
     MediaPicker,
     MediaImageField,
+    EditorActionBar,
   ],
   templateUrl: './guide-form.html',
   styleUrl: './guide-form.css',
@@ -455,6 +457,7 @@ export class GuideForm implements OnInit, OnDestroy {
             this.pendingMediaImages.set({});
             this.removedImages.set(new Set());
             this.clearAllPendingBlockImages();
+            this.form.markAsPristine();
           }
         },
         error: (error: HttpErrorResponse) => {
@@ -462,6 +465,24 @@ export class GuideForm implements OnInit, OnDestroy {
           this.error.set(apiErrorMessage(error, 'Could not save the guide.'));
         },
       });
+  }
+
+  protected hasUnsavedChanges(): boolean {
+    if (this.form.dirty) return true;
+    if (Object.keys(this.pendingImages()).length) return true;
+    if (Object.keys(this.pendingMediaImages()).length) return true;
+    if (Object.keys(this.pendingBlockImages()).length) return true;
+    if (Object.keys(this.pendingBlockMedia()).length) return true;
+    if (this.removedImages().size) return true;
+
+    const savedServiceIds = new Set(
+      this.currentGuide()?.relatedServiceIds ?? [],
+    );
+    const selectedServiceIds = this.selectedServiceIds();
+    return (
+      savedServiceIds.size !== selectedServiceIds.size ||
+      [...selectedServiceIds].some((id) => !savedServiceIds.has(id))
+    );
   }
 
   protected archive(): void {

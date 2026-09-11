@@ -220,7 +220,19 @@
         <byiara-alert tone="danger">{{ saveError() }}</byiara-alert>
         }
 
-        <div class="form-actions">
+        <byiara-editor-action-bar
+          stackActionsOnMobile
+          [status]="
+            saving()
+              ? 'Saving…'
+              : saveError()
+                ? 'Changes not saved'
+                : form.dirty
+                  ? 'Unsaved changes'
+                  : 'All changes saved'
+          "
+          [tone]="saveError() ? 'danger' : 'neutral'"
+        >
           <byiara-button
             type="submit"
             [loading]="saving()"
@@ -228,7 +240,7 @@
           >
             {{ saving() ? 'Saving…' : 'Save changes' }}
           </byiara-button>
-        </div>
+        </byiara-editor-action-bar>
       </section>
     </byiara-card>
   </form>
