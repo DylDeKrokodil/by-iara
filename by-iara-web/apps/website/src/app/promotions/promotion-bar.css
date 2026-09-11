@@ -44,9 +44,6 @@
   line-height: 1.5;
   text-wrap: pretty;
 }
-.promotion-bar-automatic .promotion-content a {
-  flex-shrink: 0;
-}
 .promotion-content code {
   padding: 0.15rem 0.45rem;
   border-radius: var(--byiara-radius-sm);
@@ -100,17 +97,4 @@
   .promotion-bar-automatic .promotion-close {
     inset-block-start: 0.375rem;
   }
-}
-
-.promotion-content a {
-  color: inherit;
-  font-weight: var(--byiara-font-weight-bold);
-  text-underline-offset: 0.2em;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-}
-.promotion-content a:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
 }

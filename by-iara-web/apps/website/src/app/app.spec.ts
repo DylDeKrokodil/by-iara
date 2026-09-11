@@ -40,6 +40,27 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 
+  it('shows an active discount in the top banner without a booking link', async () => {
+    const fixture = TestBed.createComponent(App);
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/discounts/featured').flush({
+      name: 'Summer offer',
+      code: null,
+      valueType: 'PERCENTAGE',
+      valueAmount: 2000,
+      currency: null,
+      endsAt: '2026-09-30T23:59:59Z',
+    });
+    http.expectOne('/api/guides/availability').flush(false);
+    await fixture.whenStable();
+
+    const banner = fixture.nativeElement.querySelector(
+      'byiara-promotion-bar',
+    ) as HTMLElement | null;
+    expect(banner).not.toBeNull();
+    expect(banner?.querySelector('a')).toBeNull();
+  });
+
   it('should hide guide links from both navbars when no guides are published', async () => {
     const fixture = await createApp();
     const compiled = fixture.nativeElement as HTMLElement;
