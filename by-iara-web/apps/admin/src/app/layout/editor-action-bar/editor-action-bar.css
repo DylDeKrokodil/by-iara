@@ -1,0 +1,97 @@
+:host {
+  display: block;
+  position: sticky;
+  bottom: 0;
+  z-index: var(--byiara-z-index-sticky);
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin-top: var(--byiara-space-xl);
+}
+
+.editor-action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--byiara-space-md);
+  min-height: 4.75rem;
+  padding: var(--byiara-space-sm) var(--byiara-space-md);
+  border-top: 1px solid var(--byiara-color-border);
+  background: color-mix(in srgb, var(--byiara-color-surface) 96%, transparent);
+  box-shadow: 0 -4px 8px rgb(0 0 0 / 5%);
+  backdrop-filter: blur(12px);
+}
+
+.editor-action-meta,
+.editor-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--byiara-space-sm);
+}
+
+.editor-action-meta {
+  min-width: 0;
+}
+
+.editor-action-status {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: var(--byiara-font-size-sm);
+  line-height: var(--byiara-line-height-body);
+}
+
+.editor-action-status--danger {
+  color: var(--byiara-color-danger);
+}
+
+.editor-action-status--success {
+  color: var(--byiara-color-success-strong);
+}
+
+.editor-action-buttons {
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+@media (max-width: 40rem) {
+  :host {
+    margin-top: var(--byiara-space-lg);
+  }
+
+  .editor-action-bar {
+    align-items: stretch;
+    flex-direction: column;
+    min-height: auto;
+    padding-bottom: max(var(--byiara-space-sm), env(safe-area-inset-bottom));
+  }
+
+  .editor-action-meta {
+    justify-content: center;
+    flex-wrap: wrap;
+    --byiara-button-width: 100%;
+  }
+
+  .editor-action-status {
+    text-align: center;
+  }
+
+  .editor-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    margin-left: 0;
+    --byiara-button-width: 100%;
+  }
+
+  .editor-action-bar--stack-mobile .editor-action-buttons {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .editor-action-bar {
+    background: var(--byiara-color-surface);
+    backdrop-filter: none;
+  }
+}

@@ -55,8 +55,20 @@
         required
         [error]="fieldError('name')"
       />
-      <div class="language-fields" lang="pt-PT">
-        <h3>Português</h3>
+
+      <byiara-tabs
+        ariaLabel="Popup content languages"
+        [tabs]="languageTabs"
+        [activeValue]="activeLanguageTab()"
+        (activeValueChange)="setActiveLanguageTab($event)"
+      ></byiara-tabs>
+
+      @if (activeLanguageTab() === 'ptPT') {
+      <fieldset
+        class="language-fields"
+        lang="pt-PT"
+        aria-label="Portuguese popup content"
+      >
         <byiara-text-field
           label="Título"
           formControlName="titlePt"
@@ -70,9 +82,13 @@
           required
           [error]="fieldError('bodyPt')"
         />
-      </div>
-      <div class="language-fields" lang="en">
-        <h3>English</h3>
+      </fieldset>
+      } @if (activeLanguageTab() === 'enUS') {
+      <fieldset
+        class="language-fields"
+        lang="en"
+        aria-label="English popup content"
+      >
         <byiara-text-field
           label="Title"
           formControlName="titleEn"
@@ -86,7 +102,8 @@
           required
           [error]="fieldError('bodyEn')"
         />
-      </div>
+      </fieldset>
+      }
       <label class="action-label" for="popup-action">Primary action</label>
       <select id="popup-action" formControlName="action">
         <option value="book">Book a session</option>
@@ -112,12 +129,6 @@
   <aside class="preview" aria-label="Popup preview">
     <div class="preview-header">
       <h2>Live preview</h2>
-      <byiara-button
-        variant="secondary"
-        (click)="previewEnglish.set(!previewEnglish())"
-        >{{ previewEnglish() ? 'View Portuguese' : 'View English'
-        }}</byiara-button
-      >
     </div>
     <div
       class="preview-surface popup-preview"

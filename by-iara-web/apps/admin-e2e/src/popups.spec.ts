@@ -70,13 +70,18 @@ test('create, preview, edit, replace and disable popups', async ({ page }) => {
   await page
     .getByRole('textbox', { name: /^Mensagem/ })
     .fill('Um novo cuidado pensado para si.');
+  await page.getByRole('button', { name: 'Save popup', exact: true }).click();
+  await expect(
+    page.getByRole('tab', { name: 'English (en-US)', exact: true }),
+  ).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('textbox', { name: /^Mensagem/ })).toBeHidden();
+  await expect(page.getByRole('textbox', { name: /^Title/ })).toBeFocused();
   await page
     .getByRole('textbox', { name: /^Title/ })
     .fill('Meet your new favourite massage');
   await page
     .getByRole('textbox', { name: /^Message/ })
     .fill('A little care, created just for you.');
-  await page.getByRole('button', { name: 'View English' }).click();
   await expect(page.locator('.preview .announcement')).toContainText(
     'Meet your new favourite massage',
   );
@@ -107,6 +112,7 @@ test('create, preview, edit, replace and disable popups', async ({ page }) => {
   await page
     .getByRole('button', { name: 'Edit New treatment', exact: true })
     .click();
+  await page.getByRole('tab', { name: 'English (en-US)', exact: true }).click();
   await page.getByRole('textbox', { name: /^Title/ }).fill('Updated message');
   await page.getByRole('button', { name: 'Save popup', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('This popup is live');

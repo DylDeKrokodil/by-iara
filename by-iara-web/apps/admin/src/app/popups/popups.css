@@ -93,20 +93,19 @@ h2 {
   margin-top: 0;
   font-size: 1.5rem;
 }
-h3 {
-  margin: 0;
-  font-size: 1.125rem;
-}
 fieldset {
   padding: 0;
   margin: 24px 0 0;
   border: 0;
   min-width: 0;
 }
+.popup-form byiara-tabs {
+  margin-top: 28px;
+}
 .language-fields {
   display: grid;
   gap: 16px;
-  margin-top: 28px;
+  margin: 0;
 }
 .form-hint {
   color: var(--byiara-color-text-muted);

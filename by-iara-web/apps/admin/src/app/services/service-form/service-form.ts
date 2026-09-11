@@ -45,6 +45,7 @@ import {
   optimizeServiceImage,
   OptimizedImage,
 } from '../service-image-optimizer';
+import { EditorActionBar } from '../../layout/editor-action-bar/editor-action-bar';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
@@ -94,6 +95,7 @@ function isContentFormTab(value: string): value is ContentFormTab {
     TextField,
     MediaPicker,
     MediaImageField,
+    EditorActionBar,
   ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',

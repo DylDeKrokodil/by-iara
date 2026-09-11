@@ -12,6 +12,7 @@ import {
 import { apiErrorMessage } from '../core/api-error-message';
 import { SettingsApi } from './settings-api';
 import { OperationalSettings } from './settings.models';
+import { EditorActionBar } from '../layout/editor-action-bar/editor-action-bar';
 
 const MIN_APPOINTMENT_BUFFER_MINUTES = 0;
 const MAX_APPOINTMENT_BUFFER_MINUTES = 180;
@@ -25,7 +26,15 @@ const DEFAULT_BOOKING_REMINDER_HOURS = 24;
 
 @Component({
   selector: 'byiara-settings',
-  imports: [ReactiveFormsModule, Alert, Button, Card, PageHeader, Skeleton],
+  imports: [
+    ReactiveFormsModule,
+    Alert,
+    Button,
+    Card,
+    EditorActionBar,
+    PageHeader,
+    Skeleton,
+  ],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
 })

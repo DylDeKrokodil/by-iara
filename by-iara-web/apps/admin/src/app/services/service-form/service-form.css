@@ -338,15 +338,6 @@
   margin-right: 2px;
 }
 
-.form-actions-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--byiara-space-sm);
-  margin-top: var(--byiara-space-xl);
-  max-width: 42rem;
-  width: 100%;
-}
-
 @media (min-width: 64rem) {
   .form-card {
     display: grid;
@@ -375,15 +366,6 @@
   .section-divider {
     display: none;
   }
-
-  .form-actions-bar {
-    grid-column: 1 / -1;
-    max-width: none;
-    border-top: 1px solid
-      color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
-    padding-top: var(--byiara-space-lg);
-    margin-top: var(--byiara-space-sm);
-  }
 }
 
 @media (max-width: 40rem) {
@@ -395,8 +377,5 @@
   }
   .variant-fields .form-group.compact {
     width: min(100%, 8.5rem);
-  }
-  .form-actions-bar {
-    flex-wrap: wrap;
   }
 }

@@ -160,11 +160,6 @@
   font-size: var(--byiara-font-size-sm);
 }
 
-.form-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .load-error-content {
   display: flex;
   align-items: center;
@@ -184,10 +179,6 @@
   .setting-row {
     grid-template-columns: 1fr;
     gap: var(--byiara-space-md);
-  }
-
-  .form-actions byiara-button {
-    --byiara-button-width: 100%;
   }
 
   .load-error-content {

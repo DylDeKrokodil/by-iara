@@ -247,6 +247,8 @@
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
+  /* Keep focused fields and validation messages clear of persistent editor actions. */
+  scroll-padding-block-end: 8rem;
 }
 .workspace-toolbar {
   display: flex;

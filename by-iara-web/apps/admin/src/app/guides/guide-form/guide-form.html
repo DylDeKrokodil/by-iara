@@ -383,25 +383,40 @@
     </aside>
   </div>
 
-  <div class="form-actions">
-    <div>
-      @if (editing) {
-      <byiara-button variant="ghost" (click)="archive()">Archive</byiara-button>
-      }
-    </div>
-    <div class="primary-actions">
-      <byiara-button variant="secondary" type="submit" [loading]="submitting()">
-        Save
-      </byiara-button>
-      <byiara-button
-        variant="primary"
-        [loading]="submitting()"
-        (click)="save('PUBLISHED')"
-      >
-        Save and publish
-      </byiara-button>
-    </div>
-  </div>
+  <byiara-editor-action-bar
+    stackActionsOnMobile
+    [status]="
+      submitting()
+        ? 'Saving…'
+        : error()
+          ? 'Changes not saved'
+          : hasUnsavedChanges()
+            ? 'Unsaved changes'
+            : editing
+              ? 'All changes saved'
+              : 'New guide not saved'
+    "
+    [tone]="error() ? 'danger' : 'neutral'"
+  >
+    @if (editing) {
+    <byiara-button editor-action-leading variant="ghost" (click)="archive()"
+      >Archive</byiara-button
+    >
+    }
+    <byiara-button variant="secondary" routerLink="/guides">
+      Cancel
+    </byiara-button>
+    <byiara-button variant="secondary" type="submit" [loading]="submitting()">
+      Save
+    </byiara-button>
+    <byiara-button
+      variant="primary"
+      [loading]="submitting()"
+      (click)="save('PUBLISHED')"
+    >
+      Save and publish
+    </byiara-button>
+  </byiara-editor-action-bar>
 </form>
 
 <byiara-media-picker

@@ -1,5 +1,5 @@
 :host {
-  min-width: 0;
+  min-width: min(10rem, 100%);
   max-width: 100%;
   display: inline-flex;
 }
@@ -8,7 +8,8 @@
   display: inline-flex;
   flex-direction: column;
   gap: var(--byiara-space-2xs);
-  min-width: min(10rem, 100%);
+  width: 100%;
+  min-width: 0;
 }
 
 .select-error {
@@ -27,6 +28,7 @@
 .select-control {
   position: relative;
   display: inline-flex;
+  width: 100%;
 }
 
 .select-trigger::after {
@@ -94,8 +96,9 @@
   top: calc(100% + var(--byiara-space-2xs));
   right: 0;
   display: grid;
-  width: 100%;
-  min-width: min(10rem, 100%);
+  width: auto;
+  min-width: 100%;
+  max-width: calc(100vw - (2 * var(--byiara-space-sm)));
   padding: var(--byiara-space-2xs);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
