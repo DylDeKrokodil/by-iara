@@ -5,6 +5,7 @@ import com.byiara.api.discount.application.DiscountService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -44,6 +45,10 @@ class AdminDiscountController(
         @PathVariable id: UUID,
         @RequestBody request: UpdateFeaturedDiscountRequest,
     ): DiscountResponse = service.setFeatured(id, request.featured).toResponse()
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun delete(@PathVariable id: UUID) = service.delete(id)
 
     @GetMapping("/{id}/usage")
     fun usage(@PathVariable id: UUID): List<DiscountUsageResponse> = service.usage(id).map { it.toResponse() }

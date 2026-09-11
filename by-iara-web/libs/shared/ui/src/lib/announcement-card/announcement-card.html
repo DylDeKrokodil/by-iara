@@ -1,0 +1,39 @@
+<section class="announcement" [attr.aria-label]="title()">
+  <div class="announcement-heading">
+    <h2>{{ title() }}</h2>
+    <byiara-button
+      variant="secondary"
+      iconOnly
+      [ariaLabel]="closeLabel()"
+      (click)="dismissed.emit()"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        aria-hidden="true"
+      >
+        <path d="m6 6 12 12M18 6 6 18" />
+      </svg>
+    </byiara-button>
+  </div>
+  <p class="announcement-message" [class.is-expanded]="expanded()">
+    {{ message() }}
+  </p>
+  <div class="announcement-actions">
+    <byiara-button [routerLink]="actionLink()" (click)="followed.emit()"
+      >{{ actionLabel() }}</byiara-button
+    >
+    <span class="announcement-disclosure">
+      <byiara-button
+        variant="open"
+        [ariaExpanded]="expanded()"
+        (click)="expanded.set(!expanded())"
+        >{{ expanded() ? lessLabel() : moreLabel() }}</byiara-button
+      >
+    </span>
+  </div>
+</section>

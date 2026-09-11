@@ -10,6 +10,11 @@ import {
 import { LanguageService } from '../i18n/language.service';
 import { SeoService } from '../seo/seo.service';
 
+interface StartingPrice {
+  readonly original: string | null;
+  readonly current: string;
+}
+
 @Component({
   selector: 'byiara-services-catalog',
   imports: [Alert, Button, Card, EmptyState, Skeleton, RouterLink],
@@ -60,16 +65,26 @@ export class ServicesCatalog implements OnInit {
     }).format(cents / 100);
   }
 
-  protected startingPrice(service: Service): string | null {
-    const activePrices = service.variants
-      .filter((variant) => variant.active)
-      .map((variant) => variant.price.amountCents);
+  protected startingPrice(service: Service): StartingPrice | null {
+    const activeVariants = service.variants.filter((variant) => variant.active);
 
-    if (activePrices.length === 0) {
+    if (activeVariants.length === 0) {
       return null;
     }
-
-    return this.copy().priceFrom(this.formatPrice(Math.min(...activePrices)));
+    const cheapest = activeVariants.reduce((current, variant) =>
+      (variant.promotionalPrice?.amountCents ?? variant.price.amountCents) <
+      (current.promotionalPrice?.amountCents ?? current.price.amountCents)
+        ? variant
+        : current,
+    );
+    const currentCents =
+      cheapest.promotionalPrice?.amountCents ?? cheapest.price.amountCents;
+    return {
+      original: cheapest.promotionalPrice
+        ? this.copy().priceFrom(this.formatPrice(cheapest.price.amountCents))
+        : null,
+      current: this.copy().priceFrom(this.formatPrice(currentCents)),
+    };
   }
 
   protected localized(service: Service): ServiceTranslation {

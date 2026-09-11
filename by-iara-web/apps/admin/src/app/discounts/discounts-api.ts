@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export type DiscountAudience = 'PUBLIC' | 'PERSONAL';
+export type DiscountAudience = 'PUBLIC' | 'PERSONAL' | 'AUTOMATIC';
 export type DiscountScope = 'ALL_SERVICES' | 'SELECTED_SERVICES';
 export type DiscountValueType = 'PERCENTAGE' | 'FIXED_AMOUNT';
 export type DiscountStatus = 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
@@ -18,7 +18,8 @@ export interface Discount {
   startsAt: string;
   endsAt: string;
   maxUniqueClients: number | null;
-  maxUsesPerCustomer: number;
+  maxUsesPerCustomer: number | null;
+  firstTimeCustomersOnly?: boolean;
   codeHint: string;
   customerEmail: string | null;
   status: DiscountStatus;
@@ -40,7 +41,8 @@ export interface DiscountInput {
   startsAt: string;
   endsAt: string;
   maxUniqueClients?: number;
-  maxUsesPerCustomer: number;
+  maxUsesPerCustomer: number | null;
+  firstTimeCustomersOnly?: boolean;
   serviceIds: string[];
   customerEmail?: string;
   code?: string;
@@ -72,16 +74,32 @@ export class DiscountsApi {
     return this.http.get<Discount[]>('/api/admin/discounts');
   }
 
-  create(input: DiscountInput): Observable<{ discount: Discount; generatedCode: string | null; deliveryStatus: 'SENT' | 'FAILED' | null }> {
-    return this.http.post<{ discount: Discount; generatedCode: string | null; deliveryStatus: 'SENT' | 'FAILED' | null }>('/api/admin/discounts', input);
+  create(input: DiscountInput): Observable<{
+    discount: Discount;
+    generatedCode: string | null;
+    deliveryStatus: 'SENT' | 'FAILED' | null;
+  }> {
+    return this.http.post<{
+      discount: Discount;
+      generatedCode: string | null;
+      deliveryStatus: 'SENT' | 'FAILED' | null;
+    }>('/api/admin/discounts', input);
   }
 
   updateStatus(id: string, status: DiscountStatus): Observable<Discount> {
-    return this.http.patch<Discount>(`/api/admin/discounts/${id}/status`, { status });
+    return this.http.patch<Discount>(`/api/admin/discounts/${id}/status`, {
+      status,
+    });
   }
 
   updateFeatured(id: string, featured: boolean): Observable<Discount> {
-    return this.http.patch<Discount>(`/api/admin/discounts/${id}/featured`, { featured });
+    return this.http.patch<Discount>(`/api/admin/discounts/${id}/featured`, {
+      featured,
+    });
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`/api/admin/discounts/${id}`);
   }
 
   usage(id: string): Observable<DiscountUsage[]> {

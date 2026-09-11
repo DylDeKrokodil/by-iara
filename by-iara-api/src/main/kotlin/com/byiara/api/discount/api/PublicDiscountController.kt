@@ -13,4 +13,8 @@ class PublicDiscountController(private val service: DiscountService) {
     fun featured(): ResponseEntity<FeaturedDiscountResponse> =
         service.featured()?.let { ResponseEntity.ok(it.toFeaturedResponse()) }
             ?: ResponseEntity.noContent().build()
+
+    @GetMapping("/automatic")
+    fun automatic(): List<AutomaticPromotionResponse> =
+        service.automaticPromotions().map { it.toAutomaticPromotionResponse() }
 }

@@ -4,6 +4,7 @@ import com.byiara.api.availability.application.AvailabilityService
 import com.byiara.api.catalog.domain.Service as CatalogService
 import com.byiara.api.catalog.domain.ServiceRepository
 import com.byiara.api.notification.application.ReservationEmailService
+import com.byiara.api.notification.application.ReservationReminderService
 import com.byiara.api.pack.application.CustomerAccessService
 import com.byiara.api.pack.domain.NewCustomerPack
 import com.byiara.api.pack.domain.PackNotAvailableException
@@ -13,6 +14,7 @@ import com.byiara.api.discount.application.DiscountService
 import com.byiara.api.discount.domain.DiscountQuote
 import com.byiara.api.reservation.domain.CreateReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
+import com.byiara.api.reservation.domain.DailyBookingLimitReachedException
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
 import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.IllegalReservationTransitionException
@@ -27,6 +29,7 @@ import com.byiara.api.reservation.domain.ReservationStatus
 import com.byiara.api.reservation.domain.RejectionReasonCode
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
+import com.byiara.api.settings.application.OperationalSettingsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -39,9 +42,11 @@ class ReservationService(
     private val serviceRepository: ServiceRepository,
     private val availabilityService: AvailabilityService,
     private val reservationEmailService: ReservationEmailService,
+    private val reservationReminderService: ReservationReminderService,
     private val packRepository: PackRepository,
     private val customerAccessService: CustomerAccessService,
     private val discountService: DiscountService,
+    private val settingsService: OperationalSettingsService,
 ) {
     @Transactional
     fun create(command: CreateReservationCommand): Reservation {
@@ -60,9 +65,12 @@ class ReservationService(
         if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        enforceMinimumBookingNotice(command.startsAt)
+        enforceDailyBookingLimit(command.startsAt)
+        val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
-                command.startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
-                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                command.startsAt.minusMinutes(appointmentBufferMinutes),
+                endsAt.plusMinutes(appointmentBufferMinutes),
             )
         ) {
             throw SlotAlreadyBookedException()
@@ -86,11 +94,11 @@ class ReservationService(
             } ?: throw PackNotAvailableException("This pack offer is no longer available")
         }
 
-        val discountQuote = command.discountCode?.takeIf { it.isNotBlank() }?.let { code ->
-            if (existingPack != null || newPackOffer != null) {
-                throw InvalidReservationRequestException("Discounts are only available for individual sessions")
-            }
-            discountService.prepareForReservation(code, service.id, customer, variant.price)
+        val discountQuote = when {
+            existingPack != null || newPackOffer != null -> null
+            !command.discountCode.isNullOrBlank() ->
+                discountService.prepareForReservation(command.discountCode, service.id, customer, variant.price)
+            else -> discountService.prepareAutomaticForReservation(service.id, variant.price, customer)
         }
         val reservationPrice = when {
             existingPack != null -> Money(0, existingPack.price.currency)
@@ -99,6 +107,17 @@ class ReservationService(
             else -> variant.price
         }
 
+        if (command.expectedPriceCents != null && command.expectedPriceCents != reservationPrice.amountCents) {
+            throw com.byiara.api.reservation.domain.ReservationPriceChangedException()
+        }
+        // A restricted automatic offer must always be reviewed, including older clients.
+        if (command.expectedPriceCents == null && discountQuote != null &&
+            command.discountCode.isNullOrBlank()) {
+            val promotion = discountService.get(discountQuote.discountId)
+            if (promotion.firstTimeCustomersOnly || promotion.maxUsesPerCustomer != null) {
+                throw com.byiara.api.reservation.domain.ReservationPriceChangedException()
+            }
+        }
         val reservation = reservationRepository.create(
             NewReservation(
                 customerId = customer.id,
@@ -138,6 +157,13 @@ class ReservationService(
     }
 
     @Transactional(readOnly = true)
+    fun previewAutomaticPrice(serviceId: java.util.UUID, variantId: java.util.UUID, email: String): Pair<Money, Money> {
+        val service = requireActiveService(serviceId)
+        val variant = requireActiveVariant(service, variantId)
+        return variant.price to (discountService.previewAutomatic(service.id, variant.price, email)?.finalPrice ?: variant.price)
+    }
+
+    @Transactional(readOnly = true)
     fun previewDiscount(command: PreviewDiscountCommand): DiscountQuote {
         val service = requireActiveService(command.serviceId)
         val variant = requireActiveVariant(service, command.serviceVariantId)
@@ -158,7 +184,11 @@ class ReservationService(
             command.endDate,
             variant.durationMinutes,
         )
-        return excludeOverlappingReservations(slots, variant.durationMinutes)
+        return excludeOverlappingReservations(
+            excludeSlotsInsideMinimumBookingNotice(slots),
+            variant.durationMinutes,
+            settingsService.appointmentBufferMinutes().toLong(),
+        )
     }
 
     @Transactional(readOnly = true)
@@ -169,6 +199,7 @@ class ReservationService(
         return excludeOverlappingReservations(
             slots,
             reservation.durationMinutes,
+            settingsService.appointmentBufferMinutes().toLong(),
             excludingReservationId = reservation.id,
         )
     }
@@ -186,43 +217,93 @@ class ReservationService(
             .minOfOrNull { it.durationMinutes }
             ?: return null
 
-        val today = availabilityService.today()
+        val earliestStart = earliestPublicBookingStart()
+        val searchStartDate = availabilityService.localDate(earliestStart)
         val slots = availabilityService.findAvailableSlots(
-            today,
-            today.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
+            searchStartDate,
+            searchStartDate.plusDays(NEXT_AVAILABLE_WINDOW_DAYS),
             shortestDuration,
         )
-        return excludeOverlappingReservations(slots, shortestDuration).firstOrNull()
+        return excludeOverlappingReservations(
+            excludeSlotsInsideMinimumBookingNotice(slots, earliestStart),
+            shortestDuration,
+            settingsService.appointmentBufferMinutes().toLong(),
+        ).firstOrNull()
     }
 
     private fun excludeOverlappingReservations(
         slots: List<OffsetDateTime>,
         durationMinutes: Int,
+        appointmentBufferMinutes: Long,
         excludingReservationId: UUID? = null,
     ): List<OffsetDateTime> {
         if (slots.isEmpty()) {
             return slots
         }
 
-        val queryStart = slots.first().minusMinutes(APPOINTMENT_BUFFER_MINUTES)
-        val queryEnd = slots.last()
+        val capacityEligibleSlots = excludeFullyBookedDates(slots, excludingReservationId)
+        if (capacityEligibleSlots.isEmpty()) {
+            return capacityEligibleSlots
+        }
+
+        val queryStart = capacityEligibleSlots.first().minusMinutes(appointmentBufferMinutes)
+        val queryEnd = capacityEligibleSlots.last()
             .plusMinutes(durationMinutes.toLong())
-            .plusMinutes(APPOINTMENT_BUFFER_MINUTES)
+            .plusMinutes(appointmentBufferMinutes)
         val activeWindows = reservationRepository.findActiveWindowsOverlapping(
             queryStart,
             queryEnd,
             excludingReservationId,
         )
 
-        return slots.filter { slotStart ->
+        return capacityEligibleSlots.filter { slotStart ->
             val slotEnd = slotStart.plusMinutes(durationMinutes.toLong())
-            val bufferedSlotStart = slotStart.minusMinutes(APPOINTMENT_BUFFER_MINUTES)
-            val bufferedSlotEnd = slotEnd.plusMinutes(APPOINTMENT_BUFFER_MINUTES)
+            val bufferedSlotStart = slotStart.minusMinutes(appointmentBufferMinutes)
+            val bufferedSlotEnd = slotEnd.plusMinutes(appointmentBufferMinutes)
             activeWindows.none { window ->
                 bufferedSlotStart.isBefore(window.endsAt) && bufferedSlotEnd.isAfter(window.startsAt)
             }
         }
     }
+
+    private fun excludeFullyBookedDates(
+        slots: List<OffsetDateTime>,
+        excludingReservationId: UUID?,
+    ): List<OffsetDateTime> {
+        val maxDailyBookings = settingsService.maxDailyBookings() ?: return slots
+        val firstDate = availabilityService.localDate(slots.first())
+        val lastDate = availabilityService.localDate(slots.last())
+        val bookingCounts = reservationRepository.findActiveStartsBetween(
+            availabilityService.startOfDay(firstDate),
+            availabilityService.startOfDay(lastDate.plusDays(1)),
+            excludingReservationId,
+        ).groupingBy(availabilityService::localDate).eachCount()
+
+        return slots.filter { (bookingCounts[availabilityService.localDate(it)] ?: 0) < maxDailyBookings }
+    }
+
+    private fun excludeSlotsInsideMinimumBookingNotice(
+        slots: List<OffsetDateTime>,
+        earliestStart: OffsetDateTime = earliestPublicBookingStart(),
+    ): List<OffsetDateTime> {
+        return slots.filterNot { it.isBefore(earliestStart) }
+    }
+
+    private fun enforceMinimumBookingNotice(startsAt: OffsetDateTime) {
+        val minimumNoticeHours = settingsService.minimumBookingNoticeHours()
+        if (minimumNoticeHours == 0) {
+            return
+        }
+        if (startsAt.isBefore(OffsetDateTime.now().plusHours(minimumNoticeHours.toLong()))) {
+            val unit = if (minimumNoticeHours == 1) "hour" else "hours"
+            throw SlotNotAvailableException(
+                "Appointments must be booked at least $minimumNoticeHours $unit in advance",
+            )
+        }
+    }
+
+    private fun earliestPublicBookingStart(): OffsetDateTime =
+        OffsetDateTime.now().plusHours(settingsService.minimumBookingNoticeHours().toLong())
 
     @Transactional(readOnly = true)
     fun list(
@@ -301,9 +382,11 @@ class ReservationService(
         if (!availabilityService.isAvailable(startsAt, reservation.durationMinutes)) {
             throw SlotNotAvailableException()
         }
+        enforceDailyBookingLimit(startsAt, excludingReservationId = id)
+        val appointmentBufferMinutes = settingsService.appointmentBufferMinutes().toLong()
         if (reservationRepository.hasOverlap(
-                startsAt.minusMinutes(APPOINTMENT_BUFFER_MINUTES),
-                endsAt.plusMinutes(APPOINTMENT_BUFFER_MINUTES),
+                startsAt.minusMinutes(appointmentBufferMinutes),
+                endsAt.plusMinutes(appointmentBufferMinutes),
                 excludingReservationId = id,
             )
         ) {
@@ -321,8 +404,25 @@ class ReservationService(
             throw InvalidReservationRequestException("The reservation status changed while rescheduling")
         }
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (updated.status == ReservationStatus.CONFIRMED) {
+            reservationReminderService.schedule(updated)
+        }
         reservationEmailService.notifyCustomerOfReschedule(reservation, updated)
         return updated
+    }
+
+    private fun enforceDailyBookingLimit(startsAt: OffsetDateTime, excludingReservationId: UUID? = null) {
+        val maxDailyBookings = settingsService.maxDailyBookings() ?: return
+        val bookingDate = availabilityService.localDate(startsAt)
+        reservationRepository.lockBookingDate(bookingDate)
+        val activeBookings = reservationRepository.countActiveStartsBetween(
+            availabilityService.startOfDay(bookingDate),
+            availabilityService.startOfDay(bookingDate.plusDays(1)),
+            excludingReservationId,
+        )
+        if (activeBookings >= maxDailyBookings) {
+            throw DailyBookingLimitReachedException()
+        }
     }
 
     private fun transition(
@@ -337,6 +437,9 @@ class ReservationService(
         }
         reservationRepository.updateDecision(id, target, rejectionReasonCode, rejectionMessage)
         val updated = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+        if (updated.status == ReservationStatus.CONFIRMED) {
+            reservationReminderService.schedule(updated)
+        }
         reservationEmailService.notifyCustomerOfDecision(updated)
         return updated
     }
@@ -359,7 +462,6 @@ class ReservationService(
     companion object {
         private const val MAX_PAGE_SIZE = 100
         private const val NEXT_AVAILABLE_WINDOW_DAYS = 30L
-        private const val APPOINTMENT_BUFFER_MINUTES = 15L
     }
 }
 

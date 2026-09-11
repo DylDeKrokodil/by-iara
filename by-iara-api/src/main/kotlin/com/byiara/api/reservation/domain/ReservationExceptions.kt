@@ -13,6 +13,9 @@ class SlotNotAvailableException(message: String = "The requested time slot is no
 class SlotAlreadyBookedException(message: String = "The requested time slot is already booked") :
     RuntimeException(message)
 
+class DailyBookingLimitReachedException(message: String = "No more bookings are available on this day") :
+    RuntimeException(message)
+
 class InvalidReservationRequestException(message: String) :
     RuntimeException(message)
 

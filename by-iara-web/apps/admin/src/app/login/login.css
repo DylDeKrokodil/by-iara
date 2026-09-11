@@ -1,42 +1,87 @@
 .login-shell {
   display: grid;
-  place-items: center;
-  min-height: 100vh;
-  padding: var(--byiara-space-lg);
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  min-height: 100dvh;
+  gap: 3rem;
+  padding: 2rem 1.25rem;
   background: var(--byiara-color-background);
 }
-
-.login-card-wrap {
-  width: 100%;
-  max-width: 24rem;
-}
-
-.login-form {
+.login-brand {
   display: flex;
-  flex-direction: column;
-  gap: var(--byiara-space-md);
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
 }
-
-.brand {
-  margin: 0;
-  color: var(--byiara-color-primary-strong);
-  font-size: var(--byiara-font-size-sm);
-  font-weight: var(--byiara-font-weight-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.login-brand img {
+  width: 8rem;
+  height: auto;
 }
-
+.login-brand span {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--byiara-color-border);
+  color: var(--byiara-color-text-muted);
+  font-size: 0.8125rem;
+}
+.login-card-wrap {
+  align-self: center;
+  width: min(100%, 26rem);
+  padding: 2.5rem;
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
+}
+.login-symbol {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1.5rem;
+  border-radius: 1rem;
+  background: var(--byiara-color-primary-tint);
+  color: var(--byiara-color-primary);
+}
+.login-symbol svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
 h1 {
   margin: 0;
-  color: var(--byiara-color-text);
-  font-family: var(--byiara-font-family-display);
-  font-size: var(--byiara-font-size-2xl);
-  font-weight: var(--byiara-font-weight-bold);
-  line-height: var(--byiara-line-height-title);
+  text-align: center;
+  font-size: 1.875rem;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
-
 .subtitle {
-  margin: 0 0 var(--byiara-space-sm);
+  margin: 0.75rem 0 2rem;
   color: var(--byiara-color-text-muted);
-  font-size: var(--byiara-font-size-sm);
+  font-size: 0.875rem;
+  text-align: center;
+  line-height: 1.6;
+}
+.login-form {
+  display: grid;
+  gap: 1.25rem;
+}
+.login-form byiara-button {
+  --byiara-button-width: 100%;
+}
+.login-footer {
+  margin: 0;
+  color: var(--byiara-color-text-muted);
+  font-size: 0.75rem;
+}
+@media (max-width: 30rem) {
+  .login-card-wrap {
+    padding: 1.75rem 1.25rem;
+  }
+  .login-brand {
+    justify-content: center;
+  }
+  .login-brand span {
+    display: none;
+  }
 }

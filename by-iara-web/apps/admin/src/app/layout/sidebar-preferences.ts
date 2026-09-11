@@ -7,56 +7,73 @@ export const sidebarItemIds = [
   'services',
   'guides',
   'images',
+  'popups',
   'customers',
   'packs',
   'discounts',
   'availability',
+  'settings',
 ] as const;
 
 export type SidebarItemId = (typeof sidebarItemIds)[number];
 
-const storageKey = 'byiara.admin.sidebar-favorites.v1';
-const defaultFavoriteIds: ReadonlyArray<SidebarItemId> = [
-  'dashboard',
-  'reports',
-];
+export const sidebarGroupIds = [
+  'appointments',
+  'catalogue',
+  'content',
+  'business',
+] as const;
+
+export type SidebarGroupId = (typeof sidebarGroupIds)[number];
+
+const storageKey = 'byiara.admin.sidebar-groups.v1';
+const defaultOpenGroupIds: ReadonlyArray<SidebarGroupId> = sidebarGroupIds;
 
 @Injectable({ providedIn: 'root' })
 export class SidebarPreferences {
-  private readonly storedFavoriteIds = signal<ReadonlySet<SidebarItemId>>(
-    this.readFavoriteIds(),
+  private readonly storedOpenGroupIds = signal<ReadonlySet<SidebarGroupId>>(
+    this.readOpenGroupIds(),
   );
 
-  readonly favoriteIds = this.storedFavoriteIds.asReadonly();
+  readonly openGroupIds = this.storedOpenGroupIds.asReadonly();
 
-  toggleFavorite(id: SidebarItemId): void {
-    const next = new Set(this.storedFavoriteIds());
+  toggleGroup(id: SidebarGroupId): void {
+    const next = new Set(this.storedOpenGroupIds());
     if (next.has(id)) {
       next.delete(id);
     } else {
       next.add(id);
     }
-    this.storedFavoriteIds.set(next);
-    this.persistFavoriteIds(next);
+    this.updateOpenGroups(next);
   }
 
-  private readFavoriteIds(): ReadonlySet<SidebarItemId> {
+  openGroup(id: SidebarGroupId): void {
+    if (this.storedOpenGroupIds().has(id)) {
+      return;
+    }
+    const next = new Set(this.storedOpenGroupIds());
+    next.add(id);
+    this.updateOpenGroups(next);
+  }
+
+  private readOpenGroupIds(): ReadonlySet<SidebarGroupId> {
     try {
       const stored = globalThis.localStorage?.getItem(storageKey);
       if (stored === null || stored === undefined) {
-        return new Set(defaultFavoriteIds);
+        return new Set(defaultOpenGroupIds);
       }
       const parsed: unknown = JSON.parse(stored);
       if (!Array.isArray(parsed)) {
-        return new Set(defaultFavoriteIds);
+        return new Set(defaultOpenGroupIds);
       }
-      return new Set(parsed.filter(isSidebarItemId));
+      return new Set(parsed.filter(isSidebarGroupId));
     } catch {
-      return new Set(defaultFavoriteIds);
+      return new Set(defaultOpenGroupIds);
     }
   }
 
-  private persistFavoriteIds(ids: ReadonlySet<SidebarItemId>): void {
+  private updateOpenGroups(ids: ReadonlySet<SidebarGroupId>): void {
+    this.storedOpenGroupIds.set(ids);
     try {
       globalThis.localStorage?.setItem(storageKey, JSON.stringify([...ids]));
     } catch {
@@ -65,9 +82,9 @@ export class SidebarPreferences {
   }
 }
 
-function isSidebarItemId(value: unknown): value is SidebarItemId {
+function isSidebarGroupId(value: unknown): value is SidebarGroupId {
   return (
     typeof value === 'string' &&
-    (sidebarItemIds as ReadonlyArray<string>).includes(value)
+    (sidebarGroupIds as ReadonlyArray<string>).includes(value)
   );
 }

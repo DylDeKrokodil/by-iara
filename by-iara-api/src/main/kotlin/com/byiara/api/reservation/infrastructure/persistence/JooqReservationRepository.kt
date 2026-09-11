@@ -31,6 +31,7 @@ import org.jooq.impl.DSL.sum
 import org.jooq.impl.DSL.table
 import org.springframework.stereotype.Repository
 import java.time.OffsetDateTime
+import java.time.LocalDate
 import java.util.UUID
 
 @Repository
@@ -142,6 +143,48 @@ class JooqReservationRepository(
                     endsAt = record.get(rEndsAt),
                 )
             }
+
+    override fun findActiveStartsBetween(
+        startsAt: OffsetDateTime,
+        startsBefore: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): List<OffsetDateTime> =
+        dsl.select(rStartsAt)
+            .from(reservations)
+            .where(rStatus.`in`(activeStatuses))
+            .and(rStartsAt.ge(startsAt))
+            .and(rStartsAt.lessThan(startsBefore))
+            .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition())
+            .fetch(rStartsAt)
+
+    override fun countActiveStartsBetween(
+        startsAt: OffsetDateTime,
+        startsBefore: OffsetDateTime,
+        excludingReservationId: UUID?,
+    ): Int =
+        dsl.fetchCount(
+            dsl.selectFrom(reservations)
+                .where(rStatus.`in`(activeStatuses))
+                .and(rStartsAt.ge(startsAt))
+                .and(rStartsAt.lessThan(startsBefore))
+                .and(excludingReservationId?.let { rId.ne(it) } ?: noCondition()),
+        )
+
+    override fun lockBookingDate(date: LocalDate) {
+        val bookingDayLocks = table(name("reservation_day_locks"))
+        val bookingDate = field(name("reservation_day_locks", "booking_date"), LocalDate::class.java)
+        dsl.insertInto(bookingDayLocks)
+            .columns(bookingDate)
+            .values(date)
+            .onConflict(bookingDate)
+            .doNothing()
+            .execute()
+        dsl.select(bookingDate)
+            .from(bookingDayLocks)
+            .where(bookingDate.eq(date))
+            .forUpdate()
+            .fetchOne()
+    }
 
     override fun create(reservation: NewReservation): Reservation {
         val newId = dsl

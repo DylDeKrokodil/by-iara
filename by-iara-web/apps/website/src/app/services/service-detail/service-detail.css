@@ -7,9 +7,9 @@
 }
 
 .service-detail-container {
-  width: min(100%, 52rem);
+  width: min(100%, 64rem);
   margin-inline: auto;
-  padding-inline: clamp(1rem, 4vw, 2rem);
+  padding-inline: var(--public-gutter);
 }
 
 .service-breadcrumbs ol {
@@ -50,9 +50,9 @@
 .service-detail-header {
   display: grid;
   gap: var(--byiara-space-md);
+  max-width: 48rem;
 }
 
-.service-detail-header h1,
 .service-not-found h1 {
   max-width: 15ch;
   margin: 0;
@@ -78,7 +78,7 @@
   margin: 0;
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface-muted);
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 9;
 }
 
 .service-detail-media img {
@@ -162,7 +162,15 @@
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0;
+  gap: var(--byiara-space-xs);
+}
+
+.service-option-summary del {
+  color: var(--byiara-color-text-muted);
+}
+
+.service-option-summary .promotional-price {
+  color: var(--byiara-color-primary-strong);
 }
 
 .service-options li span {
@@ -228,7 +236,7 @@
 }
 
 .service-pack-name strong {
-  font-family: var(--byiara-font-family-display);
+  font-family: var(--byiara-font-family-sans);
   font-size: var(--byiara-font-size-xl);
   font-weight: var(--byiara-font-weight-medium);
 }
@@ -335,6 +343,22 @@
   }
 
   .service-packs byiara-button {
-    width: 100%;
+    --byiara-button-width: 100%;
+  }
+}
+.service-options {
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface-muted);
+}
+.service-faq details[open] summary {
+  color: var(--byiara-color-primary-strong);
+}
+@media (max-width: 36rem) {
+  .service-options li {
+    flex-wrap: wrap;
+  }
+  .service-options byiara-button {
+    --byiara-button-width: 100%;
   }
 }

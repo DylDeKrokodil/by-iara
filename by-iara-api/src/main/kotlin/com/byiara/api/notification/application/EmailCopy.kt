@@ -225,6 +225,86 @@ object EmailCopy {
         }
     }
 
+    fun reservationReminder(
+        reservation: Reservation,
+        zoneId: ZoneId,
+        businessAddress: String = "",
+    ): EmailContent {
+        val locale = when (reservation.locale) {
+            ReservationLocale.PT -> Locale.forLanguageTag("pt-PT")
+            ReservationLocale.EN -> Locale.forLanguageTag("en-US")
+        }
+        val whenText = formatDateTime(reservation, zoneId, locale)
+        val address = businessAddress.trim().takeIf(String::isNotBlank)
+
+        return when (reservation.locale) {
+            ReservationLocale.PT -> EmailContent(
+                subject = "Lembrete da sua marcação",
+                body = buildList {
+                    add("Olá ${reservation.customer.name},")
+                    add("")
+                    add("Este é um lembrete da sua próxima marcação:")
+                    add("")
+                    add("Serviço: ${reservation.serviceName}")
+                    add("Data: $whenText")
+                    address?.let { add("Local: $it") }
+                    add("")
+                    add("Se precisar de cancelar ou reagendar, contacte-nos assim que possível.")
+                    add("")
+                    add("Até breve!")
+                    add("Iara Gouveia")
+                }.joinToString("\n"),
+                htmlBody = htmlDocument(
+                    lang = "pt",
+                    title = "Lembrete da sua marcação",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Lembrete da sua marcação</h1>
+                        <p style="$paragraphStyle">Olá ${escapeHtml(reservation.customer.name)}, a sua sessão aproxima-se.</p>
+                        ${detailsCard(buildList {
+                            add("Serviço" to escapeHtml(reservation.serviceName))
+                            add("Data" to whenText)
+                            address?.let { add("Local" to escapeHtml(it)) }
+                        }, fullWidthLabels = setOf("Local"))}
+                        <p style="$paragraphStyle">Se precisar de cancelar ou reagendar, contacte-nos assim que possível.</p>
+                        <p style="$paragraphStyle; margin:0;">Até breve!</p>
+                    """.trimIndent(),
+                ),
+            )
+            ReservationLocale.EN -> EmailContent(
+                subject = "Reminder: your appointment is coming up",
+                body = buildList {
+                    add("Hi ${reservation.customer.name},")
+                    add("")
+                    add("This is a reminder about your upcoming appointment:")
+                    add("")
+                    add("Service: ${reservation.serviceName}")
+                    add("When: $whenText")
+                    address?.let { add("Location: $it") }
+                    add("")
+                    add("If you need to cancel or reschedule, please contact us as soon as possible.")
+                    add("")
+                    add("See you soon!")
+                    add("Iara Gouveia")
+                }.joinToString("\n"),
+                htmlBody = htmlDocument(
+                    lang = "en",
+                    title = "Your appointment is coming up",
+                    bodyHtml = """
+                        <h1 style="$headingStyle">Your appointment is coming up</h1>
+                        <p style="$paragraphStyle">Hi ${escapeHtml(reservation.customer.name)}, this is a reminder about your upcoming session.</p>
+                        ${detailsCard(buildList {
+                            add("Service" to escapeHtml(reservation.serviceName))
+                            add("When" to whenText)
+                            address?.let { add("Location" to escapeHtml(it)) }
+                        }, fullWidthLabels = setOf("Location"))}
+                        <p style="$paragraphStyle">If you need to cancel or reschedule, please contact us as soon as possible.</p>
+                        <p style="$paragraphStyle; margin:0;">See you soon!</p>
+                    """.trimIndent(),
+                ),
+            )
+        }
+    }
+
     fun reservationCompleted(
         reservation: Reservation,
         googleReviewUrl: String,

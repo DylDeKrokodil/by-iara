@@ -1,5 +1,6 @@
 package com.byiara.api.finance.infrastructure.persistence
 
+import com.byiara.api.common.config.BusinessTimeProperties
 import com.byiara.api.finance.domain.DailyFinancialTotals
 import com.byiara.api.finance.domain.Expense
 import com.byiara.api.finance.domain.ExpenseCategory
@@ -29,6 +30,7 @@ import java.util.UUID
 @Repository
 class JooqFinanceRepository(
     private val dsl: DSLContext,
+    private val businessTime: BusinessTimeProperties,
 ) : FinanceRepository {
     private val expenses = table(name("expenses"))
     private val eId = field(name("expenses", "id"), UUID::class.java)
@@ -329,5 +331,10 @@ class JooqFinanceRepository(
         .fetchOne(0, Long::class.java) ?: 0L
 
     private fun businessDate(timestamp: Field<OffsetDateTime>): Field<LocalDate> =
-        field("cast({0} at time zone 'Europe/Brussels' as date)", LocalDate::class.java, timestamp)
+        field(
+            "cast({0} at time zone {1} as date)",
+            LocalDate::class.java,
+            timestamp,
+            inline(businessTime.timezone),
+        )
 }

@@ -6,6 +6,7 @@ import com.byiara.api.reservation.domain.InvalidReservationRequestException
 import com.byiara.api.reservation.domain.ReservationNotFoundException
 import com.byiara.api.reservation.domain.SlotAlreadyBookedException
 import com.byiara.api.reservation.domain.SlotNotAvailableException
+import com.byiara.api.reservation.domain.DailyBookingLimitReachedException
 import com.byiara.api.pack.domain.PackNotAvailableException
 import com.byiara.api.pack.domain.CustomerAccessDeniedException
 import com.byiara.api.discount.domain.DiscountUnavailableException
@@ -16,6 +17,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ReservationExceptionHandler {
+    @ExceptionHandler(com.byiara.api.reservation.domain.ReservationPriceChangedException::class)
+    fun handlePriceChanged(): ResponseEntity<Map<String, String>> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(mapOf("code" to "PRICE_CHANGED", "message" to "Review the updated booking price"))
+
     @ExceptionHandler(DiscountUnavailableException::class)
     fun handleDiscountUnavailable(exception: DiscountUnavailableException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiErrorResponse(message = exception.message!!))
@@ -42,6 +47,12 @@ class ReservationExceptionHandler {
     fun handleSlotAlreadyBooked(exception: SlotAlreadyBookedException): ResponseEntity<ApiErrorResponse> =
         ResponseEntity.status(HttpStatus.CONFLICT).body(
             ApiErrorResponse(message = exception.message ?: "The requested time slot is already booked"),
+        )
+
+    @ExceptionHandler(DailyBookingLimitReachedException::class)
+    fun handleDailyBookingLimitReached(exception: DailyBookingLimitReachedException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(
+            ApiErrorResponse(message = exception.message ?: "No more bookings are available on this day"),
         )
 
     @ExceptionHandler(PackNotAvailableException::class)

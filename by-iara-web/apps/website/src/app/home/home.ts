@@ -21,18 +21,13 @@ import {
 import { NextAvailableLink } from './next-available-link/next-available-link';
 import { featuredServices } from './featured-services';
 import { packPresentations } from '../packs/pack-presentation';
+import { HeaderAppearanceService } from '../header-appearance.service';
 import { HomePack } from './home-pack/home-pack';
 import { RevealOnScroll } from './reveal-on-scroll.directive';
 
 @Component({
   selector: 'byiara-home',
-  imports: [
-    Button,
-    HomePack,
-    NextAvailableLink,
-    RevealOnScroll,
-    RouterLink,
-  ],
+  imports: [Button, HomePack, NextAvailableLink, RevealOnScroll, RouterLink],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -41,6 +36,7 @@ export class Home implements OnInit {
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly headerAppearance = inject(HeaderAppearanceService);
 
   protected readonly copy = computed(() => this.language.messages().home);
   protected readonly heroVideoPlaying = signal(false);
@@ -60,73 +56,54 @@ export class Home implements OnInit {
     );
   });
 
-  private readonly heroSection =
-    viewChild<ElementRef<HTMLElement>>('heroSection');
   private readonly heroVideo =
     viewChild<ElementRef<HTMLVideoElement>>('heroVideo');
 
   constructor() {
-    // Browser-only: the `muted` content attribute alone doesn't reliably
-    // satisfy autoplay policies once Angular re-creates the element, so set
-    // the property and kick playback explicitly. The video stays hidden until
-    // playback really starts, preventing Safari's native play overlay from
-    // appearing when autoplay is unavailable.
     afterNextRender(() => {
-      const hero = this.heroSection()?.nativeElement;
       const video = this.heroVideo()?.nativeElement;
-      const reduceMotion = window.matchMedia(
+      if (!video) return;
+
+      const motionPreference = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
-      ).matches;
-      this.heroVideoPlaybackEnabled = !reduceMotion;
-
-      if (video) {
-        if (reduceMotion) {
-          video.removeAttribute('autoplay');
-          video.pause();
-        } else {
-          this.playHeroVideo(video);
-        }
-      }
-
-      if (!hero) {
-        return;
-      }
-      // Stop compositing the looping video while it is offscreen. Entries
-      // batch on fast scroll reversals, so only the last one is current.
-      const observer = new IntersectionObserver((entries) => {
-        const visible = entries[entries.length - 1].isIntersecting;
-        this.heroVideoShouldPlay = visible;
-
-        if (!video || reduceMotion) {
-          return;
-        }
-        if (visible) {
-          this.playHeroVideo(video);
-        } else {
-          video.pause();
-        }
-      });
-      observer.observe(hero);
-
+      );
       const lifecycleEvents = new AbortController();
-      const resumePlayback = () => {
+      this.heroVideoPlaybackEnabled = !motionPreference.matches;
+      video.muted = true;
+      video.defaultMuted = true;
+      const synchronizePlayback = () => {
         if (
-          video &&
           this.heroVideoPlaybackEnabled &&
           this.heroVideoShouldPlay &&
           document.visibilityState === 'visible'
         ) {
           this.playHeroVideo(video);
+        } else {
+          video.pause();
         }
       };
-      document.addEventListener('visibilitychange', resumePlayback, {
+      motionPreference.addEventListener(
+        'change',
+        () => {
+          this.heroVideoPlaybackEnabled = !motionPreference.matches;
+          synchronizePlayback();
+        },
+        { signal: lifecycleEvents.signal },
+      );
+      document.addEventListener('visibilitychange', synchronizePlayback, {
         signal: lifecycleEvents.signal,
       });
-      window.addEventListener('pageshow', resumePlayback, {
+      window.addEventListener('pageshow', synchronizePlayback, {
         signal: lifecycleEvents.signal,
       });
+      synchronizePlayback();
+      // Hydrated video elements can miss the initial autoplay opportunity in
+      // Safari. Retry once after media metadata and layout have settled.
+      window.setTimeout(synchronizePlayback, 250);
       this.destroyRef.onDestroy(() => {
-        observer.disconnect();
+        this.heroVideoPlaybackEnabled = false;
+        video.pause();
+        this.headerAppearance.setMovingMediaBehindHeader(false);
         lifecycleEvents.abort();
       });
     });
@@ -135,32 +112,54 @@ export class Home implements OnInit {
   private heroVideoPlaybackEnabled = false;
   private heroVideoShouldPlay = true;
 
+  protected toggleHeroPlayback(): void {
+    const video = this.heroVideo()?.nativeElement;
+    if (!video) return;
+    this.heroVideoPlaybackEnabled = !this.heroVideoPlaying();
+    if (this.heroVideoPlaybackEnabled) this.playHeroVideo(video);
+    else video.pause();
+  }
+
   protected onHeroVideoPlaying(): void {
-    this.heroVideoPlaying.set(true);
+    // A preference or visibility change can race an outstanding play promise.
+    if (!this.heroVideoPlaybackEnabled || !this.heroVideoShouldPlay) {
+      this.heroVideo()?.nativeElement.pause();
+      return;
+    }
+    this.setHeroVideoPlaying(true);
   }
 
   protected onHeroVideoPause(): void {
-    this.heroVideoPlaying.set(false);
-
-    const video = this.heroVideo()?.nativeElement;
-    if (
-      video &&
-      this.heroVideoPlaybackEnabled &&
-      this.heroVideoShouldPlay &&
-      document.visibilityState === 'visible'
-    ) {
-      this.playHeroVideo(video);
-    }
+    this.setHeroVideoPlaying(false);
   }
 
   private playHeroVideo(video: HTMLVideoElement): void {
     video.muted = true;
     video.defaultMuted = true;
-    video.play().catch(() => {
-      // Browser policy or Low Power Mode blocked autoplay. Keep the matching
-      // still image visible rather than exposing native video controls.
-      this.heroVideoPlaying.set(false);
-    });
+    void video
+      .play()
+      .then(() => {
+        if (
+          !this.heroVideoPlaybackEnabled ||
+          !this.heroVideoShouldPlay ||
+          document.visibilityState !== 'visible'
+        ) {
+          video.pause();
+          return;
+        }
+        this.setHeroVideoPlaying(!video.paused);
+      })
+      .catch(() => {
+        // Keep the still and an explicit play action when autoplay is unavailable.
+        this.setHeroVideoPlaying(false);
+      });
+  }
+
+  private setHeroVideoPlaying(playing: boolean): void {
+    this.heroVideoPlaying.set(playing);
+    this.headerAppearance.setMovingMediaBehindHeader(
+      playing && this.heroVideoShouldPlay,
+    );
   }
 
   ngOnInit(): void {
@@ -182,16 +181,31 @@ export class Home implements OnInit {
   }
 
   protected priceFrom(service: Service): string {
-    const cents = Math.min(
-      ...service.variants
-        .filter((variant) => variant.active)
-        .map((variant) => variant.price.amountCents),
-    );
+    const variant = this.cheapestVariant(service);
+    const cents = variant?.price.amountCents ?? 0;
     return new Intl.NumberFormat(this.language.current().locale, {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 0,
     }).format(cents / 100);
+  }
+
+  protected promotionalPriceFrom(service: Service): string | null {
+    const cents = this.cheapestVariant(service)?.promotionalPrice?.amountCents;
+    if (cents === undefined) return null;
+    return new Intl.NumberFormat(this.language.current().locale, {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+    }).format(cents / 100);
+  }
+
+  private cheapestVariant(service: Service) {
+    return service.variants
+      .filter((variant) => variant.active)
+      .reduce<
+        (typeof service.variants)[number] | null
+      >((current, variant) => (!current || (variant.promotionalPrice?.amountCents ?? variant.price.amountCents) < (current.promotionalPrice?.amountCents ?? current.price.amountCents) ? variant : current), null);
   }
 
   protected durationLabel(service: Service): string {

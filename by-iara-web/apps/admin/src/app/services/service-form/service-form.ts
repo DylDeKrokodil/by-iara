@@ -33,6 +33,7 @@ import {
   Tabs,
   TextField,
   ToastService,
+  touchedError,
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../../core/api-error-message';
 import { concatMap, map, Observable, of } from 'rxjs';
@@ -44,6 +45,7 @@ import {
   optimizeServiceImage,
   OptimizedImage,
 } from '../service-image-optimizer';
+import { EditorActionBar } from '../../layout/editor-action-bar/editor-action-bar';
 
 type TranslationFormKey = 'ptPT' | 'enUS';
 type ContentFormTab = 'basics' | 'pageContent' | 'faqs';
@@ -93,11 +95,13 @@ function isContentFormTab(value: string): value is ContentFormTab {
     TextField,
     MediaPicker,
     MediaImageField,
+    EditorActionBar,
   ],
   templateUrl: './service-form.html',
   styleUrl: './service-form.css',
 })
 export class ServiceForm implements OnInit, OnDestroy {
+  protected readonly touchedError = touchedError;
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ServicesApi);
   private readonly router = inject(Router);

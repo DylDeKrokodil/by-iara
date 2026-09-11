@@ -1,31 +1,38 @@
 <!-- eslint-disable-next-line @angular-eslint/template/label-has-associated-control -- input/textarea is nested inside via @if/@else; the rule's traversal doesn't see through Angular control flow -->
 <label class="field">
   <span>
-    {{ label() }}@if (required()) {<span class="required-marker" aria-hidden="true">&nbsp;*</span>}@if (optionalLabel()) {&nbsp;<em>{{ optionalLabel() }}</em>}
+    {{ label() }}@if (required()) {<span
+      class="required-marker"
+      aria-hidden="true"
+      >&nbsp;*</span
+    >}@if (optionalLabel()) {&nbsp;<em>{{ optionalLabel() }}</em>}
   </span>
   @if (multiline()) {
-    <textarea
-      [rows]="rows()"
-      [value]="value()"
-      [disabled]="disabled()"
-      [required]="required()"
-      [attr.aria-invalid]="error() ? 'true' : null"
-      (input)="onInput($event)"
-      (blur)="onTouched()"
-    ></textarea>
+  <textarea
+    [rows]="rows()"
+    [value]="value()"
+    [disabled]="disabled()"
+    [required]="required()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="error() ? errorId : null"
+    (input)="onInput($event)"
+    (blur)="onTouched()"
+  ></textarea>
   } @else {
-    <input
-      [type]="type()"
-      [attr.autocomplete]="autocomplete() || null"
-      [value]="value()"
-      [disabled]="disabled()"
-      [required]="required()"
-      [attr.aria-invalid]="error() ? 'true' : null"
-      (input)="onInput($event)"
-      (blur)="onTouched()"
-    />
-  }
-  @if (error()) {
-    <span class="field-error">{{ error() }}</span>
+  <input
+    [type]="type()"
+    [attr.autocomplete]="autocomplete() || null"
+    [value]="value()"
+    [disabled]="disabled()"
+    [required]="required()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="error() ? errorId : null"
+    (input)="onInput($event)"
+    (blur)="onTouched()"
+  />
+  } @if (error()) {
+  <span class="field-error" [id]="errorId" aria-live="polite"
+    >{{ error() }}</span
+  >
   }
 </label>

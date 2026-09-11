@@ -31,6 +31,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Properties
 import java.util.UUID
@@ -52,7 +53,7 @@ class ReservationApiTests {
     @MockitoBean
     private lateinit var mailSender: JavaMailSender
 
-    private val zone = ZoneId.of("Europe/Brussels")
+    private val zone = ZoneId.of("Europe/Lisbon")
     private val serviceId = "11111111-1111-1111-1111-111111111111"
     private val variantId = "22222222-2222-2222-2222-222222222222"
 
@@ -62,6 +63,8 @@ class ReservationApiTests {
 
     @BeforeEach
     fun resetSchema() {
+        dsl.execute("create alias if not exists discount_customer_identity for \"com.byiara.api.reservation.DiscountIdentityTestFunctions.normalize\"")
+        dsl.execute("drop table if exists application_settings")
         dsl.execute("drop table if exists public_request_rate_limits")
         dsl.execute("drop table if exists reservation_discounts")
         dsl.execute("drop table if exists discount_services")
@@ -71,9 +74,11 @@ class ReservationApiTests {
         dsl.execute("drop table if exists customer_packs")
         dsl.execute("drop table if exists reservation_payments")
         dsl.execute("drop table if exists email_logs")
+        dsl.execute("drop table if exists reservation_reminders")
         dsl.execute("drop table if exists customer_anonymization_events")
         dsl.execute("drop table if exists calendar_feed_tokens")
         dsl.execute("drop table if exists reservation_reschedules")
+        dsl.execute("drop table if exists reservation_day_locks")
         dsl.execute("drop table if exists reservations")
         dsl.execute("drop table if exists customers")
         dsl.execute("drop table if exists availability_blocks")
@@ -86,6 +91,15 @@ class ReservationApiTests {
         dsl.execute("drop table if exists services")
         dsl.execute("drop table if exists admin_users")
 
+        dsl.execute(
+            """
+            create table application_settings (
+                setting_key varchar(120) primary key,
+                setting_value varchar(500) not null,
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
         dsl.execute(
             """
             create table public_request_rate_limits (
@@ -229,6 +243,14 @@ class ReservationApiTests {
         )
         dsl.execute(
             """
+            create table reservation_day_locks (
+                booking_date date primary key,
+                created_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
             create table reservations (
                 id uuid default random_uuid() primary key,
                 customer_id uuid not null references customers(id),
@@ -248,6 +270,22 @@ class ReservationApiTests {
                 decided_at timestamp with time zone,
                 cancellation_reason_code varchar(40),
                 cancellation_message varchar(1000),
+                created_at timestamp with time zone not null default now(),
+                updated_at timestamp with time zone not null default now()
+            )
+            """.trimIndent(),
+        )
+        dsl.execute(
+            """
+            create table reservation_reminders (
+                reservation_id uuid primary key references reservations(id) on delete cascade,
+                reservation_starts_at timestamp with time zone not null,
+                status varchar(20) not null default 'PENDING',
+                attempt_count integer not null default 0,
+                next_attempt_at timestamp with time zone not null default now(),
+                claimed_at timestamp with time zone,
+                sent_at timestamp with time zone,
+                last_error text,
                 created_at timestamp with time zone not null default now(),
                 updated_at timestamp with time zone not null default now()
             )
@@ -279,7 +317,8 @@ class ReservationApiTests {
                 starts_at timestamp with time zone not null,
                 ends_at timestamp with time zone not null,
                 max_unique_clients integer,
-                max_uses_per_customer integer not null default 1,
+                max_uses_per_customer integer default 1,
+                first_time_customers_only boolean not null default false,
                 code_hash varchar(64) not null unique,
                 code_hint varchar(40) not null,
                 customer_id uuid references customers(id),
@@ -287,7 +326,11 @@ class ReservationApiTests {
                 public_code varchar(100),
                 featured boolean not null default false,
                 created_at timestamp with time zone not null default now(),
-                updated_at timestamp with time zone not null default now()
+                updated_at timestamp with time zone not null default now(),
+                constraint discounts_personal_customer check (
+                    (audience = 'PERSONAL' and customer_id is not null)
+                    or (audience in ('PUBLIC', 'AUTOMATIC') and customer_id is null)
+                )
             )
             """.trimIndent(),
         )
@@ -429,6 +472,9 @@ class ReservationApiTests {
         )
 
         dsl.execute("insert into admin_users (email, password_hash, role, active) values ('admin@by-iara.local', 'x', 'ADMIN', true)")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('appointment_buffer_minutes', '15')")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('max_daily_bookings', 'unlimited')")
+        dsl.execute("insert into application_settings (setting_key, setting_value) values ('minimum_booking_notice_hours', '0')")
         dsl.execute("insert into services (id, slug, name, active) values ('$serviceId', 'relax', 'Relaxing massage', true)")
         dsl.execute(
             "insert into service_variants (id, service_id, duration_minutes, price_cents, currency, active) " +
@@ -495,6 +541,48 @@ class ReservationApiTests {
             .andExpect(jsonPath("$.durationMinutes").value(60))
             .andExpect(jsonPath("$.price.amountCents").value(7500))
             .andExpect(jsonPath("$.customer.email").value("ana@example.com"))
+    }
+
+    @Test
+    fun `daily booking limit rejects additional bookings and hides the full day`() {
+        dsl.execute("delete from application_settings where setting_key = 'max_daily_bookings'")
+        repeat(3) { index ->
+            book(slotStart.plusMinutes(index * 75L), email = "daily-$index@example.com")
+                .andExpect(status().isCreated)
+        }
+
+        book(slotStart.plusMinutes(3 * 75L), email = "daily-full@example.com")
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("No more bookings are available on this day"))
+
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+        mockMvc.perform(
+            get("/api/reservations/availability")
+                .param("serviceId", serviceId)
+                .param("serviceVariantId", variantId)
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.length()").value(0))
+    }
+
+    @Test
+    fun `daily booking limit also prevents rescheduling into a full day`() {
+        dsl.execute("update application_settings set setting_value = '3' where setting_key = 'max_daily_bookings'")
+        val movingId = reservationIdFrom(
+            book(slotStart.plusDays(7), "moving-day@example.com")
+                .andExpect(status().isCreated)
+                .andReturn(),
+        )
+        repeat(3) { index ->
+            book(slotStart.plusMinutes(index * 75L), email = "occupied-$index@example.com")
+                .andExpect(status().isCreated)
+        }
+
+        mockMvc.perform(rescheduleRequest(movingId, slotStart.plusMinutes(3 * 75L)))
+            .andExpect(status().isConflict)
+            .andExpect(jsonPath("$.message").value("No more bookings are available on this day"))
     }
 
     @Test
@@ -637,6 +725,203 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `automatic service promotion is public and applies without a code`() {
+        val startsAt = OffsetDateTime.now(zone).minusHours(1)
+        val endsAt = OffsetDateTime.now(zone).plusDays(14)
+        mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"September service offer",
+                      "audience":"AUTOMATIC",
+                      "scope":"SELECTED_SERVICES",
+                      "valueType":"PERCENTAGE",
+                      "valueAmount":2500,
+                      "startsAt":"${iso(startsAt)}",
+                      "endsAt":"${iso(endsAt)}",
+                      "serviceIds":["$serviceId"]
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.discount.audience").value("AUTOMATIC"))
+            .andExpect(jsonPath("$.discount.codeHint").value("Automatic"))
+            .andExpect(jsonPath("$.generatedCode").doesNotExist())
+
+        mockMvc.perform(get("/api/discounts/automatic"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$[0].serviceIds[0]").value(serviceId.toString()))
+            .andExpect(jsonPath("$[0].valueAmount").value(2500))
+
+        val result = mockMvc.perform(
+            post("/api/reservations")
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId":"$serviceId",
+                      "serviceVariantId":"$variantId",
+                      "startsAt":"${iso(slotStart)}",
+                      "customer":{"name":"Promotion Customer","email":"promotion@example.com"}
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.price.amountCents").value(5625))
+            .andReturn()
+
+        val reservationId = reservationIdFrom(result)
+        assertEquals(
+            1875L,
+            dsl.fetchValue(
+                "select discount_amount_cents from reservation_discounts where reservation_id = ?",
+                UUID.fromString(reservationId),
+                Long::class.java,
+            ),
+        )
+    }
+
+    private fun automaticOffer(once: Boolean = true, firstTime: Boolean = false, amount: Int = 2500, featured: Boolean = false): UUID {
+        val result = mockMvc.perform(post("/api/admin/discounts").with(adminJwt()).contentType("application/json").content(
+            """{"name":"Automatic eligibility test", "audience":"AUTOMATIC", "scope":"SELECTED_SERVICES",
+                "valueType":"PERCENTAGE", "valueAmount":$amount,
+                "startsAt":"${iso(OffsetDateTime.now(zone).minusHours(1))}", "endsAt":"${iso(OffsetDateTime.now(zone).plusDays(30))}",
+                "serviceIds":["$serviceId"], "maxUsesPerCustomer":${if (once) "1" else "null"},
+                "firstTimeCustomersOnly":$firstTime, "featured":$featured}""",
+        )).andExpect(status().isCreated).andReturn()
+        return UUID.fromString(Regex("\"id\":\"([^\"]+)\"").find(result.response.contentAsString)!!.groupValues[1])
+    }
+
+    private fun automaticPreview(email: String, expected: Int) = mockMvc.perform(
+        post("/api/reservations/automatic-price").contentType("application/json").content(
+            """{"serviceId":"$serviceId", "serviceVariantId":"$variantId", "customerEmail":"$email"}""",
+        ),
+    ).andExpect(status().isOk).andExpect(jsonPath("$.finalPrice.amountCents").value(expected))
+
+    private fun bookAtPrice(email: String, cents: Int, start: OffsetDateTime = slotStart) = mockMvc.perform(
+        post("/api/reservations").contentType("application/json").content(
+            bookingBody(start, email).replace("\"notes\":", "\"expectedPriceCents\":$cents, \"notes\":"),
+        ),
+    )
+
+    @Test
+    fun `automatic once usage reserves and releases and falls back to another offer`() {
+        automaticOffer()
+        automaticOffer(once = false, amount = 1000)
+        automaticPreview("once@example.com", 5625)
+        val id = reservationIdFrom(bookAtPrice("once@example.com", 5625).andExpect(status().isCreated).andReturn())
+        automaticPreview("once+alias@example.com", 6750)
+        bookAtPrice("once@example.com", 5625, slotStart.plusHours(2))
+            .andExpect(status().isConflict).andExpect(jsonPath("$.code").value("PRICE_CHANGED"))
+        assertEquals(1, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
+        mockMvc.perform(rejectRequest(id)).andExpect(status().isOk)
+        automaticPreview("once@example.com", 5625)
+    }
+
+    @Test
+    fun `first time means no completed appointment and handles email aliases`() {
+        automaticOffer(once = false, firstTime = true)
+        insertReservation(OffsetDateTime.now(zone).minusDays(2), "COMPLETED", "first.last@gmail.com")
+        automaticPreview("FirstLast+offer@googlemail.com", 7500)
+        automaticPreview("new@example.com", 5625)
+        insertReservation(OffsetDateTime.now(zone).minusDays(3), "CANCELLED", "cancelled@example.com")
+        automaticPreview("cancelled@example.com", 5625)
+        bookAtPrice("firstlast@gmail.com", 5625).andExpect(status().isConflict)
+        assertEquals(2, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
+    }
+
+    @Test
+    fun `unlimited automatic offer remains eligible with a pending booking`() {
+        automaticOffer(once = false)
+        bookAtPrice("repeat@example.com", 5625).andExpect(status().isCreated)
+        automaticPreview("repeat@example.com", 5625)
+        bookAtPrice("repeat@example.com", 5625, slotStart.plusHours(2)).andExpect(status().isCreated)
+    }
+
+    @Test
+    fun `automatic banner includes restrictions without a code and respects status`() {
+        val id = automaticOffer(firstTime = true, featured = true)
+        mockMvc.perform(get("/api/discounts/featured")).andExpect(status().isOk)
+            .andExpect(jsonPath("$.firstTimeCustomersOnly").value(true))
+            .andExpect(jsonPath("$.maxUsesPerCustomer").value(1))
+            .andExpect(jsonPath("$.code").doesNotExist())
+        mockMvc.perform(patch("/api/admin/discounts/$id/status").with(adminJwt()).contentType("application/json")
+            .content("""{"status":"PAUSED"}""")).andExpect(status().isOk)
+        mockMvc.perform(get("/api/discounts/featured")).andExpect(status().isNoContent)
+    }
+
+    @Test
+    fun `cancelling releases automatic usage and completing consumes it`() {
+        automaticOffer()
+        val id = reservationIdFrom(bookAtPrice("lifecycle@example.com", 5625).andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt())).andExpect(status().isOk)
+        mockMvc.perform(cancelRequest(id)).andExpect(status().isOk)
+        automaticPreview("lifecycle@example.com", 5625)
+        val completedId = reservationIdFrom(bookAtPrice("lifecycle@example.com", 5625).andExpect(status().isCreated).andReturn())
+        mockMvc.perform(patch("/api/admin/reservations/$completedId/confirm").with(adminJwt())).andExpect(status().isOk)
+        dsl.execute("update reservations set starts_at = ?, ends_at = ? where id = ?",
+            OffsetDateTime.now(zone).minusHours(2), OffsetDateTime.now(zone).minusHours(1), UUID.fromString(completedId))
+        mockMvc.perform(patch("/api/admin/reservations/$completedId/complete").with(adminJwt())).andExpect(status().isOk)
+        automaticPreview("lifecycle@example.com", 7500)
+        assertEquals("CONSUMED", dsl.fetchValue("select status from reservation_discounts where reservation_id = ?", UUID.fromString(completedId)))
+    }
+
+    @Test
+    fun `simultaneous automatic claims only reserve one use for an email identity`() {
+        automaticOffer()
+        val executor = java.util.concurrent.Executors.newFixedThreadPool(2)
+        val ready = java.util.concurrent.CyclicBarrier(2)
+        try {
+            val results = (0..1).map { index -> executor.submit<Int> {
+                ready.await(10, java.util.concurrent.TimeUnit.SECONDS)
+                bookAtPrice("concurrent+$index@example.com", 5625, slotStart.plusHours(index * 2L)).andReturn().response.status
+            } }.map { it.get(20, java.util.concurrent.TimeUnit.SECONDS) }.sorted()
+            assertEquals(listOf(201, 409), results)
+            assertEquals(1, dsl.fetchCount(org.jooq.impl.DSL.table("reservation_discounts")))
+        } finally { executor.shutdownNow() }
+    }
+
+    @Test
+    fun `single use automatic discount requires price review`() {
+        automaticOffer()
+        book(slotStart).andExpect(status().isConflict).andExpect(jsonPath("$.code").value("PRICE_CHANGED"))
+        assertEquals(0, dsl.fetchCount(org.jooq.impl.DSL.table("reservations")))
+    }
+
+    @Test
+    fun `public discount codes may be shorter than six characters`() {
+        val startsAt = OffsetDateTime.now(zone).minusHours(1)
+        val endsAt = OffsetDateTime.now(zone).plusDays(14)
+
+        mockMvc.perform(
+            post("/api/admin/discounts")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "name":"Short public code",
+                      "audience":"PUBLIC",
+                      "scope":"ALL_SERVICES",
+                      "valueType":"PERCENTAGE",
+                      "valueAmount":1000,
+                      "startsAt":"${iso(startsAt)}",
+                      "endsAt":"${iso(endsAt)}",
+                      "code":"A"
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.discount.publicCode").value("A"))
+    }
+
+    @Test
     fun `personal discount code is generated securely and only works for its customer`() {
         insertReservation(
             start = OffsetDateTime.now(zone).minusDays(2),
@@ -724,6 +1009,40 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `minimum booking notice hides slots and rejects direct bookings`() {
+        dsl.execute(
+            "update application_settings set setting_value = '192' where setting_key = 'minimum_booking_notice_hours'",
+        )
+        val bookingDate = slotStart.atZoneSameInstant(zone).toLocalDate().toString()
+
+        mockMvc.perform(
+            get("/api/reservations/availability")
+                .param("serviceId", serviceId)
+                .param("serviceVariantId", variantId)
+                .param("startDate", bookingDate)
+                .param("endDate", bookingDate),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$").isEmpty)
+
+        book(slotStart)
+            .andExpect(status().isUnprocessableEntity)
+            .andExpect(jsonPath("$.message").value("Appointments must be booked at least 192 hours in advance"))
+    }
+
+    @Test
+    fun `minimum booking notice does not prevent an admin reschedule`() {
+        val id = reservationIdFrom(book(slotStart).andExpect(status().isCreated).andReturn())
+        dsl.execute(
+            "update application_settings set setting_value = '192' where setting_key = 'minimum_booking_notice_hours'",
+        )
+
+        mockMvc.perform(rescheduleRequest(id, slotStart.plusHours(2)))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.startsAt").value(iso(slotStart.plusHours(2).withOffsetSameInstant(ZoneOffset.UTC))))
+    }
+
+    @Test
     fun `overlapping booking is rejected`() {
         book(slotStart, email = "first@example.com").andExpect(status().isCreated)
 
@@ -741,6 +1060,24 @@ class ReservationApiTests {
         book(slotStart.plusHours(1), email = "after@example.com")
             .andExpect(status().isConflict)
         book(slotStart.plusMinutes(75), email = "buffered@example.com")
+            .andExpect(status().isCreated)
+    }
+
+    @Test
+    fun `booking uses the appointment buffer saved by an admin`() {
+        mockMvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/api/admin/settings")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"appointmentBufferMinutes":30,"maxDailyBookings":null}"""),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.appointmentBufferMinutes").value(30))
+
+        book(slotStart, email = "center@example.com").andExpect(status().isCreated)
+        book(slotStart.plusMinutes(75), email = "too-close@example.com")
+            .andExpect(status().isConflict)
+        book(slotStart.plusMinutes(90), email = "buffered@example.com")
             .andExpect(status().isCreated)
     }
 
@@ -827,6 +1164,13 @@ class ReservationApiTests {
         mockMvc.perform(patch("/api/admin/reservations/$id/confirm").with(adminJwt()))
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.status").value("CONFIRMED"))
+
+        val reminder = dsl.fetchOne(
+            "select reservation_starts_at, status from reservation_reminders where reservation_id = ?",
+            UUID.fromString(id),
+        )!!
+        assertEquals(slotStart.toInstant(), reminder.get("reservation_starts_at", OffsetDateTime::class.java).toInstant())
+        assertEquals("PENDING", reminder.get("status", String::class.java))
     }
 
     @Test

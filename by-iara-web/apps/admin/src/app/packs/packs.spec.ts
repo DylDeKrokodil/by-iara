@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { ServicesApi } from '../services/services-api';
 import type { Service } from '../services/service.models';
@@ -63,7 +63,7 @@ describe('Packs', () => {
     fixture.detectChanges();
   });
 
-  it('shows pack offers by default and switches to customer packs', () => {
+  it('shows pack offers by default and stores tab changes in the URL', async () => {
     const element = fixture.nativeElement as HTMLElement;
     const tabs = Array.from(
       element.querySelectorAll<HTMLButtonElement>('byiara-tabs button'),
@@ -75,10 +75,12 @@ describe('Packs', () => {
     expect(element.textContent).not.toContain('Ana Silva');
 
     tabs[1].click();
+    await fixture.whenStable();
     fixture.detectChanges();
 
     expect(tabs[1].getAttribute('aria-selected')).toBe('true');
     expect(element.textContent).toContain('Ana Silva');
     expect(element.textContent).not.toContain('Pack price');
+    expect(TestBed.inject(Router).url).toBe('/#customers');
   });
 });

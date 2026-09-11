@@ -1,18 +1,20 @@
 :host {
   display: block;
+  --next-available-color: var(--byiara-next-available-color, var(--byiara-color-primary-strong));
 }
 
 .next-available-link {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
+  min-height: 2.75rem;
   gap: var(--byiara-space-xs);
-  color: color-mix(in srgb, var(--byiara-color-white) 86%, transparent);
+  color: var(--next-available-color);
   font-size: var(--byiara-font-size-sm);
   font-weight: var(--byiara-font-weight-medium);
   line-height: var(--byiara-line-height-body);
   text-decoration-color: color-mix(
     in srgb,
-    var(--byiara-color-rose-300) 58%,
+    var(--next-available-color) 58%,
     transparent
   );
   text-decoration-thickness: 1px;
@@ -21,13 +23,13 @@
 }
 
 .next-available-arrow {
-  color: var(--byiara-color-rose-300);
+  color: var(--next-available-color);
   transition: transform var(--byiara-duration-base) var(--byiara-ease-out);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .next-available-link:hover {
-    color: var(--byiara-color-white);
+    color: var(--next-available-color);
   }
 
   .next-available-link:hover .next-available-arrow {
@@ -37,7 +39,7 @@
 
 .next-available-link:focus-visible {
   border-radius: var(--byiara-radius-sm);
-  outline: 2px solid var(--byiara-color-white);
+  outline: 2px solid var(--next-available-color);
   outline-offset: 0.25rem;
 }
 

@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,6 +27,7 @@ import {
   StatusChip,
   TextField,
   ToastService,
+  touchedError,
 } from '@by-iara/shared-ui';
 import { formatMoney } from '../../services/service.models';
 import {
@@ -61,35 +70,55 @@ const discountTypeOptions: ReadonlyArray<SelectFieldOption> = [
   { label: 'Fixed euro amount', value: 'FIXED_AMOUNT' },
 ];
 
-const defaultMessages: Record<'en' | 'pt', Record<RejectionReasonCode, string>> = {
+const defaultMessages: Record<
+  'en' | 'pt',
+  Record<RejectionReasonCode, string>
+> = {
   en: {
-    TIME_UNAVAILABLE: 'Unfortunately, the requested time is no longer available. Please visit our website to choose another time.',
-    SERVICE_UNAVAILABLE: 'Unfortunately, the requested service is not available at this time. Please contact us if you would like help choosing an alternative.',
-    OUTSIDE_BUSINESS_HOURS: 'Unfortunately, the requested time falls outside our available business hours. Please visit our website to choose another time.',
-    UNABLE_TO_ACCOMMODATE: 'Unfortunately, we are unable to accommodate this booking request. Please contact us if you would like help finding an alternative.',
+    TIME_UNAVAILABLE:
+      'Unfortunately, the requested time is no longer available. Please visit our website to choose another time.',
+    SERVICE_UNAVAILABLE:
+      'Unfortunately, the requested service is not available at this time. Please contact us if you would like help choosing an alternative.',
+    OUTSIDE_BUSINESS_HOURS:
+      'Unfortunately, the requested time falls outside our available business hours. Please visit our website to choose another time.',
+    UNABLE_TO_ACCOMMODATE:
+      'Unfortunately, we are unable to accommodate this booking request. Please contact us if you would like help finding an alternative.',
     OTHER: '',
   },
   pt: {
-    TIME_UNAVAILABLE: 'Infelizmente, o horário solicitado já não está disponível. Por favor visite o nosso site para escolher outro horário.',
-    SERVICE_UNAVAILABLE: 'Infelizmente, o serviço solicitado não está disponível neste momento. Contacte-nos se desejar ajuda a escolher uma alternativa.',
-    OUTSIDE_BUSINESS_HOURS: 'Infelizmente, o horário solicitado está fora do nosso horário disponível. Por favor visite o nosso site para escolher outro horário.',
-    UNABLE_TO_ACCOMMODATE: 'Infelizmente, não conseguimos aceitar este pedido de reserva. Contacte-nos se desejar ajuda a encontrar uma alternativa.',
+    TIME_UNAVAILABLE:
+      'Infelizmente, o horário solicitado já não está disponível. Por favor visite o nosso site para escolher outro horário.',
+    SERVICE_UNAVAILABLE:
+      'Infelizmente, o serviço solicitado não está disponível neste momento. Contacte-nos se desejar ajuda a escolher uma alternativa.',
+    OUTSIDE_BUSINESS_HOURS:
+      'Infelizmente, o horário solicitado está fora do nosso horário disponível. Por favor visite o nosso site para escolher outro horário.',
+    UNABLE_TO_ACCOMMODATE:
+      'Infelizmente, não conseguimos aceitar este pedido de reserva. Contacte-nos se desejar ajuda a encontrar uma alternativa.',
     OTHER: '',
   },
 };
 
-const cancellationMessages: Record<'en' | 'pt', Record<CancellationReasonCode, string>> = {
+const cancellationMessages: Record<
+  'en' | 'pt',
+  Record<CancellationReasonCode, string>
+> = {
   en: {
-    SCHEDULE_CHANGE: 'Unfortunately, we need to cancel your appointment because of a change to our schedule. Please contact us if you would like help booking another time.',
-    PRACTITIONER_UNAVAILABLE: 'Unfortunately, your practitioner is no longer available for this appointment. Please contact us if you would like help booking another time.',
-    BUSINESS_CLOSURE: 'Unfortunately, we will be closed at the time of your appointment and need to cancel it. Please contact us if you would like help booking another time.',
+    SCHEDULE_CHANGE:
+      'Unfortunately, we need to cancel your appointment because of a change to our schedule. Please contact us if you would like help booking another time.',
+    PRACTITIONER_UNAVAILABLE:
+      'Unfortunately, your practitioner is no longer available for this appointment. Please contact us if you would like help booking another time.',
+    BUSINESS_CLOSURE:
+      'Unfortunately, we will be closed at the time of your appointment and need to cancel it. Please contact us if you would like help booking another time.',
     CUSTOMER_REQUEST: 'Your appointment has been cancelled as requested.',
     OTHER: '',
   },
   pt: {
-    SCHEDULE_CHANGE: 'Infelizmente, precisamos de cancelar a sua marcação devido a uma alteração no nosso horário. Contacte-nos se desejar ajuda a marcar outra data.',
-    PRACTITIONER_UNAVAILABLE: 'Infelizmente, a profissional já não está disponível para esta marcação. Contacte-nos se desejar ajuda a marcar outra data.',
-    BUSINESS_CLOSURE: 'Infelizmente, estaremos encerrados no horário da sua marcação e precisamos de a cancelar. Contacte-nos se desejar ajuda a marcar outra data.',
+    SCHEDULE_CHANGE:
+      'Infelizmente, precisamos de cancelar a sua marcação devido a uma alteração no nosso horário. Contacte-nos se desejar ajuda a marcar outra data.',
+    PRACTITIONER_UNAVAILABLE:
+      'Infelizmente, a profissional já não está disponível para esta marcação. Contacte-nos se desejar ajuda a marcar outra data.',
+    BUSINESS_CLOSURE:
+      'Infelizmente, estaremos encerrados no horário da sua marcação e precisamos de a cancelar. Contacte-nos se desejar ajuda a marcar outra data.',
     CUSTOMER_REQUEST: 'A sua marcação foi cancelada conforme solicitado.',
     OTHER: '',
   },
@@ -116,6 +145,7 @@ const cancellationMessages: Record<'en' | 'pt', Record<CancellationReasonCode, s
   styleUrl: './reservation-detail.css',
 })
 export class ReservationDetail implements OnInit {
+  protected readonly touchedError = touchedError;
   private readonly api = inject(ReservationsApi);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
@@ -132,20 +162,26 @@ export class ReservationDetail implements OnInit {
   protected readonly rescheduleOpen = signal(false);
   protected readonly rescheduleSlotsLoading = signal(false);
   protected readonly rescheduleSlotsError = signal<string | null>(null);
-  protected readonly rescheduleSlotOptions = signal<ReadonlyArray<SelectFieldOption>>([]);
+  protected readonly rescheduleSlotOptions = signal<
+    ReadonlyArray<SelectFieldOption>
+  >([]);
   protected readonly selectedRescheduleStart = signal('');
   protected readonly completionOpen = signal(false);
   protected readonly paymentOpen = signal(false);
   protected readonly paymentSummary = signal<PaymentSummary | null>(null);
   protected readonly payments = signal<ReservationPayment[]>([]);
   protected readonly selectedPaymentMethod = signal<PaymentMethod>('CARD');
-  protected readonly selectedReason = signal<RejectionReasonCode>('TIME_UNAVAILABLE');
+  protected readonly selectedReason =
+    signal<RejectionReasonCode>('TIME_UNAVAILABLE');
   protected readonly reasonOptions = reasonOptions;
   protected readonly cancellationOptions = cancellationOptions;
   protected readonly paymentMethodOptions = paymentMethodOptions;
   protected readonly discountTypeOptions = discountTypeOptions;
-  protected readonly selectedDiscountType = signal<'PERCENTAGE' | 'FIXED_AMOUNT'>('PERCENTAGE');
-  protected readonly selectedCancellationReason = signal<CancellationReasonCode>('SCHEDULE_CHANGE');
+  protected readonly selectedDiscountType = signal<
+    'PERCENTAGE' | 'FIXED_AMOUNT'
+  >('PERCENTAGE');
+  protected readonly selectedCancellationReason =
+    signal<CancellationReasonCode>('SCHEDULE_CHANGE');
   protected readonly formatMoney = formatMoney;
 
   protected readonly declineForm = this.fb.nonNullable.group({
@@ -159,12 +195,18 @@ export class ReservationDetail implements OnInit {
   });
   protected readonly paymentForm = this.fb.nonNullable.group({
     recordPayment: [true],
-    amount: ['', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
+    amount: [
+      '',
+      [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)],
+    ],
     reference: ['', [Validators.maxLength(255)]],
   });
   protected readonly completionDiscountForm = this.fb.nonNullable.group({
     includeDiscount: [false],
-    value: ['10', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
+    value: [
+      '10',
+      [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)],
+    ],
     validityDays: ['30', [Validators.required, Validators.pattern(/^\d+$/)]],
     sameServiceOnly: [false],
   });
@@ -202,9 +244,13 @@ export class ReservationDetail implements OnInit {
         this.reservation.set(updated);
         this.submitting.set(false);
         this.declineOpen.set(false);
-        this.toast.show('Reservation accepted and customer notified.', 'success');
+        this.toast.show(
+          'Reservation accepted and customer notified.',
+          'success',
+        );
       },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not accept the reservation.'),
+      error: (error: HttpErrorResponse) =>
+        this.handleActionError(error, 'Could not accept the reservation.'),
     });
   }
 
@@ -239,18 +285,24 @@ export class ReservationDetail implements OnInit {
     }
 
     this.submitting.set(true);
-    this.api.reject(reservation.id, {
-      reasonCode: this.selectedReason(),
-      message: this.declineForm.getRawValue().message.trim(),
-    }).subscribe({
-      next: (updated) => {
-        this.reservation.set(updated);
-        this.submitting.set(false);
-        this.declineOpen.set(false);
-        this.toast.show('Reservation declined and customer notified.', 'success');
-      },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not decline the reservation.'),
-    });
+    this.api
+      .reject(reservation.id, {
+        reasonCode: this.selectedReason(),
+        message: this.declineForm.getRawValue().message.trim(),
+      })
+      .subscribe({
+        next: (updated) => {
+          this.reservation.set(updated);
+          this.submitting.set(false);
+          this.declineOpen.set(false);
+          this.toast.show(
+            'Reservation declined and customer notified.',
+            'success',
+          );
+        },
+        error: (error: HttpErrorResponse) =>
+          this.handleActionError(error, 'Could not decline the reservation.'),
+      });
   }
 
   protected openCancellationForm(): void {
@@ -268,7 +320,9 @@ export class ReservationDetail implements OnInit {
     const reason = value as CancellationReasonCode;
     const locale = this.reservation()?.locale === 'pt' ? 'pt' : 'en';
     this.selectedCancellationReason.set(reason);
-    this.cancellationForm.controls.message.setValue(cancellationMessages[locale][reason]);
+    this.cancellationForm.controls.message.setValue(
+      cancellationMessages[locale][reason],
+    );
   }
 
   protected submitCancellation(): void {
@@ -280,18 +334,24 @@ export class ReservationDetail implements OnInit {
     }
 
     this.submitting.set(true);
-    this.api.cancel(reservation.id, {
-      reasonCode: this.selectedCancellationReason(),
-      message: this.cancellationForm.getRawValue().message.trim(),
-    }).subscribe({
-      next: (updated) => {
-        this.reservation.set(updated);
-        this.submitting.set(false);
-        this.cancellationOpen.set(false);
-        this.toast.show('Reservation cancelled and customer notified.', 'success');
-      },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not cancel the reservation.'),
-    });
+    this.api
+      .cancel(reservation.id, {
+        reasonCode: this.selectedCancellationReason(),
+        message: this.cancellationForm.getRawValue().message.trim(),
+      })
+      .subscribe({
+        next: (updated) => {
+          this.reservation.set(updated);
+          this.submitting.set(false);
+          this.cancellationOpen.set(false);
+          this.toast.show(
+            'Reservation cancelled and customer notified.',
+            'success',
+          );
+        },
+        error: (error: HttpErrorResponse) =>
+          this.handleActionError(error, 'Could not cancel the reservation.'),
+      });
   }
 
   protected openRescheduleForm(): void {
@@ -303,7 +363,9 @@ export class ReservationDetail implements OnInit {
     this.completionOpen.set(false);
     this.paymentOpen.set(false);
     this.rescheduleOpen.set(true);
-    this.rescheduleForm.controls.date.setValue(this.businessDateKey(reservation.startsAt));
+    this.rescheduleForm.controls.date.setValue(
+      this.businessDateKey(reservation.startsAt),
+    );
   }
 
   protected closeRescheduleForm(): void {
@@ -332,7 +394,11 @@ export class ReservationDetail implements OnInit {
       next: (slots) => {
         if (requestId !== this.rescheduleSlotsRequestId) return;
         const options = slots
-          .filter((startsAt) => new Date(startsAt).getTime() !== new Date(reservation.startsAt).getTime())
+          .filter(
+            (startsAt) =>
+              new Date(startsAt).getTime() !==
+              new Date(reservation.startsAt).getTime(),
+          )
           .map((startsAt) => ({
             label: this.formatTime(startsAt),
             value: startsAt,
@@ -343,7 +409,9 @@ export class ReservationDetail implements OnInit {
       },
       error: () => {
         if (requestId !== this.rescheduleSlotsRequestId) return;
-        this.rescheduleSlotsError.set('Could not load available times for this date.');
+        this.rescheduleSlotsError.set(
+          'Could not load available times for this date.',
+        );
         this.rescheduleSlotsLoading.set(false);
       },
     });
@@ -366,35 +434,57 @@ export class ReservationDetail implements OnInit {
         this.reservation.set(updated);
         this.rescheduleOpen.set(false);
         this.submitting.set(false);
-        this.toast.show('Reservation rescheduled and customer notified.', 'success');
+        this.toast.show(
+          'Reservation rescheduled and customer notified.',
+          'success',
+        );
       },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not reschedule the reservation.'),
+      error: (error: HttpErrorResponse) =>
+        this.handleActionError(error, 'Could not reschedule the reservation.'),
     });
   }
 
   protected canCloseOut(): boolean {
     const reservation = this.reservation();
-    return reservation?.status === 'CONFIRMED' && new Date(reservation.endsAt).getTime() <= Date.now();
+    return (
+      reservation?.status === 'CONFIRMED' &&
+      new Date(reservation.endsAt).getTime() <= Date.now()
+    );
   }
 
   protected canMarkNoShow(): boolean {
     const reservation = this.reservation();
-    return reservation?.status === 'CONFIRMED' && new Date(reservation.startsAt).getTime() <= Date.now();
+    return (
+      reservation?.status === 'CONFIRMED' &&
+      new Date(reservation.startsAt).getTime() <= Date.now()
+    );
   }
 
   protected openCompletionForm(): void {
     this.completionOpen.set(true);
     this.paymentOpen.set(false);
     this.resetPaymentForm();
-    this.paymentForm.controls.recordPayment.setValue((this.paymentSummary()?.balanceDueCents ?? 0) > 0);
-    this.completionDiscountForm.reset({ includeDiscount: false, value: '10', validityDays: '30', sameServiceOnly: false });
+    this.paymentForm.controls.recordPayment.setValue(
+      (this.paymentSummary()?.balanceDueCents ?? 0) > 0,
+    );
+    this.completionDiscountForm.reset({
+      includeDiscount: false,
+      value: '10',
+      validityDays: '30',
+      sameServiceOnly: false,
+    });
     this.selectedDiscountType.set('PERCENTAGE');
   }
 
   protected closeCompletionForm(): void {
     this.completionOpen.set(false);
     this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
-    this.completionDiscountForm.reset({ includeDiscount: false, value: '10', validityDays: '30', sameServiceOnly: false });
+    this.completionDiscountForm.reset({
+      includeDiscount: false,
+      value: '10',
+      validityDays: '30',
+      sameServiceOnly: false,
+    });
   }
 
   protected completionRecordsPayment(): boolean {
@@ -406,7 +496,8 @@ export class ReservationDetail implements OnInit {
   }
 
   protected setDiscountType(value: string): void {
-    if (value === 'PERCENTAGE' || value === 'FIXED_AMOUNT') this.selectedDiscountType.set(value);
+    if (value === 'PERCENTAGE' || value === 'FIXED_AMOUNT')
+      this.selectedDiscountType.set(value);
   }
 
   protected openPaymentForm(): void {
@@ -433,15 +524,22 @@ export class ReservationDetail implements OnInit {
       this.paymentForm.markAllAsTouched();
       return;
     }
-    if (this.completionIncludesDiscount() && this.completionDiscountForm.invalid) {
+    if (
+      this.completionIncludesDiscount() &&
+      this.completionDiscountForm.invalid
+    ) {
       this.completionDiscountForm.markAllAsTouched();
       return;
     }
 
     this.submitting.set(true);
     const input = {
-      ...(this.completionRecordsPayment() ? { payment: this.paymentInput(reservation) } : {}),
-      ...(this.completionIncludesDiscount() ? { discount: this.completionDiscountInput() } : {}),
+      ...(this.completionRecordsPayment()
+        ? { payment: this.paymentInput(reservation) }
+        : {}),
+      ...(this.completionIncludesDiscount()
+        ? { discount: this.completionDiscountInput() }
+        : {}),
     };
     this.api.complete(reservation.id, input).subscribe({
       next: (updated) => {
@@ -456,7 +554,8 @@ export class ReservationDetail implements OnInit {
           'success',
         );
       },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not complete the reservation.'),
+      error: (error: HttpErrorResponse) =>
+        this.handleActionError(error, 'Could not complete the reservation.'),
     });
   }
 
@@ -484,7 +583,11 @@ export class ReservationDetail implements OnInit {
         this.submitting.set(false);
         this.toast.show('Reservation marked as no-show.', 'success');
       },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not mark the reservation as no-show.'),
+      error: (error: HttpErrorResponse) =>
+        this.handleActionError(
+          error,
+          'Could not mark the reservation as no-show.',
+        ),
     });
   }
 
@@ -497,15 +600,18 @@ export class ReservationDetail implements OnInit {
     }
 
     this.submitting.set(true);
-    this.api.recordPayment(reservation.id, this.paymentInput(reservation)).subscribe({
-      next: () => {
-        this.paymentOpen.set(false);
-        this.submitting.set(false);
-        this.reloadPayments();
-        this.toast.show('Payment recorded.', 'success');
-      },
-      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not record the payment.'),
-    });
+    this.api
+      .recordPayment(reservation.id, this.paymentInput(reservation))
+      .subscribe({
+        next: () => {
+          this.paymentOpen.set(false);
+          this.submitting.set(false);
+          this.reloadPayments();
+          this.toast.show('Payment recorded.', 'success');
+        },
+        error: (error: HttpErrorResponse) =>
+          this.handleActionError(error, 'Could not record the payment.'),
+      });
   }
 
   protected formatPaymentAmount(amountCents: number, currency: string): string {
@@ -514,14 +620,20 @@ export class ReservationDetail implements OnInit {
 
   protected paymentStateLabel(): string {
     switch (this.paymentSummary()?.state) {
-      case 'PAID': return 'Paid';
-      case 'PARTIALLY_PAID': return 'Partially paid';
-      default: return 'Unpaid';
+      case 'PAID':
+        return 'Paid';
+      case 'PARTIALLY_PAID':
+        return 'Partially paid';
+      default:
+        return 'Unpaid';
     }
   }
 
   protected paymentMethodLabel(method: PaymentMethod): string {
-    return paymentMethodOptions.find((option) => option.value === method)?.label ?? 'Other';
+    return (
+      paymentMethodOptions.find((option) => option.value === method)?.label ??
+      'Other'
+    );
   }
 
   protected statusLabel(): string {
@@ -533,18 +645,25 @@ export class ReservationDetail implements OnInit {
   }
 
   protected reasonLabel(code: RejectionReasonCode | null | undefined): string {
-    return reasonOptions.find((option) => option.value === code)?.label ?? 'Other';
+    return (
+      reasonOptions.find((option) => option.value === code)?.label ?? 'Other'
+    );
   }
 
-  protected cancellationReasonLabel(code: CancellationReasonCode | null | undefined): string {
-    return cancellationOptions.find((option) => option.value === code)?.label ?? 'Other';
+  protected cancellationReasonLabel(
+    code: CancellationReasonCode | null | undefined,
+  ): string {
+    return (
+      cancellationOptions.find((option) => option.value === code)?.label ??
+      'Other'
+    );
   }
 
   protected formatDateTime(value: string): string {
     return new Intl.DateTimeFormat('en-GB', {
       dateStyle: 'full',
       timeStyle: 'short',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -552,7 +671,7 @@ export class ReservationDetail implements OnInit {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -561,7 +680,7 @@ export class ReservationDetail implements OnInit {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
-      timeZone: 'Europe/Brussels',
+      timeZone: BUSINESS_TIME_ZONE,
     }).formatToParts(new Date(value));
     const part = (type: Intl.DateTimeFormatPartTypes) =>
       parts.find((item) => item.type === type)?.value ?? '';
@@ -576,7 +695,10 @@ export class ReservationDetail implements OnInit {
       return;
     }
 
-    forkJoin({ reservation: this.api.get(id), payments: this.api.payments(id) }).subscribe({
+    forkJoin({
+      reservation: this.api.get(id),
+      payments: this.api.payments(id),
+    }).subscribe({
       next: ({ reservation, payments }) => {
         this.reservation.set(reservation);
         this.paymentSummary.set(payments.summary);
@@ -591,9 +713,16 @@ export class ReservationDetail implements OnInit {
   }
 
   private resetPaymentForm(): void {
-    const balance = this.paymentSummary()?.balanceDueCents ?? this.reservation()?.price.amountCents ?? 0;
+    const balance =
+      this.paymentSummary()?.balanceDueCents ??
+      this.reservation()?.price.amountCents ??
+      0;
     this.selectedPaymentMethod.set('CARD');
-    this.paymentForm.reset({ recordPayment: true, amount: (balance / 100).toFixed(2), reference: '' });
+    this.paymentForm.reset({
+      recordPayment: true,
+      amount: (balance / 100).toFixed(2),
+      reference: '',
+    });
   }
 
   private paymentInput(reservation: ReservationResponse) {
@@ -614,18 +743,22 @@ export class ReservationDetail implements OnInit {
         this.paymentSummary.set(payments.summary);
         this.payments.set(payments.items);
       },
-      error: () => this.error.set('Reservation updated, but payment details could not be refreshed.'),
+      error: () =>
+        this.error.set(
+          'Reservation updated, but payment details could not be refreshed.',
+        ),
     });
   }
 
   private handleActionError(error: HttpErrorResponse, fallback: string): void {
     this.submitting.set(false);
-    const serverMessage = typeof error.error?.message === 'string' ? error.error.message : null;
-    const message = serverMessage ?? (
-      error.status === 409
+    const serverMessage =
+      typeof error.error?.message === 'string' ? error.error.message : null;
+    const message =
+      serverMessage ??
+      (error.status === 409
         ? 'This reservation was already updated. Refresh the page to see its latest status.'
-        : fallback
-    );
+        : fallback);
     this.error.set(message);
     this.toast.show(message, 'error');
   }

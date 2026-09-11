@@ -1,11 +1,31 @@
-<aside class="promotion-bar" aria-label="Featured discount">
+<aside
+  class="promotion-bar"
+  [class.promotion-bar-automatic]="!discount().code"
+  [attr.aria-label]="discount().code ? discount().name : benefit() + ' ' + messages().off"
+>
   <div class="promotion-content">
+    @if (discount().code) {
     <p>
       <span>{{ copy().prefix }}</span>
       <strong>{{ benefit() }}</strong>
       <span>{{ copy().suffix }}</span>
       <code>{{ discount().code }}</code>
     </p>
+    } @else {
+    <div class="promotion-offer">
+      <strong>{{ benefit() }} {{ messages().off }}</strong>
+      @if (disclaimer()) {
+      <p class="promotion-disclaimer">{{ disclaimer() }}</p>
+      }
+    </div>
+    }
   </div>
-  <button type="button" class="promotion-close" (click)="dismissed.emit()" [attr.aria-label]="copy().close">×</button>
+  <button
+    type="button"
+    class="promotion-close"
+    (click)="dismissed.emit()"
+    [attr.aria-label]="copy().close"
+  >
+    ×
+  </button>
 </aside>

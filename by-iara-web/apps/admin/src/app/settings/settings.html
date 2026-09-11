@@ -1,0 +1,248 @@
+<div class="settings-page">
+  <byiara-page-header admin title="Settings" />
+
+  <p class="page-introduction">
+    Control the booking rules used across the public website and admin tools.
+    Changes take effect as soon as they are saved.
+  </p>
+
+  @if (loadError()) {
+  <byiara-alert tone="danger">
+    <div class="load-error-content">
+      <span>{{ loadError() }}</span>
+      <byiara-button variant="secondary" size="sm" (click)="loadSettings()">
+        Try again
+      </byiara-button>
+    </div>
+  </byiara-alert>
+  } @else if (loading()) {
+  <div class="settings-loading" role="status" aria-label="Loading settings">
+    <byiara-skeleton width="10rem" height="1.25rem" />
+    <byiara-skeleton width="100%" height="3.25rem" variant="block" />
+    <byiara-skeleton width="7rem" height="2.75rem" variant="block" />
+  </div>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <byiara-card padding="lg">
+      <section class="setting-section" aria-labelledby="booking-settings-title">
+        <div class="section-heading">
+          <h2 id="booking-settings-title">Booking schedule</h2>
+          <p>
+            Set the preparation and reset time that must remain free between
+            massage appointments.
+          </p>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="appointment-buffer">Time between appointments</label>
+            <p id="appointment-buffer-help">
+              This gap is applied before and after each appointment when
+              available times are calculated. Existing appointment times are not
+              moved.
+            </p>
+          </div>
+
+          <div class="number-field">
+            <div class="number-control">
+              <input
+                id="appointment-buffer"
+                type="number"
+                min="0"
+                max="180"
+                step="5"
+                inputmode="numeric"
+                formControlName="appointmentBufferMinutes"
+                [attr.aria-describedby]="
+                  appointmentBufferError()
+                    ? 'appointment-buffer-help appointment-buffer-error'
+                    : 'appointment-buffer-help'
+                "
+                [attr.aria-invalid]="appointmentBufferError() ? 'true' : null"
+              />
+              <span aria-hidden="true">minutes</span>
+            </div>
+            @if (appointmentBufferError()) {
+            <p id="appointment-buffer-error" class="field-error" role="alert">
+              {{ appointmentBufferError() }}
+            </p>
+            }
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="minimum-booking-notice">Minimum booking notice</label>
+            <p id="minimum-booking-notice-help">
+              Customers only see appointment times that start at least this many
+              hours from now. Use 0 to allow same-day, last-minute bookings.
+              Admin rescheduling is not restricted.
+            </p>
+          </div>
+
+          <div class="number-field">
+            <div class="number-control">
+              <input
+                id="minimum-booking-notice"
+                type="number"
+                min="0"
+                max="8760"
+                step="1"
+                inputmode="numeric"
+                formControlName="minimumBookingNoticeHours"
+                [attr.aria-describedby]="
+                  minimumBookingNoticeHoursError()
+                    ? 'minimum-booking-notice-help minimum-booking-notice-error'
+                    : 'minimum-booking-notice-help'
+                "
+                [attr.aria-invalid]="
+                  minimumBookingNoticeHoursError() ? 'true' : null
+                "
+              />
+              <span aria-hidden="true">hours ahead</span>
+            </div>
+            @if (minimumBookingNoticeHoursError()) {
+            <p
+              id="minimum-booking-notice-error"
+              class="field-error"
+              role="alert"
+            >
+              {{ minimumBookingNoticeHoursError() }}
+            </p>
+            }
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="daily-booking-limit">Bookings per day</label>
+            <p id="daily-booking-limit-help">
+              Once this number of pending or confirmed bookings is reached, the
+              public calendar stops offering times on that day. Existing
+              bookings are not changed.
+            </p>
+          </div>
+
+          <div class="limit-control">
+            <div class="number-field">
+              <div class="number-control">
+                <input
+                  id="daily-booking-limit"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  formControlName="maxDailyBookings"
+                  [attr.aria-describedby]="
+                    dailyBookingLimitError()
+                      ? 'daily-booking-limit-help daily-booking-limit-error'
+                      : 'daily-booking-limit-help'
+                  "
+                  [attr.aria-invalid]="
+                    dailyBookingLimitError() ? 'true' : null
+                  "
+                />
+                <span aria-hidden="true">bookings</span>
+              </div>
+              @if (dailyBookingLimitError()) {
+              <p
+                id="daily-booking-limit-error"
+                class="field-error"
+                role="alert"
+              >
+                {{ dailyBookingLimitError() }}
+              </p>
+              }
+            </div>
+
+            <label class="unlimited-option">
+              <input
+                type="checkbox"
+                formControlName="noDailyBookingLimit"
+                (change)="dailyLimitChanged($any($event.target).checked)"
+              />
+              <span>No daily limit</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-copy">
+            <label for="booking-reminder-hours">Appointment reminder</label>
+            <p id="booking-reminder-help">
+              Email customers before confirmed appointments. Changes apply to
+              every reminder that has not been sent yet, including existing
+              confirmed bookings.
+            </p>
+          </div>
+
+          <div class="reminder-control">
+            <label class="toggle-option">
+              <input
+                type="checkbox"
+                formControlName="bookingReminderEnabled"
+                (change)="reminderEnabledChanged($any($event.target).checked)"
+              />
+              <span>Send email reminders</span>
+            </label>
+
+            <div class="number-field">
+              <div class="number-control">
+                <input
+                  id="booking-reminder-hours"
+                  type="number"
+                  min="1"
+                  max="168"
+                  step="1"
+                  inputmode="numeric"
+                  formControlName="bookingReminderHoursBefore"
+                  [attr.aria-describedby]="
+                    bookingReminderHoursError()
+                      ? 'booking-reminder-help booking-reminder-error'
+                      : 'booking-reminder-help'
+                  "
+                  [attr.aria-invalid]="
+                    bookingReminderHoursError() ? 'true' : null
+                  "
+                />
+                <span aria-hidden="true">hours before</span>
+              </div>
+              @if (bookingReminderHoursError()) {
+              <p id="booking-reminder-error" class="field-error" role="alert">
+                {{ bookingReminderHoursError() }}
+              </p>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (saveError()) {
+        <byiara-alert tone="danger">{{ saveError() }}</byiara-alert>
+        }
+
+        <byiara-editor-action-bar
+          stackActionsOnMobile
+          [status]="
+            saving()
+              ? 'Saving…'
+              : saveError()
+                ? 'Changes not saved'
+                : form.dirty
+                  ? 'Unsaved changes'
+                  : 'All changes saved'
+          "
+          [tone]="saveError() ? 'danger' : 'neutral'"
+        >
+          <byiara-button
+            type="submit"
+            [loading]="saving()"
+            [disabled]="form.invalid || form.pristine"
+          >
+            {{ saving() ? 'Saving…' : 'Save changes' }}
+          </byiara-button>
+        </byiara-editor-action-bar>
+      </section>
+    </byiara-card>
+  </form>
+  }
+</div>

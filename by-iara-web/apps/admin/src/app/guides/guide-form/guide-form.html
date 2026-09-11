@@ -1,8 +1,4 @@
-<byiara-page-header
-  admin
-  label="Content"
-  [title]="editing ? 'Edit guide' : 'New guide'"
->
+<byiara-page-header admin [title]="editing ? 'Edit guide' : 'New guide'">
   <byiara-button page-header-action variant="secondary" routerLink="/guides">
     Back to guides
   </byiara-button>
@@ -56,11 +52,13 @@
                 label="Title"
                 required
                 formControlName="title"
+                [error]="touchedError(translation.get('title'), { required: 'Enter a title.', maxlength: 'Title must be 180 characters or fewer.' })"
               ></byiara-text-field>
               <byiara-text-field
                 label="URL slug"
                 optionalLabel="generated from the title when blank"
                 formControlName="slug"
+                [error]="touchedError(translation.get('slug'), { pattern: 'Use lowercase letters, numbers, and single hyphens only.' })"
               ></byiara-text-field>
               <byiara-text-field
                 label="Summary"
@@ -68,6 +66,7 @@
                 multiline
                 [rows]="4"
                 formControlName="excerpt"
+                [error]="touchedError(translation.get('excerpt'), { required: 'Enter a summary.', maxlength: 'Summary must be 600 characters or fewer.' })"
               ></byiara-text-field>
             </div>
 
@@ -178,10 +177,12 @@
                     label="Image URL"
                     optionalLabel="or choose a photo above"
                     formControlName="imageUrl"
+                    [error]="blockImageSourceError(index)"
                   ></byiara-text-field>
                   <byiara-text-field
                     label="Image alt text"
                     formControlName="imageAlt"
+                    [error]="blockImageAltError(index)"
                   ></byiara-text-field>
                 </div>
                 } @case ('LIST') {
@@ -220,6 +221,7 @@
                 label="SEO title"
                 required
                 formControlName="seoTitle"
+                [error]="touchedError(translation.get('seoTitle'), { required: 'Enter an SEO title.', maxlength: 'SEO title must be 180 characters or fewer.' })"
               ></byiara-text-field>
               <byiara-text-field
                 label="Meta description"
@@ -227,6 +229,7 @@
                 multiline
                 [rows]="4"
                 formControlName="metaDescription"
+                [error]="touchedError(translation.get('metaDescription'), { required: 'Enter a meta description.', maxlength: 'Meta description must be 320 characters or fewer.' })"
               ></byiara-text-field>
               <div class="search-preview">
                 <p class="preview-url">
@@ -263,12 +266,16 @@
                 <byiara-text-field
                   label="Question"
                   formControlName="question"
+                  required
+                  [error]="touchedError(faq.get('question'), { required: 'Enter a question.' })"
                 ></byiara-text-field>
                 <byiara-text-field
                   label="Answer"
                   multiline
                   [rows]="4"
                   formControlName="answer"
+                  required
+                  [error]="touchedError(faq.get('answer'), { required: 'Enter an answer.' })"
                 ></byiara-text-field>
                 <byiara-button
                   variant="ghost"
@@ -324,6 +331,7 @@
           label="Author"
           required
           formControlName="author"
+          [error]="touchedError(form.controls.author, { required: 'Enter the author name.', maxlength: 'Author name must be 160 characters or fewer.' })"
         ></byiara-text-field>
         <byiara-text-field
           label="Categories"
@@ -375,25 +383,40 @@
     </aside>
   </div>
 
-  <div class="form-actions">
-    <div>
-      @if (editing) {
-      <byiara-button variant="ghost" (click)="archive()">Archive</byiara-button>
-      }
-    </div>
-    <div class="primary-actions">
-      <byiara-button variant="secondary" type="submit" [loading]="submitting()">
-        Save
-      </byiara-button>
-      <byiara-button
-        variant="primary"
-        [loading]="submitting()"
-        (click)="save('PUBLISHED')"
-      >
-        Save and publish
-      </byiara-button>
-    </div>
-  </div>
+  <byiara-editor-action-bar
+    stackActionsOnMobile
+    [status]="
+      submitting()
+        ? 'Saving…'
+        : error()
+          ? 'Changes not saved'
+          : hasUnsavedChanges()
+            ? 'Unsaved changes'
+            : editing
+              ? 'All changes saved'
+              : 'New guide not saved'
+    "
+    [tone]="error() ? 'danger' : 'neutral'"
+  >
+    @if (editing) {
+    <byiara-button editor-action-leading variant="ghost" (click)="archive()"
+      >Archive</byiara-button
+    >
+    }
+    <byiara-button variant="secondary" routerLink="/guides">
+      Cancel
+    </byiara-button>
+    <byiara-button variant="secondary" type="submit" [loading]="submitting()">
+      Save
+    </byiara-button>
+    <byiara-button
+      variant="primary"
+      [loading]="submitting()"
+      (click)="save('PUBLISHED')"
+    >
+      Save and publish
+    </byiara-button>
+  </byiara-editor-action-bar>
 </form>
 
 <byiara-media-picker

@@ -7,10 +7,37 @@
   border-radius: var(--byiara-radius-lg);
   background: var(--byiara-color-surface);
   color: var(--byiara-color-text);
+  opacity: 0;
+  transform: scale(0.97);
+  transition:
+    opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out),
+    display var(--byiara-duration-fast) allow-discrete,
+    overlay var(--byiara-duration-fast) allow-discrete;
+}
+
+.media-dialog[open] {
+  opacity: 1;
+  transform: none;
+  transition-duration:
+    var(--byiara-duration-base), var(--byiara-duration-base),
+    var(--byiara-duration-base), var(--byiara-duration-base);
 }
 
 .media-dialog::backdrop {
   background: rgb(31 24 27 / 52%);
+  opacity: 0;
+  transition:
+    opacity var(--byiara-duration-fast) var(--byiara-ease-out),
+    display var(--byiara-duration-fast) allow-discrete,
+    overlay var(--byiara-duration-fast) allow-discrete;
+}
+
+.media-dialog[open]::backdrop {
+  opacity: 1;
+  transition-duration:
+    var(--byiara-duration-base), var(--byiara-duration-base),
+    var(--byiara-duration-base);
 }
 
 .dialog-header,
@@ -65,10 +92,21 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-.image-option:hover {
-  border-color: var(--byiara-color-primary);
+.image-option:active {
+  transform: scale(0.98);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .image-option:hover {
+    border-color: var(--byiara-color-primary);
+    background: var(--byiara-color-primary-tint);
+  }
 }
 
 .image-option:focus-visible {
@@ -127,6 +165,17 @@
   color: var(--byiara-color-text-muted);
 }
 
+@starting-style {
+  .media-dialog[open] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+
+  .media-dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
 @media (max-width: 36rem) {
   .media-dialog {
     width: calc(100vw - 1rem);
@@ -141,5 +190,17 @@
 
   .picker-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media-dialog,
+  .media-dialog::backdrop,
+  .image-option {
+    transition: none;
+  }
+
+  .media-dialog {
+    transform: none;
   }
 }

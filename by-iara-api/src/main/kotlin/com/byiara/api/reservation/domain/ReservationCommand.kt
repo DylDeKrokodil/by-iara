@@ -16,6 +16,7 @@ data class CreateReservationCommand(
     val customerPackId: UUID? = null,
     val customerSessionToken: String? = null,
     val discountCode: String? = null,
+    val expectedPriceCents: Long? = null,
 )
 
 data class PreviewDiscountCommand(
@@ -24,6 +25,8 @@ data class PreviewDiscountCommand(
     val customerEmail: String?,
     val discountCode: String,
 )
+
+class ReservationPriceChangedException : RuntimeException("Booking price changed. Review the updated price before submitting.")
 
 /** A customer-facing slot lookup for a selected catalog option. */
 data class FindBookableSlotsCommand(

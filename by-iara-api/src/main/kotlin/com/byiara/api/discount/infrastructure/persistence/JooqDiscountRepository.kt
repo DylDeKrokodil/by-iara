@@ -44,6 +44,7 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
     private val dStatus = field(name("discounts", "status"), String::class.java)
     private val dPublicCode = field(name("discounts", "public_code"), String::class.java)
     private val dFeatured = field(name("discounts", "featured"), Boolean::class.java)
+    private val dFirstTime = field(name("discounts", "first_time_customers_only"), Boolean::class.java)
     private val dUpdatedAt = field(name("discounts", "updated_at"), OffsetDateTime::class.java)
 
     private val scopes = table(name("discount_services"))
@@ -90,13 +91,13 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
         val id = dsl.insertInto(discounts)
             .columns(
                 dName, dAudience, dScope, dValueType, dValueAmount, dCurrency, dStartsAt, dEndsAt,
-                dMaxClients, dMaxPerCustomer, dCodeHash, dCodeHint, dCustomerId, dStatus, dPublicCode, dFeatured,
+                dMaxClients, dMaxPerCustomer, dCodeHash, dCodeHint, dCustomerId, dStatus, dPublicCode, dFeatured, dFirstTime,
             )
             .values(
                 command.name, command.audience.name, command.scope.name, command.valueType.name,
                 command.valueAmount, command.currency, command.startsAt, command.endsAt,
                 command.maxUniqueClients, command.maxUsesPerCustomer, discount.codeHash,
-                discount.codeHint, discount.customerId, DiscountStatus.ACTIVE.name, discount.publicCode, discount.featured,
+                discount.codeHint, discount.customerId, DiscountStatus.ACTIVE.name, discount.publicCode, discount.featured, command.firstTimeCustomersOnly,
             )
             .returning(dId).fetchOne()!!.get(dId)
         command.serviceIds.forEach { serviceId ->
@@ -106,6 +107,15 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
     }
 
     override fun list(): List<Discount> = selectDiscounts(dId.isNotNull).sortedByDescending { it.startsAt }
+
+    override fun hasCompletedAppointments(identityKey: String): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(reservations).join(customers).on(rCustomerId.eq(cId))
+            .where(rStatus.eq("COMPLETED").and(field("discount_customer_identity({0})", String::class.java, cEmail).eq(identityKey))),
+    )
+
+    override fun lockCampaign(id: UUID) {
+        dsl.select(dId).from(discounts).where(dId.eq(id)).forUpdate().fetchOne()
+    }
 
     override fun findById(id: UUID): Discount? = selectDiscounts(dId.eq(id)).singleOrNull()
 
@@ -187,13 +197,27 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
         return if (changed > 0) findById(id) else null
     }
 
+    override fun deleteUnused(id: UUID): Boolean {
+        val hasUsage = dsl.fetchExists(dsl.selectOne().from(usages).where(uDiscountId.eq(id)))
+        if (hasUsage) return false
+        dsl.deleteFrom(scopes).where(sDiscountId.eq(id)).execute()
+        return dsl.deleteFrom(discounts).where(dId.eq(id)).execute() > 0
+    }
+
     override fun findFeatured(now: OffsetDateTime): Discount? = selectDiscounts(
         dFeatured.isTrue
             .and(dStatus.eq(DiscountStatus.ACTIVE.name))
             .and(dStartsAt.le(now))
             .and(dEndsAt.gt(now))
-            .and(dPublicCode.isNotNull),
+            .and(dPublicCode.isNotNull.or(dAudience.eq(DiscountAudience.AUTOMATIC.name))),
     ).singleOrNull()
+
+    override fun findActiveAutomatic(now: OffsetDateTime): List<Discount> = selectDiscounts(
+        dAudience.eq(DiscountAudience.AUTOMATIC.name)
+            .and(dStatus.eq(DiscountStatus.ACTIVE.name))
+            .and(dStartsAt.le(now))
+            .and(dEndsAt.gt(now)),
+    )
 
     override fun usage(discountId: UUID): List<DiscountUsage> = dsl.select(
         uId, uReservationId, uDiscountName, uOriginal, uDiscount, uFinal, uCurrency, uStatus,
@@ -218,7 +242,7 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
     private fun selectDiscounts(condition: Condition): List<Discount> {
         val records = dsl.select(
             dId, dName, dAudience, dScope, dValueType, dValueAmount, dCurrency, dStartsAt, dEndsAt,
-            dMaxClients, dMaxPerCustomer, dCodeHint, dCustomerId, dStatus, dPublicCode, dFeatured, cEmail,
+            dMaxClients, dMaxPerCustomer, dCodeHint, dCustomerId, dStatus, dPublicCode, dFeatured, dFirstTime, cEmail,
         ).from(discounts).leftJoin(customers).on(dCustomerId.eq(cId)).where(condition).fetch()
         return records.map(::mapDiscount)
     }
@@ -237,7 +261,7 @@ class JooqDiscountRepository(private val dsl: DSLContext) : DiscountRepository {
             codeHint = record.get(dCodeHint), customerId = record.get(dCustomerId), customerEmail = record.get(cEmail),
             status = DiscountStatus.valueOf(record.get(dStatus)), serviceIds = serviceIds,
             reservedUses = reserved, consumedUses = consumed, uniqueClients = activeUniqueClientCount(id),
-            publicCode = record.get(dPublicCode), featured = record.get(dFeatured) ?: false,
+            publicCode = record.get(dPublicCode), featured = record.get(dFeatured) ?: false, firstTimeCustomersOnly = record.get(dFirstTime) ?: false,
         )
     }
 

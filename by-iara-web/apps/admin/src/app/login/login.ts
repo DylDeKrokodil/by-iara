@@ -2,16 +2,17 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Alert, Button, Card, TextField } from '@by-iara/shared-ui';
+import { Alert, Button, TextField, touchedError } from '@by-iara/shared-ui';
 import { AuthService } from '../core/auth.service';
 
 @Component({
   selector: 'byiara-login',
-  imports: [ReactiveFormsModule, Alert, Button, Card, TextField],
+  imports: [ReactiveFormsModule, Alert, Button, TextField],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login implements OnInit {
+  protected readonly touchedError = touchedError;
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);

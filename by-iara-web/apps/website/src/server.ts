@@ -64,6 +64,7 @@ function sitemapLastModified(
 
 const PERMANENT_REDIRECTS: Readonly<Record<string, string>> = {
   '/': '/pt',
+  '/en/massages/relaxation-massagem': '/en/massages/relaxation-massage',
   '/pt/book': '/pt/marcar',
   '/pt/privacy': '/pt/privacidade',
   '/pt/booking-terms': '/pt/termos-de-marcacao',

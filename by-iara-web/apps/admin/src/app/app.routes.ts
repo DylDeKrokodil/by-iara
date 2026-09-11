@@ -95,6 +95,10 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./packs/packs').then((m) => m.Packs),
       },
       {
+        path: 'popups',
+        loadComponent: () => import('./popups/popups').then((m) => m.Popups),
+      },
+      {
         path: 'discounts',
         loadComponent: () =>
           import('./discounts/discounts').then((m) => m.Discounts),
@@ -103,6 +107,11 @@ export const appRoutes: Route[] = [
         path: 'reports',
         loadComponent: () =>
           import('./finance/reports/reports').then((m) => m.Reports),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('./settings/settings').then((m) => m.Settings),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],

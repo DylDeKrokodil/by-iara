@@ -25,6 +25,7 @@ import {
   Tabs,
   TextField,
   ToastService,
+  touchedError,
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../../core/api-error-message';
 import { Service } from '../../services/service.models';
@@ -43,6 +44,7 @@ import {
   GuideStatus,
   GuideTranslation,
 } from '../guide.models';
+import { EditorActionBar } from '../../layout/editor-action-bar/editor-action-bar';
 
 type LanguageTab = 'ptPT' | 'enUS';
 type EditorTab = 'content' | 'seo' | 'faqs';
@@ -80,11 +82,13 @@ const blockTypeOptions: ReadonlyArray<{
     TextField,
     MediaPicker,
     MediaImageField,
+    EditorActionBar,
   ],
   templateUrl: './guide-form.html',
   styleUrl: './guide-form.css',
 })
 export class GuideForm implements OnInit, OnDestroy {
+  protected readonly touchedError = touchedError;
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(GuidesApi);
   private readonly servicesApi = inject(ServicesApi);
@@ -282,6 +286,23 @@ export class GuideForm implements OnInit, OnDestroy {
     return this.currentGuide()?.status === 'PUBLISHED' ? url : null;
   }
 
+  protected blockImageSourceError(index: number): string | null {
+    const block = this.blocks.at(index);
+    const control = block.get('imageUrl');
+    if (!control?.touched) return null;
+    const hasImage =
+      Boolean(String(control.value ?? '').trim()) ||
+      Boolean(this.pendingBlockImages()[this.blockClientId(block)]) ||
+      Boolean(this.pendingBlockMedia()[this.blockClientId(block)]);
+    return hasImage ? null : 'Choose a photo or enter an image URL.';
+  }
+
+  protected blockImageAltError(index: number): string | null {
+    const control = this.blocks.at(index).get('imageAlt');
+    if (!control?.touched || String(control.value ?? '').trim()) return null;
+    return 'Describe the image for people who cannot see it.';
+  }
+
   protected addFaq(): void {
     this.faqs.push(this.faqGroup());
   }
@@ -436,6 +457,7 @@ export class GuideForm implements OnInit, OnDestroy {
             this.pendingMediaImages.set({});
             this.removedImages.set(new Set());
             this.clearAllPendingBlockImages();
+            this.form.markAsPristine();
           }
         },
         error: (error: HttpErrorResponse) => {
@@ -443,6 +465,24 @@ export class GuideForm implements OnInit, OnDestroy {
           this.error.set(apiErrorMessage(error, 'Could not save the guide.'));
         },
       });
+  }
+
+  protected hasUnsavedChanges(): boolean {
+    if (this.form.dirty) return true;
+    if (Object.keys(this.pendingImages()).length) return true;
+    if (Object.keys(this.pendingMediaImages()).length) return true;
+    if (Object.keys(this.pendingBlockImages()).length) return true;
+    if (Object.keys(this.pendingBlockMedia()).length) return true;
+    if (this.removedImages().size) return true;
+
+    const savedServiceIds = new Set(
+      this.currentGuide()?.relatedServiceIds ?? [],
+    );
+    const selectedServiceIds = this.selectedServiceIds();
+    return (
+      savedServiceIds.size !== selectedServiceIds.size ||
+      [...selectedServiceIds].some((id) => !savedServiceIds.has(id))
+    );
   }
 
   protected archive(): void {

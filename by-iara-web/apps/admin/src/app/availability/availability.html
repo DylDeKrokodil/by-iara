@@ -1,4 +1,7 @@
-<byiara-page-header admin label="Settings" title="Availability"></byiara-page-header>
+<byiara-page-header admin title="Availability"></byiara-page-header>
+<p class="admin-page-description">
+  Your regular hours and time away, all in one place.
+</p>
 
 <byiara-tabs
   ariaLabel="Availability sections"
@@ -9,34 +12,81 @@
 
 <!-- Tab content: Rules -->
 @if (activeTab() === 'rules') {
-  <div class="tab-content">
-    <div class="availability-grid">
-
+<div class="tab-content">
+  <div class="availability-grid">
+    <!-- Rules list -->
+    <div class="roster-container">
+      @if (loadingRules()) {
+      <byiara-empty-state
+        title="Loading weekly hours..."
+        [dashed]="false"
+        compact
+      ></byiara-empty-state>
+      } @else { @for (day of weekdays; track day.value) {
+      <div class="day-card">
+        <div class="day-info">
+          <span class="day-name">{{ day.label }}</span>
+          <div class="shifts-list">
+            @if (getRulesForDay(day.value).length === 0) {
+            <span class="no-hours">Off</span>
+            } @else { @for (shift of getRulesForDay(day.value); track shift.id)
+            {
+            <span class="shift-badge">
+              {{ formatTime(shift.startTime) }} - {{ formatTime(shift.endTime)
+              }}
+              <button
+                type="button"
+                class="shift-delete-btn"
+                (click)="confirmDeleteRule(shift)"
+                [attr.aria-label]="'Remove ' + day.label + ' shift at ' + formatTime(shift.startTime)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </span>
+            } }
+          </div>
+        </div>
+      </div>
+      } }
+    </div>
+    <div class="availability-editor">
       <!-- Add rule Form -->
       <byiara-card padding="lg">
-        <h2 class="form-title">Add Weekly Shift</h2>
+        <h2 class="form-title">Add weekly hours</h2>
 
         @if (ruleError()) {
-          <byiara-alert tone="danger">{{ ruleError() }}</byiara-alert>
+        <byiara-alert tone="danger">{{ ruleError() }}</byiara-alert>
         }
 
         <form [formGroup]="ruleForm" (ngSubmit)="submitRule()" novalidate>
           <div class="form-group">
             <byiara-select-field
-              label="Day of the Week"
-              [options]="weekdays"
+              label="Day of the week"
+              [options]="ruleDayOptions"
               [value]="ruleForm.get('dayOfWeek')?.value ?? ''"
-              (valueChange)="ruleForm.get('dayOfWeek')?.setValue($event); ruleForm.get('dayOfWeek')?.markAsTouched()"
+              [error]="ruleForm.controls.dayOfWeek.touched && ruleForm.controls.dayOfWeek.invalid ? 'Choose a day of the week.' : null"
+              (valueChange)="ruleForm.controls.dayOfWeek.setValue($event)"
+              (touched)="ruleForm.controls.dayOfWeek.markAsTouched()"
             >
             </byiara-select-field>
-            @if (ruleForm.get('dayOfWeek')?.invalid && ruleForm.get('dayOfWeek')?.touched) {
-              <span class="error-message">Day of week is required</span>
-            }
           </div>
 
           <div class="form-group">
             <byiara-text-field
-              label="Start Time"
+              label="Start time"
               type="time"
               formControlName="startTime"
               [error]="ruleForm.get('startTime')?.invalid && ruleForm.get('startTime')?.touched ? 'Start time is required' : null"
@@ -45,7 +95,7 @@
 
           <div class="form-group">
             <byiara-text-field
-              label="End Time"
+              label="End time"
               type="time"
               formControlName="endTime"
               [error]="ruleForm.get('endTime')?.invalid && ruleForm.get('endTime')?.touched ? 'End time is required' : null"
@@ -53,149 +103,132 @@
           </div>
 
           <div class="form-actions">
-            <byiara-button type="submit" variant="primary" [loading]="submittingRule()">
-              {{ submittingRule() ? 'Adding…' : 'Add Shift' }}
+            <byiara-button
+              type="submit"
+              variant="primary"
+              [loading]="submittingRule()"
+            >
+              {{ submittingRule() ? 'Adding…' : 'Add hours' }}
             </byiara-button>
           </div>
         </form>
       </byiara-card>
-
-      <!-- Rules list -->
-      <div class="roster-container">
-        @if (loadingRules()) {
-          <byiara-empty-state title="Loading weekly hours..." [dashed]="false" compact></byiara-empty-state>
-        } @else {
-          @for (day of weekdays; track day.value) {
-            <div class="day-card">
-              <div class="day-info">
-                <span class="day-name">{{ day.label }}</span>
-                <div class="shifts-list">
-                  @if (getRulesForDay(day.value).length === 0) {
-                    <span class="no-hours">Off</span>
-                  } @else {
-                    @for (shift of getRulesForDay(day.value); track shift.id) {
-                      <span class="shift-badge">
-                        {{ formatTime(shift.startTime) }} - {{ formatTime(shift.endTime) }}
-                        <button
-                          type="button"
-                          class="shift-delete-btn"
-                          (click)="confirmDeleteRule(shift)"
-                          title="Remove shift"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </span>
-                    }
-                  }
-                </div>
-              </div>
-            </div>
-          }
-        }
-      </div>
-
     </div>
   </div>
+</div>
 }
 
 <!-- Tab content: Blocks -->
 @if (activeTab() === 'blocks') {
-  <div class="tab-content">
-    <div class="availability-grid">
+<div class="tab-content">
+  <div class="availability-grid availability-grid--blocks">
+    <!-- Add block Form -->
+    <byiara-card padding="lg">
+      <h2 class="form-title">Block time away</h2>
 
-      <!-- Add block Form -->
-      <byiara-card padding="lg">
-        <h2 class="form-title">Block Calendar Period</h2>
+      @if (blockError()) {
+      <byiara-alert tone="danger">{{ blockError() }}</byiara-alert>
+      }
 
-        @if (blockError()) {
-          <byiara-alert tone="danger">{{ blockError() }}</byiara-alert>
-        }
+      <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" novalidate>
+        <div class="form-group">
+          <byiara-text-field
+            label="Start Date & Time"
+            type="datetime-local"
+            formControlName="startTime"
+            [error]="blockForm.get('startTime')?.invalid && blockForm.get('startTime')?.touched ? 'Start date/time is required' : null"
+          ></byiara-text-field>
+        </div>
 
-        <form [formGroup]="blockForm" (ngSubmit)="submitBlock()" novalidate>
-          <div class="form-group">
-            <byiara-text-field
-              label="Start Date & Time"
-              type="datetime-local"
-              formControlName="startTime"
-              [error]="blockForm.get('startTime')?.invalid && blockForm.get('startTime')?.touched ? 'Start date/time is required' : null"
-            ></byiara-text-field>
-          </div>
+        <div class="form-group">
+          <byiara-text-field
+            label="End Date & Time"
+            type="datetime-local"
+            formControlName="endTime"
+            [error]="blockForm.get('endTime')?.invalid && blockForm.get('endTime')?.touched ? 'End date/time is required' : null"
+          ></byiara-text-field>
+        </div>
 
-          <div class="form-group">
-            <byiara-text-field
-              label="End Date & Time"
-              type="datetime-local"
-              formControlName="endTime"
-              [error]="blockForm.get('endTime')?.invalid && blockForm.get('endTime')?.touched ? 'End date/time is required' : null"
-            ></byiara-text-field>
-          </div>
+        <div class="form-group">
+          <byiara-text-field
+            label="Reason / Description"
+            formControlName="reason"
+            optionalLabel="optional"
+          ></byiara-text-field>
+        </div>
 
-          <div class="form-group">
-            <byiara-text-field
-              label="Reason / Description"
-              formControlName="reason"
-              optionalLabel="optional"
-            ></byiara-text-field>
-          </div>
-
-          <div class="form-actions">
-            <byiara-button type="submit" variant="primary" [loading]="submittingBlock()">
-              {{ submittingBlock() ? 'Adding…' : 'Add Block-out' }}
-            </byiara-button>
-          </div>
-        </form>
-      </byiara-card>
-
-      <!-- Blocks list -->
-      <div class="blocks-container">
-        @if (loadingBlocks()) {
-          <byiara-empty-state title="Loading blocked times..." [dashed]="false" compact></byiara-empty-state>
-        } @else {
-          <byiara-data-table
-            ariaLabel="Blocked times list"
-            [columns]="blockTableColumns"
-            [rows]="blocks()"
-            [loading]="loadingBlocks()"
-            [skeletonRows]="4"
+        <div class="form-actions">
+          <byiara-button
+            type="submit"
+            variant="primary"
+            [loading]="submittingBlock()"
           >
-            <ng-template #rowTemplate let-block>
-              <tr>
-                <td>{{ formatDateTime(block.startTime) }}</td>
-                <td>{{ formatDateTime(block.endTime) }}</td>
-                <td>
-                  @if (block.reason) {
-                    <span class="reason-text">{{ block.reason }}</span>
-                  } @else {
-                    <span class="reason-empty">No reason provided</span>
-                  }
-                </td>
-                <td class="actions-col">
-                  <div class="block-actions-cell">
-                    <byiara-button
-                      variant="ghost"
-                      iconOnly
-                      (click)="confirmDeleteBlock(block)"
-                      ariaLabel="Remove block-out"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"/>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                      </svg>
-                    </byiara-button>
-                  </div>
-                </td>
-              </tr>
-            </ng-template>
-          </byiara-data-table>
-        }
-      </div>
+            {{ submittingBlock() ? 'Adding…' : 'Add Block-out' }}
+          </byiara-button>
+        </div>
+      </form>
+    </byiara-card>
 
+    <!-- Blocks list -->
+    <div class="blocks-container">
+      @if (loadingBlocks()) {
+      <byiara-empty-state
+        title="Loading blocked times..."
+        [dashed]="false"
+        compact
+      ></byiara-empty-state>
+      } @else {
+      <byiara-data-table
+        ariaLabel="Blocked times list"
+        [columns]="blockTableColumns"
+        [rows]="blocks()"
+        [loading]="loadingBlocks()"
+        [skeletonRows]="4"
+      >
+        <ng-template #rowTemplate let-block>
+          <tr>
+            <td>{{ formatDateTime(block.startTime) }}</td>
+            <td>{{ formatDateTime(block.endTime) }}</td>
+            <td>
+              @if (block.reason) {
+              <span class="reason-text">{{ block.reason }}</span>
+              } @else {
+              <span class="reason-empty">No reason provided</span>
+              }
+            </td>
+            <td class="actions-col">
+              <div class="block-actions-cell">
+                <byiara-button
+                  variant="ghost"
+                  iconOnly
+                  (click)="confirmDeleteBlock(block)"
+                  ariaLabel="Remove block-out"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                </byiara-button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </byiara-data-table>
+      }
     </div>
   </div>
+</div>
 }
 
 <!-- Confirmation Modals -->

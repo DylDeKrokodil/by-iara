@@ -35,6 +35,7 @@ services:
       BUSINESS_PHONE: ${BUSINESS_PHONE:-}
       BUSINESS_ADDRESS: ${BUSINESS_ADDRESS:-Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal}
       BUSINESS_EMAIL: ${BUSINESS_EMAIL:-info@iaragouveia.com}
+      BUSINESS_TIMEZONE: ${BUSINESS_TIMEZONE:-Europe/Lisbon}
       # A human clicks this link from their own browser, not container-to-container --
       # must be the host-published admin port, unlike MAIL_HOST above.
       ADMIN_URL: http://localhost:4201

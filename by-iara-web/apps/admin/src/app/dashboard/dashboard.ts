@@ -1,10 +1,10 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import {
   Alert,
   Button,
-  Card,
   EmptyState,
-  PageHeader,
+  Skeleton,
   StatusChip,
 } from '@by-iara/shared-ui';
 import { forkJoin } from 'rxjs';
@@ -21,7 +21,6 @@ import {
 } from '../reservations/reservation.models';
 import { ReservationsApi } from '../reservations/reservations-api';
 
-const businessTimeZone = 'Europe/Brussels';
 const dashboardPageSize = 100;
 
 interface UpcomingDay {
@@ -32,7 +31,7 @@ interface UpcomingDay {
 
 @Component({
   selector: 'byiara-dashboard',
-  imports: [Alert, Button, Card, EmptyState, PageHeader, StatusChip],
+  imports: [Alert, Button, EmptyState, Skeleton, StatusChip],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -54,14 +53,16 @@ export class Dashboard implements OnInit {
   protected readonly todayKey = this.dateKey(new Date());
   protected readonly todayLabel = new Intl.DateTimeFormat('en-GB', {
     dateStyle: 'full',
-    timeZone: businessTimeZone,
+    timeZone: BUSINESS_TIME_ZONE,
   }).format(new Date());
 
   protected readonly nextReservation = computed(() => {
     const now = Date.now();
-    return this.todayReservations().find(
-      (reservation) => new Date(reservation.startsAt).getTime() >= now,
-    ) ?? null;
+    return (
+      this.todayReservations().find(
+        (reservation) => new Date(reservation.startsAt).getTime() >= now,
+      ) ?? null
+    );
   });
 
   protected readonly upcomingDays = computed<UpcomingDay[]>(() => {
@@ -85,9 +86,11 @@ export class Dashboard implements OnInit {
 
   protected readonly todayHasAvailability = computed(() => {
     const weekday = new Intl.DateTimeFormat('en-US', {
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       weekday: 'long',
-    }).format(new Date()).toUpperCase();
+    })
+      .format(new Date())
+      .toUpperCase();
     return this.rules().some((rule) => rule.dayOfWeek === weekday);
   });
 
@@ -113,11 +116,21 @@ export class Dashboard implements OnInit {
     return `${reservation.serviceName} · ${reservation.durationMinutes} min`;
   }
 
+  protected formatRequestDate(value: string): string {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: BUSINESS_TIME_ZONE,
+    }).format(new Date(value));
+  }
+
   protected formatTime(value: string): string {
     return new Intl.DateTimeFormat('en-GB', {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
     }).format(new Date(value));
   }
 
@@ -128,7 +141,7 @@ export class Dashboard implements OnInit {
     const startText = new Intl.DateTimeFormat('en-GB', {
       day: 'numeric',
       month: 'short',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       ...(sameDay ? {} : { year: 'numeric' as const }),
     }).format(start);
     return `${startText}, ${this.formatTime(block.startTime)}–${this.formatTime(block.endTime)}`;
@@ -181,7 +194,9 @@ export class Dashboard implements OnInit {
         this.hasAnyReservations.set(allReservations.total > 0);
         this.rules.set(rules);
         this.blocks.set(
-          [...blocks].sort((left, right) => left.startTime.localeCompare(right.startTime)),
+          [...blocks].sort((left, right) =>
+            left.startTime.localeCompare(right.startTime),
+          ),
         );
         this.loading.set(false);
       },
@@ -209,7 +224,7 @@ export class Dashboard implements OnInit {
     const parts = new Intl.DateTimeFormat('en-CA', {
       day: '2-digit',
       month: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(value);
     const year = parts.find((part) => part.type === 'year')?.value;
@@ -253,7 +268,7 @@ export class Dashboard implements OnInit {
       minute: '2-digit',
       month: '2-digit',
       second: '2-digit',
-      timeZone: businessTimeZone,
+      timeZone: BUSINESS_TIME_ZONE,
       year: 'numeric',
     }).formatToParts(date);
     const value = (type: Intl.DateTimeFormatPartTypes) =>

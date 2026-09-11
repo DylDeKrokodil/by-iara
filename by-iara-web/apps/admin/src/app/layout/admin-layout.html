@@ -1,9 +1,13 @@
 <div class="admin-shell byiara-theme-admin" [class.collapsed]="isCollapsed()">
+  <a class="skip-link" href="#admin-content">Skip to content</a>
   <!-- Mobile Header Bar -->
-  <header class="mobile-header">
+  <header class="mobile-header" [inert]="isMobileMenuOpen()">
     <button
       type="button"
       class="hamburger-btn"
+      #menuButton
+      aria-controls="admin-sidebar"
+      [attr.aria-expanded]="isMobileMenuOpen()"
       (click)="toggleMobileMenu()"
       aria-label="Toggle navigation"
     >
@@ -30,24 +34,32 @@
     />
   </header>
 
-  <!-- Backdrop overlay for mobile menu -->
-  @if (isMobileMenuOpen()) {
+  <!-- Kept mounted so opening and closing can both transition smoothly. -->
   <div
     class="sidebar-backdrop"
+    [class.is-open]="isMobileMenuOpen()"
     (click)="closeMobileMenu()"
     aria-hidden="true"
   ></div>
-  }
 
   <!-- Sidebar -->
   <aside
+    #sidebar
+    id="admin-sidebar"
+    tabindex="-1"
     class="sidebar"
+    [inert]="isMobile() && !isMobileMenuOpen()"
+    (keydown)="onSidebarKeydown($event)"
     [class.collapsed]="isCollapsed()"
     [class.mobile-open]="isMobileMenuOpen()"
     aria-label="Admin navigation"
   >
     <div class="brand-container">
-      <p class="brand" routerLink="/dashboard">
+      <a
+        class="brand"
+        routerLink="/dashboard"
+        aria-label="Iara Gouveia dashboard"
+      >
         @if (isCollapsed()) {
         <img
           class="brand-logo-mark"
@@ -61,7 +73,17 @@
           alt="Iara Gouveia"
         />
         }
-      </p>
+      </a>
+      <button
+        class="mobile-close"
+        type="button"
+        aria-label="Close navigation"
+        (click)="closeMobileMenu()"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m6 6 12 12M6 18 18 6" />
+        </svg>
+      </button>
 
       <button
         type="button"
@@ -80,56 +102,83 @@
       </button>
     </div>
 
-    <nav class="sidebar-navigation" aria-label="Primary">
-      <div class="navigation-heading">
-        <span>Favorites</span>
-        <button
-          type="button"
-          class="edit-favorites"
-          [attr.aria-pressed]="customizingFavorites()"
-          (click)="toggleFavoriteCustomization()"
-        >
-          {{ customizingFavorites() ? 'Done' : 'Edit' }}
-        </button>
-      </div>
+    @if (!isCollapsed()) {
+    <p class="workspace-label">Practice manager</p>
+    <label class="navigation-search">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 4 4" />
+      </svg>
+      <input
+        type="search"
+        placeholder="Find a page"
+        aria-label="Find an admin page"
+        [value]="navigationQuery()"
+        (input)="navigationQuery.set($any($event.target).value)"
+      />
+    </label>
+    }
 
-      <div class="navigation-list">
-        @for (item of favoriteItems(); track item.id) {
+    <nav class="sidebar-navigation" aria-label="Primary">
+      @if (navigationQuery().trim()) {
+      <div class="navigation-list search-results" aria-live="polite">
+        @for (item of filteredNavigationItems(); track item.id) {
         <ng-container
           *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
         ></ng-container>
         } @empty {
-        <p class="favorites-empty">Choose favorites from More.</p>
+        <p class="navigation-empty">No matching pages.</p>
         }
       </div>
+      } @else if (isCollapsed()) {
 
-      <button
-        type="button"
-        class="more-toggle"
-        [attr.aria-expanded]="isMoreOpen()"
-        [attr.aria-label]="isCollapsed() ? 'Show all navigation' : null"
-        [title]="isCollapsed() ? 'Show all navigation' : ''"
-        aria-controls="more-navigation"
-        (click)="toggleMore()"
-      >
-        <span>More</span>
-        <svg
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          [class.is-open]="isMoreOpen()"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-      </button>
-
-      @if (isMoreOpen()) {
-      <div id="more-navigation" class="navigation-list more-navigation">
-        @for (item of moreItems(); track item.id) {
+      <div class="navigation-list collapsed-navigation">
+        @for (item of navigationItems; track item.id) {
         <ng-container
           *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
         ></ng-container>
-        } @empty {
-        <p class="favorites-empty">All pages are favorites.</p>
+        }
+      </div>
+      } @else {
+      <div class="navigation-list primary-navigation">
+        <ng-container
+          *ngTemplateOutlet="navigationItem; context: { $implicit: dashboardItem }"
+        ></ng-container>
+      </div>
+
+      <div class="navigation-groups">
+        @for (group of navigationGroups; track group.id) {
+        <section class="navigation-group">
+          <button
+            type="button"
+            class="group-toggle"
+            [attr.aria-expanded]="isGroupOpen(group.id)"
+            [attr.aria-controls]="'sidebar-group-' + group.id"
+            (click)="toggleGroup(group.id)"
+          >
+            <span>{{ group.label }}</span>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              [class.is-open]="isGroupOpen(group.id)"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+
+          @if (isGroupOpen(group.id)) {
+          <div
+            [id]="'sidebar-group-' + group.id"
+            class="navigation-list group-navigation"
+          >
+            @for (item of group.items; track item.id) {
+            <ng-container
+              *ngTemplateOutlet="navigationItem; context: { $implicit: item }"
+            ></ng-container>
+            }
+          </div>
+          }
+        </section>
         }
       </div>
       }
@@ -140,6 +189,7 @@
         <a
           [routerLink]="item.route"
           routerLinkActive="active"
+          ariaCurrentWhenActive="page"
           [attr.aria-label]="isCollapsed() ? item.label : null"
           [title]="isCollapsed() ? item.label : ''"
           (click)="closeMobileMenu()"
@@ -173,6 +223,9 @@
             <path
               d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2ZM8 7h8M8 11h6"
             />
+            } @case ('popups') {
+            <rect width="18" height="14" x="3" y="5" rx="2" />
+            <path d="M7 9h6M7 13h10m0-6 2 2m0-2-2 2" />
             } @case ('images') {
             <rect width="18" height="18" x="3" y="3" rx="2" />
             <circle cx="9" cy="9" r="2" />
@@ -192,31 +245,15 @@
             } @case ('availability') {
             <rect width="18" height="18" x="3" y="4" rx="2" />
             <path d="M16 2v4M8 2v4M3 10h18" />
+            } @case ('settings') {
+            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+            <path
+              d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.36a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.63 15 1.7 1.7 0 0 0 3.07 14H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.64 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.63h.01A1.7 1.7 0 0 0 10 3.07V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.64a1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.37 9v.01A1.7 1.7 0 0 0 20.93 10H21a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"
+            />
             } }
           </svg>
           <span class="nav-label">{{ item.label }}</span>
         </a>
-
-        @if (customizingFavorites()) {
-        <button
-          type="button"
-          class="favorite-toggle"
-          [class.is-favorite]="isFavorite(item.id)"
-          [attr.aria-pressed]="isFavorite(item.id)"
-          [attr.aria-label]="
-            (isFavorite(item.id) ? 'Remove ' : 'Add ') +
-            item.label +
-            (isFavorite(item.id) ? ' from favorites' : ' to favorites')
-          "
-          (click)="toggleFavorite(item.id)"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="m12 3 2.25 5.35 5.75.5-4.36 3.77 1.31 5.63L12 15.26l-4.95 2.99 1.31-5.63L4 8.85l5.75-.5L12 3Z"
-            />
-          </svg>
-        </button>
-        }
       </div>
     </ng-template>
 
@@ -274,9 +311,21 @@
     </div>
   </aside>
 
-  <main class="workspace">
-    <router-outlet></router-outlet>
-  </main>
+  <div class="workspace" [inert]="isMobile() && isMobileMenuOpen()">
+    <header class="workspace-toolbar">
+      <nav aria-label="Location" class="workspace-breadcrumb">
+        <span>{{ currentGroup() }}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+        <span aria-current="page">{{ currentPage() }}</span>
+      </nav>
+      <span class="toolbar-date">{{ toolbarDate }}</span>
+    </header>
+    <main id="admin-content" class="workspace-content" tabindex="-1">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>
 
 <byiara-toast-container></byiara-toast-container>

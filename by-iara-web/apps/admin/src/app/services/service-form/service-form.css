@@ -7,7 +7,7 @@
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-lg);
   padding: var(--byiara-space-xl);
-  box-shadow: var(--byiara-shadow-sm);
+  box-shadow: none;
 }
 
 .form-section {
@@ -58,7 +58,9 @@
   padding: var(--byiara-space-md);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
-  background: var(--byiara-color-surface-muted);
+  background: transparent;
+  padding: 0;
+  border: 0;
 }
 
 .content-tab-panel {
@@ -162,13 +164,16 @@
   background: var(--byiara-color-surface);
   color: var(--byiara-color-text);
   font-size: var(--byiara-font-size-sm);
-  transition: all 0.15s ease;
+  transition:
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out),
+    outline-color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
 .field input::placeholder,
 .field textarea::placeholder {
   color: var(--byiara-color-text-muted);
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .field input:focus-visible,
@@ -272,18 +277,23 @@
   background: var(--byiara-color-surface-muted);
   border: 1px solid var(--byiara-color-border);
   border-radius: var(--byiara-radius-md);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    box-shadow var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-.variant-card:hover {
-  border-color: color-mix(
-    in srgb,
-    var(--byiara-color-primary) 15%,
-    transparent
-  );
-  background: var(--byiara-color-white);
-  box-shadow: 0 2px 8px
-    color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .variant-card:hover {
+    border-color: color-mix(
+      in srgb,
+      var(--byiara-color-primary) 15%,
+      transparent
+    );
+    background: var(--byiara-color-white);
+    box-shadow: 0 2px 8px
+      color-mix(in srgb, var(--byiara-color-text) 2%, transparent);
+  }
 }
 
 .variant-fields {
@@ -328,19 +338,10 @@
   margin-right: 2px;
 }
 
-.form-actions-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--byiara-space-sm);
-  margin-top: var(--byiara-space-xl);
-  max-width: 42rem;
-  width: 100%;
-}
-
 @media (min-width: 64rem) {
   .form-card {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     gap: var(--byiara-space-xl) var(--byiara-space-2xl);
     align-items: start;
   }
@@ -365,13 +366,16 @@
   .section-divider {
     display: none;
   }
+}
 
-  .form-actions-bar {
-    grid-column: 1 / -1;
-    max-width: none;
-    border-top: 1px solid
-      color-mix(in srgb, var(--byiara-color-border) 15%, transparent);
-    padding-top: var(--byiara-space-lg);
-    margin-top: var(--byiara-space-sm);
+@media (max-width: 40rem) {
+  .form-card {
+    padding: 1.125rem;
+  }
+  .variant-card {
+    flex-wrap: wrap;
+  }
+  .variant-fields .form-group.compact {
+    width: min(100%, 8.5rem);
   }
 }

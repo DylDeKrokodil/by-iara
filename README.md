@@ -109,3 +109,18 @@ backups, and first-run admin provisioning.
 
 See [deploy/hetzner/README.md](deploy/hetzner/README.md) for DNS, server setup,
 deployment, backup, and scaling instructions.
+
+## Automatic promotions
+
+Automatic promotions can allow unlimited uses or one use per customer. “First-time
+customers only” is a separate eligibility rule: the booking email must have no
+completed appointments. Both checks use the existing discount email identity,
+including its alias normalization. A pending or confirmed single-use booking
+reserves the offer; cancellation or rejection releases it, while completion (or
+the existing no-show policy) consumes it.
+
+The booking flow previews eligible pricing after email entry and submits
+`expectedPriceCents`. The API rechecks pricing in the booking transaction and
+returns `409` with code `PRICE_CHANGED` when review is needed. Automatic promotions
+can use the shared website banner without a code. Existing automatic campaigns
+migrate to unlimited use with no first-time restriction.

@@ -1,7 +1,7 @@
 package com.byiara.api.availability.application
 
 import com.byiara.api.availability.domain.*
-import org.springframework.beans.factory.annotation.Value
+import com.byiara.api.common.config.BusinessTimeProperties
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.*
@@ -10,13 +10,18 @@ import java.util.UUID
 @Service
 class AvailabilityService(
     private val availabilityRepository: AvailabilityRepository,
-    @Value("\${by-iara.timezone:Europe/Brussels}")
-    private val timezoneIdStr: String,
+    private val businessTime: BusinessTimeProperties,
 ) {
-    private val zoneId: ZoneId get() = ZoneId.of(timezoneIdStr)
+    private val zoneId: ZoneId get() = businessTime.zoneId
 
     /** Today's date in the business timezone. */
     fun today(): LocalDate = LocalDate.now(zoneId)
+
+    /** The calendar date an appointment belongs to in the business timezone. */
+    fun localDate(time: OffsetDateTime): LocalDate = time.atZoneSameInstant(zoneId).toLocalDate()
+
+    /** The start of a business calendar date, preserving daylight-saving offsets. */
+    fun startOfDay(date: LocalDate): OffsetDateTime = date.atStartOfDay(zoneId).toOffsetDateTime()
 
     // --- Rules Management ---
 
@@ -143,7 +148,7 @@ class AvailabilityService(
 
             for (rule in dayRules) {
                 var candidateTime = rule.startTime
-                // Generate slots in 15-minute increments. LocalTime arithmetic wraps at
+                // Generate slots in five-minute increments. LocalTime arithmetic wraps at
                 // midnight, so a candidate whose end wraps past 00:00 reads as "before"
                 // rule.endTime again — without this check that wraparound spins forever.
                 while (true) {
@@ -163,7 +168,7 @@ class AvailabilityService(
                         candidates.add(Slot(offsetStart, offsetEnd))
                     }
 
-                    candidateTime = candidateTime.plusMinutes(15)
+                    candidateTime = candidateTime.plusMinutes(SLOT_INTERVAL_MINUTES)
                 }
             }
             currentDate = currentDate.plusDays(1)
@@ -187,4 +192,8 @@ class AvailabilityService(
         val start: OffsetDateTime,
         val end: OffsetDateTime,
     )
+
+    private companion object {
+        const val SLOT_INTERVAL_MINUTES = 5L
+    }
 }

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { API_ORIGIN, apiUrl } from '../api-origin';
 import type { LocaleCode } from '../i18n/supported-locales';
 
@@ -13,6 +13,8 @@ export interface ServiceVariant {
   id: string;
   durationMinutes: number;
   price: Money;
+  promotionalPrice?: Money | null;
+  promotion?: AutomaticPromotion;
   active: boolean;
   sortOrder: number;
 }
@@ -64,6 +66,17 @@ export interface ServiceImage {
   byteSize: number;
 }
 
+export interface AutomaticPromotion {
+  firstTimeCustomersOnly?: boolean;
+  maxUsesPerCustomer?: number | null;
+  name: string;
+  serviceIds: string[];
+  valueType: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  valueAmount: number;
+  currency: string | null;
+  endsAt: string;
+}
+
 /**
  * Resolves the service name/description for a locale, falling back to the base
  * columns when the requested locale has no translation row.
@@ -89,14 +102,85 @@ export function localizedService(
 export class ServicesApi {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = apiUrl(inject(API_ORIGIN), '/api/services');
+  private readonly promotionsUrl = apiUrl(
+    inject(API_ORIGIN),
+    '/api/discounts/automatic',
+  );
 
   list(): Observable<Service[]> {
-    return this.http.get<Service[]>(this.baseUrl);
+    return forkJoin({
+      services: this.http.get<Service[]>(this.baseUrl),
+      promotions: this.loadPromotions(),
+    }).pipe(
+      map(({ services, promotions }) =>
+        applyAutomaticPromotions(services, promotions),
+      ),
+    );
   }
 
   get(locale: LocaleCode, slug: string): Observable<Service> {
-    return this.http.get<Service>(
-      `${this.baseUrl}/${encodeURIComponent(locale)}/${encodeURIComponent(slug)}`,
+    return forkJoin({
+      service: this.http.get<Service>(
+        `${this.baseUrl}/${encodeURIComponent(locale)}/${encodeURIComponent(slug)}`,
+      ),
+      promotions: this.loadPromotions(),
+    }).pipe(
+      map(
+        ({ service, promotions }) =>
+          applyAutomaticPromotions([service], promotions)[0],
+      ),
     );
   }
+
+  private loadPromotions(): Observable<AutomaticPromotion[]> {
+    return this.http
+      .get<AutomaticPromotion[]>(this.promotionsUrl)
+      .pipe(catchError(() => of([])));
+  }
+}
+
+export function applyAutomaticPromotions(
+  services: Service[],
+  promotions: AutomaticPromotion[],
+): Service[] {
+  return services.map((service) => {
+    const applicable = promotions.filter((promotion) =>
+      promotion.serviceIds.includes(service.id),
+    );
+    if (!applicable.length) return service;
+    return {
+      ...service,
+      variants: service.variants.map((variant) => {
+        const offers = applicable
+          .filter(
+            (promotion) =>
+              promotion.valueType !== 'FIXED_AMOUNT' ||
+              promotion.currency === variant.price.currency,
+          )
+          .map((promotion) => ({
+            promotion,
+            price: Math.max(
+              0,
+              variant.price.amountCents -
+                (promotion.valueType === 'PERCENTAGE'
+                  ? Math.round(
+                      (variant.price.amountCents * promotion.valueAmount) /
+                        10_000,
+                    )
+                  : promotion.valueAmount),
+            ),
+          }))
+          .filter((offer) => offer.price < variant.price.amountCents)
+          .sort((a, b) => a.price - b.price);
+        const best = offers[0];
+        return best
+          ? {
+              ...variant,
+              promotionalPrice: { ...variant.price, amountCents: best.price },
+              promotion: best.promotion,
+            }
+          : variant;
+      }),
+    };
+  });
 }

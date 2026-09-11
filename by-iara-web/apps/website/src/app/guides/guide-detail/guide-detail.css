@@ -29,7 +29,7 @@
 }
 
 .guide-container {
-  width: min(52rem, calc(100% - 2rem));
+  width: min(52rem, calc(100% - 2 * var(--public-gutter)));
   margin-inline: auto;
 }
 
@@ -51,13 +51,6 @@
 .guide-header {
   display: grid;
   gap: var(--byiara-space-md);
-}
-
-.guide-header h1 {
-  margin: 0;
-  font-size: clamp(2.5rem, 8vw, 5rem);
-  line-height: 1.02;
-  text-wrap: balance;
 }
 
 .excerpt {
@@ -207,4 +200,26 @@
 
 .not-found {
   padding-block: 4rem;
+}
+
+.guide-body,
+.guide-faq {
+  max-width: var(--public-reading-width);
+  margin-inline: auto;
+}
+.guide-body :is(h2, h3),
+.guide-faq h2,
+.related-services h2 {
+  font-family: var(--byiara-font-family-display);
+}
+.guide-faq details[open] summary {
+  color: var(--byiara-color-primary-strong);
+}
+.guide-faq details p {
+  padding-block: 0.5rem 1rem;
+}
+@media (max-width: 36rem) {
+  .related-services li {
+    flex-wrap: wrap;
+  }
 }

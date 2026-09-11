@@ -1,11 +1,12 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
+import { BUSINESS_TIME_ZONE } from '@by-iara/config';
 import { API_ORIGIN, apiUrl } from '../api-origin';
 
 // The catalog/slots are computed in the business timezone, so display them there
 // too, regardless of the visitor's browser timezone.
-export const BUSINESS_TIMEZONE = 'Europe/Brussels';
+export const BUSINESS_TIMEZONE = BUSINESS_TIME_ZONE;
 
 export interface CreateReservationPayload {
   serviceId: string;
@@ -19,6 +20,7 @@ export interface CreateReservationPayload {
   customerPackId?: string | null;
   customerSessionToken?: string | null;
   discountCode?: string | null;
+  expectedPriceCents?: number;
 }
 
 export interface ReservationConfirmation {
@@ -46,6 +48,11 @@ export interface CustomerAccess {
   sessionToken: string;
   customer: { name: string; email: string; phone: string | null };
   packs: CustomerPack[];
+}
+
+export interface AutomaticPrice {
+  originalPrice: { amountCents: number; currency: string };
+  finalPrice: { amountCents: number; currency: string };
 }
 
 export interface DiscountQuote {
@@ -83,6 +90,17 @@ export class BookingApi {
     return this.http.post<ReservationConfirmation>(
       apiUrl(this.apiOrigin, '/api/reservations'),
       payload,
+    );
+  }
+
+  automaticPrice(input: {
+    serviceId: string;
+    serviceVariantId: string;
+    customerEmail: string;
+  }): Observable<AutomaticPrice> {
+    return this.http.post<AutomaticPrice>(
+      apiUrl(this.apiOrigin, '/api/reservations/automatic-price'),
+      input,
     );
   }
 

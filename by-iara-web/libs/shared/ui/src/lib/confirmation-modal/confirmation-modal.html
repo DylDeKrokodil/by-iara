@@ -1,4 +1,10 @@
-<dialog #dialog closedby="any" (cancel)="close()" class="confirmation-dialog">
+<dialog
+  [attr.aria-label]="title()"
+  #dialog
+  closedby="any"
+  (cancel)="close()"
+  class="confirmation-dialog"
+>
   <div class="dialog-content">
     <h3 class="dialog-title">{{ title() }}</h3>
     <p class="dialog-message">{{ message() }}</p>

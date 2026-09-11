@@ -1,0 +1,74 @@
+/* Admin-only HIG experiment. The public site keeps the shared brand theme. */
+:root,
+.byiara-theme-admin {
+  --byiara-font-family-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --byiara-font-family-display: var(--byiara-font-family-sans);
+  --byiara-font-family-body: var(--byiara-font-family-sans);
+  --byiara-color-background: #f5f5f7;
+  --byiara-color-surface: #ffffff;
+  --byiara-color-surface-muted: #f2f2f4;
+  --byiara-color-surface-tinted: #faf3f5;
+  --byiara-color-text: #252528;
+  --byiara-color-text-muted: #626269;
+  --byiara-color-text-subtle: #6d6d74;
+  --byiara-color-border: #dedee3;
+  --byiara-color-border-subtle: #eaeaec;
+  --byiara-color-border-strong: #85858c;
+  /* Primary remains the existing brand rose, including filled actions. */
+  --byiara-color-primary: #c04d68;
+  --byiara-color-primary-action: #c04d68;
+  --byiara-color-primary-soft: #f6e5ea;
+  --byiara-color-primary-tint: #fcf2f5;
+  --byiara-color-accent: var(--byiara-color-primary-strong);
+  --byiara-color-accent-soft: var(--byiara-color-primary-soft);
+  --byiara-color-focus: #8f2e47;
+  --byiara-color-success-tint: #edf7f1;
+  --byiara-color-success-strong: #216a4a;
+  --byiara-radius-sm: 0.375rem;
+  --byiara-radius-md: 0.625rem;
+  --byiara-radius-lg: 1rem;
+  --byiara-size-icon-button-sm: 2.75rem;
+  --byiara-size-icon-button-md: 2.75rem;
+  --byiara-focus-ring-width: 2px;
+  --byiara-focus-ring-offset: 3px;
+  --byiara-font-size-base: 0.9375rem;
+  --byiara-line-height-body: 1.5;
+  --byiara-shadow-sm: 0 1px 3px rgb(0 0 0 / 5%);
+  --byiara-shadow-md: 0 3px 8px rgb(0 0 0 / 10%);
+  --byiara-admin-toolbar-height: 3.75rem;
+  --byiara-admin-sidebar-width: 15.5rem;
+}
+
+.byiara-admin {
+  font-family: var(--byiara-font-family-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.byiara-admin :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+
+.byiara-admin :is(input, textarea)::placeholder {
+  color: var(--byiara-color-text-subtle);
+  opacity: 1;
+}
+
+.byiara-admin :is(a, button, input, select, textarea) {
+  touch-action: manipulation;
+}
+
+.byiara-admin :focus-visible {
+  outline: var(--byiara-focus-ring-width) solid var(--byiara-color-focus);
+  outline-offset: var(--byiara-focus-ring-offset);
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  .byiara-theme-admin {
+    --byiara-color-text-muted: #424248;
+    --byiara-color-text-subtle: #424248;
+    --byiara-color-border: #85858c;
+    --byiara-color-border-subtle: #85858c;
+  }
+}

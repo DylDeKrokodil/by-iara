@@ -5,7 +5,7 @@
     </a>
 
     @if (!confirmation()) {
-    <header #bookingStepTop class="booking-header">
+    <header #bookingStepTop tabindex="-1" class="booking-header public-heading">
       <p class="eyebrow">{{ copy().eyebrow }}</p>
       <h1>{{ copy().pageTitle }}</h1>
     </header>
@@ -89,9 +89,7 @@
     <!-- Confirmation -->
     <section class="confirmation" aria-live="polite">
       <header class="confirmation-heading">
-        <p class="confirmation-status">
-          {{ copy().confirmedTitle }}
-        </p>
+        <p class="confirmation-status">{{ copy().confirmedTitle }}</p>
         <h1>{{ copy().confirmedLede(confirmed.customer.name) }}</h1>
       </header>
 
@@ -108,6 +106,7 @@
     } @else {
     <!-- Booking flow -->
     <byiara-stepper
+      mobileLayout="labeled"
       [steps]="steps()"
       [current]="currentStep()"
       [ariaLabel]="copy().bookingSteps"
@@ -119,7 +118,20 @@
         class="step-panel public-panel"
         [attr.data-direction]="stepDirection()"
       >
-        @switch (currentStep()) { @case ('service') {
+        @if (currentStep() === 'details' || currentStep() === 'review') {
+        <div aria-live="polite" class="promotion-notice">
+          @if (priceChecking()) {
+          <p>{{ promotionCopy().checking }}</p>
+          } @if (priceFailed()) {
+          <p>{{ promotionCopy().failed }}</p>
+          <button type="button" class="text-link" (click)="retryPrice()">
+            {{ promotionCopy().retry }}
+          </button>
+          } @if (offerUnavailable()) {
+          <p>{{ promotionCopy().unavailable }}</p>
+          }
+        </div>
+        } @switch (currentStep()) { @case ('service') {
         <div class="booking-section">
           <byiara-select-field
             [label]="copy().chooseService"
@@ -143,12 +155,20 @@
               [selected]="variant.id === selectedVariantId()"
               (click)="selectVariant(variant.id)"
             >
-              {{ variantLabel(variant) }}
+              {{ variant.durationMinutes }} min · @if (sessionPrice(variant) <
+              variant.price.amountCents) {
+              <span class="visually-hidden">{{ copy().originalPrice }}</span>
+              <s>{{ formatPrice(variant.price.amountCents) }}</s>
+              } {{ formatPrice(sessionPrice(variant)) }}
             </button>
             }
           </div>
         </div>
 
+        @if (promotionNotice() && !selectedPackOfferId() &&
+        !selectedCustomerPackId()) {
+        <p class="promotion-notice">{{ promotionNotice() }}</p>
+        }
         <div class="booking-section" aria-labelledby="payment-choice">
           <h2 id="payment-choice">{{ copy().paymentChoice }}</h2>
           <div
@@ -641,7 +661,7 @@
           <button
             type="button"
             class="button button-primary"
-            [disabled]="submitting()"
+            [disabled]="submitting() || !priceReady()"
             (click)="submit()"
           >
             {{ submitting() ? copy().submitting : copy().submit }}

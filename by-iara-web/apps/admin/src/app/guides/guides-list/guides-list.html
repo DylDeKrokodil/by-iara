@@ -1,8 +1,11 @@
-<byiara-page-header admin label="Content" title="Guides">
+<byiara-page-header admin title="Guides">
   <byiara-button page-header-action variant="primary" routerLink="/guides/new">
     New guide
   </byiara-button>
 </byiara-page-header>
+<p class="admin-page-description">
+  Write and organise the advice you share with your customers.
+</p>
 
 @if (error()) {
 <byiara-alert tone="danger">{{ error() }}</byiara-alert>

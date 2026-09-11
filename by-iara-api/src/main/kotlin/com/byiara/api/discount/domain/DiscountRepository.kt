@@ -7,6 +7,8 @@ interface DiscountRepository {
     fun create(discount: NewDiscount): Discount
     fun list(): List<Discount>
     fun findById(id: UUID): Discount?
+    fun lockCampaign(id: UUID)
+    fun hasCompletedAppointments(identityKey: String): Boolean
     fun findByCodeHash(codeHash: String, forUpdate: Boolean): Discount?
     fun findCustomerIdByEmail(email: String): UUID?
     fun findCompletedRecipientByEmail(email: String): DiscountRecipient?
@@ -16,6 +18,8 @@ interface DiscountRepository {
     fun transitionReservation(reservationId: UUID, target: DiscountUsageStatus, at: OffsetDateTime)
     fun updateStatus(id: UUID, status: DiscountStatus): Discount?
     fun updateFeatured(id: UUID, featured: Boolean): Discount?
+    fun deleteUnused(id: UUID): Boolean
     fun findFeatured(now: OffsetDateTime): Discount?
+    fun findActiveAutomatic(now: OffsetDateTime): List<Discount>
     fun usage(discountId: UUID): List<DiscountUsage>
 }

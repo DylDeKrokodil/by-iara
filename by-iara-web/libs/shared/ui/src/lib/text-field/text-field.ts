@@ -19,10 +19,17 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   templateUrl: './text-field.html',
   styleUrl: './text-field.css',
   providers: [
-    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => TextField), multi: true },
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => TextField),
+      multi: true,
+    },
   ],
 })
 export class TextField implements ControlValueAccessor {
+  private static nextId = 0;
+  private readonly instanceId = TextField.nextId++;
+
   label = input.required<string>();
   type = input<string>('text');
   autocomplete = input<string>('');
@@ -37,6 +44,7 @@ export class TextField implements ControlValueAccessor {
 
   protected readonly value = signal('');
   protected readonly disabled = signal(false);
+  protected readonly errorId = `byiara-text-field-error-${this.instanceId}`;
 
   private onChange: (value: string) => void = () => {};
   protected onTouched: () => void = () => {};

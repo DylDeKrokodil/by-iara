@@ -1,18 +1,13 @@
 /* Grid Layouts for Content */
-.tab-content {
-  animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 .availability-grid {
   display: grid;
-  grid-template-columns: 20rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 20rem;
   gap: var(--byiara-space-xl);
   align-items: start;
+}
+
+.availability-grid--blocks {
+  grid-template-columns: 20rem minmax(0, 1fr);
 }
 
 @media (max-width: 62rem) {
@@ -53,25 +48,25 @@
 /* Roster Display (Rules Tab) */
 .roster-container {
   display: grid;
-  gap: var(--byiara-space-md);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--byiara-color-border-subtle);
+  border-radius: var(--byiara-radius-lg);
+  background: var(--byiara-color-surface);
 }
 
 .day-card {
-  background: var(--byiara-color-surface);
-  border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-lg);
-  padding: var(--byiara-space-md) var(--byiara-space-lg);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--byiara-space-md);
-  box-shadow: var(--byiara-shadow-sm);
-  transition: all 0.2s ease;
+  min-height: 5rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--byiara-color-border-subtle);
 }
-
-.day-card:hover {
-  border-color: var(--byiara-color-primary-soft);
-  box-shadow: var(--byiara-shadow-md);
+.day-card:last-child {
+  border-bottom: 0;
+}
+.availability-editor {
+  min-width: 0;
 }
 
 .day-info {
@@ -83,8 +78,9 @@
 .day-name {
   font-size: var(--byiara-font-size-md);
   font-weight: var(--byiara-font-weight-bold);
-  color: var(--byiara-color-primary-strong);
+  color: var(--byiara-color-text);
   width: 7.5rem;
+  flex: none;
 }
 
 .shifts-list {
@@ -99,17 +95,21 @@
   gap: var(--byiara-space-2xs);
   background: var(--byiara-color-surface-muted);
   border: 1px solid var(--byiara-color-border);
-  border-radius: var(--byiara-radius-pill);
-  padding: var(--byiara-space-xs) var(--byiara-space-sm);
+  border-radius: var(--byiara-radius-md);
+  padding: 0 0 0 0.75rem;
   font-size: var(--byiara-font-size-sm);
   color: var(--byiara-color-text);
   font-weight: var(--byiara-font-weight-medium);
-  transition: all 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    border-color var(--byiara-duration-fast) var(--byiara-ease-out);
 }
 
-.shift-badge:hover {
-  border-color: var(--byiara-color-primary);
-  background: var(--byiara-color-surface-tinted);
+@media (hover: hover) and (pointer: fine) {
+  .shift-badge:hover {
+    border-color: var(--byiara-color-primary);
+    background: var(--byiara-color-surface-tinted);
+  }
 }
 
 .shift-delete-btn {
@@ -121,27 +121,37 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s ease;
+  transition:
+    background-color var(--byiara-duration-fast) var(--byiara-ease-out),
+    color var(--byiara-duration-fast) var(--byiara-ease-out),
+    transform var(--byiara-duration-fast) var(--byiara-ease-out);
   border-radius: 50%;
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
-.shift-delete-btn:hover {
-  color: var(--byiara-color-danger);
-  background: color-mix(in srgb, var(--byiara-color-danger) 8%, transparent);
+.shift-delete-btn:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .shift-delete-btn:hover {
+    color: var(--byiara-color-danger);
+    background: color-mix(in srgb, var(--byiara-color-danger) 8%, transparent);
+  }
 }
 
 .no-hours {
   color: var(--byiara-color-text-muted);
   font-size: var(--byiara-font-size-sm);
-  font-style: italic;
+  font-style: normal;
 }
 
 /* Tables and Overrides */
 .blocks-container {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: var(--byiara-space-md);
 }
 
@@ -157,6 +167,19 @@
 
 .reason-empty {
   color: var(--byiara-color-text-muted);
-  font-style: italic;
+  font-style: normal;
   font-size: var(--byiara-font-size-xs);
+}
+
+@media (max-width: 40rem) {
+  .day-card {
+    padding: 0.875rem 1rem;
+  }
+  .day-info {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .day-name {
+    width: 6.25rem;
+  }
 }

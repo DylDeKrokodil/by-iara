@@ -1,0 +1,36 @@
+/* Keep the visitor preview on the public brand theme inside the admin shell. */
+:root .byiara-admin .popup-preview {
+  --byiara-font-family-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --byiara-font-family-display: 'Playfair Display', Georgia, serif;
+  --byiara-color-text: var(--byiara-color-plum-950);
+  --byiara-color-text-muted: var(--byiara-color-mauve-700);
+  --byiara-color-border-strong: var(--byiara-color-mauve-500);
+  --byiara-color-focus: var(--byiara-color-plum-700);
+  --byiara-radius-lg: 0.75rem;
+  font-family: var(--byiara-font-family-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+:root .byiara-admin .popup-preview byiara-button .btn {
+  min-height: 2.875rem;
+  min-width: 2.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--byiara-radius-pill);
+  font-size: var(--byiara-font-size-sm);
+  line-height: 1.35;
+}
+:root .byiara-admin .popup-preview byiara-button .btn-icon {
+  padding-inline: 0;
+}
+:root .byiara-admin .popup-preview byiara-button .btn-secondary {
+  border-color: var(--byiara-color-border-strong);
+  background: var(--byiara-color-surface);
+  color: var(--byiara-color-text);
+}
+:root .byiara-admin .popup-preview byiara-button .btn-open {
+  padding-inline: var(--byiara-space-xs);
+}
+:root .byiara-admin .popup-preview byiara-button .btn-open::after {
+  width: 0.42rem;
+  transform: translateY(-0.12rem) rotate(135deg);
+}
