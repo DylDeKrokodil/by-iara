@@ -36,6 +36,11 @@ const DEFAULT_IMAGE_ALT: Record<LocaleCode, string> = {
   'pt-PT': `Tratamento de massagem no estúdio ${BRAND.name} em Almada`,
   'en-US': `Massage treatment at the ${BRAND.name} studio in Almada`,
 };
+const DEFAULT_SOCIAL_IMAGE = {
+  path: 'packs/packs-studio-cover.webp',
+  width: 1600,
+  height: 1200,
+} as const;
 
 @Injectable({ providedIn: 'root' })
 export class SeoService {
@@ -377,7 +382,7 @@ export class SeoService {
             name: BRAND.name,
             url: `${this.siteOrigin}/pt`,
             logo: `${this.siteOrigin}/${BRAND.logoPath}`,
-            image: `${this.siteOrigin}/hero/hero-studio-massage-2026-09.jpg`,
+            image: `${this.siteOrigin}/${DEFAULT_SOCIAL_IMAGE.path}`,
             email: BUSINESS_DETAILS.email,
             address: {
               '@type': 'PostalAddress',
@@ -439,9 +444,9 @@ export class SeoService {
   }): void {
     const canonical = this.absolute(config.canonicalPath);
     const image = config.image ?? {
-      url: `${this.siteOrigin}/hero/hero-studio-massage-2026-09.jpg`,
-      width: 1280,
-      height: 720,
+      url: `${this.siteOrigin}/${DEFAULT_SOCIAL_IMAGE.path}`,
+      width: DEFAULT_SOCIAL_IMAGE.width,
+      height: DEFAULT_SOCIAL_IMAGE.height,
       alt: DEFAULT_IMAGE_ALT[config.locale.locale],
     };
     this.title.setTitle(config.title);

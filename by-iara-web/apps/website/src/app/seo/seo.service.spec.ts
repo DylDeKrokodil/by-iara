@@ -167,10 +167,15 @@ describe('SeoService', () => {
         'script[data-byiara-seo="structured-data"]',
       )?.textContent ?? '{}',
     ) as { '@graph'?: Array<Record<string, unknown>> };
+    expect(
+      document.head.querySelector<HTMLMetaElement>('meta[property="og:image"]')
+        ?.content,
+    ).toBe('https://iaragouveia.com/packs/packs-studio-cover.webp');
     expect(structuredData['@graph']?.[0]).toMatchObject({
       '@type': 'LocalBusiness',
       name: 'Iara Gouveia',
       email: 'info@iaragouveia.com',
+      image: 'https://iaragouveia.com/packs/packs-studio-cover.webp',
       address: expect.objectContaining({
         addressLocality: 'Almada',
         addressCountry: 'PT',
