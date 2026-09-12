@@ -355,7 +355,8 @@ export class SeoService {
       page === 'home' ||
       page === 'services' ||
       page === 'guides' ||
-      page === 'packs';
+      page === 'packs' ||
+      page === 'book';
     const canonicalPath = this.staticPath(locale.path, page);
     const alternates = SUPPORTED_LOCALES.map((candidate) => ({
       locale: candidate.path,

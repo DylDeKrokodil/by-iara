@@ -1,24 +1,30 @@
 <div class="home" aria-labelledby="home-title">
   <section #heroSection class="home-hero">
     <div class="home-media">
-      <img
-        class="home-media-still"
-        src="hero/hero-studio-massage-2026-09.jpg"
-        width="1280"
-        height="720"
-        alt=""
-        fetchpriority="high"
-      />
+      <picture>
+        <source
+          srcset="hero/hero-studio-massage-2026-09.avif"
+          type="image/avif"
+        />
+        <img
+          class="home-media-still"
+          src="hero/hero-studio-massage-2026-09.jpg"
+          width="1280"
+          height="720"
+          alt=""
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
       <video
         aria-hidden="true"
         #heroVideo
         class="home-media-video"
-        autoplay
         loop
         muted
         [muted]="true"
         playsinline
-        preload="metadata"
+        preload="none"
         disablepictureinpicture
         disableremoteplayback
         tabindex="-1"
@@ -26,10 +32,7 @@
         [style.opacity]="1"
         (playing)="onHeroVideoPlaying()"
         (pause)="onHeroVideoPause()"
-      >
-        <source src="hero/hero-studio-massage-2026-09.webm" type="video/webm" />
-        <source src="hero/hero-studio-massage-2026-09.mp4" type="video/mp4" />
-      </video>
+      ></video>
     </div>
 
     <button type="button" class="hero-playback" (click)="toggleHeroPlayback()">
@@ -161,14 +164,25 @@
       </div>
 
       <figure class="home-visit-media">
-        <img
-          src="studio/studio-treatment-room-portrait.webp"
-          width="1200"
-          height="1600"
-          [alt]="copy().visitImageAlt"
-          loading="lazy"
-          decoding="async"
-        />
+        <picture>
+          <source
+            srcset="
+              studio/studio-treatment-room-portrait-480.avif   480w,
+              studio/studio-treatment-room-portrait-800.avif   800w,
+              studio/studio-treatment-room-portrait-1200.avif 1200w
+            "
+            sizes="(max-width: 767px) calc(100vw - 2.5rem), 50vw"
+            type="image/avif"
+          />
+          <img
+            src="studio/studio-treatment-room-portrait.webp"
+            width="1200"
+            height="1600"
+            [alt]="copy().visitImageAlt"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </figure>
     </div>
   </section>

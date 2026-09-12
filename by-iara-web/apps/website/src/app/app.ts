@@ -97,19 +97,18 @@ export class App {
     afterRenderEffect((onCleanup) => {
       const header = this.headerLayout()?.nativeElement;
       if (!header) return;
-      const measureHeader = () => {
-        // Hydration can replace the observed node. Never overwrite the
-        // fallback with the zero size of a detached or hidden element.
-        if (!header.isConnected) return;
-        const height = Math.ceil(header.getBoundingClientRect().height);
+      const observer = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        const borderBoxSize = entry?.borderBoxSize[0];
+        const height = Math.ceil(
+          borderBoxSize?.blockSize ?? entry?.contentRect.height ?? 0,
+        );
         if (height <= 0) return;
         document.documentElement.style.setProperty(
           '--byiara-site-header-height',
           `${height + 1}px`,
         );
-      };
-      measureHeader();
-      const observer = new ResizeObserver(measureHeader);
+      });
       observer.observe(header);
       onCleanup(() => {
         observer.disconnect();

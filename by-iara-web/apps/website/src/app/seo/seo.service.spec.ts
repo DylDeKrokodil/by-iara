@@ -146,6 +146,33 @@ describe('SeoService', () => {
     ).toBe('noindex, follow');
   });
 
+  it('makes the SSR booking page indexable and consolidates query variants', () => {
+    const document = TestBed.inject(DOCUMENT);
+
+    TestBed.inject(SeoService).updateStaticRoute(
+      '/pt/marcar?service=massagem-de-relaxamento&variant=variant-1',
+    );
+
+    expect(
+      document.head.querySelector<HTMLMetaElement>('meta[name="robots"]')
+        ?.content,
+    ).toBe('index, follow, max-image-preview:large');
+    expect(
+      document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+        ?.href,
+    ).toBe('https://iaragouveia.com/pt/marcar');
+    expect(
+      document.head.querySelector<HTMLLinkElement>(
+        'link[rel="alternate"][hreflang="en"]',
+      )?.href,
+    ).toBe('https://iaragouveia.com/en/book');
+    expect(
+      document.head.querySelector<HTMLLinkElement>(
+        'link[rel="alternate"][hreflang="x-default"]',
+      )?.href,
+    ).toBe('https://iaragouveia.com/pt/marcar');
+  });
+
   it('does not ask crawlers to follow links on a missing page', () => {
     const document = TestBed.inject(DOCUMENT);
 

@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
 
 test('shows the playing hero video after a refresh', async ({ page }) => {
+  const requestedVideoFormats: string[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('hero-studio-massage-2026-09.')) {
+      requestedVideoFormats.push(request.url());
+    }
+  });
   await page.goto('/pt');
 
   const heroVideo = page.locator('.home-media-video');
@@ -12,6 +18,8 @@ test('shows the playing hero video after a refresh', async ({ page }) => {
       heroVideo.evaluate((video: HTMLVideoElement) => video.currentSrc),
     )
     .toContain('.webm');
+  expect(requestedVideoFormats.some((url) => url.endsWith('.webm'))).toBe(true);
+  expect(requestedVideoFormats.some((url) => url.endsWith('.mp4'))).toBe(false);
 
   await page.reload();
 
@@ -50,6 +58,12 @@ test('a paused hero stays paused after scrolling away and back', async ({
 test('reduced motion prevents autoplay and responds to preference changes', async ({
   page,
 }) => {
+  const requestedVideos: string[] = [];
+  page.on('request', (request) => {
+    if (/hero-studio-massage-2026-09\.(webm|mp4)$/.test(request.url())) {
+      requestedVideos.push(request.url());
+    }
+  });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/pt');
   const video = page.locator('.home-media-video');
@@ -59,6 +73,7 @@ test('reduced motion prevents autoplay and responds to preference changes', asyn
   await expect
     .poll(() => video.evaluate((element: HTMLVideoElement) => element.paused))
     .toBe(true);
+  expect(requestedVideos).toEqual([]);
   // An explicit playback request remains available with Reduce Motion enabled.
   await page
     .getByRole('button', { name: 'Reproduzir vídeo', exact: true })
