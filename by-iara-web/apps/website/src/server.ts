@@ -140,6 +140,7 @@ app.get('/sitemap.xml', async (req, res) => {
     { pt: '/pt/massagens', en: '/en/massages' },
     { pt: '/pt/guias', en: '/en/guides' },
     { pt: '/pt/packs', en: '/en/packs' },
+    { pt: '/pt/marcar', en: '/en/book' },
   ];
   const serviceGroups: SitemapUrlGroup[] = services.map((service) => ({
     pt: service.translations['pt-PT']?.slug
