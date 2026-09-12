@@ -211,8 +211,9 @@
   display: inline-flex;
 }
 .footer-logo {
-  width: auto;
+  width: 7.75rem;
   height: 3rem;
+  aspect-ratio: 1000 / 388;
   filter: grayscale(1) brightness(0) invert(1);
 }
 .footer-brand p,
@@ -305,6 +306,7 @@
     display: none;
   }
   .header-container {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     gap: 0.75rem;
   }
   .menu-toggle {
