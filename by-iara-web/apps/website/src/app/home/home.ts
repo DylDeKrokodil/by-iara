@@ -25,6 +25,8 @@ import { HeaderAppearanceService } from '../header-appearance.service';
 import { HomePack } from './home-pack/home-pack';
 import { RevealOnScroll } from './reveal-on-scroll.directive';
 
+const HERO_VIDEO_BASE = 'hero/hero-studio-massage-2026-09';
+
 @Component({
   selector: 'byiara-home',
   imports: [Button, HomePack, NextAvailableLink, RevealOnScroll, RouterLink],
@@ -77,6 +79,7 @@ export class Home implements OnInit {
           this.heroVideoShouldPlay &&
           document.visibilityState === 'visible'
         ) {
+          this.ensureHeroVideoSource(video);
           this.playHeroVideo(video);
         } else {
           video.pause();
@@ -96,11 +99,18 @@ export class Home implements OnInit {
       window.addEventListener('pageshow', synchronizePlayback, {
         signal: lifecycleEvents.signal,
       });
-      synchronizePlayback();
+      // Firefox can report its pre-emulation media preference during the first
+      // hydration callback. Waiting for the next frame prevents a reduced-motion
+      // visit from initiating a media request before the preference settles.
+      const initialPlaybackFrame = window.requestAnimationFrame(() => {
+        this.heroVideoPlaybackEnabled = !motionPreference.matches;
+        synchronizePlayback();
+      });
       // Hydrated video elements can miss the initial autoplay opportunity in
       // Safari. Retry once after media metadata and layout have settled.
       window.setTimeout(synchronizePlayback, 250);
       this.destroyRef.onDestroy(() => {
+        window.cancelAnimationFrame(initialPlaybackFrame);
         this.heroVideoPlaybackEnabled = false;
         video.pause();
         this.headerAppearance.setMovingMediaBehindHeader(false);
@@ -116,8 +126,10 @@ export class Home implements OnInit {
     const video = this.heroVideo()?.nativeElement;
     if (!video) return;
     this.heroVideoPlaybackEnabled = !this.heroVideoPlaying();
-    if (this.heroVideoPlaybackEnabled) this.playHeroVideo(video);
-    else video.pause();
+    if (this.heroVideoPlaybackEnabled) {
+      this.ensureHeroVideoSource(video);
+      this.playHeroVideo(video);
+    } else video.pause();
   }
 
   protected onHeroVideoPlaying(): void {
@@ -153,6 +165,14 @@ export class Home implements OnInit {
         // Keep the still and an explicit play action when autoplay is unavailable.
         this.setHeroVideoPlaying(false);
       });
+  }
+
+  private ensureHeroVideoSource(video: HTMLVideoElement): void {
+    if (video.src) return;
+    video.src = video.canPlayType('video/webm')
+      ? `${HERO_VIDEO_BASE}.webm`
+      : `${HERO_VIDEO_BASE}.mp4`;
+    video.load();
   }
 
   private setHeroVideoPlaying(playing: boolean): void {
