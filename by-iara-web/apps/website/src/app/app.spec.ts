@@ -10,11 +10,12 @@ import { SOCIAL_LINKS } from './brand/brand';
 import { BUSINESS_DETAILS } from './legal/business-details';
 
 describe('App', () => {
-  async function createApp(hasGuides = false) {
+  async function createApp(hasGuides = false, hasActivePacks = false) {
     const fixture = TestBed.createComponent(App);
     const http = TestBed.inject(HttpTestingController);
     http.expectOne('/api/discounts/featured').flush(null);
     http.expectOne('/api/guides/availability').flush(hasGuides);
+    http.expectOne('/api/services/pack-availability').flush(hasActivePacks);
     await fixture.whenStable();
     return fixture;
   }
@@ -52,6 +53,7 @@ describe('App', () => {
       endsAt: '2026-09-30T23:59:59Z',
     });
     http.expectOne('/api/guides/availability').flush(false);
+    http.expectOne('/api/services/pack-availability').flush(false);
     await fixture.whenStable();
 
     const banner = fixture.nativeElement.querySelector(
@@ -71,6 +73,28 @@ describe('App', () => {
     expect(
       compiled.querySelector('.mobile-menu-nav a[href="/pt/guias"]'),
     ).toBeNull();
+  });
+
+  it('should hide pack links from both navbars when no packs are active', async () => {
+    const fixture = await createApp(false, false);
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(compiled.querySelector('.header-nav a[href="/pt/packs"]')).toBeNull();
+    expect(
+      compiled.querySelector('.mobile-menu-nav a[href="/pt/packs"]'),
+    ).toBeNull();
+  });
+
+  it('should show pack links in both navbars when a pack is active', async () => {
+    const fixture = await createApp(false, true);
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(
+      compiled.querySelector('.header-nav a[href="/pt/packs"]'),
+    ).not.toBeNull();
+    expect(
+      compiled.querySelector('.mobile-menu-nav a[href="/pt/packs"]'),
+    ).not.toBeNull();
   });
 
   it('should show guide links in both navbars when a guide is published', async () => {

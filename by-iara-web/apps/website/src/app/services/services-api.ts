@@ -118,6 +118,10 @@ export class ServicesApi {
     );
   }
 
+  hasActivePacks(): Observable<boolean> {
+    return this.http.get<boolean>(`${this.baseUrl}/pack-availability`);
+  }
+
   get(locale: LocaleCode, slug: string): Observable<Service> {
     return forkJoin({
       service: this.http.get<Service>(

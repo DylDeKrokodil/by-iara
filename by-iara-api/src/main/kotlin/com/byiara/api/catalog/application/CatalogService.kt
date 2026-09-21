@@ -25,6 +25,15 @@ class CatalogService(
     fun listPublicCatalog(): List<Service> = serviceRepository.findCatalog()
 
     @Transactional(readOnly = true)
+    fun hasActivePacks(): Boolean = serviceRepository.findCatalog().any { service ->
+        service.packOffers.any { offer ->
+            service.variants.any { variant ->
+                variant.durationMinutes == offer.durationMinutes
+            }
+        }
+    }
+
+    @Transactional(readOnly = true)
     fun findPublicByLocalizedSlug(locale: String, slug: String): Service? =
         serviceRepository.findPublicByLocalizedSlug(normalizeLocale(locale), slug)
 
