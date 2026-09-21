@@ -20,6 +20,9 @@ class ServiceController(
     fun list(): List<ServiceResponse> =
         catalogService.listPublicCatalog().map { it.toResponse() }
 
+    @GetMapping("/pack-availability")
+    fun packAvailability(): Boolean = catalogService.hasActivePacks()
+
     @GetMapping("/{id}/image")
     fun image(@PathVariable id: UUID): ResponseEntity<ByteArray> {
         val image = catalogService.getImage(id) ?: return ResponseEntity.notFound().build()

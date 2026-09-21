@@ -24,6 +24,7 @@ import {
 } from './promotions/featured-discount-api';
 import { WelcomePopup } from './popups/welcome-popup';
 import { PromotionBar } from './promotions/promotion-bar';
+import { ServicesApi } from './services/services-api';
 
 @Component({
   imports: [
@@ -47,6 +48,7 @@ export class App {
   private readonly seo = inject(SeoService);
   private readonly featuredDiscountApi = inject(FeaturedDiscountApi);
   private readonly guidesApi = inject(GuidesApi);
+  private readonly servicesApi = inject(ServicesApi);
 
   protected readonly language = inject(LanguageService);
   protected readonly headerAppearance = inject(HeaderAppearanceService);
@@ -57,6 +59,7 @@ export class App {
   private readonly mainContent =
     viewChild<ElementRef<HTMLElement>>('mainContent');
   protected readonly hasGuides = signal(false);
+  protected readonly hasActivePacks = signal(false);
   protected readonly featuredDiscount = signal<FeaturedDiscount | null>(null);
   protected readonly promotionDismissed = signal(false);
   protected readonly promotionBenefit = computed(() => {
@@ -122,6 +125,9 @@ export class App {
       .subscribe({ next: (discount) => this.featuredDiscount.set(discount) });
     this.guidesApi.hasPublished().subscribe({
       next: (hasGuides) => this.hasGuides.set(hasGuides),
+    });
+    this.servicesApi.hasActivePacks().subscribe({
+      next: (hasActivePacks) => this.hasActivePacks.set(hasActivePacks),
     });
     this.router.events
       .pipe(
