@@ -8,6 +8,9 @@ import com.byiara.api.discount.domain.DiscountValueType
 import com.byiara.api.reservation.application.ReservationAttentionPage
 import com.byiara.api.reservation.application.ReservationPayments
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CreateAdminReservationCommand
+import com.byiara.api.reservation.domain.AdminCustomerDetails
+import com.byiara.api.reservation.domain.UpdateAdminReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.CustomerDetails
 import com.byiara.api.reservation.domain.Reservation
@@ -84,6 +87,60 @@ data class AutomaticPriceRequest(
     @field:Size(max = 255) val customerEmail: String,
 )
 
+data class CreateAdminReservationRequest(
+    @field:NotNull val serviceId: UUID?,
+    @field:NotNull val serviceVariantId: UUID?,
+    @field:NotNull val startsAt: OffsetDateTime?,
+    @field:Valid val customer: AdminCustomerRequest? = null,
+    @field:Size(max = 1000) val notes: String? = null,
+    @field:Pattern(regexp = "pt|en", message = "must be 'pt' or 'en'") val locale: String? = null,
+    @field:jakarta.validation.constraints.PositiveOrZero val priceCents: Long? = null,
+    @field:jakarta.validation.constraints.PositiveOrZero val tipCents: Long = 0,
+) {
+    fun toCommand() = CreateAdminReservationCommand(
+        serviceId = serviceId!!,
+        serviceVariantId = serviceVariantId!!,
+        startsAt = startsAt!!,
+        customer = customer?.toDetails() ?: AdminCustomerDetails(),
+        notes = notes?.trim()?.ifBlank { null },
+        locale = locale?.let { ReservationLocale.fromCode(it) } ?: ReservationLocale.EN,
+        priceCents = priceCents,
+        tipCents = tipCents,
+    )
+}
+
+data class AdminCustomerRequest(
+    @field:Size(max = 160)
+    val name: String? = null,
+
+    @field:Email
+    @field:Size(max = 255)
+    val email: String? = null,
+
+    @field:Size(max = 40)
+    val phone: String? = null,
+) {
+    fun toDetails(): AdminCustomerDetails = AdminCustomerDetails(
+        name = name?.trim()?.ifBlank { null },
+        email = email?.trim()?.ifBlank { null },
+        phone = phone?.trim()?.ifBlank { null },
+    )
+}
+
+data class UpdateAdminReservationRequest(
+    @field:NotNull val serviceId: UUID?,
+    @field:NotNull val serviceVariantId: UUID?,
+    @field:jakarta.validation.constraints.PositiveOrZero val priceCents: Long?,
+    @field:jakarta.validation.constraints.PositiveOrZero val tipCents: Long = 0,
+) {
+    fun toCommand() = UpdateAdminReservationCommand(
+        serviceId = serviceId!!,
+        serviceVariantId = serviceVariantId!!,
+        priceCents = priceCents!!,
+        tipCents = tipCents,
+    )
+}
+
 data class AutomaticPriceResponse(
     val originalPrice: ReservationMoneyResponse,
     val finalPrice: ReservationMoneyResponse,
@@ -154,6 +211,7 @@ data class ReservationResponse(
     val decidedAt: OffsetDateTime?,
     val cancellationReasonCode: String?,
     val cancellationMessage: String?,
+    val tipCents: Long = 0,
 )
 
 data class RejectReservationRequest(
@@ -209,6 +267,9 @@ data class RecordPaymentRequest(
     @field:Positive
     val amountCents: Long?,
 
+    @field:jakarta.validation.constraints.PositiveOrZero
+    val tipCents: Long = 0,
+
     @field:NotNull
     @field:NotBlank
     @field:Pattern(regexp = "[A-Za-z]{3}", message = "must be a three-letter currency code")
@@ -224,6 +285,7 @@ data class RecordPaymentRequest(
 ) {
     fun toCommand(): RecordReservationPaymentCommand = RecordReservationPaymentCommand(
         amountCents = amountCents!!,
+        tipCents = tipCents,
         currency = currency!!,
         method = method!!,
         paidAt = paidAt,
@@ -242,6 +304,7 @@ data class ReservationPaymentResponse(
     val id: UUID,
     val reservationId: UUID,
     val amountCents: Long,
+    val tipCents: Long,
     val currency: String,
     val method: String,
     val status: String,
@@ -308,6 +371,7 @@ fun Reservation.toResponse(): ReservationResponse =
         decidedAt = decidedAt,
         cancellationReasonCode = cancellationReasonCode?.name,
         cancellationMessage = cancellationMessage,
+        tipCents = tipCents,
     )
 
 fun ReservationPage.toResponse(): ReservationPageResponse =
@@ -329,6 +393,7 @@ fun ReservationPayment.toResponse(): ReservationPaymentResponse = ReservationPay
     id = id,
     reservationId = reservationId,
     amountCents = amountCents,
+    tipCents = tipCents,
     currency = currency,
     method = method.name,
     status = status.name,

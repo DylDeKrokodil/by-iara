@@ -24,6 +24,7 @@ class JooqReservationPaymentRepository(
     private val id = field(name("id"), UUID::class.java)
     private val reservationId = field(name("reservation_id"), UUID::class.java)
     private val amountCents = field(name("amount_cents"), Long::class.java)
+    private val tipCents = field(name("tip_cents"), Long::class.java)
     private val currency = field(name("currency"), String::class.java)
     private val method = field(name("method"), String::class.java)
     private val status = field(name("status"), String::class.java)
@@ -32,24 +33,25 @@ class JooqReservationPaymentRepository(
 
     override fun create(payment: NewReservationPayment): ReservationPayment {
         val record = dsl.insertInto(payments)
-            .columns(reservationId, amountCents, currency, method, status, paidAt, reference)
+            .columns(reservationId, amountCents, tipCents, currency, method, status, paidAt, reference)
             .values(
                 payment.reservationId,
                 payment.amountCents,
+                payment.tipCents,
                 payment.currency,
                 payment.method.name,
                 PaymentStatus.PAID.name,
                 payment.paidAt,
                 payment.reference,
             )
-            .returning(id, reservationId, amountCents, currency, method, status, paidAt, reference)
+            .returning(id, reservationId, amountCents, tipCents, currency, method, status, paidAt, reference)
             .fetchOne()!!
 
         return mapPayment(record)
     }
 
     override fun findByReservationId(reservationId: UUID): List<ReservationPayment> =
-        dsl.select(id, this.reservationId, amountCents, currency, method, status, paidAt, reference)
+        dsl.select(id, this.reservationId, amountCents, tipCents, currency, method, status, paidAt, reference)
             .from(payments)
             .where(this.reservationId.eq(reservationId))
             .orderBy(paidAt.desc(), id.desc())
@@ -66,6 +68,7 @@ class JooqReservationPaymentRepository(
         id = record.get(id),
         reservationId = record.get(reservationId),
         amountCents = record.get(amountCents),
+        tipCents = record.get(tipCents),
         currency = record.get(currency),
         method = PaymentMethod.valueOf(record.get(method)),
         status = PaymentStatus.valueOf(record.get(status)),

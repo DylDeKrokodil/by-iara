@@ -26,6 +26,31 @@ data class PreviewDiscountCommand(
     val discountCode: String,
 )
 
+data class CreateAdminReservationCommand(
+    val serviceId: UUID,
+    val serviceVariantId: UUID,
+    val startsAt: OffsetDateTime,
+    val customer: AdminCustomerDetails = AdminCustomerDetails(),
+    val notes: String?,
+    val locale: ReservationLocale,
+    val priceCents: Long? = null,
+    val tipCents: Long = 0,
+)
+
+/** Optional contact details for an appointment created retrospectively by an administrator. */
+data class AdminCustomerDetails(
+    val name: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+)
+
+data class UpdateAdminReservationCommand(
+    val serviceId: UUID,
+    val serviceVariantId: UUID,
+    val priceCents: Long,
+    val tipCents: Long = 0,
+)
+
 class ReservationPriceChangedException : RuntimeException("Booking price changed. Review the updated price before submitting.")
 
 /** A customer-facing slot lookup for a selected catalog option. */

@@ -146,6 +146,20 @@
   color: var(--byiara-color-primary-strong);
 }
 
+.edit-details-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--byiara-space-md);
+}
+.edit-details-form h3,
+.edit-details-form .form-note,
+.edit-actions { grid-column: 1 / -1; margin: 0; }
+.edit-details-form .form-note { color: var(--byiara-color-text-muted); }
+.edit-details-form label { display: grid; gap: var(--byiara-space-xs); font-weight: 600; }
+.edit-details-form input,
+.edit-details-form select { min-height: 2.75rem; padding: .65rem .75rem; border: 1px solid var(--byiara-color-border); border-radius: var(--byiara-radius-md); background: var(--byiara-color-surface); color: var(--byiara-color-text); font: inherit; }
+.edit-actions { display: flex; justify-content: flex-end; gap: var(--byiara-space-sm); }
+
 .decision-detail {
   display: grid;
   gap: var(--byiara-space-md);
@@ -349,6 +363,11 @@
   .customer-list {
     grid-template-columns: 1fr;
   }
+
+  .edit-details-form { grid-template-columns: 1fr; }
+  .edit-details-form h3,
+  .edit-details-form .form-note,
+  .edit-actions { grid-column: auto; }
 
   .completion-discount-fields {
     grid-template-columns: 1fr;

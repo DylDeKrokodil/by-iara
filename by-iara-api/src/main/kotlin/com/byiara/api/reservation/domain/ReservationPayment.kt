@@ -26,6 +26,7 @@ data class ReservationPayment(
     val id: UUID,
     val reservationId: UUID,
     val amountCents: Long,
+    val tipCents: Long = 0,
     val currency: String,
     val method: PaymentMethod,
     val status: PaymentStatus,
@@ -36,6 +37,7 @@ data class ReservationPayment(
 data class NewReservationPayment(
     val reservationId: UUID,
     val amountCents: Long,
+    val tipCents: Long = 0,
     val currency: String,
     val method: PaymentMethod,
     val paidAt: OffsetDateTime,

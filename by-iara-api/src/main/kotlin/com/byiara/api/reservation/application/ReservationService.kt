@@ -13,6 +13,8 @@ import com.byiara.api.catalog.domain.Money
 import com.byiara.api.discount.application.DiscountService
 import com.byiara.api.discount.domain.DiscountQuote
 import com.byiara.api.reservation.domain.CreateReservationCommand
+import com.byiara.api.reservation.domain.CreateAdminReservationCommand
+import com.byiara.api.reservation.domain.UpdateAdminReservationCommand
 import com.byiara.api.reservation.domain.CancellationReasonCode
 import com.byiara.api.reservation.domain.DailyBookingLimitReachedException
 import com.byiara.api.reservation.domain.FindBookableSlotsCommand
@@ -154,6 +156,122 @@ class ReservationService(
         }
         reservationEmailService.notifyAdminsOfNewReservation(reservation)
         return reservation
+    }
+
+    @Transactional
+    fun createAdmin(command: CreateAdminReservationCommand): Reservation {
+        val service = requireActiveService(command.serviceId)
+        val variant = requireActiveVariant(service, command.serviceVariantId)
+        requireNonNegative(command.tipCents, "Tip")
+        command.priceCents?.let { requireNonNegative(it, "Price") }
+        val endsAt = command.startsAt.plusMinutes(variant.durationMinutes.toLong())
+        val isHistorical = !endsAt.isAfter(OffsetDateTime.now())
+
+        if (!isHistorical) {
+            if (!availabilityService.isAvailable(command.startsAt, variant.durationMinutes)) {
+                throw SlotNotAvailableException()
+            }
+            enforceDailyBookingLimit(command.startsAt)
+            val buffer = settingsService.appointmentBufferMinutes().toLong()
+            if (reservationRepository.hasOverlap(
+                    command.startsAt.minusMinutes(buffer),
+                    endsAt.plusMinutes(buffer),
+                )
+            ) {
+                throw SlotAlreadyBookedException()
+            }
+        }
+
+        val hasCustomerEmail = !command.customer.email.isNullOrBlank()
+        val customer = reservationRepository.findOrCreateCustomer(
+            com.byiara.api.reservation.domain.CustomerDetails(
+                name = command.customer.name ?: "Walk-in customer",
+                email = command.customer.email ?: "offline-${UUID.randomUUID()}@by-iara.local",
+                phone = command.customer.phone,
+            ),
+        )
+        val totalCents = (command.priceCents ?: variant.price.amountCents) + command.tipCents
+        val reservation = reservationRepository.create(
+            NewReservation(
+                customerId = customer.id,
+                serviceId = service.id,
+                serviceVariantId = variant.id,
+                serviceName = service.name,
+                durationMinutes = variant.durationMinutes,
+                price = Money(totalCents, variant.price.currency),
+                tipCents = command.tipCents,
+                startsAt = command.startsAt,
+                endsAt = endsAt,
+                notes = command.notes,
+                locale = command.locale,
+                status = if (isHistorical) ReservationStatus.COMPLETED else ReservationStatus.CONFIRMED,
+            ),
+        )
+        if (!isHistorical) {
+            reservationReminderService.schedule(reservation)
+        }
+        if (!isHistorical && hasCustomerEmail) {
+            reservationEmailService.notifyCustomerOfDecision(reservation)
+        }
+        return reservation
+    }
+
+    @Transactional
+    fun updateAdmin(id: UUID, command: UpdateAdminReservationCommand): Reservation {
+        val current = reservationRepository.findByIdForUpdate(id) ?: throw ReservationNotFoundException(id)
+        if (current.status in setOf(ReservationStatus.REJECTED, ReservationStatus.CANCELLED, ReservationStatus.NO_SHOW)) {
+            throw InvalidReservationRequestException("Closed reservations cannot be edited")
+        }
+        val service = requireActiveService(command.serviceId)
+        val variant = requireActiveVariant(service, command.serviceVariantId)
+        requireNonNegative(command.priceCents, "Price")
+        requireNonNegative(command.tipCents, "Tip")
+        val endsAt = current.startsAt.plusMinutes(variant.durationMinutes.toLong())
+        if (current.status in setOf(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)) {
+            if (!availabilityService.isAvailable(current.startsAt, variant.durationMinutes)) {
+                throw SlotNotAvailableException()
+            }
+            val buffer = settingsService.appointmentBufferMinutes().toLong()
+            if (reservationRepository.hasOverlap(
+                    current.startsAt.minusMinutes(buffer),
+                    endsAt.plusMinutes(buffer),
+                    excludingReservationId = id,
+                )
+            ) {
+                throw SlotAlreadyBookedException()
+            }
+        }
+        val totalCents = command.priceCents + command.tipCents
+        if (!reservationRepository.updateDetails(
+                id,
+                service.id,
+                variant.id,
+                service.name,
+                variant.durationMinutes,
+                totalCents,
+                command.tipCents,
+                endsAt,
+            )
+        ) {
+            throw InvalidReservationRequestException("The reservation changed while saving")
+        }
+        return reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
+    }
+
+    @Transactional(readOnly = true)
+    fun findAdminBookableSlots(
+        serviceId: UUID,
+        variantId: UUID,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<OffsetDateTime> {
+        val service = requireActiveService(serviceId)
+        val variant = requireActiveVariant(service, variantId)
+        return excludeOverlappingReservations(
+            availabilityService.findAvailableSlots(startDate, endDate, variant.durationMinutes),
+            variant.durationMinutes,
+            settingsService.appointmentBufferMinutes().toLong(),
+        )
     }
 
     @Transactional(readOnly = true)
@@ -452,6 +570,10 @@ class ReservationService(
     private fun requireActiveVariant(service: CatalogService, variantId: UUID) =
         service.variants.firstOrNull { it.id == variantId && it.active }
             ?: throw InvalidReservationRequestException("Selected option is not available for booking")
+
+    private fun requireNonNegative(value: Long, label: String) {
+        if (value < 0) throw InvalidReservationRequestException("$label cannot be negative")
+    }
 
     private fun requireReschedulable(reservation: Reservation) {
         if (reservation.status !in setOf(ReservationStatus.PENDING, ReservationStatus.CONFIRMED)) {

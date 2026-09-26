@@ -20,6 +20,7 @@ import com.byiara.api.pack.domain.PackRepository
 
 data class RecordReservationPaymentCommand(
     val amountCents: Long,
+    val tipCents: Long = 0,
     val currency: String,
     val method: PaymentMethod,
     val paidAt: OffsetDateTime?,
@@ -48,6 +49,9 @@ class ReservationPaymentService(
         if (command.amountCents <= 0L) {
             throw InvalidReservationRequestException("Payment amount must be greater than zero")
         }
+        if (command.tipCents < 0L) {
+            throw InvalidReservationRequestException("Tip cannot be negative")
+        }
 
         val currency = command.currency.trim().uppercase()
         if (currency != reservation.price.currency) {
@@ -55,8 +59,19 @@ class ReservationPaymentService(
         }
 
         val alreadyPaid = paymentRepository.totalPaidCents(reservationId)
-        if (alreadyPaid + command.amountCents > reservation.price.amountCents) {
+        val updatedTipCents = reservation.tipCents + command.tipCents
+        val updatedPriceCents = reservation.price.amountCents + command.tipCents
+        if (alreadyPaid + command.amountCents > updatedPriceCents) {
             throw InvalidReservationRequestException("Payment amount exceeds the remaining reservation balance")
+        }
+
+        if (command.tipCents > 0L && !reservationRepository.updatePriceAndTip(
+                reservationId,
+                updatedPriceCents,
+                updatedTipCents,
+            )
+        ) {
+            throw InvalidReservationRequestException("The reservation changed while saving the tip")
         }
 
         val paidAt = command.paidAt ?: OffsetDateTime.now()
@@ -68,6 +83,7 @@ class ReservationPaymentService(
             NewReservationPayment(
                 reservationId = reservationId,
                 amountCents = command.amountCents,
+                tipCents = command.tipCents,
                 currency = currency,
                 method = command.method,
                 paidAt = paidAt,

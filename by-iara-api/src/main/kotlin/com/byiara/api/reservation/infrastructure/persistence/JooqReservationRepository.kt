@@ -47,6 +47,7 @@ class JooqReservationRepository(
     private val rServiceName = field(name("service_name"), String::class.java)
     private val rDuration = field(name("duration_minutes"), Int::class.java)
     private val rPriceCents = field(name("price_cents"), Long::class.java)
+    private val rTipCents = field(name("tip_cents"), Long::class.java)
     private val rCurrency = field(name("currency"), String::class.java)
     private val rStartsAt = field(name("starts_at"), OffsetDateTime::class.java)
     private val rEndsAt = field(name("ends_at"), OffsetDateTime::class.java)
@@ -191,7 +192,7 @@ class JooqReservationRepository(
             .insertInto(reservations)
             .columns(
                 rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-                rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+                rDuration, rPriceCents, rTipCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             )
             .values(
                 reservation.customerId,
@@ -200,10 +201,11 @@ class JooqReservationRepository(
                 reservation.serviceName,
                 reservation.durationMinutes,
                 reservation.price.amountCents,
+                reservation.tipCents,
                 reservation.price.currency,
                 reservation.startsAt,
                 reservation.endsAt,
-                ReservationStatus.PENDING.name,
+                reservation.status.name,
                 reservation.notes,
                 reservation.locale.name.lowercase(),
             )
@@ -213,6 +215,36 @@ class JooqReservationRepository(
 
         return findById(newId)!!
     }
+
+    override fun updateDetails(
+        id: UUID,
+        serviceId: UUID,
+        serviceVariantId: UUID,
+        serviceName: String,
+        durationMinutes: Int,
+        priceCents: Long,
+        tipCents: Long,
+        endsAt: OffsetDateTime,
+    ): Boolean =
+        dsl.update(reservations)
+            .set(rServiceId, serviceId)
+            .set(rServiceVariantId, serviceVariantId)
+            .set(rServiceName, serviceName)
+            .set(rDuration, durationMinutes)
+            .set(rPriceCents, priceCents)
+            .set(rTipCents, tipCents)
+            .set(rEndsAt, endsAt)
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .execute() > 0
+
+    override fun updatePriceAndTip(id: UUID, priceCents: Long, tipCents: Long): Boolean =
+        dsl.update(reservations)
+            .set(rPriceCents, priceCents)
+            .set(rTipCents, tipCents)
+            .set(rUpdatedAt, currentOffsetDateTime())
+            .where(rId.eq(id))
+            .execute() > 0
 
     override fun updateDecision(
         id: UUID,
@@ -283,7 +315,7 @@ class JooqReservationRepository(
     override fun findAttention(now: OffsetDateTime, limit: Int, offset: Int): List<ReservationAttention> =
         dsl.select(
             rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rDuration, rPriceCents, rTipCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             rRejectionReasonCode, rRejectionMessage, rDecidedAt,
             rCancellationReasonCode, rCancellationMessage,
             cName, cEmail, cPhone, totalPaid,
@@ -358,7 +390,7 @@ class JooqReservationRepository(
     private fun baseSelect() =
         dsl.select(
             rId, rCustomerId, rServiceId, rServiceVariantId, rServiceName,
-            rDuration, rPriceCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
+            rDuration, rPriceCents, rTipCents, rCurrency, rStartsAt, rEndsAt, rStatus, rNotes, rLocale,
             rRejectionReasonCode, rRejectionMessage, rDecidedAt,
             rCancellationReasonCode, rCancellationMessage,
             cName, cEmail, cPhone,
@@ -426,6 +458,7 @@ class JooqReservationRepository(
             serviceName = record.get(rServiceName),
             durationMinutes = record.get(rDuration),
             price = Money(record.get(rPriceCents), record.get(rCurrency)),
+            tipCents = record.get(rTipCents) ?: 0L,
             startsAt = record.get(rStartsAt),
             endsAt = record.get(rEndsAt),
             status = ReservationStatus.valueOf(record.get(rStatus)),

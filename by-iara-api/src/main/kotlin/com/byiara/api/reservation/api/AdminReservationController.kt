@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.http.HttpStatus
 import jakarta.validation.Valid
@@ -28,6 +29,24 @@ class AdminReservationController(
     private val closeoutService: ReservationCloseoutService,
     private val paymentService: ReservationPaymentService,
 ) {
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    fun create(@Valid @RequestBody request: CreateAdminReservationRequest): ReservationResponse =
+        reservationService.createAdmin(request.toCommand()).toResponse()
+
+    @GetMapping("/availability")
+    fun availability(
+        @RequestParam serviceId: UUID,
+        @RequestParam serviceVariantId: UUID,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate,
+    ): List<OffsetDateTime> = reservationService.findAdminBookableSlots(
+        serviceId,
+        serviceVariantId,
+        startDate,
+        endDate,
+    )
+
     @GetMapping
     fun list(
         @RequestParam(required = false) status: Set<ReservationStatus>?,
@@ -51,6 +70,12 @@ class AdminReservationController(
     @GetMapping("/{id}")
     fun get(@PathVariable id: UUID): ReservationResponse =
         reservationService.get(id).toResponse()
+
+    @PutMapping("/{id}/details")
+    fun updateDetails(
+        @PathVariable id: UUID,
+        @Valid @RequestBody request: UpdateAdminReservationRequest,
+    ): ReservationResponse = reservationService.updateAdmin(id, request.toCommand()).toResponse()
 
     @GetMapping("/attention")
     fun attention(

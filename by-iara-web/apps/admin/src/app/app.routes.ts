@@ -55,6 +55,13 @@ export const appRoutes: Route[] = [
           import('./guides/guide-form/guide-form').then((m) => m.GuideForm),
       },
       {
+        path: 'reservations/new',
+        loadComponent: () =>
+          import('./reservations/admin-reservation-form/admin-reservation-form').then(
+            (m) => m.AdminReservationForm,
+          ),
+      },
+      {
         path: 'reservations/:id',
         loadComponent: () =>
           import('./reservations/reservation-detail/reservation-detail').then(
