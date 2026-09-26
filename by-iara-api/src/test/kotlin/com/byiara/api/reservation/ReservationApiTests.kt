@@ -259,6 +259,7 @@ class ReservationApiTests {
                 service_name varchar(160) not null,
                 duration_minutes integer not null,
                 price_cents bigint not null,
+                tip_cents bigint not null default 0,
                 currency varchar(3) not null default 'EUR',
                 starts_at timestamp with time zone not null,
                 ends_at timestamp with time zone not null,
@@ -373,6 +374,7 @@ class ReservationApiTests {
                 id uuid default random_uuid() primary key,
                 reservation_id uuid not null references reservations(id),
                 amount_cents bigint not null,
+                tip_cents bigint not null default 0,
                 currency varchar(3) not null,
                 method varchar(30) not null,
                 status varchar(20) not null default 'PAID',
@@ -1506,6 +1508,54 @@ class ReservationApiTests {
                 .contentType("application/json")
                 .content("""{"amountCents":5001,"currency":"EUR","method":"CASH"}"""),
         ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `admin can add a completed historical reservation without customer details`() {
+        val startsAt = OffsetDateTime.now(zone).minusDays(1).withHour(10).withMinute(0).withSecond(0).withNano(0)
+
+        mockMvc.perform(
+            post("/api/admin/reservations")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "serviceId":"$serviceId",
+                      "serviceVariantId":"$variantId",
+                      "startsAt":"${iso(startsAt)}",
+                      "priceCents":7500
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.status").value("COMPLETED"))
+            .andExpect(jsonPath("$.customer.name").value("Walk-in customer"))
+
+        assertEquals(0L, dsl.fetchValue("select count(*) from email_logs where email_type = 'RESERVATION_CONFIRMED'", Long::class.java))
+    }
+
+    @Test
+    fun `admin can record a tip with payment and the balance includes it`() {
+        val id = insertReservation(slotStart, "CONFIRMED", "tip-payment@example.com")
+
+        mockMvc.perform(
+            post("/api/admin/reservations/$id/payments")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content("""{"amountCents":8000,"tipCents":500,"currency":"EUR","method":"CARD"}"""),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.amountCents").value(8000))
+            .andExpect(jsonPath("$.tipCents").value(500))
+
+        mockMvc.perform(get("/api/admin/reservations/$id/payments").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.summary.balanceDueCents").value(0))
+            .andExpect(jsonPath("$.summary.state").value("PAID"))
+
+        assertEquals(500L, dsl.fetchValue("select tip_cents from reservations where id = ?", UUID.fromString(id)))
     }
 
     @Test

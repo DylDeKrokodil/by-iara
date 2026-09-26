@@ -48,11 +48,32 @@
             <dd>{{ item.durationMinutes }} minutes</dd>
           </div>
           <div>
-            <dt>Price</dt>
+            <dt>Total due</dt>
             <dd>{{ formatMoney(item.price) }}</dd>
           </div>
+          @if ((item.tipCents ?? 0) > 0) {
+          <div>
+            <dt>Tip</dt>
+            <dd>{{ formatPaymentAmount(item.tipCents ?? 0, item.price.currency) }}</dd>
+          </div>
+          }
         </dl>
       </byiara-card>
+      @if (canEditDetails() && !editOpen()) {
+      <byiara-button variant="secondary" (click)="openEditForm()">Edit service, price or tip</byiara-button>
+      } @if (editOpen()) {
+      <byiara-card padding="lg">
+        <form class="edit-details-form" [formGroup]="editForm" (ngSubmit)="submitEdit()" novalidate>
+          <h3>Edit reservation details</h3>
+          <p class="form-note">Changes update the service snapshot and the amount due for this reservation.</p>
+          <label>Service<select formControlName="serviceId" (change)="onEditServiceChange()"><option value="">Choose a service</option>@for (service of services(); track service.id) {<option [value]="service.id">{{ service.name }}</option>}</select></label>
+          <label>Duration<select formControlName="serviceVariantId"><option value="">Choose a duration</option>@for (variant of editVariants(); track variant.id) {<option [value]="variant.id">{{ variant.durationMinutes }} minutes</option>}</select></label>
+          <label>Service price (€)<input type="text" inputmode="decimal" formControlName="price" /></label>
+          <label>Tip (€)<input type="text" inputmode="decimal" formControlName="tip" /></label>
+          <div class="edit-actions"><byiara-button type="button" variant="secondary" (click)="closeEditForm()">Cancel</byiara-button><byiara-button type="submit" variant="primary" [disabled]="submitting()">Save changes</byiara-button></div>
+        </form>
+      </byiara-card>
+      }
     </section>
 
     <section aria-labelledby="payment-heading">
@@ -100,6 +121,9 @@
                 >{{ paymentMethodLabel(payment.method) }} · {{
                 formatDateTime(payment.paidAt) }}</span
               >
+              @if (payment.tipCents > 0) {
+              <span>Includes {{ formatPaymentAmount(payment.tipCents, payment.currency) }} tip</span>
+              }
             </div>
             @if (payment.reference) {
             <span class="payment-reference">{{ payment.reference }}</span> }
@@ -428,6 +452,12 @@
         ></byiara-checkbox>
         @if (completionRecordsPayment()) {
         <byiara-text-field
+          label="Tip"
+          optionalLabel="optional"
+          formControlName="tip"
+          [error]="touchedError(paymentForm.controls.tip, { pattern: 'Enter a valid tip with up to two decimals.' })"
+        ></byiara-text-field>
+        <byiara-text-field
           label="Amount received"
           formControlName="amount"
           required
@@ -514,6 +544,12 @@
       novalidate
     >
       <div class="decline-fields">
+        <byiara-text-field
+          label="Tip"
+          optionalLabel="optional"
+          formControlName="tip"
+          [error]="touchedError(paymentForm.controls.tip, { pattern: 'Enter a valid tip with up to two decimals.' })"
+        ></byiara-text-field>
         <byiara-text-field
           label="Amount received"
           formControlName="amount"

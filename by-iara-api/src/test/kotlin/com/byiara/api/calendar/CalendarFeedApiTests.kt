@@ -76,6 +76,7 @@ class CalendarFeedApiTests {
                 service_name varchar(160) not null,
                 duration_minutes integer not null,
                 price_cents bigint not null,
+                tip_cents bigint not null default 0,
                 currency varchar(3) not null default 'EUR',
                 starts_at timestamp with time zone not null,
                 ends_at timestamp with time zone not null,

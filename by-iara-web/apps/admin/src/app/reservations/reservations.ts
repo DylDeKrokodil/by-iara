@@ -74,6 +74,7 @@ const reservationColumns: ReadonlyArray<DataTableColumn> = [
   { key: 'when', label: 'Date & Time' },
   { key: 'status', label: 'Status', fit: true },
   { key: 'notes', label: 'Notes' },
+  { key: 'action', label: 'Action', fit: true },
 ];
 
 const attentionColumns: ReadonlyArray<DataTableColumn> = [

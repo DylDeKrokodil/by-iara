@@ -47,6 +47,19 @@ interface ReservationRepository {
 
     fun create(reservation: NewReservation): Reservation
 
+    fun updateDetails(
+        id: UUID,
+        serviceId: UUID,
+        serviceVariantId: UUID,
+        serviceName: String,
+        durationMinutes: Int,
+        priceCents: Long,
+        tipCents: Long,
+        endsAt: OffsetDateTime,
+    ): Boolean
+
+    fun updatePriceAndTip(id: UUID, priceCents: Long, tipCents: Long): Boolean
+
     fun updateDecision(
         id: UUID,
         status: ReservationStatus,

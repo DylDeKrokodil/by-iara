@@ -12,6 +12,7 @@ data class Reservation(
     val serviceName: String,
     val durationMinutes: Int,
     val price: Money,
+    val tipCents: Long = 0,
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val status: ReservationStatus,
@@ -32,8 +33,10 @@ data class NewReservation(
     val serviceName: String,
     val durationMinutes: Int,
     val price: Money,
+    val tipCents: Long = 0,
     val startsAt: OffsetDateTime,
     val endsAt: OffsetDateTime,
     val notes: String?,
     val locale: ReservationLocale,
+    val status: ReservationStatus = ReservationStatus.PENDING,
 )

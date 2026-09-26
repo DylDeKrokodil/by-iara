@@ -41,6 +41,8 @@ import {
   reservationStatusTone,
 } from '../reservation.models';
 import { ReservationsApi } from '../reservations-api';
+import { ServicesApi } from '../../services/services-api';
+import { Service } from '../../services/service.models';
 
 const reasonOptions: ReadonlyArray<SelectFieldOption> = [
   { label: 'Time no longer available', value: 'TIME_UNAVAILABLE' },
@@ -147,6 +149,7 @@ const cancellationMessages: Record<
 export class ReservationDetail implements OnInit {
   protected readonly touchedError = touchedError;
   private readonly api = inject(ReservationsApi);
+  private readonly servicesApi = inject(ServicesApi);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);
@@ -168,6 +171,8 @@ export class ReservationDetail implements OnInit {
   protected readonly selectedRescheduleStart = signal('');
   protected readonly completionOpen = signal(false);
   protected readonly paymentOpen = signal(false);
+  protected readonly editOpen = signal(false);
+  protected readonly services = signal<Service[]>([]);
   protected readonly paymentSummary = signal<PaymentSummary | null>(null);
   protected readonly payments = signal<ReservationPayment[]>([]);
   protected readonly selectedPaymentMethod = signal<PaymentMethod>('CARD');
@@ -199,7 +204,14 @@ export class ReservationDetail implements OnInit {
       '',
       [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)],
     ],
+    tip: ['0', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
     reference: ['', [Validators.maxLength(255)]],
+  });
+  protected readonly editForm = this.fb.nonNullable.group({
+    serviceId: ['', Validators.required],
+    serviceVariantId: ['', Validators.required],
+    price: ['', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
+    tip: ['0', [Validators.required, Validators.pattern(/^\d+(?:[.,]\d{1,2})?$/)]],
   });
   protected readonly completionDiscountForm = this.fb.nonNullable.group({
     includeDiscount: [false],
@@ -354,6 +366,61 @@ export class ReservationDetail implements OnInit {
       });
   }
 
+  protected canEditDetails(): boolean {
+    return !['REJECTED', 'CANCELLED', 'NO_SHOW'].includes(this.reservation()?.status ?? '');
+  }
+
+  protected openEditForm(): void {
+    const item = this.reservation();
+    if (!item) return;
+    this.editOpen.set(true);
+    this.editForm.patchValue({
+      serviceId: item.serviceId ?? '',
+      serviceVariantId: item.serviceVariantId ?? '',
+      price: ((item.price.amountCents - (item.tipCents ?? 0)) / 100).toFixed(2),
+      tip: ((item.tipCents ?? 0) / 100).toFixed(2),
+    });
+  }
+
+  protected closeEditForm(): void { this.editOpen.set(false); }
+
+  protected editVariants(): Service['variants'] {
+    return this.services().find((service) => service.id === this.editForm.controls.serviceId.value)?.variants.filter((variant) => variant.active) ?? [];
+  }
+
+  protected onEditServiceChange(): void {
+    const variant = this.editVariants()[0];
+    this.editForm.patchValue({
+      serviceVariantId: variant?.id ?? '',
+      price: variant ? (variant.price.amountCents / 100).toFixed(2) : '',
+    });
+  }
+
+  protected submitEdit(): void {
+    const item = this.reservation();
+    if (!item || this.editForm.invalid || this.submitting()) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+    const value = this.editForm.getRawValue();
+    this.submitting.set(true);
+    this.api.updateDetails(item.id, {
+      serviceId: value.serviceId,
+      serviceVariantId: value.serviceVariantId,
+      priceCents: this.cents(value.price),
+      tipCents: this.cents(value.tip),
+    }).subscribe({
+      next: (updated) => {
+        this.reservation.set(updated);
+        this.editOpen.set(false);
+        this.submitting.set(false);
+        this.reloadPayments();
+        this.toast.show('Reservation details updated.', 'success');
+      },
+      error: (error: HttpErrorResponse) => this.handleActionError(error, 'Could not update reservation details.'),
+    });
+  }
+
   protected openRescheduleForm(): void {
     const reservation = this.reservation();
     if (!reservation) return;
@@ -478,7 +545,7 @@ export class ReservationDetail implements OnInit {
 
   protected closeCompletionForm(): void {
     this.completionOpen.set(false);
-    this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
+    this.paymentForm.reset({ recordPayment: true, amount: '', tip: '0', reference: '' });
     this.completionDiscountForm.reset({
       includeDiscount: false,
       value: '10',
@@ -508,7 +575,7 @@ export class ReservationDetail implements OnInit {
 
   protected closePaymentForm(): void {
     this.paymentOpen.set(false);
-    this.paymentForm.reset({ recordPayment: true, amount: '', reference: '' });
+    this.paymentForm.reset({ recordPayment: true, amount: '', tip: '0', reference: '' });
   }
 
   protected setPaymentMethod(value: string): void {
@@ -698,11 +765,13 @@ export class ReservationDetail implements OnInit {
     forkJoin({
       reservation: this.api.get(id),
       payments: this.api.payments(id),
+      services: this.servicesApi.list({ active: true }),
     }).subscribe({
-      next: ({ reservation, payments }) => {
+      next: ({ reservation, payments, services }) => {
         this.reservation.set(reservation);
         this.paymentSummary.set(payments.summary);
         this.payments.set(payments.items);
+        this.services.set(services);
         this.loading.set(false);
       },
       error: () => {
@@ -710,6 +779,10 @@ export class ReservationDetail implements OnInit {
         this.error.set('Could not load this reservation.');
       },
     });
+  }
+
+  private cents(value: string): number {
+    return Math.round(Number(value.replace(',', '.')) * 100);
   }
 
   private resetPaymentForm(): void {
@@ -721,6 +794,7 @@ export class ReservationDetail implements OnInit {
     this.paymentForm.reset({
       recordPayment: true,
       amount: (balance / 100).toFixed(2),
+      tip: '0',
       reference: '',
     });
   }
@@ -729,6 +803,7 @@ export class ReservationDetail implements OnInit {
     const form = this.paymentForm.getRawValue();
     return {
       amountCents: Math.round(Number(form.amount.replace(',', '.')) * 100),
+      tipCents: this.cents(form.tip),
       currency: reservation.price.currency,
       method: this.selectedPaymentMethod(),
       reference: form.reference.trim() || undefined,

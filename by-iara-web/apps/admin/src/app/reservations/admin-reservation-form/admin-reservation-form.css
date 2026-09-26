@@ -1,0 +1,13 @@
+:host { display: block; }
+.reservation-form, section { display: grid; gap: var(--byiara-space-lg); }
+.reservation-form { max-width: 58rem; gap: var(--byiara-space-xl); }
+h2, p { margin: 0; }
+.form-note { color: var(--byiara-color-text-muted); }
+.optional { color: var(--byiara-color-text-muted); font-weight: var(--byiara-font-weight-regular); }
+.field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--byiara-space-lg); }
+label { display: grid; gap: var(--byiara-space-xs); color: var(--byiara-color-text); font-weight: 600; }
+input, select, textarea { width: 100%; min-height: 2.75rem; padding: .65rem .75rem; border: 1px solid var(--byiara-color-border); border-radius: var(--byiara-radius-md); background: var(--byiara-color-surface); color: var(--byiara-color-text); font: inherit; }
+textarea { resize: vertical; }
+.wide { grid-column: 1 / -1; }
+.form-actions { display: flex; justify-content: flex-end; gap: var(--byiara-space-sm); }
+@media (max-width: 48rem) { .field-grid { grid-template-columns: 1fr; } .wide { grid-column: auto; } .form-actions { justify-content: stretch; } .form-actions > * { flex: 1; } }

@@ -14,6 +14,23 @@ import {
   ReservationPayments,
   RescheduleReservationInput,
 } from './reservation.models';
+export interface AdminReservationInput {
+  serviceId: string;
+  serviceVariantId: string;
+  startsAt: string;
+  customer?: { name?: string; email?: string; phone?: string };
+  notes?: string;
+  locale?: 'pt' | 'en';
+  priceCents?: number;
+  tipCents?: number;
+}
+
+export interface AdminReservationUpdateInput {
+  serviceId: string;
+  serviceVariantId: string;
+  priceCents: number;
+  tipCents: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReservationsApi {
@@ -56,6 +73,27 @@ export class ReservationsApi {
 
   get(id: string): Observable<ReservationResponse> {
     return this.http.get<ReservationResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  createAdmin(input: AdminReservationInput): Observable<ReservationResponse> {
+    return this.http.post<ReservationResponse>(this.baseUrl, input);
+  }
+
+  adminAvailability(
+    serviceId: string,
+    serviceVariantId: string,
+    date: string,
+  ): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/availability`, {
+      params: { serviceId, serviceVariantId, startDate: date, endDate: date },
+    });
+  }
+
+  updateDetails(
+    id: string,
+    input: AdminReservationUpdateInput,
+  ): Observable<ReservationResponse> {
+    return this.http.put<ReservationResponse>(`${this.baseUrl}/${id}/details`, input);
   }
 
   attention(page = 0, size = 20): Observable<ReservationAttentionPage> {

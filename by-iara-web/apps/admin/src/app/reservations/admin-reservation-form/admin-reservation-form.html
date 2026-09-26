@@ -1,0 +1,38 @@
+<byiara-page-header admin title="New reservation">
+  <byiara-button page-header-action variant="secondary" (click)="cancel()">Back to reservations</byiara-button>
+</byiara-page-header>
+
+@if (error()) { <byiara-alert tone="danger">{{ error() }}</byiara-alert> }
+@if (loading()) { <p role="status">Loading services…</p> } @else {
+<form class="reservation-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <byiara-card padding="lg">
+    <section aria-labelledby="appointment-heading">
+      <h2 id="appointment-heading">Appointment</h2>
+      <p class="form-note">Create a confirmed booking directly. Appointments that have already ended are saved as completed history.</p>
+      <div class="field-grid">
+        <label>Service<select formControlName="serviceId" (change)="onServiceChange()"><option value="">Choose a service</option>@for (service of services(); track service.id) {<option [value]="service.id">{{ service.name }}</option>}</select></label>
+        <label>Duration<select formControlName="serviceVariantId" (change)="onVariantChange()"><option value="">Choose a duration</option>@for (variant of variants(); track variant.id) {<option [value]="variant.id">{{ variant.durationMinutes }} minutes · {{ variant.price.amountCents / 100 | number:'1.2-2' }} €</option>}</select></label>
+        <label>Date<input type="date" formControlName="date" /></label>
+        <label>Time<input type="time" formControlName="time" /></label>
+      </div>
+      <p class="form-note">For current and future appointments, the selected time must still be available. Past appointments can be added for record keeping.</p>
+    </section>
+  </byiara-card>
+
+  <byiara-card padding="lg">
+    <section aria-labelledby="customer-heading">
+      <h2 id="customer-heading">Customer</h2>
+      <div class="field-grid">
+        <label>Name <span class="optional">optional</span><input type="text" formControlName="name" autocomplete="name" /></label>
+        <label>Email <span class="optional">optional</span><input type="email" formControlName="email" autocomplete="email" /></label>
+        <label>Phone <span class="optional">optional</span><input type="tel" formControlName="phone" autocomplete="tel" /></label>
+        <label>Service price (€)<input type="text" inputmode="decimal" formControlName="price" /></label>
+        <label>Tip (€)<input type="text" inputmode="decimal" formControlName="tip" /></label>
+        <label class="wide">Notes<textarea formControlName="notes" rows="3"></textarea></label>
+      </div>
+    </section>
+  </byiara-card>
+
+  <div class="form-actions"><byiara-button variant="secondary" type="button" (click)="cancel()">Cancel</byiara-button><byiara-button variant="primary" type="submit" [disabled]="submitting()">{{ submitting() ? 'Creating…' : 'Create reservation' }}</byiara-button></div>
+</form>
+}

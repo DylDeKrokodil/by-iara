@@ -46,6 +46,7 @@ export interface ReservationResponse {
   serviceName: string;
   durationMinutes: number;
   price: Money;
+  tipCents?: number;
   startsAt: string;
   endsAt: string;
   customer: ReservationCustomer;
@@ -88,6 +89,7 @@ export interface ReservationPayment {
   id: string;
   reservationId: string;
   amountCents: number;
+  tipCents: number;
   currency: string;
   method: PaymentMethod;
   status: 'PAID' | 'REFUNDED' | 'VOIDED';
@@ -102,6 +104,7 @@ export interface ReservationPayments {
 
 export interface RecordPaymentInput {
   amountCents: number;
+  tipCents?: number;
   currency: string;
   method: PaymentMethod;
   paidAt?: string;
