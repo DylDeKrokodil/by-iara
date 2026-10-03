@@ -50,6 +50,7 @@ import {
 } from './booking-api';
 import {
   bookingCalendarMonth,
+  calendarDateKey,
   selectedOrFirstAvailableDateKey,
 } from './booking-calendar';
 import { publicEmailValidator } from './email-validator';
@@ -466,7 +467,10 @@ export class Booking implements OnInit {
     return Array.from({ length: month.gridDayCount }, (_, index) => {
       const date = new Date(month.gridStart);
       date.setDate(month.gridStart.getDate() + index);
-      const key = businessDateKey(date);
+      // Calendar cells represent local date-only values. Do not pass them
+      // through the business timezone formatter: at midnight in Amsterdam,
+      // Lisbon is still on the previous calendar date.
+      const key = calendarDateKey(date);
       return {
         key,
         weekday: weekdayFormatter.format(date).replace('.', ''),

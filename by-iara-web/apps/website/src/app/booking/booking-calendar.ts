@@ -5,6 +5,13 @@ export interface BookingCalendarMonth {
   readonly gridDayCount: number;
 }
 
+/** Formats a date-only calendar value without converting it between timezones. */
+export function calendarDateKey(date: Date): string {
+  const pad = (value: number) => value.toString().padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 /** Builds a Monday-first calendar month without carrying the current time. */
 export function bookingCalendarMonth(
   referenceDate: Date,

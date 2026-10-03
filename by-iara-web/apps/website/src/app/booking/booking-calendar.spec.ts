@@ -1,7 +1,14 @@
 import {
   bookingCalendarMonth,
+  calendarDateKey,
   selectedOrFirstAvailableDateKey,
 } from './booking-calendar';
+
+describe('calendarDateKey', () => {
+  it('preserves the calendar date without timezone conversion', () => {
+    expect(calendarDateKey(new Date(2026, 9, 7, 0, 0))).toBe('2026-10-07');
+  });
+});
 
 describe('bookingCalendarMonth', () => {
   it('returns the complete requested month', () => {
