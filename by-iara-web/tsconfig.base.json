@@ -16,6 +16,7 @@
     "skipDefaultLibCheck": true,
     "paths": {
       "@by-iara/config": ["./libs/shared/config/src/index.ts"],
+      "@by-iara/guide-models": ["./libs/shared/guide-models/src/index.ts"],
       "@by-iara/theme": ["./libs/shared/theme/src/index.ts"],
       "@by-iara/shared-ui": ["./libs/shared/ui/src/index.ts"]
     }

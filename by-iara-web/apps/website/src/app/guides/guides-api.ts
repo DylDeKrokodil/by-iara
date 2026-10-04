@@ -3,60 +3,21 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_ORIGIN, apiUrl } from '../api-origin';
 import { LocaleCode } from '../i18n/supported-locales';
+import type { GuideRecord } from '@by-iara/guide-models';
 
-export type GuideBlockType =
-  | 'PARAGRAPH'
-  | 'HEADING'
-  | 'IMAGE'
-  | 'LIST'
-  | 'QUOTE'
-  | 'CALL_TO_ACTION';
+export type {
+  GuideBlock,
+  GuideBlockType,
+  GuideFaq,
+  GuideImage,
+  GuideImageType,
+  GuideLocale,
+  GuideTranslation,
+} from '@by-iara/guide-models';
 
-export interface GuideBlock {
-  type: GuideBlockType;
-  text?: string;
-  headingLevel?: number;
-  items?: string[];
-  imageUrl?: string;
-  imageAlt?: string;
-  actionLabel?: string;
-  actionUrl?: string;
-}
-
-export interface GuideFaq {
-  question: string;
-  answer: string;
-}
-
-export interface GuideTranslation {
-  slug: string;
-  title: string;
-  excerpt: string;
-  seoTitle: string;
-  metaDescription: string;
-  blocks: GuideBlock[];
-  faqs: GuideFaq[];
-}
-
-export interface GuideImage {
-  url: string;
-  width: number;
-  height: number;
-  byteSize: number;
-}
-
-export interface Guide {
-  id: string;
+export interface Guide extends GuideRecord {
   status: 'PUBLISHED';
-  author: string;
   publishedAt: string;
-  createdAt: string;
-  updatedAt: string;
-  translations: Record<string, GuideTranslation>;
-  categories: string[];
-  tags: string[];
-  relatedServiceIds: string[];
-  images: Partial<Record<'COVER' | 'SOCIAL', GuideImage>>;
 }
 
 @Injectable({ providedIn: 'root' })
