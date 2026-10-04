@@ -36,7 +36,9 @@
 
   <div class="guide-body">
     @for (block of translation.blocks; track $index) { @switch (block.type) {
-    @case ('PARAGRAPH') {
+    @case ('RICH_TEXT') {
+    <div class="rich-content" [byiaraGuideAuthenticatedContent]="block.text || ''"></div>
+    } @case ('PARAGRAPH') {
     <p>{{ block.text }}</p>
     } @case ('HEADING') { @switch (block.headingLevel) { @case (3) {
     <h3>{{ block.text }}</h3>
@@ -45,12 +47,7 @@
     } @default {
     <h2>{{ block.text }}</h2>
     } } } @case ('IMAGE') {
-    <figure>
-      <img [src]="block.imageUrl" [alt]="block.imageAlt || ''" />
-      @if (block.imageAlt) {
-      <figcaption>{{ block.imageAlt }}</figcaption>
-      }
-    </figure>
+    <figure class="rich-content" [byiaraGuideAuthenticatedContent]="guideBlocksToHtml([block])"></figure>
     } @case ('LIST') {
     <ul>
       @for (item of block.items; track $index) {

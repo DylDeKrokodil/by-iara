@@ -3,6 +3,8 @@ import { ActivatedRoute } from '@angular/router';
 import { Alert, Button, PageHeader, TabOption, Tabs } from '@by-iara/shared-ui';
 import { GuidesApi } from '../guides-api';
 import { Guide, GuideImageType, GuideLocale } from '../guide.models';
+import { guideBlocksToHtml } from '../guide-content';
+import { GuideAuthenticatedContent } from './guide-authenticated-content';
 
 const tabs: ReadonlyArray<TabOption> = [
   { label: 'Portuguese', value: 'pt-PT' },
@@ -11,7 +13,7 @@ const tabs: ReadonlyArray<TabOption> = [
 
 @Component({
   selector: 'byiara-guide-preview',
-  imports: [Alert, Button, PageHeader, Tabs],
+  imports: [Alert, Button, PageHeader, Tabs, GuideAuthenticatedContent],
   templateUrl: './guide-preview.html',
   styleUrl: './guide-preview.css',
 })
@@ -23,6 +25,7 @@ export class GuidePreview implements OnInit {
   protected readonly locale = signal<GuideLocale>('pt-PT');
   protected readonly error = signal<string | null>(null);
   protected readonly tabs = tabs;
+  protected readonly guideBlocksToHtml = guideBlocksToHtml;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
