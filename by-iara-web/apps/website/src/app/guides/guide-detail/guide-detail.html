@@ -121,7 +121,9 @@
 
       <div class="guide-body">
         @for (block of localized.blocks; track $index) { @switch (block.type) {
-        @case ('PARAGRAPH') {
+        @case ('RICH_TEXT') {
+        <div class="rich-content" [innerHTML]="block.text"></div>
+        } @case ('PARAGRAPH') {
         <p>{{ block.text }}</p>
         } @case ('HEADING') { @switch (block.headingLevel) { @case (3) {
         <h3>{{ block.text }}</h3>
