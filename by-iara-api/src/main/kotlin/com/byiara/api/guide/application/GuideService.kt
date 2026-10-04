@@ -3,6 +3,7 @@ package com.byiara.api.guide.application
 import com.byiara.api.guide.domain.DuplicateGuideSlugException
 import com.byiara.api.guide.domain.Guide
 import com.byiara.api.guide.domain.GuideBlockType
+import org.jsoup.Jsoup
 import com.byiara.api.guide.domain.GuideCommand
 import com.byiara.api.guide.domain.GuideContentImageAsset
 import com.byiara.api.guide.domain.GuideImageAsset
@@ -66,14 +67,17 @@ class GuideService(
         if (status == GuideStatus.PUBLISHED) {
             ids.distinct().forEach { id ->
                 val guide = repository.findById(id) ?: throw GuideNotFoundException(id)
-                if (
-                    (SUPPORTED_LOCALES - guide.translations.keys).isNotEmpty() ||
-                    guide.translations.values.any { it.blocks.isEmpty() }
-                ) {
-                    throw InvalidGuideException(
-                        "Both languages need complete content before publishing",
+                validatePublishable(guide.author, guide.translations.mapValues { (_, translation) ->
+                    GuideTranslationCommand(
+                        slug = translation.slug,
+                        title = translation.title,
+                        excerpt = translation.excerpt,
+                        seoTitle = translation.seoTitle,
+                        metaDescription = translation.metaDescription,
+                        blocks = translation.blocks,
+                        faqs = translation.faqs,
                     )
-                }
+                })
             }
         }
         repository.updateStatus(ids.distinct(), status)
@@ -169,13 +173,17 @@ class GuideService(
     }
 
     private fun normalizeAndValidate(command: GuideCommand, existingId: UUID? = null): GuideCommand {
-        val missingLocales = SUPPORTED_LOCALES - command.translations.keys
-        if (missingLocales.isNotEmpty()) {
-            throw InvalidGuideException("Portuguese and English content are required")
+        if ((command.translations.keys - SUPPORTED_LOCALES).isNotEmpty()) {
+            throw InvalidGuideException("Unsupported guide locale")
         }
-        if (command.status == GuideStatus.PUBLISHED && command.translations.values.any { it.blocks.isEmpty() }) {
-            throw InvalidGuideException("Both languages need at least one content block before publishing")
+        SUPPORTED_LOCALES.forEach { locale ->
+            command.translations[locale]?.blocks?.forEach { block ->
+                if (block.type == GuideBlockType.RICH_TEXT && (block.text?.length ?: 0) > 200_000) {
+                    throw InvalidGuideException("${localeName(locale)} guide content must be 200,000 characters or fewer")
+                }
+            }
         }
+        if (command.status == GuideStatus.PUBLISHED) validatePublishable(command.author, command.translations)
         if (
             command.status == GuideStatus.PUBLISHED &&
             command.publishedAt?.isAfter(OffsetDateTime.now()) == true
@@ -183,9 +191,18 @@ class GuideService(
             throw InvalidGuideException("Published date cannot be in the future")
         }
 
-        val translations = command.translations.mapValues { (locale, translation) ->
-            validateBlocks(translation)
-            val slug = translation.slug?.let(::slugify)?.ifBlank { null } ?: slugify(translation.title)
+        val translations = SUPPORTED_LOCALES.associateWith { locale ->
+            val translation = command.translations[locale] ?: emptyTranslation()
+            val language = localeName(locale)
+            val requestedSlug = translation.slug?.let(::slugify)?.takeIf(String::isNotBlank)
+                ?: slugify(translation.title).takeIf(String::isNotBlank)
+            val needsDraftSlug = command.status != GuideStatus.PUBLISHED && (
+                requestedSlug == null || requestedSlug.length > 140 ||
+                    repository.slugExists(locale, requestedSlug, existingId)
+            )
+            val slug = if (needsDraftSlug) "draft-${existingId ?: UUID.randomUUID()}" else requestedSlug
+                ?: throw InvalidGuideException("$language URL slug needs letters or numbers")
+            if (slug.length > 140) throw InvalidGuideException("$language URL slug must be 140 characters or fewer")
             if (repository.slugExists(locale, slug, existingId)) {
                 throw DuplicateGuideSlugException(locale, slug)
             }
@@ -206,31 +223,71 @@ class GuideService(
         )
     }
 
-    private fun validateBlocks(translation: GuideTranslationCommand) {
+    private fun emptyTranslation() = GuideTranslationCommand(
+        slug = null,
+        title = "",
+        excerpt = "",
+        seoTitle = "",
+        metaDescription = "",
+        blocks = emptyList(),
+        faqs = emptyList(),
+    )
+
+    private fun validatePublishable(author: String, translations: Map<String, GuideTranslationCommand>) {
+        if (author.isBlank()) throw InvalidGuideException("Enter an author before publishing")
+        SUPPORTED_LOCALES.forEach { locale ->
+            val language = localeName(locale)
+            val translation = translations[locale]
+                ?: throw InvalidGuideException("Add $language content before publishing")
+            if (translation.title.isBlank()) throw InvalidGuideException("Enter the $language title")
+            if (translation.excerpt.isBlank()) throw InvalidGuideException("Enter the $language summary")
+            if (translation.blocks.isEmpty()) throw InvalidGuideException("Enter the $language guide content")
+            validateBlocks(translation, language)
+            if (translation.seoTitle.isBlank()) throw InvalidGuideException("Enter the $language SEO title")
+            if (translation.metaDescription.isBlank()) throw InvalidGuideException("Enter the $language meta description")
+            translation.faqs.forEachIndexed { index, faq ->
+                if (faq.question.isBlank()) throw InvalidGuideException("$language FAQ ${index + 1}: enter a question")
+                if (faq.answer.isBlank()) throw InvalidGuideException("$language FAQ ${index + 1}: enter an answer")
+            }
+        }
+    }
+
+    private fun validateBlocks(translation: GuideTranslationCommand, language: String) {
         translation.blocks.forEachIndexed { index, block ->
             when (block.type) {
+                GuideBlockType.RICH_TEXT -> {
+                    val document = Jsoup.parseBodyFragment(block.text.orEmpty())
+                    if (document.body().text().isBlank() && document.select("img[src]").isEmpty()) {
+                        throw InvalidGuideException("Enter the $language guide content")
+                    }
+                    if (document.select("img[src]").any { it.attr("alt").isBlank() }) {
+                        throw InvalidGuideException("Add alt text to each $language guide image")
+                    }
+                }
                 GuideBlockType.PARAGRAPH, GuideBlockType.QUOTE ->
-                    if (block.text.isNullOrBlank()) invalidBlock(index, "needs text")
+                    if (block.text.isNullOrBlank()) invalidBlock(language, index, "enter ${block.type.name.lowercase()} text")
                 GuideBlockType.HEADING -> {
-                    if (block.text.isNullOrBlank()) invalidBlock(index, "needs text")
-                    if (block.headingLevel !in 2..4) invalidBlock(index, "needs a heading level from 2 to 4")
+                    if (block.text.isNullOrBlank()) invalidBlock(language, index, "enter heading text")
+                    if (block.headingLevel !in 2..4) invalidBlock(language, index, "choose H2, H3, or H4")
                 }
                 GuideBlockType.IMAGE -> {
-                    if (block.imageUrl.isNullOrBlank()) invalidBlock(index, "needs an image URL")
-                    if (block.imageAlt.isNullOrBlank()) invalidBlock(index, "needs image alt text")
+                    if (block.imageUrl.isNullOrBlank()) invalidBlock(language, index, "choose an image or enter an image URL")
+                    if (block.imageAlt.isNullOrBlank()) invalidBlock(language, index, "enter image alt text")
                 }
                 GuideBlockType.LIST ->
-                    if (block.items.none { it.isNotBlank() }) invalidBlock(index, "needs at least one item")
+                    if (block.items.none { it.isNotBlank() }) invalidBlock(language, index, "enter at least one list item")
                 GuideBlockType.CALL_TO_ACTION -> {
-                    if (block.actionLabel.isNullOrBlank()) invalidBlock(index, "needs a label")
-                    if (block.actionUrl.isNullOrBlank()) invalidBlock(index, "needs a URL")
+                    if (block.actionLabel.isNullOrBlank()) invalidBlock(language, index, "enter a button label")
+                    if (block.actionUrl.isNullOrBlank()) invalidBlock(language, index, "enter a destination URL")
                 }
             }
         }
     }
 
-    private fun invalidBlock(index: Int, message: String): Nothing =
-        throw InvalidGuideException("Content block ${index + 1} $message")
+    private fun invalidBlock(language: String, index: Int, message: String): Nothing =
+        throw InvalidGuideException("$language content block ${index + 1}: $message")
+
+    private fun localeName(locale: String): String = if (locale == "pt-PT") "Portuguese" else "English"
 
     private fun cleanLabels(values: List<String>): List<String> =
         values.map(String::trim).filter(String::isNotBlank).distinctBy(String::lowercase)
@@ -239,9 +296,14 @@ class GuideService(
         val expectedPrefix = "/api/guides/images/content/$guideId/"
         val referencedIds = command.translations.values
             .flatMap { it.blocks }
-            .mapNotNull { block ->
-                block.imageUrl
-                    ?.takeIf { it.startsWith(expectedPrefix) }
+            .flatMap { block ->
+                if (block.type == GuideBlockType.RICH_TEXT) {
+                    Jsoup.parseBodyFragment(block.text.orEmpty()).select("img[src]").map { it.attr("src") }
+                } else listOfNotNull(block.imageUrl)
+            }
+            .mapNotNull { imageUrl ->
+                imageUrl
+                    .takeIf { it.startsWith(expectedPrefix) }
                     ?.removePrefix(expectedPrefix)
                     ?.substringBefore('?')
                     ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
@@ -261,7 +323,6 @@ class GuideService(
             .lowercase()
             .replace(Regex("[^a-z0-9]+"), "-")
             .trim('-')
-            .also { if (it.isBlank()) throw InvalidGuideException("Guide titles must produce a valid URL slug") }
 
     private fun normalizeLocale(locale: String): String =
         when (locale.trim()) {

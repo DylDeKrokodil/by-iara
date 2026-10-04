@@ -231,7 +231,53 @@ class GuideApiTests {
     }
 
     @Test
-    fun `both translations are required`() {
+    fun `a draft can be saved empty and cannot be published until complete`() {
+        val created = mockMvc.perform(
+            post("/api/admin/guides")
+                .with(jwt())
+                .contentType("application/json")
+                .content("""{"status":"DRAFT"}"""),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$['translations']['pt-PT']['title']").value(""))
+            .andExpect(jsonPath("$['translations']['en-US']['title']").value(""))
+            .andReturn()
+        val id: String = JsonPath.read(created.response.contentAsString, "$.id")
+
+        mockMvc.perform(
+            put("/api/admin/guides/status")
+                .with(jwt())
+                .contentType("application/json")
+                .content("""{"ids":["$id"],"status":"PUBLISHED"}"""),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Enter an author before publishing"))
+
+        mockMvc.perform(
+            put("/api/admin/guides/$id")
+                .with(jwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "status":"DRAFT",
+                      "translations":{
+                        "pt-PT":{
+                          "title":"###",
+                          "blocks":[{"type":"IMAGE"}],
+                          "faqs":[{"question":"Unanswered question"}]
+                        }
+                      }
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$['translations']['pt-PT']['title']").value("###"))
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['type']").value("IMAGE"))
+            .andExpect(jsonPath("$['translations']['pt-PT']['faqs'][0]['answer']").value(""))
+            .andExpect(jsonPath("$['translations']['en-US']['title']").value(""))
+
         mockMvc.perform(
             post("/api/admin/guides")
                 .with(jwt())
@@ -239,6 +285,7 @@ class GuideApiTests {
                 .content(
                     """
                     {
+                      "status":"PUBLISHED",
                       "author":"Iara",
                       "translations":{
                         "pt-PT":{
@@ -252,6 +299,142 @@ class GuideApiTests {
                     """.trimIndent(),
                 ),
         ).andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `draft titles do not need unique or short generated slugs`() {
+        val draft = """{"status":"DRAFT","translations":{"pt-PT":{"title":"Same title"}}}"""
+        val first = mockMvc.perform(
+            post("/api/admin/guides").with(jwt()).contentType("application/json").content(draft),
+        ).andExpect(status().isCreated).andReturn()
+        val second = mockMvc.perform(
+            post("/api/admin/guides").with(jwt()).contentType("application/json").content(draft),
+        ).andExpect(status().isCreated).andReturn()
+        val firstSlug: String = JsonPath.read(first.response.contentAsString, "$.translations['pt-PT'].slug")
+        val secondSlug: String = JsonPath.read(second.response.contentAsString, "$.translations['pt-PT'].slug")
+        kotlin.test.assertNotEquals(firstSlug, secondSlug)
+
+        mockMvc.perform(
+            post("/api/admin/guides")
+                .with(jwt())
+                .contentType("application/json")
+                .content("""{"status":"DRAFT","translations":{"pt-PT":{"title":"${"a".repeat(150)}"}}}"""),
+        )
+            .andExpect(status().isCreated)
+            .andExpect(jsonPath("$['translations']['pt-PT']['slug']").value(org.hamcrest.Matchers.startsWith("draft-")))
+    }
+
+    @Test
+    fun `publishing reports when a generated slug is too long`() {
+        val published = validGuideJson
+            .replace("\"status\":\"DRAFT\"", "\"status\":\"PUBLISHED\"")
+            .replace("\"title\":\"Primeira massagem\"", "\"title\":\"${"a".repeat(150)}\"")
+        mockMvc.perform(
+            post("/api/admin/guides").with(jwt()).contentType("application/json").content(published),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Portuguese URL slug must be 140 characters or fewer"))
+    }
+
+    @Test
+    fun `translations keep independent text after update`() {
+        val created = mockMvc.perform(
+            post("/api/admin/guides")
+                .with(jwt())
+                .contentType("application/json")
+                .content(validGuideJson),
+        ).andExpect(status().isCreated).andReturn()
+        val id: String = JsonPath.read(created.response.contentAsString, "$.id")
+
+        mockMvc.perform(get("/api/admin/guides/$id").with(jwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$['translations']['pt-PT']['title']").value("Primeira massagem"))
+            .andExpect(jsonPath("$['translations']['en-US']['title']").value("Your first massage"))
+            .andExpect(jsonPath("$['translations']['pt-PT']['excerpt']").value("O que esperar antes da sua primeira sessão."))
+            .andExpect(jsonPath("$['translations']['en-US']['excerpt']").value("What to expect before your first session."))
+            .andExpect(jsonPath("$['translations']['pt-PT']['seoTitle']").value("Primeira massagem em Almada"))
+            .andExpect(jsonPath("$['translations']['en-US']['seoTitle']").value("Your first massage in Almada"))
+    }
+
+    @Test
+    fun `publish errors name the exact language and field`() {
+        val published = validGuideJson.replace("\"status\":\"DRAFT\"", "\"status\":\"PUBLISHED\"")
+        val cases = listOf(
+            Triple("\"author\":\"Iara Gouveia\"", "\"author\":\"\"", "Enter an author before publishing"),
+            Triple("\"title\":\"Primeira massagem\"", "\"title\":\"\"", "Enter the Portuguese title"),
+            Triple("\"excerpt\":\"O que esperar antes da sua primeira sessão.\"", "\"excerpt\":\"\"", "Enter the Portuguese summary"),
+            Triple("\"seoTitle\":\"Primeira massagem em Almada\"", "\"seoTitle\":\"\"", "Enter the Portuguese SEO title"),
+            Triple("\"metaDescription\":\"Saiba como preparar a sua primeira massagem em Almada.\"", "\"metaDescription\":\"\"", "Enter the Portuguese meta description"),
+            Triple("\"text\":\"Chegue com alguns minutos de antecedência.\"", "\"text\":\"\"", "Portuguese content block 1: enter paragraph text"),
+            Triple("\"answer\":\"Roupa confortável.\"", "\"answer\":\"\"", "Portuguese FAQ 1: enter an answer"),
+            Triple("\"title\":\"Your first massage\"", "\"title\":\"\"", "Enter the English title"),
+        )
+        cases.forEach { (before, after, expected) ->
+            check(before in published) { "Missing test field: $before" }
+            mockMvc.perform(
+                post("/api/admin/guides")
+                    .with(jwt())
+                    .contentType("application/json")
+                    .content(published.replace(before, after)),
+            )
+                .andExpect(status().isBadRequest)
+                .andExpect(jsonPath("$.message").value(expected))
+        }
+    }
+
+    @Test
+    fun `rich guide content keeps formatting per language and removes unsafe HTML`() {
+        val rich = validGuideJson
+            .replace(
+                "{\"type\":\"PARAGRAPH\",\"text\":\"Chegue com alguns minutos de antecedência.\"}",
+                "{\"type\":\"RICH_TEXT\",\"text\":\"<h2>Preparação</h2><ul><li>Chegue cedo</li></ul><img src='/api/guides/images/content/guide/image' alt='Relaxing room'><script>alert(1)</script>\"}",
+            )
+            .replace(
+                "{\"type\":\"PARAGRAPH\",\"text\":\"Arrive a few minutes early.\"}",
+                "{\"type\":\"RICH_TEXT\",\"text\":\"<h2>Getting ready</h2><ol><li>Arrive early</li></ol>\"}",
+            )
+            .replace("\"status\":\"DRAFT\"", "\"status\":\"PUBLISHED\"")
+
+        val created = mockMvc.perform(
+            post("/api/admin/guides").with(jwt()).contentType("application/json").content(rich),
+        ).andExpect(status().isCreated)
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['type']").value("RICH_TEXT"))
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['text']").value(org.hamcrest.Matchers.containsString("<ul>")))
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['text']").value(org.hamcrest.Matchers.containsString("/api/guides/images/content/guide/image")))
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['text']").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("<script>"))))
+            .andExpect(jsonPath("$['translations']['en-US']['blocks'][0]['text']").value(org.hamcrest.Matchers.containsString("Getting ready")))
+            .andReturn()
+        val id: String = JsonPath.read(created.response.contentAsString, "$.id")
+        mockMvc.perform(get("/api/guides/pt-PT/primeira-massagem"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$['translations']['pt-PT']['blocks'][0]['type']").value("RICH_TEXT"))
+        mockMvc.perform(get("/api/admin/guides/$id").with(jwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$['translations']['en-US']['blocks'][0]['text']").value(org.hamcrest.Matchers.containsString("<ol>")))
+    }
+
+    @Test
+    fun `publishing an empty rich text editor names the content error`() {
+        val published = validGuideJson
+            .replace("\"status\":\"DRAFT\"", "\"status\":\"PUBLISHED\"")
+            .replace(
+                "{\"type\":\"PARAGRAPH\",\"text\":\"Chegue com alguns minutos de antecedência.\"}",
+                "{\"type\":\"RICH_TEXT\",\"text\":\"<p><br></p>\"}",
+            )
+        mockMvc.perform(post("/api/admin/guides").with(jwt()).contentType("application/json").content(published))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Enter the Portuguese guide content"))
+    }
+
+    @Test
+    fun `pasted data images report an actionable error instead of silently disappearing`() {
+        val draft = validGuideJson.replace(
+            "{\"type\":\"PARAGRAPH\",\"text\":\"Chegue com alguns minutos de antecedência.\"}",
+            "{\"type\":\"RICH_TEXT\",\"text\":\"<p>Texto</p><img src='data:image/png;base64,abcd' alt='Room'>\"}",
+        )
+        mockMvc.perform(post("/api/admin/guides").with(jwt()).contentType("application/json").content(draft))
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Guide images must use an HTTPS URL or the Upload or Library action"))
     }
 
     @Test
@@ -313,6 +496,25 @@ class GuideApiTests {
 
         mockMvc.perform(get("/api/guides/images/content/$guideId/$imageId"))
             .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `invalid content image returns a useful message`() {
+        val created = mockMvc.perform(
+            post("/api/admin/guides")
+                .with(jwt())
+                .contentType("application/json")
+                .content(validGuideJson),
+        ).andExpect(status().isCreated).andReturn()
+        val guideId: String = JsonPath.read(created.response.contentAsString, "$.id")
+
+        mockMvc.perform(
+            multipart("/api/admin/guides/$guideId/content-images")
+                .file(MockMultipartFile("image", "broken.png", "image/png", "not a PNG".toByteArray()))
+                .with(jwt()),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("Use a valid JPEG or PNG image"))
     }
 
     @Test
