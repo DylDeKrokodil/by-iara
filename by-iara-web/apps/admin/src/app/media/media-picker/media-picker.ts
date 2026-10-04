@@ -8,11 +8,13 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import { Button, FileUploadButton } from '@by-iara/shared-ui';
 import { MediaApi } from '../media-api';
 import { formatMediaBytes } from '../media-format';
 import { MediaAsset, MediaAssetView } from '../media.models';
+import { apiErrorMessage } from '../../core/api-error-message';
 
 @Component({
   selector: 'byiara-media-picker',
@@ -58,9 +60,9 @@ export class MediaPicker implements OnDestroy {
         this.uploading.set(false);
         this.load();
       },
-      error: () => {
+      error: (error: HttpErrorResponse) => {
         this.uploading.set(false);
-        this.error.set('Could not upload this image.');
+        this.error.set(apiErrorMessage(error, 'Could not upload this image.'));
       },
     });
   }

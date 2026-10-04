@@ -10,14 +10,17 @@ export function estimateGuideReadingMinutes(
     translation.title,
     translation.excerpt,
     ...translation.blocks.flatMap((block) => [
-      block.text ?? '',
+      block.type === 'RICH_TEXT'
+        ? (block.text ?? '')
+            .replace(/<[^>]*>/g, ' ')
+            .replace(/&(?:[a-z]+|#\d+);/gi, ' ')
+        : (block.text ?? ''),
       ...(block.items ?? []),
       block.actionLabel ?? '',
     ]),
     ...translation.faqs.flatMap((faq) => [faq.question, faq.answer]),
   ].join(' ');
-  const wordCount =
-    text.match(/\p{L}+(?:['’.-]\p{L}+)*|\p{N}+/gu)?.length ?? 0;
+  const wordCount = text.match(/\p{L}+(?:['’.-]\p{L}+)*|\p{N}+/gu)?.length ?? 0;
 
   return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 }

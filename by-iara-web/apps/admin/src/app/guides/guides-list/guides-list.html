@@ -90,14 +90,16 @@
         <input
           type="checkbox"
           [checked]="selectedIds().has(guide.id)"
-          [attr.aria-label]="'Select ' + guide.translations['pt-PT'].title"
+          [attr.aria-label]="'Select ' + (guide.translations['pt-PT'].title || 'Untitled draft')"
           (change)="toggleGuide(guide.id, $any($event.target).checked)"
         />
       </td>
       <td>
         <div class="guide-title">
-          <strong>{{ guide.translations['pt-PT'].title }}</strong>
+          <strong>{{ guide.translations['pt-PT'].title || 'Untitled draft' }}</strong>
+          @if (guide.translations['pt-PT'].title && !guide.translations['pt-PT'].slug.startsWith('draft-')) {
           <span>/pt/guias/{{ guide.translations['pt-PT'].slug }}</span>
+          }
         </div>
       </td>
       <td>
@@ -111,7 +113,7 @@
       <td class="actions-col">
         <byiara-action-menu
           [items]="actionsFor(guide)"
-          [ariaLabel]="'Actions for ' + guide.translations['pt-PT'].title"
+          [ariaLabel]="'Actions for ' + (guide.translations['pt-PT'].title || 'Untitled draft')"
           (actionSelected)="handleAction(guide, $event)"
         ></byiara-action-menu>
       </td>

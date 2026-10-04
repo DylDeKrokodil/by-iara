@@ -10,6 +10,7 @@ enum class GuideStatus {
 }
 
 enum class GuideBlockType {
+    RICH_TEXT,
     PARAGRAPH,
     HEADING,
     IMAGE,

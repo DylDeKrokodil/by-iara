@@ -1,18 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
 import {
   Component,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
   signal,
   ViewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
+  AbstractControl,
   FormArray,
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,6 +29,7 @@ import {
   Tabs,
   TextField,
   ToastService,
+  ValidationMessages,
   touchedError,
 } from '@by-iara/shared-ui';
 import { apiErrorMessage } from '../../core/api-error-message';
@@ -38,16 +43,30 @@ import { GuidesApi } from '../guides-api';
 import {
   Guide,
   GuideBlock,
-  GuideBlockType,
+  GuideContentImage,
   GuideImageType,
   GuideInput,
   GuideStatus,
   GuideTranslation,
 } from '../guide.models';
 import { EditorActionBar } from '../../layout/editor-action-bar/editor-action-bar';
+import {
+  guideBlocksToHtml,
+  richTextHasContent,
+  richTextImageIssue,
+} from '../guide-content';
+import {
+  GuideImageUploadRequest,
+  GuideLibraryImageRequest,
+  RichTextEditor,
+} from './rich-text-editor';
+import {
+  firstGuideValidationIssue,
+  GuideEditorSection,
+} from './guide-validation';
 
 type LanguageTab = 'ptPT' | 'enUS';
-type EditorTab = 'content' | 'seo' | 'faqs';
+type EditorTab = GuideEditorSection;
 
 const languageTabs: ReadonlyArray<TabOption> = [
   { label: 'Portuguese (pt-PT)', value: 'ptPT' },
@@ -58,17 +77,10 @@ const editorTabs: ReadonlyArray<TabOption> = [
   { label: 'SEO', value: 'seo' },
   { label: 'FAQs', value: 'faqs' },
 ];
-const blockTypeOptions: ReadonlyArray<{
-  label: string;
-  value: GuideBlockType;
-}> = [
-  { label: 'Paragraph', value: 'PARAGRAPH' },
-  { label: 'Heading', value: 'HEADING' },
-  { label: 'Image', value: 'IMAGE' },
-  { label: 'List', value: 'LIST' },
-  { label: 'Quote', value: 'QUOTE' },
-  { label: 'Call to action', value: 'CALL_TO_ACTION' },
-];
+const requiredText: ValidatorFn = (control) =>
+  typeof control.value === 'string' && control.value.trim()
+    ? null
+    : { required: true };
 
 @Component({
   selector: 'byiara-guide-form',
@@ -83,13 +95,14 @@ const blockTypeOptions: ReadonlyArray<{
     MediaPicker,
     MediaImageField,
     EditorActionBar,
+    RichTextEditor,
   ],
   templateUrl: './guide-form.html',
   styleUrl: './guide-form.css',
 })
 export class GuideForm implements OnInit, OnDestroy {
-  protected readonly touchedError = touchedError;
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly api = inject(GuidesApi);
   private readonly servicesApi = inject(ServicesApi);
   private readonly route = inject(ActivatedRoute);
@@ -98,6 +111,8 @@ export class GuideForm implements OnInit, OnDestroy {
   private readonly mediaApi = inject(MediaApi);
 
   @ViewChild(MediaPicker) private mediaPicker?: MediaPicker;
+  @ViewChild(RichTextEditor) private richEditor?: RichTextEditor;
+  private readonly location = inject(Location);
 
   protected guideId: string | null = null;
   protected readonly loading = signal(false);
@@ -110,6 +125,8 @@ export class GuideForm implements OnInit, OnDestroy {
     new Set(),
   );
   protected readonly currentGuide = signal<Guide | null>(null);
+  private readonly originalContentHtml: Partial<Record<LanguageTab, string>> =
+    {};
   protected readonly pendingImages = signal<
     Partial<Record<GuideImageType, File>>
   >({});
@@ -122,20 +139,16 @@ export class GuideForm implements OnInit, OnDestroy {
   protected readonly removedImages = signal<ReadonlySet<GuideImageType>>(
     new Set(),
   );
-  protected readonly pendingBlockImages = signal<Record<string, File>>({});
-  protected readonly pendingBlockMedia = signal<Record<string, string>>({});
-  protected readonly blockImagePreviews = signal<Record<string, string>>({});
   private mediaPickerTarget:
-    | { kind: 'guide'; type: GuideImageType }
-    | { kind: 'block'; index: number }
+    | GuideImageType
+    | { kind: 'content'; language: LanguageTab }
     | null = null;
   protected readonly languageTabs = languageTabs;
   protected readonly editorTabs = editorTabs;
-  protected readonly blockTypeOptions = blockTypeOptions;
 
   protected readonly form = this.fb.nonNullable.group({
     status: ['DRAFT' as GuideStatus],
-    author: ['', [Validators.required, Validators.maxLength(160)]],
+    author: ['', [requiredText, Validators.maxLength(160)]],
     publishedAt: [''],
     categories: [''],
     tags: [''],
@@ -161,7 +174,20 @@ export class GuideForm implements OnInit, OnDestroy {
     return this.translation.controls['faqs'] as FormArray;
   }
 
+  protected publishError(
+    control: AbstractControl | null,
+    messages: ValidationMessages,
+  ): string | null {
+    if (this.form.controls.status.value === 'PUBLISHED') {
+      return touchedError(control, messages);
+    }
+    return touchedError(control, { ...messages, required: '', pattern: '' });
+  }
+
   ngOnInit(): void {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.error.set(null));
     this.servicesApi.list({ active: true }).subscribe({
       next: (services) => this.services.set(services),
       error: () => this.services.set([]),
@@ -169,8 +195,8 @@ export class GuideForm implements OnInit, OnDestroy {
 
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.addBlock('PARAGRAPH', 'ptPT');
-      this.addBlock('PARAGRAPH', 'enUS');
+      this.blocksFor('ptPT').push(this.blockGroup({ type: 'RICH_TEXT' }));
+      this.blocksFor('enUS').push(this.blockGroup({ type: 'RICH_TEXT' }));
       return;
     }
 
@@ -182,7 +208,6 @@ export class GuideForm implements OnInit, OnDestroy {
         this.selectedServiceIds.set(new Set(guide.relatedServiceIds));
         this.patchTranslation('ptPT', guide.translations['pt-PT']);
         this.patchTranslation('enUS', guide.translations['en-US']);
-        this.loadStoredBlockPreviews();
         this.form.patchValue({
           status: guide.status,
           author: guide.author,
@@ -203,9 +228,6 @@ export class GuideForm implements OnInit, OnDestroy {
     Object.values(this.imagePreviews()).forEach((url) => {
       if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
     });
-    Object.values(this.blockImagePreviews()).forEach((url) =>
-      URL.revokeObjectURL(url),
-    );
   }
 
   protected selectLanguage(value: string): void {
@@ -218,89 +240,20 @@ export class GuideForm implements OnInit, OnDestroy {
     }
   }
 
-  protected addBlock(
-    type: GuideBlockType = 'PARAGRAPH',
-    language: LanguageTab = this.activeLanguage(),
-  ): void {
-    this.blocksFor(language).push(this.blockGroup({ type }));
-  }
-
-  protected removeBlock(index: number): void {
-    this.clearPendingBlockImage(this.blockClientId(this.blocks.at(index)));
-    this.blocks.removeAt(index);
-  }
-
-  protected moveBlock(index: number, direction: -1 | 1): void {
-    const target = index + direction;
-    if (target < 0 || target >= this.blocks.length) return;
-    const block = this.blocks.at(index);
-    this.blocks.removeAt(index);
-    this.blocks.insert(target, block);
-  }
-
-  protected setBlockType(index: number, value: string): void {
-    if (!blockTypeOptions.some((option) => option.value === value)) return;
-    const block = this.blocks.at(index);
-    if (block.get('type')?.value === 'IMAGE' && value !== 'IMAGE') {
-      this.clearPendingBlockImage(this.blockClientId(block));
-    }
-    block.get('type')?.setValue(value);
-  }
-
-  protected chooseBlockImage(index: number, event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-    const block = this.blocks.at(index);
-    const clientId = this.blockClientId(block);
-    this.clearPendingBlockImage(clientId);
-    this.pendingBlockImages.update((images) => ({
-      ...images,
-      [clientId]: file,
-    }));
-    this.blockImagePreviews.update((previews) => ({
-      ...previews,
-      [clientId]: URL.createObjectURL(file),
-    }));
-    input.value = '';
-  }
-
-  protected openBlockMediaPicker(index: number): void {
-    this.mediaPickerTarget = { kind: 'block', index };
-    this.mediaPicker?.open();
-  }
-
-  protected removeBlockImage(index: number): void {
-    const block = this.blocks.at(index);
-    this.clearPendingBlockImage(this.blockClientId(block));
-    block.get('imageUrl')?.setValue('');
-  }
-
-  protected blockImagePreviewUrl(index: number): string | null {
-    const block = this.blocks.at(index);
-    const pending = this.blockImagePreviews()[this.blockClientId(block)];
-    if (pending) return pending;
-    const url = String(block.get('imageUrl')?.value ?? '').trim();
-    if (!url) return null;
-    if (!this.storedBlockImageAdminUrl(url)) return url;
-    return this.currentGuide()?.status === 'PUBLISHED' ? url : null;
-  }
-
-  protected blockImageSourceError(index: number): string | null {
-    const block = this.blocks.at(index);
-    const control = block.get('imageUrl');
+  protected blockFieldError(index: number, field: 'text'): string | null {
+    const control = this.blocks.at(index)?.get(field);
     if (!control?.touched) return null;
-    const hasImage =
-      Boolean(String(control.value ?? '').trim()) ||
-      Boolean(this.pendingBlockImages()[this.blockClientId(block)]) ||
-      Boolean(this.pendingBlockMedia()[this.blockClientId(block)]);
-    return hasImage ? null : 'Choose a photo or enter an image URL.';
-  }
-
-  protected blockImageAltError(index: number): string | null {
-    const control = this.blocks.at(index).get('imageAlt');
-    if (!control?.touched || String(control.value ?? '').trim()) return null;
-    return 'Describe the image for people who cannot see it.';
+    const value = String(control.value ?? '');
+    if (value.length > 200_000)
+      return 'Guide content must be 200,000 characters or fewer.';
+    const publishing = this.form.controls.status.value === 'PUBLISHED';
+    const imageIssue = richTextImageIssue(value, publishing);
+    if (imageIssue === 'source')
+      return 'Use an HTTPS image URL or add the image with Upload or Library.';
+    if (this.form.controls.status.value !== 'PUBLISHED') return null;
+    if (!richTextHasContent(value)) return 'Enter guide content.';
+    if (imageIssue === 'alt') return 'Add alt text to each image.';
+    return null;
   }
 
   protected addFaq(): void {
@@ -341,8 +294,99 @@ export class GuideForm implements OnInit, OnDestroy {
   }
 
   protected openImageMediaPicker(type: GuideImageType): void {
-    this.mediaPickerTarget = { kind: 'guide', type };
+    this.mediaPickerTarget = type;
     this.mediaPicker?.open();
+  }
+
+  protected openContentMediaPicker(): void {
+    this.mediaPickerTarget = {
+      kind: 'content',
+      language: this.activeLanguage(),
+    };
+    this.mediaPicker?.open();
+  }
+
+  protected uploadContentImage(request: GuideImageUploadRequest): void {
+    this.addContentImage(
+      (guideId) => this.api.uploadContentImage(guideId, request.file),
+      request.alt,
+    );
+  }
+
+  protected useContentLibraryImage(request: GuideLibraryImageRequest): void {
+    this.addContentImage(
+      (guideId) => this.api.useMediaContentImage(guideId, request.image.id),
+      request.alt,
+    );
+  }
+
+  private addContentImage(
+    upload: (guideId: string) => Observable<GuideContentImage>,
+    alt: string,
+    language: LanguageTab = this.activeLanguage(),
+  ): void {
+    if (this.submitting()) return;
+    let imageInserted = false;
+    this.submitting.set(true);
+    this.error.set(null);
+    this.ensureGuideId()
+      .pipe(
+        switchMap(upload),
+        tap((image) => {
+          if (this.activeLanguage() === language && this.richEditor) {
+            this.richEditor.insertUploadedImage(image.url, alt);
+          } else {
+            const content = this.blocksFor(language).at(0)?.get('text');
+            content?.setValue(
+              `${content.value ?? ''}${guideBlocksToHtml([{ type: 'IMAGE', imageUrl: image.url, imageAlt: alt }])}`,
+            );
+          }
+          imageInserted = true;
+        }),
+        switchMap(() =>
+          this.currentGuide()?.status === 'DRAFT' && this.guideId
+            ? this.api.update(this.guideId, {
+                ...this.toInput(),
+                status: 'DRAFT',
+                publishedAt: null,
+              })
+            : of(null),
+        ),
+      )
+      .subscribe({
+        next: (guide) => {
+          if (guide) {
+            this.currentGuide.set(guide);
+            this.form.markAsPristine();
+          }
+          this.submitting.set(false);
+        },
+        error: (error: HttpErrorResponse) => {
+          const detail = apiErrorMessage(error, 'Please try again.');
+          const message = imageInserted
+            ? `Image inserted, but the draft could not be saved. Save as draft to keep it. ${detail}`
+            : detail;
+          if (!imageInserted) this.richEditor?.showImageError(message);
+          this.error.set(message);
+          this.submitting.set(false);
+        },
+      });
+  }
+
+  private ensureGuideId(): Observable<string> {
+    if (this.guideId) return of(this.guideId);
+    return this.api
+      .create({ ...this.toInput(), status: 'DRAFT', publishedAt: null })
+      .pipe(
+        tap((guide) => this.rememberCreatedGuide(guide)),
+        map((guide) => guide.id),
+      );
+  }
+
+  private rememberCreatedGuide(guide: Guide): void {
+    this.guideId = guide.id;
+    this.currentGuide.set(guide);
+    this.location.replaceState(`/guides/${guide.id}`);
   }
 
   protected chooseMediaImage(image: MediaAsset): void {
@@ -350,47 +394,35 @@ export class GuideForm implements OnInit, OnDestroy {
     this.mediaPickerTarget = null;
     if (!target) return;
 
-    if (target.kind === 'guide') {
-      const type = target.type;
-      const previous = this.imagePreviews()[type];
-      if (previous?.startsWith('blob:')) URL.revokeObjectURL(previous);
-      this.pendingImages.update((images) => {
-        const next = { ...images };
-        delete next[type];
-        return next;
-      });
-      this.pendingMediaImages.update((images) => ({
-        ...images,
-        [type]: image.id,
-      }));
-      this.removedImages.update((types) => {
-        const next = new Set(types);
-        next.delete(type);
-        return next;
-      });
-      this.mediaApi.download(image.url).subscribe({
-        next: (blob) =>
-          this.imagePreviews.update((previews) => ({
-            ...previews,
-            [type]: URL.createObjectURL(blob),
-          })),
-      });
+    if (typeof target === 'object') {
+      this.activeLanguage.set(target.language);
+      this.activeEditorTab.set('content');
+      this.richEditor?.prepareLibraryImage(image);
       return;
     }
 
-    const block = this.blocks.at(target.index);
-    if (!block) return;
-    const clientId = this.blockClientId(block);
-    this.clearPendingBlockImage(clientId);
-    this.pendingBlockMedia.update((images) => ({
+    const type = target;
+    const previous = this.imagePreviews()[type];
+    if (previous?.startsWith('blob:')) URL.revokeObjectURL(previous);
+    this.pendingImages.update((images) => {
+      const next = { ...images };
+      delete next[type];
+      return next;
+    });
+    this.pendingMediaImages.update((images) => ({
       ...images,
-      [clientId]: image.id,
+      [type]: image.id,
     }));
+    this.removedImages.update((types) => {
+      const next = new Set(types);
+      next.delete(type);
+      return next;
+    });
     this.mediaApi.download(image.url).subscribe({
       next: (blob) =>
-        this.blockImagePreviews.update((previews) => ({
+        this.imagePreviews.update((previews) => ({
           ...previews,
-          [clientId]: URL.createObjectURL(blob),
+          [type]: URL.createObjectURL(blob),
         })),
     });
   }
@@ -427,42 +459,58 @@ export class GuideForm implements OnInit, OnDestroy {
       : `/api/admin/guides/${guide.id}/images/${type}`;
   }
 
-  protected save(status?: GuideStatus): void {
-    if (status) this.form.controls.status.setValue(status);
-    this.form.markAllAsTouched();
-    if (
-      this.form.invalid ||
-      this.hasEmptyBlockCollections() ||
-      this.hasInvalidImageBlocks()
-    ) {
-      this.error.set(
-        'Complete both languages and add alt text and a photo or URL to every image block.',
-      );
+  protected save(status: GuideStatus = 'DRAFT'): void {
+    if (this.submitting()) return;
+    const wasNew = !this.guideId;
+    this.form.controls.status.setValue(status);
+    if (status === 'DRAFT') this.form.controls.publishedAt.setValue('');
+    if (status === 'PUBLISHED') this.form.markAllAsTouched();
+    const issue = firstGuideValidationIssue(this.toInput(), {
+      publishedDateInput: this.form.controls.publishedAt.value,
+      hasPendingBlockImage: () => false,
+    });
+    if (issue) {
+      if (issue.locale) {
+        this.activeLanguage.set(issue.locale === 'pt-PT' ? 'ptPT' : 'enUS');
+      }
+      if (issue.section) this.activeEditorTab.set(issue.section);
+      this.error.set(issue.message);
       return;
     }
 
     this.submitting.set(true);
     this.error.set(null);
+    let guidePersisted = false;
     this.persistGuide()
-      .pipe(switchMap((guide) => this.syncImages(guide)))
+      .pipe(
+        tap((guide) => {
+          guidePersisted = true;
+          this.currentGuide.set(guide);
+        }),
+        switchMap((guide) => this.syncImages(guide)),
+      )
       .subscribe({
         next: (guide) => {
           this.submitting.set(false);
           this.toast.show('Guide saved successfully.', 'success');
-          if (!this.editing) {
+          if (wasNew) {
             this.router.navigate(['/guides', guide.id]);
           } else {
             this.currentGuide.set(guide);
             this.pendingImages.set({});
             this.pendingMediaImages.set({});
             this.removedImages.set(new Set());
-            this.clearAllPendingBlockImages();
             this.form.markAsPristine();
           }
         },
         error: (error: HttpErrorResponse) => {
           this.submitting.set(false);
-          this.error.set(apiErrorMessage(error, 'Could not save the guide.'));
+          const detail = apiErrorMessage(error, 'Please try again.');
+          this.error.set(
+            guidePersisted
+              ? `Guide details were saved, but an image change failed. Retry saving to finish. ${detail}`
+              : `Could not save the guide. ${detail}`,
+          );
         },
       });
   }
@@ -471,8 +519,6 @@ export class GuideForm implements OnInit, OnDestroy {
     if (this.form.dirty) return true;
     if (Object.keys(this.pendingImages()).length) return true;
     if (Object.keys(this.pendingMediaImages()).length) return true;
-    if (Object.keys(this.pendingBlockImages()).length) return true;
-    if (Object.keys(this.pendingBlockMedia()).length) return true;
     if (this.removedImages().size) return true;
 
     const savedServiceIds = new Set(
@@ -496,19 +542,19 @@ export class GuideForm implements OnInit, OnDestroy {
     });
   }
 
-  protected blockLabel(type: GuideBlockType): string {
-    return (
-      blockTypeOptions.find((option) => option.value === type)?.label ?? type
-    );
-  }
-
   private translationGroup(): FormGroup {
     return this.fb.nonNullable.group({
-      slug: ['', [Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
-      title: ['', [Validators.required, Validators.maxLength(180)]],
-      excerpt: ['', [Validators.required, Validators.maxLength(600)]],
-      seoTitle: ['', [Validators.required, Validators.maxLength(180)]],
-      metaDescription: ['', [Validators.required, Validators.maxLength(320)]],
+      slug: [
+        '',
+        [
+          Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+          Validators.maxLength(140),
+        ],
+      ],
+      title: ['', [requiredText, Validators.maxLength(180)]],
+      excerpt: ['', [requiredText, Validators.maxLength(600)]],
+      seoTitle: ['', [requiredText, Validators.maxLength(180)]],
+      metaDescription: ['', [requiredText, Validators.maxLength(320)]],
       blocks: this.fb.array([]),
       faqs: this.fb.array([]),
     });
@@ -516,22 +562,15 @@ export class GuideForm implements OnInit, OnDestroy {
 
   private blockGroup(block: Partial<GuideBlock>): FormGroup {
     return this.fb.nonNullable.group({
-      clientId: [crypto.randomUUID()],
-      type: [block.type ?? 'PARAGRAPH'],
+      type: [block.type ?? 'RICH_TEXT'],
       text: [block.text ?? ''],
-      headingLevel: [block.headingLevel ?? 2],
-      items: [(block.items ?? []).join('\n')],
-      imageUrl: [block.imageUrl ?? ''],
-      imageAlt: [block.imageAlt ?? ''],
-      actionLabel: [block.actionLabel ?? ''],
-      actionUrl: [block.actionUrl ?? ''],
     });
   }
 
   private faqGroup(faq?: { question: string; answer: string }): FormGroup {
     return this.fb.nonNullable.group({
-      question: [faq?.question ?? '', Validators.required],
-      answer: [faq?.answer ?? '', Validators.required],
+      question: [faq?.question ?? '', requiredText],
+      answer: [faq?.answer ?? '', requiredText],
     });
   }
 
@@ -553,7 +592,9 @@ export class GuideForm implements OnInit, OnDestroy {
   ): void {
     const group = this.form.controls.translations.controls[language];
     group.patchValue({
-      slug: translation.slug,
+      slug: /^draft-[0-9a-f-]{36}$/.test(translation.slug)
+        ? ''
+        : translation.slug,
       title: translation.title,
       excerpt: translation.excerpt,
       seoTitle: translation.seoTitle,
@@ -561,7 +602,14 @@ export class GuideForm implements OnInit, OnDestroy {
     });
     const blocks = this.blocksFor(language);
     blocks.clear();
-    translation.blocks.forEach((block) => blocks.push(this.blockGroup(block)));
+    const contentHtml = guideBlocksToHtml(translation.blocks);
+    this.originalContentHtml[language] = contentHtml;
+    blocks.push(
+      this.blockGroup({
+        type: 'RICH_TEXT',
+        text: contentHtml,
+      }),
+    );
     const faqs = this.faqsFor(language);
     faqs.clear();
     translation.faqs.forEach((faq) => faqs.push(this.faqGroup(faq)));
@@ -572,9 +620,7 @@ export class GuideForm implements OnInit, OnDestroy {
     return {
       status: value.status,
       author: value.author.trim(),
-      publishedAt: value.publishedAt
-        ? new Date(value.publishedAt).toISOString()
-        : null,
+      publishedAt: this.publishedAtInput(value.status, value.publishedAt),
       translations: {
         'pt-PT': this.translationInput('ptPT'),
         'en-US': this.translationInput('enUS'),
@@ -588,40 +634,19 @@ export class GuideForm implements OnInit, OnDestroy {
   private translationInput(language: LanguageTab): GuideTranslation {
     const value =
       this.form.controls.translations.controls[language].getRawValue();
+    const locale = language === 'ptPT' ? 'pt-PT' : 'en-US';
+    const original = this.currentGuide()?.translations[locale];
+    const contentHtml = value.blocks[0]?.text ?? '';
     return {
       slug: value.slug.trim(),
       title: value.title.trim(),
       excerpt: value.excerpt.trim(),
       seoTitle: value.seoTitle.trim(),
       metaDescription: value.metaDescription.trim(),
-      blocks: value.blocks.map(
-        (block: {
-          type: GuideBlockType;
-          text: string;
-          headingLevel: number;
-          items: string;
-          imageUrl: string;
-          imageAlt: string;
-          actionLabel: string;
-          actionUrl: string;
-        }) => ({
-          type: block.type,
-          text: block.text.trim() || undefined,
-          headingLevel:
-            block.type === 'HEADING' ? Number(block.headingLevel) : undefined,
-          items:
-            block.type === 'LIST'
-              ? block.items
-                  .split('\n')
-                  .map((item) => item.trim())
-                  .filter(Boolean)
-              : undefined,
-          imageUrl: block.imageUrl.trim() || undefined,
-          imageAlt: block.imageAlt.trim() || undefined,
-          actionLabel: block.actionLabel.trim() || undefined,
-          actionUrl: block.actionUrl.trim() || undefined,
-        }),
-      ),
+      blocks:
+        original && contentHtml === this.originalContentHtml[language]
+          ? original.blocks
+          : [{ type: 'RICH_TEXT', text: contentHtml || undefined }],
       faqs: value.faqs.map((faq: { question: string; answer: string }) => ({
         question: faq.question.trim(),
         answer: faq.answer.trim(),
@@ -646,159 +671,18 @@ export class GuideForm implements OnInit, OnDestroy {
   }
 
   private persistGuide(): Observable<Guide> {
-    const guideId = this.guideId;
-    if (guideId) {
-      return this.uploadPendingBlockImages(guideId).pipe(
-        switchMap(() => this.api.update(guideId, this.toInput())),
-      );
-    }
-
-    const desired = this.toInput();
-    if (
-      !Object.keys(this.pendingBlockImages()).length &&
-      !Object.keys(this.pendingBlockMedia()).length
-    ) {
-      return this.api.create(desired);
-    }
-
-    return this.api
-      .create(this.bootstrapInput(desired))
-      .pipe(
-        switchMap((guide) =>
-          this.uploadPendingBlockImages(guide.id).pipe(
-            switchMap(() => this.api.update(guide.id, this.toInput())),
-          ),
-        ),
-      );
+    const input = this.toInput();
+    return this.guideId
+      ? this.api.update(this.guideId, input)
+      : this.api
+          .create(input)
+          .pipe(tap((guide) => this.rememberCreatedGuide(guide)));
   }
 
-  private uploadPendingBlockImages(guideId: string): Observable<void> {
-    const uploads: Observable<unknown>[] = [];
-    for (const language of ['ptPT', 'enUS'] as const) {
-      this.blocksFor(language).controls.forEach((block) => {
-        const clientId = this.blockClientId(block);
-        const file = this.pendingBlockImages()[clientId];
-        const mediaId = this.pendingBlockMedia()[clientId];
-        if (!file && !mediaId) return;
-        uploads.push(
-          (file
-            ? this.api.uploadContentImage(guideId, file)
-            : this.api.useMediaContentImage(guideId, mediaId as string)
-          ).pipe(
-            tap((image) => {
-              block.get('imageUrl')?.setValue(image.url);
-              this.clearPendingBlockImage(clientId);
-            }),
-          ),
-        );
-      });
-    }
-    return uploads.length
-      ? forkJoin(uploads).pipe(map(() => undefined))
-      : of(undefined);
-  }
-
-  private bootstrapInput(input: GuideInput): GuideInput {
-    const withoutPendingImages = (
-      translation: GuideTranslation,
-    ): GuideTranslation => ({
-      ...translation,
-      blocks: translation.blocks.filter(
-        (block) => block.type !== 'IMAGE' || Boolean(block.imageUrl),
-      ),
-    });
-    return {
-      ...input,
-      status: 'DRAFT',
-      publishedAt: null,
-      translations: {
-        'pt-PT': withoutPendingImages(input.translations['pt-PT']),
-        'en-US': withoutPendingImages(input.translations['en-US']),
-      },
-    };
-  }
-
-  private hasInvalidImageBlocks(): boolean {
-    return (['ptPT', 'enUS'] as const).some((language) =>
-      this.blocksFor(language).controls.some((block) => {
-        if (block.get('type')?.value !== 'IMAGE') return false;
-        const hasImage =
-          Boolean(String(block.get('imageUrl')?.value ?? '').trim()) ||
-          Boolean(this.pendingBlockImages()[this.blockClientId(block)]) ||
-          Boolean(this.pendingBlockMedia()[this.blockClientId(block)]);
-        return !hasImage || !String(block.get('imageAlt')?.value ?? '').trim();
-      }),
-    );
-  }
-
-  protected blockClientId(block: {
-    get(name: string): { value: unknown } | null;
-  }): string {
-    return String(block.get('clientId')?.value ?? '');
-  }
-
-  private loadStoredBlockPreviews(): void {
-    const referencesByUrl = new Map<string, string[]>();
-    (['ptPT', 'enUS'] as const).forEach((language) => {
-      this.blocksFor(language).controls.forEach((block) => {
-        const imageUrl = String(block.get('imageUrl')?.value ?? '').trim();
-        const adminUrl = this.storedBlockImageAdminUrl(imageUrl);
-        if (!adminUrl) return;
-        const clientIds = referencesByUrl.get(adminUrl) ?? [];
-        clientIds.push(this.blockClientId(block));
-        referencesByUrl.set(adminUrl, clientIds);
-      });
-    });
-
-    referencesByUrl.forEach((clientIds, adminUrl) => {
-      this.mediaApi.download(adminUrl).subscribe({
-        next: (blob) =>
-          this.blockImagePreviews.update((previews) => ({
-            ...previews,
-            ...Object.fromEntries(
-              clientIds.map((clientId) => [
-                clientId,
-                URL.createObjectURL(blob),
-              ]),
-            ),
-          })),
-      });
-    });
-  }
-
-  private storedBlockImageAdminUrl(url: string): string | null {
-    const storedImage = url.match(
-      /^\/api\/guides\/images\/content\/([^/]+)\/([^/?]+)/,
-    );
-    return storedImage
-      ? `/api/admin/guides/${storedImage[1]}/content-images/${storedImage[2]}`
-      : null;
-  }
-
-  private clearPendingBlockImage(clientId: string): void {
-    const preview = this.blockImagePreviews()[clientId];
-    if (preview) URL.revokeObjectURL(preview);
-    this.pendingBlockImages.update((images) => {
-      const next = { ...images };
-      delete next[clientId];
-      return next;
-    });
-    this.pendingBlockMedia.update((images) => {
-      const next = { ...images };
-      delete next[clientId];
-      return next;
-    });
-    this.blockImagePreviews.update((previews) => {
-      const next = { ...previews };
-      delete next[clientId];
-      return next;
-    });
-  }
-
-  private clearAllPendingBlockImages(): void {
-    Object.keys(this.blockImagePreviews()).forEach((clientId) =>
-      this.clearPendingBlockImage(clientId),
-    );
+  private publishedAtInput(status: GuideStatus, value: string): string | null {
+    if (status !== 'PUBLISHED' || !value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date.toISOString();
   }
 
   private commaSeparated(value: string): string[] {
@@ -806,12 +690,6 @@ export class GuideForm implements OnInit, OnDestroy {
       .split(',')
       .map((item) => item.trim())
       .filter(Boolean);
-  }
-
-  private hasEmptyBlockCollections(): boolean {
-    return (
-      this.blocksFor('ptPT').length === 0 || this.blocksFor('enUS').length === 0
-    );
   }
 
   private toLocalDateTime(value: string | null): string {

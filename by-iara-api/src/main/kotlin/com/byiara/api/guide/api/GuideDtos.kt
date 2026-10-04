@@ -9,25 +9,26 @@ import com.byiara.api.guide.domain.GuideImageType
 import com.byiara.api.guide.domain.GuideStatus
 import com.byiara.api.guide.domain.GuideTranslation
 import com.byiara.api.guide.domain.GuideTranslationCommand
+import com.byiara.api.guide.domain.InvalidGuideException
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.OffsetDateTime
 import java.util.UUID
+import org.jsoup.Jsoup
+import org.jsoup.safety.Safelist
 
 data class GuideRequest(
     val status: GuideStatus = GuideStatus.DRAFT,
 
-    @field:NotBlank
     @field:Size(max = 160)
-    val author: String,
+    val author: String = "",
 
     val publishedAt: OffsetDateTime? = null,
 
-    @field:Size(min = 2, max = 2)
+    @field:Size(max = 2)
     @field:Valid
-    val translations: Map<String, GuideTranslationRequest>,
+    val translations: Map<String, GuideTranslationRequest> = emptyMap(),
 
     @field:Size(max = 12)
     val categories: List<@NotBlank @Size(max = 100) String> = emptyList(),
@@ -52,27 +53,19 @@ data class GuideRequest(
 
 data class GuideTranslationRequest(
     @field:Size(max = 140)
-    @field:Pattern(
-        regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-        message = "must contain lowercase letters, numbers, and single hyphens only",
-    )
     val slug: String? = null,
 
-    @field:NotBlank
     @field:Size(max = 180)
-    val title: String,
+    val title: String = "",
 
-    @field:NotBlank
     @field:Size(max = 600)
-    val excerpt: String,
+    val excerpt: String = "",
 
-    @field:NotBlank
     @field:Size(max = 180)
-    val seoTitle: String,
+    val seoTitle: String = "",
 
-    @field:NotBlank
     @field:Size(max = 320)
-    val metaDescription: String,
+    val metaDescription: String = "",
 
     @field:Size(max = 120)
     @field:Valid
@@ -108,10 +101,19 @@ data class GuideBlockRequest(
     @field:Size(max = 1000)
     val actionUrl: String? = null,
 ) {
-    fun toDomain(): GuideBlock =
-        GuideBlock(
+    fun toDomain(): GuideBlock {
+        if (type == GuideBlockType.RICH_TEXT) {
+            Jsoup.parseBodyFragment(text.orEmpty()).select("img[src]").forEach { image ->
+                if (!RICH_TEXT_IMAGE_SOURCE.matches(image.attr("src"))) {
+                    throw InvalidGuideException("Guide images must use an HTTPS URL or the Upload or Library action")
+                }
+            }
+        }
+        return GuideBlock(
             type = type,
-            text = text?.trim()?.ifBlank { null },
+            text = text?.trim()?.ifBlank { null }?.let {
+                if (type == GuideBlockType.RICH_TEXT) Jsoup.clean(it, RICH_TEXT_SAFELIST) else it
+            },
             headingLevel = headingLevel,
             items = items.map(String::trim).filter(String::isNotBlank),
             imageUrl = imageUrl?.trim()?.ifBlank { null },
@@ -119,11 +121,18 @@ data class GuideBlockRequest(
             actionLabel = actionLabel?.trim()?.ifBlank { null },
             actionUrl = actionUrl?.trim()?.ifBlank { null },
         )
+    }
 }
 
+private val RICH_TEXT_IMAGE_SOURCE = Regex("^(?:https://|/(?!/)).+", RegexOption.IGNORE_CASE)
+private val RICH_TEXT_SAFELIST = Safelist.basicWithImages()
+    .addTags("h2", "h3", "h4", "ul", "ol", "li", "blockquote")
+    .addAttributes("img", "alt")
+    .preserveRelativeLinks(true)
+
 data class GuideFaqRequest(
-    @field:NotBlank val question: String,
-    @field:NotBlank val answer: String,
+    val question: String = "",
+    val answer: String = "",
 ) {
     fun toDomain() = GuideFaq(question.trim(), answer.trim())
 }

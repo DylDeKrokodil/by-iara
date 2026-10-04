@@ -1,0 +1,7 @@
+{
+  "name": "guide-models",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/guide-models/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:models"]
+}

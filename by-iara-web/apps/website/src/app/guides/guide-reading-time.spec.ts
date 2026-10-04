@@ -21,15 +21,11 @@ function translationWithWords(wordCount: number): GuideTranslation {
 
 describe('estimateGuideReadingMinutes', () => {
   it('returns at least one minute for short guides', () => {
-    expect(
-      estimateGuideReadingMinutes(translationWithWords(20)),
-    ).toBe(1);
+    expect(estimateGuideReadingMinutes(translationWithWords(20))).toBe(1);
   });
 
   it('rounds partial minutes up', () => {
-    expect(
-      estimateGuideReadingMinutes(translationWithWords(201)),
-    ).toBe(2);
+    expect(estimateGuideReadingMinutes(translationWithWords(201))).toBe(2);
   });
 
   it('includes lists and FAQs in the estimate', () => {
@@ -43,6 +39,17 @@ describe('estimateGuideReadingMinutes', () => {
       answer: 'five six',
     });
 
+    expect(estimateGuideReadingMinutes(translation)).toBe(2);
+  });
+
+  it('counts words in rich text without counting markup', () => {
+    const translation = translationWithWords(0);
+    translation.blocks = [
+      {
+        type: 'RICH_TEXT',
+        text: `<h2>Guide title</h2><ul><li>${'word '.repeat(199)}</li></ul><p>&amp;</p>`,
+      },
+    ];
     expect(estimateGuideReadingMinutes(translation)).toBe(2);
   });
 });

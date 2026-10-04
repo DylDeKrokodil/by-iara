@@ -57,6 +57,66 @@
   gap: var(--byiara-space-md);
 }
 
+:host ::ng-deep .rich-content {
+  display: flow-root;
+}
+:host ::ng-deep .rich-content > * {
+  margin-block: 0;
+}
+:host ::ng-deep .rich-content > * + * {
+  margin-block-start: 0.9rem;
+}
+:host ::ng-deep .rich-content > :is(h2, h3, h4) {
+  margin-block-start: 1.75rem;
+  line-height: 1.25;
+}
+:host ::ng-deep .rich-content > :first-child {
+  margin-block-start: 0;
+}
+:host ::ng-deep .rich-content > :is(h2, h3, h4) + *,
+:host ::ng-deep .rich-content > p + :is(ul, ol) {
+  margin-block-start: 0.6rem;
+}
+:host ::ng-deep .rich-content :is(p, li) {
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+:host ::ng-deep .rich-content li p {
+  margin: 0;
+}
+:host ::ng-deep .rich-content li + li {
+  margin-block-start: 0.3rem;
+}
+:host ::ng-deep .rich-content :is(ul, ol) {
+  padding-left: 1.5rem;
+}
+:host ::ng-deep .rich-content ul {
+  list-style: disc;
+}
+:host ::ng-deep .rich-content ol {
+  list-style: decimal;
+}
+:host ::ng-deep .rich-content img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--byiara-radius-lg);
+}
+:host ::ng-deep .rich-content > img {
+  margin-block-start: 1.5rem;
+}
+:host ::ng-deep .rich-content > blockquote {
+  padding-left: var(--byiara-space-lg);
+  border-left: 3px solid var(--byiara-color-primary);
+  color: var(--byiara-color-text-muted);
+  font-size: 1.2rem;
+  font-style: italic;
+}
+:host ::ng-deep .rich-content blockquote p {
+  margin: 0;
+  font-size: inherit;
+}
+
 .guide-body p,
 .guide-body li,
 .faq-section p {

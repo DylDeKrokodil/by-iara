@@ -19,6 +19,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jsoup:jsoup:1.23.2")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-flyway")
 	implementation("org.springframework.boot:spring-boot-starter-jooq")

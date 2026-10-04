@@ -1,5 +1,6 @@
 package com.byiara.api.common.api
 
+import com.byiara.api.media.application.InvalidMediaImageException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -9,6 +10,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    @ExceptionHandler(InvalidMediaImageException::class)
+    fun handleInvalidMediaImage(exception: InvalidMediaImageException): ResponseEntity<ApiErrorResponse> =
+        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+            ApiErrorResponse(message = exception.message ?: "Use a valid JPEG or PNG image")
+        )
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleHttpMessageNotReadable(exception: HttpMessageNotReadableException): ResponseEntity<ApiErrorResponse> {
