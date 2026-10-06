@@ -30,6 +30,10 @@ class ReservationEmailService(
     private val businessPhone: String,
     @Value("\${by-iara.business-address:}")
     private val businessAddress: String,
+    @Value("\${by-iara.business-map-address:}")
+    private val businessMapAddress: String,
+    @Value("\${by-iara.business-map-url:}")
+    private val businessMapUrl: String,
     @Value("\${by-iara.business-email}")
     private val businessEmail: String,
     @Value("\${by-iara.google-review-url:}")
@@ -62,6 +66,8 @@ class ReservationEmailService(
                 zoneId,
                 businessPhone,
                 businessAddress,
+                businessMapAddress,
+                businessMapUrl,
             ) ?: return@runCatching
             val type = when (reservation.status) {
                 ReservationStatus.CONFIRMED -> {

@@ -19,6 +19,7 @@ import jakarta.mail.Session
 import jakarta.mail.internet.MimeMessage
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -198,24 +199,28 @@ class ReservationEmailServiceTests {
     }
 
     @Test
-    fun `confirmation includes exact location and links for Google and Apple Maps`() {
+    fun `confirmation shows full address but links only the building address`() {
         val address = "Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal"
-        val content = EmailCopy.reservationDecision(
-            reservation(ReservationStatus.CONFIRMED, ReservationLocale.EN),
-            zone,
-            businessAddress = address,
-        )!!
+        val mapAddress = "Rua Vila do Seixal 5, 2810-141 Almada, Portugal"
+        val mapUrl = "https://maps.app.goo.gl/iW88NpBX3r4atDVL8"
+        for ((locale, locationLabel) in listOf(
+            ReservationLocale.EN to "Location",
+            ReservationLocale.PT to "Local",
+        )) {
+            val content = EmailCopy.reservationDecision(
+                reservation(ReservationStatus.CONFIRMED, locale),
+                zone,
+                businessAddress = address,
+                businessMapAddress = mapAddress,
+                businessMapUrl = mapUrl,
+            )!!
 
-        assertTrue(content.body.contains("Location: $address"))
-        assertTrue(content.body.contains("https://www.google.com/maps/search/?api=1&query=Iara+Gouveia%2C+Rua+Vila"))
-        assertTrue(content.body.contains("https://maps.apple.com/?q=Iara+Gouveia%2C+Rua+Vila"))
-        assertTrue(content.htmlBody!!.contains("1.º direito"))
-        assertTrue(content.htmlBody.contains("Google Maps"))
-        assertTrue(content.htmlBody.contains("Apple Maps"))
-        assertTrue(content.htmlBody.contains("colspan=\"2\""))
-        assertTrue(content.htmlBody.contains("text-align:left;\">$address"))
-        assertTrue(content.body.contains("email app may show an option to add or accept"))
-        assertTrue(content.htmlBody.contains("iara-gouveia-appointment.ics"))
+            assertTrue(content.body.contains("$locationLabel: $address"))
+            assertTrue(content.htmlBody!!.contains("text-align:left;\">$address</span>"))
+            assertTrue(Regex("""<a href="${Regex.escape(mapUrl)}"[^>]*>${Regex.escape(mapAddress)}</a>""").containsMatchIn(content.htmlBody))
+            assertFalse(Regex("""<a\b[^>]*>[^<]*1.º direito""").containsMatchIn(content.htmlBody))
+            assertTrue(content.htmlBody.contains("colspan=\"2\""))
+        }
     }
 
     @Test

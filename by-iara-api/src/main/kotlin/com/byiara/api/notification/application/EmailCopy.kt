@@ -134,6 +134,8 @@ object EmailCopy {
         zoneId: ZoneId,
         businessPhone: String = "",
         businessAddress: String = "",
+        businessMapAddress: String = "",
+        businessMapUrl: String = "",
     ): EmailContent? {
         val locale = when (reservation.locale) {
             ReservationLocale.PT -> Locale.forLanguageTag("pt-PT")
@@ -147,6 +149,8 @@ object EmailCopy {
                 whenText,
                 businessPhone.trim(),
                 businessAddress.trim(),
+                businessMapAddress.trim(),
+                businessMapUrl.trim(),
             )
             ReservationStatus.REJECTED -> rejected(reservation, whenText)
             ReservationStatus.CANCELLED -> cancelled(reservation, whenText)
@@ -582,11 +586,11 @@ object EmailCopy {
         whenText: String,
         businessPhone: String,
         businessAddress: String,
+        businessMapAddress: String,
+        businessMapUrl: String,
     ): EmailContent {
         val name = reservation.customer.name
         val address = businessAddress.takeIf(String::isNotBlank)
-        val googleMapsUrl = address?.let { mapsUrl("https://www.google.com/maps/search/?api=1&query=", it) }
-        val appleMapsUrl = address?.let { mapsUrl("https://maps.apple.com/?q=", it) }
         val rows = buildList {
             add("Service" to escapeHtml(reservation.serviceName))
             add("When" to whenText)
@@ -598,8 +602,6 @@ object EmailCopy {
             listOf(
                 "",
                 "Local: $it",
-                "Google Maps: $googleMapsUrl",
-                "Apple Maps: $appleMapsUrl",
                 "",
                 "Adicionar ao calendário",
                 "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro iara-gouveia-marcacao.ics em anexo.",
@@ -609,29 +611,23 @@ object EmailCopy {
             listOf(
                 "",
                 "Location: $it",
-                "Google Maps: $googleMapsUrl",
-                "Apple Maps: $appleMapsUrl",
                 "",
                 "Add to your calendar",
                 "Your email app may show an option to add or accept this appointment. If it does not, open the attached iara-gouveia-appointment.ics file.",
             )
         }.orEmpty()
         val portugueseLocationHtml = address?.let {
-            locationAndCalendarHtml(
-                heading = "Local",
-                address = it,
-                googleMapsUrl = requireNotNull(googleMapsUrl),
-                appleMapsUrl = requireNotNull(appleMapsUrl),
+            locationFollowupHtml(
+                mapAddress = businessMapAddress,
+                mapUrl = businessMapUrl,
                 calendarHeading = "Adicionar ao calendário",
                 calendarCopy = "A sua aplicação de email pode mostrar uma opção para adicionar ou aceitar esta marcação. Se não aparecer, abra o ficheiro <strong>iara-gouveia-marcacao.ics</strong> em anexo.",
             )
         }.orEmpty()
         val englishLocationHtml = address?.let {
-            locationAndCalendarHtml(
-                heading = "Location",
-                address = it,
-                googleMapsUrl = requireNotNull(googleMapsUrl),
-                appleMapsUrl = requireNotNull(appleMapsUrl),
+            locationFollowupHtml(
+                mapAddress = businessMapAddress,
+                mapUrl = businessMapUrl,
                 calendarHeading = "Add to your calendar",
                 calendarCopy = "Your email app may show an option to add or accept this appointment. If it does not, open the attached <strong>iara-gouveia-appointment.ics</strong> file.",
             )
@@ -904,27 +900,18 @@ object EmailCopy {
         </table>
     """.trimIndent()
 
-    private fun locationAndCalendarHtml(
-        heading: String,
-        address: String,
-        googleMapsUrl: String,
-        appleMapsUrl: String,
+    private fun locationFollowupHtml(
+        mapAddress: String,
+        mapUrl: String,
         calendarHeading: String,
         calendarCopy: String,
     ): String = """
-        <h2 style="$subheadingStyle">${escapeHtml(heading)}</h2>
-        <p style="$paragraphStyle">
-          ${escapeHtml(address)}<br />
-          <a href="${escapeHtml(googleMapsUrl)}" style="color:$PRIMARY; font-weight:600;">Google Maps</a>
-          &nbsp;&middot;&nbsp;
-          <a href="${escapeHtml(appleMapsUrl)}" style="color:$PRIMARY; font-weight:600;">Apple Maps</a>
-        </p>
+        ${if (mapAddress.isNotBlank() && mapUrl.isNotBlank()) {
+            """<p style="$paragraphStyle"><a href="${escapeHtml(mapUrl)}" style="color:$PRIMARY; text-decoration:underline;">${escapeHtml(mapAddress)}</a></p>"""
+        } else ""}
         <h2 style="$subheadingStyle">${escapeHtml(calendarHeading)}</h2>
         <p style="$paragraphStyle">$calendarCopy</p>
     """.trimIndent()
-
-    private fun mapsUrl(baseUrl: String, address: String): String =
-        baseUrl + urlEncode("Iara Gouveia, $address")
 
     private fun urlEncode(value: String): String = URLEncoder.encode(value, StandardCharsets.UTF_8)
 
