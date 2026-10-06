@@ -34,6 +34,8 @@ services:
       # the private telephone channel for health and safety concerns.
       BUSINESS_PHONE: ${BUSINESS_PHONE:-}
       BUSINESS_ADDRESS: ${BUSINESS_ADDRESS:-Rua Vila do Seixal 5, 1.º direito, 2810-141 Almada, Portugal}
+      BUSINESS_MAP_ADDRESS: ${BUSINESS_MAP_ADDRESS:-Rua Vila do Seixal 5, 2810-141 Almada, Portugal}
+      BUSINESS_MAP_URL: ${BUSINESS_MAP_URL:-https://maps.app.goo.gl/iW88NpBX3r4atDVL8}
       BUSINESS_EMAIL: ${BUSINESS_EMAIL:-info@iaragouveia.com}
       BUSINESS_TIMEZONE: ${BUSINESS_TIMEZONE:-Europe/Lisbon}
       # A human clicks this link from their own browser, not container-to-container --

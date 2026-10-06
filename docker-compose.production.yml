@@ -128,6 +128,8 @@ services:
       NOTIFICATIONS_FROM_ADDRESS: ${NOTIFICATIONS_FROM_ADDRESS:?Set NOTIFICATIONS_FROM_ADDRESS in .env.production}
       BUSINESS_PHONE: ${BUSINESS_PHONE:?Set BUSINESS_PHONE in .env.production}
       BUSINESS_ADDRESS: ${BUSINESS_ADDRESS:?Set BUSINESS_ADDRESS in .env.production}
+      BUSINESS_MAP_ADDRESS: ${BUSINESS_MAP_ADDRESS:-Rua Vila do Seixal 5, 2810-141 Almada, Portugal}
+      BUSINESS_MAP_URL: ${BUSINESS_MAP_URL:-https://maps.app.goo.gl/iW88NpBX3r4atDVL8}
       BUSINESS_EMAIL: ${BUSINESS_EMAIL:?Set BUSINESS_EMAIL in .env.production}
       ADMIN_URL: https://admin.${DOMAIN}
       WEBSITE_URL: https://${DOMAIN}
