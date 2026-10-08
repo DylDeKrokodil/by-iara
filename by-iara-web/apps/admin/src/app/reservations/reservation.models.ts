@@ -113,6 +113,7 @@ export interface RecordPaymentInput {
 
 export interface CompleteReservationInput {
   payment?: RecordPaymentInput;
+  sendCompletionEmail?: boolean;
   discount?: {
     valueType: 'PERCENTAGE' | 'FIXED_AMOUNT';
     valueAmount: number;

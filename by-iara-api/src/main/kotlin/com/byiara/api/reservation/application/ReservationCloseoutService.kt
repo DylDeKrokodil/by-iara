@@ -39,7 +39,11 @@ class ReservationCloseoutService(
         id: UUID,
         payment: RecordReservationPaymentCommand?,
         discount: CompletionDiscountCommand? = null,
+        sendCompletionEmail: Boolean = true,
     ): Reservation {
+        if (!sendCompletionEmail && discount != null) {
+            throw InvalidReservationRequestException("A completion discount requires a completion email")
+        }
         val reservation = requireConfirmed(id, ReservationStatus.COMPLETED)
         if (reservation.endsAt.isAfter(OffsetDateTime.now())) {
             throw InvalidReservationRequestException("A reservation cannot be completed before its end time")
@@ -52,7 +56,9 @@ class ReservationCloseoutService(
         }
         val completed = reservationRepository.findById(id) ?: throw ReservationNotFoundException(id)
         val createdDiscount = discount?.let { createCompletionDiscount(completed, it) }
-        reservationEmailService.notifyCustomerOfCompletion(completed, createdDiscount)
+        if (sendCompletionEmail) {
+            reservationEmailService.notifyCustomerOfCompletion(completed, createdDiscount)
+        }
         return completed
     }
 

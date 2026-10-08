@@ -1335,6 +1335,63 @@ class ReservationApiTests {
     }
 
     @Test
+    fun `admin can complete a reservation without sending the completion email`() {
+        val id = insertReservation(
+            start = OffsetDateTime.now(zone).minusHours(2),
+            status = "CONFIRMED",
+            email = "quiet-completion@example.com",
+        )
+
+        mockMvc.perform(
+            patch("/api/admin/reservations/$id/complete")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "sendCompletionEmail":false,
+                      "payment":{"amountCents":7500,"currency":"EUR","method":"CARD"}
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("COMPLETED"))
+
+        mockMvc.perform(get("/api/admin/reservations/$id/payments").with(adminJwt()))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.summary.totalPaidCents").value(7500))
+        assertEquals(0L, dsl.fetchValue("select count(*) from email_logs where email_type = 'RESERVATION_COMPLETED'", Long::class.java))
+    }
+
+    @Test
+    fun `completion discount cannot be created when the completion email is disabled`() {
+        val id = insertReservation(
+            start = OffsetDateTime.now(zone).minusHours(2),
+            status = "CONFIRMED",
+            email = "quiet-discount@example.com",
+        )
+
+        mockMvc.perform(
+            patch("/api/admin/reservations/$id/complete")
+                .with(adminJwt())
+                .contentType("application/json")
+                .content(
+                    """
+                    {
+                      "sendCompletionEmail":false,
+                      "discount":{"valueType":"PERCENTAGE","valueAmount":1500,"validityDays":21}
+                    }
+                    """.trimIndent(),
+                ),
+        )
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.message").value("A completion discount requires a completion email"))
+
+        assertEquals("CONFIRMED", dsl.fetchOne("select status from reservations where id = ?", id)!!.get("status", String::class.java))
+    }
+
+    @Test
     fun `customer can buy access and redeem a session pack through email verification`() {
         val offerId = UUID.randomUUID()
         dsl.query(

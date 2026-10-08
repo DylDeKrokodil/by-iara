@@ -122,6 +122,7 @@ class AdminReservationController(
         id,
         request?.payment?.toCommand(),
         request?.discount?.toCommand(),
+        request?.sendCompletionEmail ?: true,
     ).toResponse()
 
     @PatchMapping("/{id}/no-show")
