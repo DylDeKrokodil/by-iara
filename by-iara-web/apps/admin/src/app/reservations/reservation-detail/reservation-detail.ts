@@ -222,6 +222,9 @@ export class ReservationDetail implements OnInit {
     validityDays: ['30', [Validators.required, Validators.pattern(/^\d+$/)]],
     sameServiceOnly: [false],
   });
+  protected readonly completionEmailForm = this.fb.nonNullable.group({
+    sendCompletionEmail: [true],
+  });
 
   @ViewChild('confirmAcceptModal')
   private confirmAcceptModal!: ConfirmationModal;
@@ -540,6 +543,7 @@ export class ReservationDetail implements OnInit {
       validityDays: '30',
       sameServiceOnly: false,
     });
+    this.completionEmailForm.reset({ sendCompletionEmail: true });
     this.selectedDiscountType.set('PERCENTAGE');
   }
 
@@ -552,6 +556,7 @@ export class ReservationDetail implements OnInit {
       validityDays: '30',
       sameServiceOnly: false,
     });
+    this.completionEmailForm.reset({ sendCompletionEmail: true });
   }
 
   protected completionRecordsPayment(): boolean {
@@ -559,7 +564,14 @@ export class ReservationDetail implements OnInit {
   }
 
   protected completionIncludesDiscount(): boolean {
-    return this.completionDiscountForm.controls.includeDiscount.value;
+    return (
+      this.sendCompletionEmail() &&
+      this.completionDiscountForm.controls.includeDiscount.value
+    );
+  }
+
+  protected sendCompletionEmail(): boolean {
+    return this.completionEmailForm.controls.sendCompletionEmail.value;
   }
 
   protected setDiscountType(value: string): void {
@@ -600,7 +612,9 @@ export class ReservationDetail implements OnInit {
     }
 
     this.submitting.set(true);
+    const sendCompletionEmail = this.sendCompletionEmail();
     const input = {
+      sendCompletionEmail,
       ...(this.completionRecordsPayment()
         ? { payment: this.paymentInput(reservation) }
         : {}),
@@ -615,9 +629,11 @@ export class ReservationDetail implements OnInit {
         this.submitting.set(false);
         this.reloadPayments();
         this.toast.show(
-          this.completionIncludesDiscount()
-            ? 'Reservation completed. The thank-you email includes the review link and personal discount.'
-            : 'Reservation completed and thank-you email sent.',
+          !sendCompletionEmail
+            ? 'Reservation completed. No completion email was sent.'
+            : this.completionIncludesDiscount()
+              ? 'Reservation completed. The thank-you email includes the review link and personal discount.'
+              : 'Reservation completed and thank-you email sent.',
           'success',
         );
       },

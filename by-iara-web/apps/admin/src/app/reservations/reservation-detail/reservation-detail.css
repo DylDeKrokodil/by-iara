@@ -313,7 +313,7 @@
   line-height: 1.5;
 }
 
-.completion-discount {
+.completion-option {
   display: grid;
   gap: var(--byiara-space-md);
   margin-top: var(--byiara-space-lg);

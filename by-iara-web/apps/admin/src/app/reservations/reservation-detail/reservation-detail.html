@@ -478,7 +478,18 @@
         }
       </div>
       <section
-        class="completion-discount"
+        class="completion-option"
+        [formGroup]="completionEmailForm"
+        aria-label="Completion email"
+      >
+        <byiara-checkbox
+          label="Send completion email to customer"
+          formControlName="sendCompletionEmail"
+        ></byiara-checkbox>
+      </section>
+      @if (sendCompletionEmail()) {
+      <section
+        class="completion-option"
         [formGroup]="completionDiscountForm"
         aria-label="Thank-you discount"
       >
@@ -519,6 +530,7 @@
         </p>
         }
       </section>
+      }
       <p class="form-note">
         Completion records the appointment outcome. Payment can also be recorded
         later.

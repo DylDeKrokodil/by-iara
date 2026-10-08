@@ -243,6 +243,8 @@ data class CompleteReservationRequest(
 
     @field:Valid
     val discount: CompletionDiscountRequest? = null,
+
+    val sendCompletionEmail: Boolean = true,
 )
 
 data class CompletionDiscountRequest(
